@@ -71,7 +71,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           IMAGE_NAME="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/esnaaf-musteri:latest"
-          docker build -t $IMAGE_NAME app-musteri
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="https://esnaaf-backend-339090537138.europe-west3.run.app" \
+            --build-arg NEXT_PUBLIC_WS_URL="https://esnaaf-backend-339090537138.europe-west3.run.app" \
+            -t $IMAGE_NAME app-musteri
           docker push $IMAGE_NAME
 
       - name: Deploy to Cloud Run
@@ -106,7 +109,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           IMAGE_NAME="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/esnaaf-hizmetveren:latest"
-          docker build -t $IMAGE_NAME app-hizmetveren
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="https://esnaaf-backend-339090537138.europe-west3.run.app" \
+            --build-arg NEXT_PUBLIC_WS_URL="https://esnaaf-backend-339090537138.europe-west3.run.app" \
+            -t $IMAGE_NAME app-hizmetveren
           docker push $IMAGE_NAME
 
       - name: Deploy to Cloud Run
