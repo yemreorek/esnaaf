@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: esnaaf-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: esnaaf_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:6-alpine
+    container_name: esnaaf-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build:
+      context: ./backend-api
+      dockerfile: Dockerfile
+    container_name: esnaaf-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/esnaaf_db?schema=public
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+
+volumes:
+  postgres_data:

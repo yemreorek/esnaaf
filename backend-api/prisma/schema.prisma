@@ -1,0 +1,673 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ── ENUMS (Faz 1) ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  service_seeker
+  service_provider
+  admin
+}
+
+enum RequestStatus {
+  pending
+  distributed
+  completed
+  cancelled
+}
+
+enum OfferStatus {
+  pending
+  accepted
+  rejected
+  cancelled
+}
+
+enum MessageType {
+  text
+  image
+  audio
+}
+
+enum AlarmLevel {
+  none
+  info
+  yellow
+  red
+}
+
+enum DisputeStatus {
+  none
+  open
+  resolved
+}
+
+enum JobCompletionStatus {
+  pending_provider
+  pending_seeker
+  completed
+  disputed
+  cancelled
+}
+
+enum StaffRole {
+  super_admin
+  team_leader
+  quality_staff
+  ops_staff
+  finance_staff
+  marketing_staff
+  sales_staff
+  hr_staff
+  executive
+  rnd_staff
+}
+
+// ── MODELLER (Faz 1 - Aktif) ──────────────────────────────────────────────────
+
+model User {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  phone                   String                  @unique
+  phone_masked            String
+  name                    String?
+  email                   String?
+  role                    UserRole
+  kvkk_consent            Boolean                 @default(false)
+  kvkk_consent_date       DateTime?
+  marketing_consent       Boolean                 @default(false)
+  is_active               Boolean                 @default(true)
+  created_at              DateTime                @default(now())
+  deleted_at              DateTime?
+  service_provider        ServiceProvider?
+  service_requests        ServiceRequest[]
+  sent_messages           Message[]               @relation("SentMessages")
+  received_messages       Message[]               @relation("ReceivedMessages")
+  accepted_offers         AcceptedOffer[]
+  fcm_token               String?
+  notification_logs       NotificationLog[]
+  notification_preference NotificationPreference?
+  reviews_written         Review[]                @relation("UserReviews")
+  balance                 Decimal                 @default(0) @db.Decimal(10, 2)
+  referrals_made          Referral[]              @relation("Referrer")
+  referrals_received      Referral[]              @relation("Referee")
+  favorites               FavoriteProvider[]      @relation("SeekerFavorites")
+
+  @@map("users")
+  @@index([role])
+}
+
+model ServiceProvider {
+  id                String                 @id @default(uuid()) @db.Uuid
+  user_id           String                 @unique @db.Uuid
+  user              User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  category_ids      String[]               @db.Uuid
+  description       String?
+  avg_rating        Decimal?               @db.Decimal(3, 2)
+  total_jobs        Int                    @default(0)
+  response_time_avg Int?
+  is_approved       Boolean                @default(false)
+  approved_at       DateTime?
+  subscription_id   String?                @db.Uuid
+  city              String                 @default("Adana")
+  service_districts String[]               @default([])
+  offers            Offer[]
+  accepted_offers   AcceptedOffer[]
+  job_completions   JobCompletion[]
+  subscription      Subscription?
+  campaign_usages   CampaignUsage[]
+  monthly_quotas    ProviderMonthlyQuota[]
+  reviews_received  Review[]               @relation("ProviderReviews")
+  favorited_by      FavoriteProvider[]     @relation("ProviderFavoritedBy")
+
+  @@map("service_providers")
+}
+
+model Category {
+  id               String           @id @default(uuid()) @db.Uuid
+  name             String           @unique
+  isActive         Boolean          @default(true)
+  created_at       DateTime         @default(now())
+  service_requests ServiceRequest[]
+
+  @@map("categories")
+}
+
+model ServiceRequest {
+  id                String           @id @default(uuid()) @db.Uuid
+  seeker_id         String           @db.Uuid
+  seeker            User             @relation(fields: [seeker_id], references: [id], onDelete: Cascade)
+  category_id       String           @db.Uuid
+  category          Category         @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  form_data         Json
+  status            RequestStatus    @default(pending)
+  created_at        DateTime         @default(now())
+  offers            Offer[]
+  accepted_offers   AcceptedOffer[]
+  messages          Message[]
+  job_completions   JobCompletion[]
+  phone_reveal_logs PhoneRevealLog[]
+  reviews           Review[]
+
+  @@index([seeker_id, status])
+  @@index([status, created_at(sort: Desc)])
+  @@index([category_id, status])
+  @@map("service_requests")
+}
+
+model Offer {
+  id              String          @id @default(uuid()) @db.Uuid
+  job_id          String          @db.Uuid
+  job             ServiceRequest  @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  provider_id     String          @db.Uuid
+  provider        ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  price           Decimal
+  message         String?
+  status          OfferStatus     @default(pending)
+  accepted_at     DateTime?
+  created_at      DateTime        @default(now())
+  accepted_offers AcceptedOffer[]
+  messages        Message[]
+  job_completions JobCompletion[]
+
+  @@unique([job_id, provider_id])
+  @@index([provider_id, status])
+  @@index([job_id, status])
+  @@map("offers")
+}
+
+model AcceptedOffer {
+  id                String          @id @default(uuid()) @db.Uuid
+  job_id            String          @db.Uuid
+  job               ServiceRequest  @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  offer_id          String          @db.Uuid
+  offer             Offer           @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  seeker_id         String          @db.Uuid
+  seeker            User            @relation(fields: [seeker_id], references: [id], onDelete: Cascade)
+  provider_id       String          @db.Uuid
+  provider          ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  accepted_at       DateTime        @default(now())
+  seeker_consent    Boolean         @default(false)
+  seeker_consent_at DateTime?
+
+  @@index([job_id])
+  @@index([provider_id])
+  @@map("accepted_offers")
+}
+
+model PhoneRevealLog {
+  id               String         @id @default(uuid()) @db.Uuid
+  requester_id     String         @db.Uuid
+  revealed_user_id String         @db.Uuid
+  job_id           String         @db.Uuid
+  job              ServiceRequest @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  revealed_at      DateTime       @default(now())
+
+  @@map("phone_reveal_logs")
+}
+
+model TempSession {
+  id                   String   @id @default(uuid()) @db.Uuid
+  session_uuid         String   @unique
+  collected_data       Json?
+  chat_step            String?
+  converted_to_user_id String?  @db.Uuid
+  expires_at           DateTime
+  created_at           DateTime @default(now())
+
+  @@map("temp_sessions")
+}
+
+model Message {
+  id           String         @id @default(uuid()) @db.Uuid
+  job_id       String         @db.Uuid
+  job          ServiceRequest @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  offer_id     String         @db.Uuid
+  offer        Offer          @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  sender_id    String         @db.Uuid
+  sender       User           @relation("SentMessages", fields: [sender_id], references: [id], onDelete: Cascade)
+  receiver_id  String         @db.Uuid
+  receiver     User           @relation("ReceivedMessages", fields: [receiver_id], references: [id], onDelete: Cascade)
+  content      String
+  content_type MessageType    @default(text)
+  is_read      Boolean        @default(false)
+  created_at   DateTime       @default(now())
+
+  @@index([job_id, created_at(sort: Desc)])
+  @@index([receiver_id, is_read])
+  @@map("messages")
+}
+
+model JobCompletion {
+  id                       String              @id @default(uuid()) @db.Uuid
+  job_id                   String              @db.Uuid
+  job                      ServiceRequest      @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  offer_id                 String              @db.Uuid
+  offer                    Offer               @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  provider_id              String              @db.Uuid
+  provider                 ServiceProvider     @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  seeker_id                String              @db.Uuid
+  provider_declared_amount Decimal?
+  provider_confirmed       Boolean             @default(false)
+  provider_confirmed_at    DateTime?
+  seeker_declared_amount   Decimal?
+  seeker_confirmed         Boolean             @default(false)
+  seeker_confirmed_at      DateTime?
+  amount_diff              Decimal?
+  amount_diff_pct          Decimal?
+  alarm_level              AlarmLevel?
+  dispute_status           DisputeStatus       @default(none)
+  resolved_by              String?             @db.Uuid
+  resolved_at              DateTime?
+  resolution_note          String?
+  status                   JobCompletionStatus @default(pending_provider)
+  created_at               DateTime            @default(now())
+  updated_at               DateTime            @updatedAt
+  nps_responses            NpsResponse[]
+
+  @@map("job_completions")
+}
+
+model Staff {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String?
+  email         String    @unique
+  phone         String?
+  role          StaffRole
+  team_id       String?   @db.Uuid
+  is_active     Boolean   @default(true)
+  created_by    String?   @db.Uuid
+  created_at    DateTime  @default(now())
+  last_login_at DateTime?
+
+  @@index([role])
+  @@map("staff")
+}
+
+// ── FAZ 2+ MODELLERİ (YORUM SATIRI) ───────────────────────────────────────────
+
+model Review {
+  id           String       @id @default(uuid()) @db.Uuid
+  job_id       String       @db.Uuid
+  job          ServiceRequest @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  reviewer_id  String       @db.Uuid
+  reviewer     User         @relation("UserReviews", fields: [reviewer_id], references: [id], onDelete: Cascade)
+  provider_id  String       @db.Uuid
+  provider     ServiceProvider @relation("ProviderReviews", fields: [provider_id], references: [id], onDelete: Cascade)
+  rating       Int
+  comment      String?
+  document_url String?
+  status       ReviewStatus @default(pending)
+  approved_by  String?      @db.Uuid
+  approved_at  DateTime?
+  created_at   DateTime     @default(now())
+
+  @@map("reviews")
+  @@index([provider_id, status])
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+//
+// model ReviewVerification {
+//   id           String     @id @default(uuid()) @db.Uuid
+//   review_id    String     @db.Uuid
+//   verified_by  String     @db.Uuid
+//   call_attempt Int
+//   call_result  CallResult
+//   notes        String?
+//   verified_at  DateTime
+//
+//   @@map("review_verifications")
+// }
+//
+// enum CallResult {
+//   reached
+//   unreachable
+//   voicemail
+// }
+//
+// model Complaint {
+//   id             String          @id @default(uuid()) @db.Uuid
+//   job_id         String          @db.Uuid
+//   reporter_id    String          @db.Uuid
+//   reported_id    String          @db.Uuid
+//   category       ComplaintCat
+//   description    String?
+//   status         ComplaintStatus @default(open)
+//   resolved_at    DateTime?
+//   created_at     DateTime        @default(now())
+//
+//   @@map("complaints")
+//   @@index([reported_id, status])
+// }
+//
+// enum ComplaintCat {
+//   service_not_done
+//   poor_quality
+//   price_dispute
+//   other
+// }
+//
+// enum ComplaintStatus {
+//   open
+//   investigating
+//   resolved
+//   rejected
+// }
+//
+model Subscription {
+  id                      String             @id @default(uuid()) @db.Uuid
+  provider_id             String             @unique @db.Uuid
+  provider                ServiceProvider    @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  package_type            PackageType
+  status                  SubscriptionStatus
+  started_at              DateTime
+  expires_at              DateTime
+  cancelled_at            DateTime?
+  iyzico_subscription_ref String?
+  admin_granted_by        String?            @db.Uuid
+  admin_trial_note        String?
+  payments                Payment[]
+  campaign_usages         CampaignUsage[]
+
+  @@map("subscriptions")
+  @@index([status, expires_at])
+}
+
+enum PackageType {
+  basic
+  standard
+  premium
+  vip
+}
+
+enum SubscriptionStatus {
+  trial
+  admin_trial
+  active
+  cancelled
+  suspended
+  expired
+}
+
+model Payment {
+  id                     String        @id @default(uuid()) @db.Uuid
+  subscription_id        String        @db.Uuid
+  subscription           Subscription  @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  amount                 Decimal
+  status                 PaymentStatus
+  iyzico_payment_id      String?
+  attempt_count          Int
+  paid_at                DateTime?
+  created_at             DateTime      @default(now())
+
+  @@map("payments")
+  @@index([subscription_id, created_at(sort: Desc)])
+}
+
+enum PaymentStatus {
+  success
+  failed
+  refunded
+}
+
+model Campaign {
+  id                  String          @id @default(uuid()) @db.Uuid
+  name                String
+  code                String          @unique @db.VarChar(50)
+  type                CampaignType
+  value               Decimal
+  upgrade_to          PackageType?
+  applicable_packages String[]
+  new_users_only      Boolean         @default(false)
+  max_uses            Int?
+  used_count          Int             @default(0)
+  valid_from          DateTime
+  valid_until         DateTime
+  is_active           Boolean         @default(true)
+  created_by          String?         @db.Uuid
+  created_at          DateTime        @default(now())
+  usages              CampaignUsage[]
+
+  @@map("campaigns")
+}
+
+enum CampaignType {
+  percent
+  fixed
+  free_trial
+  upgrade
+  quota_bonus
+}
+
+model CampaignUsage {
+  id               String          @id @default(uuid()) @db.Uuid
+  campaign_id      String          @db.Uuid
+  campaign         Campaign        @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  provider_id      String          @db.Uuid
+  provider         ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  subscription_id  String          @db.Uuid
+  subscription     Subscription    @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  discount_amount  Decimal
+  used_at          DateTime        @default(now())
+  created_by_staff String?         @db.Uuid
+
+  @@map("campaign_usage")
+  @@index([provider_id])
+}
+
+model ProviderMonthlyQuota {
+  id             String          @id @default(uuid()) @db.Uuid
+  provider_id    String          @db.Uuid
+  provider       ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  month_year     String          @db.VarChar(7)
+  accepted_count Int             @default(0)
+  monthly_limit  Int?
+  reset_at       DateTime
+  updated_at     DateTime        @updatedAt
+
+  @@map("provider_monthly_quota")
+  @@unique([provider_id, month_year])
+}
+//
+model ResponseTime {
+  id                        String   @id @default(uuid()) @db.Uuid
+  provider_id               String   @db.Uuid
+  job_id                    String   @db.Uuid
+  notified_at               DateTime
+  responded_at              DateTime?
+  response_duration_minutes Int?
+
+  @@map("response_times")
+  @@index([provider_id, notified_at(sort: Desc)])
+}
+//
+// model Team {
+//   id         String   @id @default(uuid()) @db.Uuid
+//   name       String
+//   leader_id  String?  @db.Uuid
+//   created_at DateTime @default(now())
+//
+//   @@map("teams")
+// }
+//
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  staff_id    String   @db.Uuid
+  action      String
+  target_type String
+  target_id   String?  @db.Uuid
+  old_value   Json?
+  new_value   Json?
+  ip_address  String?
+  created_at  DateTime @default(now())
+
+  @@map("audit_logs")
+  @@index([staff_id, created_at(sort: Desc)])
+}
+//
+model CallTask {
+  id                 String          @id @default(uuid()) @db.Uuid
+  assigned_to        String?         @db.Uuid
+  job_completion_id  String          @db.Uuid
+  customer_id        String          @db.Uuid
+  priority           PriorityLevel   @default(normal)
+  status             CallTaskStatus  @default(pending)
+  attempt_count      Int             @default(0)
+  call_result        CallTaskResult?
+  notes              String?
+  due_at             DateTime
+  completed_at       DateTime?
+  created_at         DateTime        @default(now())
+
+  @@map("call_tasks")
+}
+
+enum PriorityLevel {
+  normal
+  urgent
+}
+
+enum CallTaskStatus {
+  pending
+  in_progress
+  done
+  escalated
+}
+
+enum CallTaskResult {
+  satisfied
+  partial
+  unsatisfied
+  unreachable
+}
+//
+// model ActivityLog {
+//   id         String   @id @default(uuid()) @db.Uuid
+//   user_id    String   @db.Uuid
+//   action     String
+//   metadata   Json?
+//   created_at DateTime @default(now())
+//
+//   @@map("activity_logs")
+// }
+//
+model NotificationLog {
+  id           String             @id @default(uuid()) @db.Uuid
+  user_id      String             @db.Uuid
+  user         User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  event_code   String             @db.VarChar(10)
+  channel      NotifChannel
+  status       NotifStatus        @default(pending)
+  message_id   String?
+  payload      Json
+  sent_at      DateTime           @default(now())
+  delivered_at DateTime?
+
+  @@map("notification_logs")
+  @@index([user_id, sent_at(sort: Desc)])
+}
+
+enum NotifChannel {
+  in_app
+  sms
+  email
+  push
+}
+
+enum NotifStatus {
+  sent
+  delivered
+  failed
+  pending
+}
+
+model NotificationPreference {
+  id               String   @id @default(uuid()) @db.Uuid
+  user_id          String   @unique @db.Uuid
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  whatsapp_enabled Boolean  @default(true)
+  sms_enabled      Boolean  @default(true)
+  push_enabled     Boolean  @default(true)
+  marketing_email  Boolean  @default(false)
+  updated_at       DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+model NpsResponse {
+  id                String         @id @default(uuid()) @db.Uuid
+  job_completion_id String         @db.Uuid
+  job_completion    JobCompletion  @relation(fields: [job_completion_id], references: [id], onDelete: Cascade)
+  seeker_id         String         @db.Uuid
+  provider_id       String         @db.Uuid
+  category_id       String         @db.Uuid
+  score             Int
+  group             NpsGroup
+  follow_up_text    String?
+  channel           NpsChannel
+  responded_at      DateTime
+  created_at        DateTime       @default(now())
+
+  @@map("nps_responses")
+  @@index([provider_id, created_at(sort: Desc)])
+  @@index([seeker_id, created_at(sort: Desc)])
+}
+
+enum NpsGroup {
+  promoter
+  passive
+  detractor
+}
+
+enum NpsChannel {
+  whatsapp
+  web
+}
+
+model Referral {
+  id             String       @id @default(uuid()) @db.Uuid
+  referrer_id    String       @db.Uuid
+  referrer       User         @relation("Referrer", fields: [referrer_id], references: [id], onDelete: Cascade)
+  referee_id     String?      @unique @db.Uuid
+  referee        User?        @relation("Referee", fields: [referee_id], references: [id], onDelete: Cascade)
+  code           String       @db.VarChar(12)
+  type           ReferralType
+  reward_amount  Decimal      @db.Decimal(10, 2)
+  rewarded       Boolean      @default(false)
+  rewarded_at    DateTime?
+  created_at     DateTime     @default(now())
+
+  @@map("referrals")
+  @@index([referrer_id])
+}
+
+enum ReferralType {
+  seeker_credit
+  provider_discount
+}
+
+model FavoriteProvider {
+  id          String   @id @default(uuid()) @db.Uuid
+  seeker_id   String   @db.Uuid
+  provider_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  seeker   User            @relation("SeekerFavorites", fields: [seeker_id], references: [id], onDelete: Cascade)
+  provider ServiceProvider @relation("ProviderFavoritedBy", fields: [provider_id], references: [id], onDelete: Cascade)
+
+  @@unique([seeker_id, provider_id])
+  @@index([seeker_id])
+  @@index([provider_id])
+  @@map("favorite_providers")
+}

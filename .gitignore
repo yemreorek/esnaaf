@@ -1,0 +1,53 @@
+# Portable Tools & Binaries
+/node-portable/
+/pg-portable/
+/redis-portable/
+/Docker-Desktop-Installer.exe
+/dump.rdb
+/*.log
+/nest.log
+/nest_err.log
+
+# Dependency Directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Build and Production Outputs
+dist/
+build/
+out/
+.next/
+.expo/
+ios/build/
+android/build/
+android/.gradle/
+*.apk
+*.ipa
+
+# Environment Variables & Secrets (CRITICAL SECURITY)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.prod
+*.pem
+*.key
+*.json-key
+github-deployer-key.json
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor & IDE settings
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import "./globals.css";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+export const metadata: Metadata = {
+  title: "Esnaaf — Güvenilir Esnaf ve Ustalar",
+  description: "Aradığınız güvenilir esnaf ve ustaları yapay zeka destekli sohbetle kolayca bulun.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="tr"
+      className={`${plusJakartaSans.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}

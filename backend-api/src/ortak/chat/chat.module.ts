@@ -1,0 +1,22 @@
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { BullModule } from '@nestjs/bull';
+import { ChatService } from './chat.service';
+import { ChatController } from './chat.controller';
+import { ChatGateway } from './chat.gateway';
+import { ChatRetryProcessor } from './chat-retry.processor';
+import { GeminiService } from '../../common/gemini/gemini.service';
+
+@Module({
+  imports: [
+    JwtModule.register({}),
+    BullModule.registerQueue({
+      name: 'chat-retry',
+    }),
+  ],
+  controllers: [ChatController],
+  providers: [ChatService, ChatGateway, ChatRetryProcessor, GeminiService],
+  exports: [ChatService, ChatGateway],
+})
+export class ChatModule {}
+
