@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -41,10 +42,151 @@
   --shadow-card: var(--shadow-card);
   --shadow-hover: var(--shadow-hover);
   --font-sans: var(--font-main);
+
+  /* Esnaaf M3 Palette Custom Colors */
+  --color-surface-container-lowest: #0c0e14;
+  --color-on-surface-variant: #c5c9b0;
+  --color-tertiary: #ffffff;
+  --color-surface-bright: #383940;
+  --color-secondary-container: #464749;
+  --color-background: #12131a;
+  --color-surface-container-high: #282a31;
+  --color-on-tertiary-fixed: #1a1b1f;
+  --color-on-background: #e2e1eb;
+  --color-inverse-on-surface: #2f3037;
+  --color-error-container: #93000a;
+  --color-tertiary-container: #e3e2e7;
+  --color-secondary-fixed-dim: #c7c6c9;
+  --color-surface-container: #1e1f26;
+  --color-on-secondary: #303032;
+  --color-primary-fixed-dim: #acd537;
+  --color-on-primary-container: #546d00;
+  --color-surface-variant: #33343c;
+  --color-outline-variant: #444936;
+  --color-on-tertiary-container: #646469;
+  --color-on-secondary-fixed-variant: #464749;
+  --color-error: #ffb4ab;
+  --color-on-primary: #283500;
+  --color-on-error: #690005;
+  --color-on-tertiary-fixed-variant: #46464b;
+  --color-on-tertiary: #2f3034;
+  --color-on-secondary-container: #b5b5b7;
+  --color-secondary: #c7c6c9;
+  --color-surface-tint: #acd537;
+  --color-inverse-surface: #e2e1eb;
+  --color-on-primary-fixed-variant: #3b4d00;
+  --color-primary-container: #c8f252;
+  --color-secondary-fixed: #e3e2e4;
+  --color-on-surface: #e2e1eb;
+  --color-on-primary-fixed: #161f00;
+  --color-on-secondary-fixed: #1b1c1e;
+  --color-surface-container-highest: #33343c;
+  --color-surface-container-low: #1a1b22;
+  --color-tertiary-fixed: #e3e2e7;
+  --color-on-error-container: #ffdad6;
+  --color-outline: #8e937d;
+  --color-inverse-primary: #4f6600;
+  --color-tertiary-fixed-dim: #c7c6cb;
+  --color-primary-fixed: #c8f252;
+  --color-surface-dim: #12131a;
+
+  /* Spacings */
+  --spacing-margin-desktop: 48px;
+  --spacing-gutter: 24px;
+  --spacing-base: 8px;
+  --spacing-max-width: 1440px;
+  --spacing-margin-mobile: 16px;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
   font-family: var(--font-main);
+}
+
+/* Premium Web Aesthetics Gradients and Shadows */
+.hero-glow {
+  background: radial-gradient(circle at 50% 100%, rgba(200, 242, 82, 0.4) 0%, rgba(255,255,255,0) 50%);
+}
+.particle-bg {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+.glow-hover:hover {
+  box-shadow: 0 0 20px rgba(200, 242, 82, 0.6);
+}
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 300,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+/* Custom font styles matching tailwind theme definitions */
+.font-headline-xl {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+.font-headline-lg {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+.font-body-md {
+  font-family: 'Inter', sans-serif;
+}
+.font-body-lg {
+  font-family: 'Inter', sans-serif;
+}
+.font-button-text {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+.font-label-sm {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom font-sizes */
+.text-headline-xl {
+  font-size: 48px;
+  line-height: 56px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+.text-headline-lg {
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+.text-headline-lg-mobile {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+.text-body-lg {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+}
+.text-body-md {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+.text-label-sm {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+.text-button-text {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.05em;
+  font-weight: 800;
 }
