@@ -2,6 +2,21 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-05-28 build | Adım 22 Tamamlandı — Google Cloud Platform (GCP) Canlı Ortam Kurulumu & Otomatik CI/CD Dağıtım Altyapısı
+
+- **Git ve Sessiz Kurulum Entegrasyonu:**
+    - Sisteme `winget` aracılığıyla sessizce Git kuruldu.
+    - Monorepo kök dizini için güvenli bir `.gitignore` dosyası oluşturularak; veritabanı şifreleri, `.env` dosyaları, devasa `node_modules` klasörleri ve bilgisayardaki portatif araçların (`node-portable`, `pg-portable`, `redis-portable`, `Docker-Desktop-Installer.exe` vb.) GitHub'a sızması tamamen engellendi.
+- **GitHub Entegrasyonu ve İlk Push:**
+    - Yerel Git havuzu başlatılıp yerel kimlik bilgileri yapılandırıldı.
+    - Monorepo başarıyla `https://github.com/yemreorek/esnaaf` deposunun `main` dalına push edilerek GitHub Actions tetiklendi.
+- **Next.js Build-Time Değişken Düzeltmesi (Hotfix):**
+    - Ön yüzlerin API bağlantılarını derleme sırasında (build time) alabilmesi için `app-musteri/Dockerfile` ve `app-hizmetveren/Dockerfile` dosyalarına derleme argümanları (`ARG NEXT_PUBLIC_API_URL` vb.) eklendi.
+    - `.github/workflows/deploy-gcp.yml` boru hattı güncellenerek derleme aşamasında canlı API adresi (`https://esnaaf-backend-339090537138.europe-west3.run.app`) parametre olarak geçildi.
+- **Cloud Run Backend Ön-Kurulumu ve VPC Egress:**
+    - `esnaaf-backend` API servisi Cloud Run üzerinde pre-deploy edildi. Canlı PostgreSQL veritabanı bağlantısı, güvenli rastgele üretilen JWT Secret anahtarları ve Gemini API anahtarı enjekte edildi.
+    - Servisin Memorystore Redis özel IP'sine (`10.126.134.147`) erişebilmesi için `default` VPC ağına Direct VPC Egress bağlantısı sağlandı.
+
 ## 2026-05-26 build | Adım 21 Tamamlandı — Gemini Flash & Google Gen AI SDK Aktif Ajan Entegrasyonu (Active Agent Architecture)
 
 - **Resmi `@google/genai` SDK Entegrasyonu (`backend-api/`):**
