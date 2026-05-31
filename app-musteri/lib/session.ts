@@ -22,12 +22,43 @@ export function getSessionId(): string {
   return sessionId;
 }
 
+export function isLoggedIn(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !!localStorage.getItem('esnaaf_token');
+}
+
+export function logout(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('esnaaf_token');
+  localStorage.removeItem('esnaaf_refresh_token');
+  localStorage.removeItem('esnaaf_user');
+}
+
+export function getAuthUser(): any | null {
+  if (typeof window === 'undefined') return null;
+  const userJson = localStorage.getItem('esnaaf_user');
+  if (!userJson) return null;
+  try {
+    return JSON.parse(userJson);
+  } catch (err) {
+    return null;
+  }
+}
+
 export async function customFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const sessionId = getSessionId();
   const headers = new Headers(options.headers || {});
   
   if (sessionId) {
     headers.set('X-Session-ID', sessionId);
+  }
+
+  // Inject Bearer token if logged in
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('esnaaf_token');
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
   }
   
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {

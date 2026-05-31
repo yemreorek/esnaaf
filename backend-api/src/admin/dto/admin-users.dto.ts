@@ -1,6 +1,6 @@
-import { IsString, IsOptional, IsEnum, IsInt, Min, IsEmail, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsInt, Min, IsEmail, IsNumber, IsBoolean, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UserRole, StaffRole } from '@prisma/client';
+import { UserRole, StaffRole, CampaignType, PackageType } from '@prisma/client';
 
 export enum BanReason {
   fake_profile = 'fake_profile',
@@ -123,4 +123,42 @@ export class SaveAbTestConfigDto {
   @IsNumber()
   @Min(0)
   splitRatio: number;
+}
+
+export class CreateCampaignDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  code: string;
+
+  @IsEnum(CampaignType)
+  type: CampaignType;
+
+  @IsNumber()
+  value: number;
+
+  @IsOptional()
+  @IsEnum(PackageType)
+  upgrade_to?: PackageType;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  applicable_packages?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  new_users_only?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  max_uses?: number;
+
+  @IsString()
+  valid_from: string;
+
+  @IsString()
+  valid_until: string;
 }

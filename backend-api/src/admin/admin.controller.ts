@@ -10,7 +10,8 @@ import {
   CreateStaffDto, 
   ResolveDisputeDto, 
   CallTaskResultDto,
-  SaveAbTestConfigDto
+  SaveAbTestConfigDto,
+  CreateCampaignDto
 } from './dto/admin-users.dto';
 
 @Controller('admin')
@@ -271,5 +272,42 @@ export class AdminController {
     @CurrentUser() user: any
   ) {
     return this.adminService.saveAbTestConfig(user.email, dto);
+  }
+
+  /**
+   * Sistem Denetim Günlükleri
+   * GET /api/admin/audit-logs
+   */
+  @Get('audit-logs')
+  @HttpCode(HttpStatus.OK)
+  async getAuditLogs(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.getAuditLogs(user.email, parseInt(page), parseInt(limit));
+  }
+
+  /**
+   * Kampanyalar listesi
+   * GET /api/admin/campaigns
+   */
+  @Get('campaigns')
+  @HttpCode(HttpStatus.OK)
+  async getCampaigns(@CurrentUser() user: any) {
+    return this.adminService.getCampaigns(user.email);
+  }
+
+  /**
+   * Yeni Kampanya oluşturma
+   * POST /api/admin/campaigns
+   */
+  @Post('campaigns')
+  @HttpCode(HttpStatus.OK)
+  async createCampaign(
+    @Body() dto: CreateCampaignDto,
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.createCampaign(user.email, dto);
   }
 }

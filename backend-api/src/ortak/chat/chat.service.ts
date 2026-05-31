@@ -81,9 +81,9 @@ export class ChatService {
   /**
    * Starts a new anonymous chat session in Redis
    */
-  async startAnonymousSession(sessionUuid?: string) {
+  async startAnonymousSession(sessionUuid?: string, userId?: string | null) {
     const uuid = sessionUuid || randomUUID();
-    const sessionKey = `temp_session:${uuid}`;
+    const sessionKey = userId ? `ai_session:${userId}:${uuid}` : `temp_session:${uuid}`;
 
     const initialState: SessionState = {
       step: 'greeting',
@@ -92,7 +92,7 @@ export class ChatService {
       token_count: 0,
     };
 
-    await this.redis.set(sessionKey, JSON.stringify(initialState), 'EX', 7200); // 2 hours TTL
+    await this.redis.set(sessionKey, JSON.stringify(initialState), 'EX', userId ? 86400 : 7200); // 24 hours for logged in user, 2 hours for temp session
 
     return {
       session_uuid: uuid,
@@ -131,11 +131,23 @@ export class ChatService {
    * Main chat message handler incorporating state machine & PII filtering
    */
   async handleMessage(userId: string | null, sessionId: string, message: string) {
-    const sessionKey = userId ? `ai_session:${userId}:${sessionId}` : `temp_session:${sessionId}`;
-    const rawSession = await this.redis.get(sessionKey);
+    let sessionKey = userId ? `ai_session:${userId}:${sessionId}` : `temp_session:${sessionId}`;
+    let rawSession = await this.redis.get(sessionKey);
     
+    if (!rawSession && userId) {
+      // Dynamic migration fallback: Check if guest session exists under temp_session:${sessionId}
+      const tempKey = `temp_session:${sessionId}`;
+      const tempSession = await this.redis.get(tempKey);
+      if (tempSession) {
+        await this.redis.set(sessionKey, tempSession, 'EX', 86400); // Migrate to 24h TTL
+        await this.redis.del(tempKey);
+        rawSession = tempSession;
+        console.log(`[ChatService] Dynamically migrated ${tempKey} to ${sessionKey} during handleMessage`);
+      }
+    }
+
     if (!rawSession) {
-      const newSession = await this.startAnonymousSession(sessionId);
+      const newSession = await this.startAnonymousSession(sessionId, userId);
       return {
         step: 'greeting',
         responseMessage: 'Oturum süreniz dolduğu için yeni bir sohbet başlattık. ' + newSession.message,
@@ -153,6 +165,7 @@ export class ChatService {
     state.messages.push({ role: 'user', content: filteredMessage });
 
     let responseMessage = '';
+    let createdJobId: string | undefined;
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
 
     try {
@@ -164,8 +177,17 @@ export class ChatService {
           // If the message contains a phone number, let Gemini handle it so it can call sendOTP tool with both name and phone
           const hasPhonePattern = /(?:\+?90|\b0)?\s*5\d{2}\s*\d{3}\s*\d{2}\s*\d{2}\b/.test(message);
           
-          if (!hasPhonePattern) {
-            const name = message.trim();
+          // Check if the last assistant message actually asked for the name/isim.
+          // If not, it means we are in a conversational clarification/correction loop, so we should bypass the strict name capture
+          // and let Gemini handle the conversation.
+          const assistantMessages = state.messages.filter(m => m.role === 'assistant');
+          const lastAssistantMsg = assistantMessages[assistantMessages.length - 1]?.content || '';
+          const askedForName = /(?:adın|adınız|soyadın|soyadınız|ismin|isminiz|adınızı|soyadınızı|adım|isminiz nedir)/i.test(lastAssistantMsg);
+          
+          const name = message.trim();
+          const isChoice = /^(?:yks|lise|evet|hayır|hayir|tyt|ayt|lgs|ok|tamam|okey|yok|var)$/i.test(name);
+          
+          if (askedForName && !isChoice && !hasPhonePattern) {
             if (name.length < 2) {
               throw new BadRequestException('Lütfen geçerli bir ad girin.');
             }
@@ -270,7 +292,7 @@ export class ChatService {
               responseMessage,
               collected_data: state.collected_data,
               sessionMigrated: true,
-              userId: user.id,
+              user: { id: user.id, phone: user.phone, role: user.role },
             };
           } else {
             const newAttempts = attempts + 1;
@@ -357,6 +379,7 @@ export class ChatService {
               step: 'completed',
               responseMessage,
               collected_data: state.collected_data,
+              jobId: job.id,
             };
           } else {
             responseMessage = 'Talebinizi onaylamak için lütfen "Onayla" yazın veya düzeltmek istediğiniz kısımları belirtin.';
@@ -768,7 +791,7 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
             responseMessage,
             collected_data: state.collected_data,
             sessionMigrated: true,
-            userId: user.id,
+            user: { id: user.id, phone: user.phone, role: user.role },
           };
         } else {
           const newAttempts = attempts + 1;
@@ -831,6 +854,8 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
             },
           });
 
+          createdJobId = job.id;
+
           state.step = 'completed';
           responseMessage = `Tebrikler! Talebiniz başarıyla gönderildi. 15 dakika içinde burada veya hesabınızda taleplerinizi inceleyebilir, teklifleri değerlendirebilir veya onaylayabilirsiniz.`;
           
@@ -860,6 +885,7 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
         step: state.step,
         responseMessage,
         collected_data: state.collected_data,
+        ...(createdJobId && { jobId: createdJobId }),
       };
 
     } catch (error) {

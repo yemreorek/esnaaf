@@ -10,7 +10,8 @@ import {
   CallTaskResultDto, 
   DisputeDecision, 
   CallTaskResult,
-  SaveAbTestConfigDto
+  SaveAbTestConfigDto,
+  CreateCampaignDto
 } from './dto/admin-users.dto';
 import { decryptPhone, encryptPhone, maskPhone } from '../common/utils/phone.util';
 import { 
@@ -1081,6 +1082,95 @@ export class AdminService {
     return {
       success: true,
       message: 'A/B Test konfigürasyonu başarıyla güncellendi.',
+    };
+  }
+
+  async getAuditLogs(adminEmail: string, page: number = 1, limit: number = 20) {
+    await this.checkPermission(adminEmail, 'staff', 'read');
+
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.auditLog.count(),
+    ]);
+
+    const staffIds = [...new Set(logs.map(l => l.staff_id))];
+    const staffs = await this.prisma.staff.findMany({
+      where: { id: { in: staffIds } },
+    });
+    const staffMap = new Map(staffs.map(s => [s.id, s]));
+
+    const data = logs.map(log => {
+      const staff = staffMap.get(log.staff_id);
+      return {
+        ...log,
+        staffName: staff ? staff.name : 'Sistem/E2E Fallback',
+        staffEmail: staff ? staff.email : 'system@esnaaf.com',
+      };
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getCampaigns(adminEmail: string) {
+    await this.checkPermission(adminEmail, 'staff', 'read');
+    return this.prisma.campaign.findMany({
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  async createCampaign(adminEmail: string, dto: CreateCampaignDto) {
+    const staff = await this.checkPermission(adminEmail, 'staff', 'write');
+
+    const existing = await this.prisma.campaign.findUnique({
+      where: { code: dto.code },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Bu kampanya kodu zaten tanımlanmış.');
+    }
+
+    const campaign = await this.prisma.campaign.create({
+      data: {
+        name: dto.name,
+        code: dto.code,
+        type: dto.type as any,
+        value: dto.value,
+        upgrade_to: dto.upgrade_to as any || null,
+        applicable_packages: dto.applicable_packages || [],
+        new_users_only: dto.new_users_only ?? false,
+        max_uses: dto.max_uses || null,
+        valid_from: new Date(dto.valid_from),
+        valid_until: new Date(dto.valid_until),
+        is_active: true,
+        created_by: staff.id,
+      },
+    });
+
+    await this.logAudit(
+      staff.id,
+      'campaign.create',
+      'campaign',
+      campaign.id,
+      null,
+      { code: campaign.code, type: campaign.type }
+    );
+
+    return {
+      success: true,
+      message: 'Kampanya başarıyla oluşturuldu.',
+      data: campaign,
     };
   }
 }

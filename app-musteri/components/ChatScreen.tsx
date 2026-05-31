@@ -25,11 +25,35 @@ interface Message {
 interface ChatScreenProps {
   initialMessage: string;
   onClose: () => void;
+  onJobCompleted?: (jobId: string) => void;
 }
 
 const initializedSessions = new Set<string>();
 
-export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps) {
+export function resolveCityFromDistrict(district?: string): string {
+  if (!district) return 'İstanbul';
+  const adanaDistricts = [
+    'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'
+  ];
+  const istanbulDistricts = [
+    'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 'bakırköy', 'ataşehir', 'beylikdüzü'
+  ];
+  const ankaraDistricts = [
+    'çankaya', 'keçiören', 'yenimahalle', 'mamak', 'etimesgut', 'sincan', 'altındağ', 'gölbaşı', 'pursaklar'
+  ];
+  const izmirDistricts = [
+    'karşıyaka', 'konak', 'bornova', 'buca', 'karabağlar', 'çiğli', 'gaziemir', 'balçova', 'narlıdere', 'güzelbahçe', 'bayraklı', 'urla'
+  ];
+
+  const dLower = district.toLowerCase().trim();
+  if (adanaDistricts.includes(dLower)) return 'Adana';
+  if (istanbulDistricts.includes(dLower)) return 'İstanbul';
+  if (ankaraDistricts.includes(dLower)) return 'Ankara';
+  if (izmirDistricts.includes(dLower)) return 'İzmir';
+  return 'İstanbul';
+}
+
+export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: ChatScreenProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -274,15 +298,24 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
         },
       ]);
 
+      // Store JWT tokens if session has migrated (OTP verified)
+      if (data.sessionMigrated && data.accessToken) {
+        localStorage.setItem("esnaaf_token", data.accessToken);
+        localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
+        localStorage.setItem("esnaaf_user", JSON.stringify(data.user || null));
+        console.log("[ChatScreen] Auto-logged in service seeker:", data.user);
+      }
+
       // Detect if job has been created (contains jobId / completed step)
       if (data.step === "completed" || data.responseMessage.includes("Talebiniz #")) {
-        // Extract Job ID from response text using Regex
-        const match = data.responseMessage.match(/#([a-fA-F0-9-]{36})/i);
-        if (match && match[1]) {
-          setJobId(match[1]);
-        } else {
-          // fallback mock UUID for local testing if not matched
-          setJobId("mock-job-uuid-12345");
+        const foundJobId = data.jobId || (data.responseMessage.match(/#([a-fA-F0-9-]{36})/i)?.[1] || "mock-job-uuid-12345");
+        setJobId(foundJobId);
+
+        // Redirect to Seeker Dashboard after a brief delay
+        if (onJobCompleted) {
+          setTimeout(() => {
+            onJobCompleted(foundJobId);
+          }, 1500);
         }
       }
     } catch (err: any) {
@@ -515,21 +548,22 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
         setIsAddedToFavorites(true);
       } else {
         const err = await res.json();
-        alert(err.error?.message || "Ustayı favorilere ekleme sırasında hata oluştu.");
+        alert(err.error?.message || "Usta favorilere eklenemedi.");
       }
     } catch (err: any) {
-      alert("Hata: " + err.message);
+      console.error("Favoriye ekleme hatası:", err);
+      alert(err.message || "Bir hata oluştu.");
     }
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#F5F5F5] flex flex-col z-40 select-none overflow-hidden font-sans">
+    <div className="fixed inset-0 w-full h-full bg-[#f8fafc] flex flex-col z-40 select-none overflow-hidden font-sans">
       
       {/* Top Header bar with custom organic pin logo */}
-      <header className="w-full h-16 bg-white border-b border-[#E0E0E0] shadow-[0_1px_3px_rgba(0,0,0,0.03)] px-6 flex items-center justify-between z-50 shrink-0">
+      <header className="w-full h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)] px-6 flex items-center justify-between z-50 shrink-0">
         <div className="flex items-center gap-3">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Esnaaf Logo"
             width={120}
             height={36}
@@ -537,13 +571,13 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
             className="cursor-pointer"
             onClick={onClose}
           />
-          <span className="text-[10px] font-bold bg-[#D4F54E] text-[#232323] px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="text-[10px] font-bold bg-[#c8f252] text-slate-900 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
             Canlı Sohbet
           </span>
         </div>
         <button
           onClick={onClose}
-          className="text-[#888888] hover:text-[#232323] p-2 rounded-full hover:bg-[#F5F5F5] cursor-pointer transition-all duration-150"
+          className="text-slate-400 hover:text-slate-800 p-2 rounded-full hover:bg-slate-50 cursor-pointer transition-all duration-150"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -562,25 +596,25 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
       {/* DEV SIMULATOR BAR */}
       {jobId && completionState !== "completed" && completionState !== "disputed" && (
-        <div className="w-full bg-[#232323] text-white py-2 px-4 flex flex-wrap items-center justify-center gap-2 border-b border-[#D4F54E]/20 text-xs font-sans z-40">
-          <span className="font-extrabold text-[#D4F54E] tracking-wider uppercase mr-1 animate-pulse">
-            🛠️ Simülasyon:
+        <div className="w-full bg-slate-50 text-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/60 text-xs font-sans z-40 shadow-sm animate-scale-up">
+          <span className="font-extrabold text-slate-900 tracking-wider uppercase mr-1 animate-pulse flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#c8f252] animate-ping"></span> 🛠️ Simülasyon:
           </span>
           <button
             onClick={() => handleSimulateProviderCompletion(850)}
-            className="bg-white/10 hover:bg-[#D4F54E] hover:text-[#232323] text-white px-2.5 py-1 rounded-[6px] font-bold cursor-pointer transition-all active:scale-95"
+            className="bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/10 hover:text-slate-950 text-slate-700 px-3 py-1.5 rounded-lg font-bold cursor-pointer transition-all active:scale-95 shadow-sm text-[11px]"
           >
             Eşleşen Beyan (850 ₺)
           </button>
           <button
             onClick={() => handleSimulateProviderCompletion(1020)}
-            className="bg-white/10 hover:bg-[#D4F54E] hover:text-[#232323] text-white px-2.5 py-1 rounded-[6px] font-bold cursor-pointer transition-all active:scale-95"
+            className="bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/10 hover:text-slate-950 text-slate-700 px-3 py-1.5 rounded-lg font-bold cursor-pointer transition-all active:scale-95 shadow-sm text-[11px]"
           >
             Sarı Alarm (%20 Fark - 1020 ₺)
           </button>
           <button
             onClick={() => handleSimulateProviderCompletion(1200)}
-            className="bg-white/10 hover:bg-[#D4F54E] hover:text-[#232323] text-white px-2.5 py-1 rounded-[6px] font-bold cursor-pointer transition-all active:scale-95"
+            className="bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/10 hover:text-slate-950 text-slate-700 px-3 py-1.5 rounded-lg font-bold cursor-pointer transition-all active:scale-95 shadow-sm text-[11px]"
           >
             Kırmızı Alarm (%41 Fark - 1200 ₺)
           </button>
@@ -595,43 +629,43 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
             return (
               <div
                 key={msg.id}
-                className="w-full flex flex-col items-center justify-center p-4 bg-white border border-[#D4F54E] shadow-[0_4px_12px_rgba(212,245,78,0.15)] rounded-[20px] animate-scale-up gap-3 my-2"
+                className="w-full flex flex-col items-center justify-center p-5 bg-white border border-[#c8f252] shadow-[0_10px_25px_-5px_rgba(200,242,82,0.12),0_8px_10px_-6px_rgba(200,242,82,0.1)] rounded-[24px] animate-scale-up gap-4.5 my-2"
               >
-                <div className="flex items-center justify-between w-full border-b border-[#F5F5F5] pb-3">
+                <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#232323] text-[#D4F54E] flex items-center justify-center font-bold text-lg">
+                    <div className="w-10 h-10 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-lg shadow-sm">
                       🛠️
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-sm text-[#232323]">
+                      <span className="font-extrabold text-sm text-slate-900">
                         {msg.offerData.provider.name}
                       </span>
-                      <span className="text-xs text-[#888888]">
+                      <span className="text-xs text-slate-500 font-semibold mt-0.5">
                         ⭐ {msg.offerData.provider.rating.toFixed(1)} Puan · Ev Temizliği Uzmanı
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-extrabold text-[#232323]">
+                    <span className="text-xl font-black text-slate-900 tracking-tight">
                       {msg.offerData.price} ₺
                     </span>
                   </div>
                 </div>
                 
-                <p className="text-sm text-[#555555] leading-relaxed w-full italic px-2">
+                <p className="text-sm text-slate-600 leading-relaxed w-full italic px-2 font-medium">
                   &ldquo;{msg.offerData.description}&rdquo;
                 </p>
 
-                <div className="flex items-center gap-2 w-full pt-2">
-                  <button className="flex-1 bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#232323] text-xs font-semibold py-2.5 rounded-[12px] cursor-pointer transition-all">
+                <div className="flex items-center gap-2.5 w-full pt-2">
+                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50">
                     Profili Gör
                   </button>
-                  <button className="flex-1 bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#232323] text-xs font-semibold py-2.5 rounded-[12px] cursor-pointer transition-all">
+                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50">
                     Mesaj Gönder
                   </button>
                   <button
                     onClick={() => handleAcceptOffer(msg.offerData)}
-                    className="flex-1 bg-[#D4F54E] hover:bg-[#c5e645] text-[#232323] text-xs font-bold py-2.5 rounded-[12px] cursor-pointer shadow-[0_2px_4px_rgba(212,245,78,0.2)] hover:scale-102 transition-all"
+                    className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 rounded-xl cursor-pointer shadow-md shadow-[#c8f252]/20 hover:scale-102 transition-all border border-transparent"
                   >
                     Kabul Et
                   </button>
@@ -649,17 +683,19 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
             >
               {/* Left Avatar for AI response */}
               {!isUser && (
-                <div className="w-8 h-8 rounded-full bg-[#232323] text-white flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-sm">
-                  e.
-                </div>
+                <img 
+                  alt="Esnaaf AI Avatar" 
+                  className="w-20 h-20 rounded-full object-contain shrink-0 select-none shadow-sm bg-white p-0.5 border border-slate-100" 
+                  src="/bot-avatar.png" 
+                />
               )}
 
               {/* Text Bubble */}
               <div
-                className={`max-w-[80%] rounded-[20px] px-4 py-3 text-sm font-medium leading-relaxed shadow-[0_1px_3px_rgba(0,0,0,0.03)] border transition-all duration-200 ${
+                className={`max-w-[80%] rounded-[20px] px-4 py-3 text-sm font-medium leading-relaxed shadow-[0_1px_3px_rgba(0,0,0,0.02)] border transition-all duration-200 ${
                   isUser
-                    ? "bg-[#232323] text-white border-transparent rounded-br-[4px] self-end"
-                    : "bg-white text-[#232323] border-[#E0E0E0] rounded-bl-[4px] self-start"
+                    ? "bg-slate-900 text-white border-transparent rounded-br-[4px] self-end"
+                    : "bg-white text-slate-800 border-slate-100 rounded-bl-[4px] self-start"
                 }`}
               >
                 {/* Parse newline characters for clean spacing */}
@@ -667,12 +703,12 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
                 {/* SUMMARY CARD IN THE SOHBET FLOW */}
                 {msg.collected_data && currentStep === "confirm_form" && msg.id === [...messages].reverse().find(m => m.collected_data)?.id && (
-                  <div className="mt-4 p-4 bg-[#F5F5F5] border border-[#E0E0E0] rounded-[16px] flex flex-col gap-3">
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#888888] border-b border-[#E0E0E0] pb-2">
+                  <div className="mt-4 p-4.5 bg-slate-50 border border-slate-200/80 rounded-[20px] flex flex-col gap-3.5 shadow-inner">
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200/60 pb-2">
                       📋 Talep Bilgileri
                     </h4>
-                    <div className="flex flex-col gap-1.5 text-xs text-[#232323]">
-                      <div><strong>Hizmet:</strong> {
+                    <div className="flex flex-col gap-2 text-xs text-slate-700 font-semibold">
+                      <div><strong className="text-slate-900">Hizmet:</strong> {
                         msg.collected_data.categorySlug === 'ev-temizligi' ? 'Ev Temizliği' : 
                         msg.collected_data.categorySlug === 'boya-badana' ? 'Boya Badana' : 
                         msg.collected_data.categorySlug === 'su-tesisati' ? 'Su Tesisatı' : 
@@ -680,51 +716,51 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
                         msg.collected_data.categorySlug === 'ev-tadilat' ? 'Ev Tadilatı' : 
                         msg.collected_data.categorySlug === 'nakliyat' ? 'Nakliyat / Taşıma' : 'Genel Esnaf Hizmeti'
                       }</div>
-                      <div><strong>Ad Soyad:</strong> {msg.collected_data.name}</div>
+                      <div><strong className="text-slate-900">Ad Soyad:</strong> {msg.collected_data.name}</div>
                       
                       {msg.collected_data.categorySlug === 'nakliyat' ? (
                         <>
-                          <div><strong>Çıkış Konumu:</strong> {msg.collected_data.district}, İstanbul</div>
-                          <div><strong>Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, İstanbul</div>
-                          <div><strong>Tarih:</strong> {msg.collected_data.tarih}</div>
-                          <div><strong>Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
-                          <div><strong>Kat & Asansör:</strong> {msg.collected_data.katAsansor}</div>
+                          <div><strong className="text-slate-900">Çıkış Konumu:</strong> {msg.collected_data.district}, {msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}</div>
+                          <div><strong className="text-slate-900">Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, {msg.collected_data.destinationCity || msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.destinationDistrict)}</div>
+                          <div><strong className="text-slate-900">Tarih:</strong> {msg.collected_data.tarih}</div>
+                          <div><strong className="text-slate-900">Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
+                          <div><strong className="text-slate-900">Kat & Asansör:</strong> {msg.collected_data.katAsansor}</div>
                         </>
                       ) : (
                         <>
-                          <div><strong>Konum:</strong> {msg.collected_data.district || 'Belirtilmedi'}, İstanbul</div>
+                          <div><strong className="text-slate-900">Konum:</strong> {msg.collected_data.district || 'Belirtilmedi'}{msg.collected_data.district ? `, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : ''}</div>
                           {msg.collected_data.categorySlug === 'ev-temizligi' && (
                             <>
-                              <div><strong>Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
-                              <div><strong>Temizlik Sıklığı:</strong> {msg.collected_data.siflik || msg.collected_data.sıklık}</div>
-                              <div><strong>Tarih:</strong> {msg.collected_data.tarih}</div>
+                              <div><strong className="text-slate-900">Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
+                              <div><strong className="text-slate-900">Temizlik Sıklığı:</strong> {msg.collected_data.siflik || msg.collected_data.sıklık}</div>
+                              <div><strong className="text-slate-900">Tarih:</strong> {msg.collected_data.tarih}</div>
                             </>
                           )}
                           {msg.collected_data.categorySlug === 'boya-badana' && (
                             <>
-                              <div><strong>Metrekare:</strong> {msg.collected_data.metrekare}</div>
-                              <div><strong>Uygulama Alanı:</strong> {msg.collected_data.tur}</div>
-                              <div><strong>Renk / Boya Tipi:</strong> {msg.collected_data.renkTip}</div>
+                              <div><strong className="text-slate-900">Metrekare:</strong> {msg.collected_data.metrekare}</div>
+                              <div><strong className="text-slate-900">Uygulama Alanı:</strong> {msg.collected_data.tur}</div>
+                              <div><strong className="text-slate-900">Renk / Boya Tipi:</strong> {msg.collected_data.renkTip}</div>
                             </>
                           )}
                           {(msg.collected_data.categorySlug === 'su-tesisati' || msg.collected_data.categorySlug === 'elektrik-tesisati') && (
                             <>
-                              <div><strong>İş / Sorun Türü:</strong> {msg.collected_data.sorunTuru || msg.collected_data.isTuru}</div>
-                              <div><strong>Aciliyet:</strong> {msg.collected_data.aciliyet}</div>
+                              <div><strong className="text-slate-900">İş / Sorun Türü:</strong> {msg.collected_data.sorunTuru || msg.collected_data.isTuru}</div>
+                              <div><strong className="text-slate-900">Aciliyet:</strong> {msg.collected_data.aciliyet}</div>
                             </>
                           )}
                           {msg.collected_data.categorySlug === 'ev-tadilat' && (
                             <>
-                              <div><strong>Tadilat Kapsamı:</strong> {msg.collected_data.kapsam}</div>
-                              <div><strong>Metrekare:</strong> {msg.collected_data.metrekare}</div>
-                              <div><strong>Bütçe Aralığı:</strong> {msg.collected_data.butce}</div>
+                              <div><strong className="text-slate-900">Tadilat Kapsamı:</strong> {msg.collected_data.kapsam}</div>
+                              <div><strong className="text-slate-900">Metrekare:</strong> {msg.collected_data.metrekare}</div>
+                              <div><strong className="text-slate-900">Bütçe Aralığı:</strong> {msg.collected_data.butce}</div>
                             </>
                           )}
                         </>
                       )}
-                      <div><strong>Açıklama:</strong> {msg.collected_data.details || "Standart Hizmet"}</div>
+                      <div><strong className="text-slate-900">Açıklama:</strong> {msg.collected_data.details || "Standart Hizmet"}</div>
                     </div>
-                    <div className="flex items-center gap-2.5 py-1 px-0.5 text-xs text-[#555555] border-t border-[#E0E0E0] pt-2">
+                    <div className="flex items-center gap-2.5 py-1 px-0.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
                       <input
                         type="checkbox"
                         id="sendToFavoritesOnly"
@@ -733,25 +769,25 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
                           setSendToFavoritesOnlyChecked(e.target.checked);
                           msg.collected_data.sendToFavoritesOnly = e.target.checked;
                         }}
-                        className="w-4 h-4 accent-[#D4F54E] cursor-pointer rounded"
+                        className="w-4 h-4 accent-[#c8f252] cursor-pointer rounded"
                       />
-                      <label htmlFor="sendToFavoritesOnly" className="cursor-pointer font-bold select-none flex items-center gap-1">
+                      <label htmlFor="sendToFavoritesOnly" className="cursor-pointer font-bold select-none flex items-center gap-1 text-slate-800">
                         ❤️ Sadece Favori Ustalarıma Gönder (Eski Memnuniyet Öncelikli)
                       </label>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#E0E0E0]">
+                    <div className="flex items-center gap-2 pt-2.5 border-t border-slate-200/60">
                       <button
                         onClick={() => sendMessage("Düzelt")}
-                        className="flex-1 bg-white hover:bg-[#F5F5F5] border border-[#E0E0E0] text-[#232323] py-2 rounded-[10px] font-bold text-xs cursor-pointer active:scale-95 transition-all"
+                        className="flex-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs cursor-pointer active:scale-95 transition-all"
                       >
                         ✏️ Düzelt
                       </button>
                       <button
                         onClick={() => sendMessage("Onayla")}
-                        className="flex-1 bg-[#D4F54E] hover:bg-[#c5e645] text-[#232323] py-2 rounded-[10px] font-bold text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
+                        className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 py-2.5 rounded-xl font-bold text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
                       >
-                        ✅ Onayla
+                        Onayla
                       </button>
                     </div>
                   </div>
@@ -763,15 +799,17 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
         {/* LOADING TYPING INDICATOR */}
         {isLoading && (
-          <div className="flex w-full items-end gap-3 justify-start">
-            <div className="w-8 h-8 rounded-full bg-[#232323] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-              e.
-            </div>
-            <div className="bg-white border border-[#E0E0E0] rounded-[20px] rounded-bl-[4px] px-5 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <div className="flex w-full items-end gap-3.5 justify-start">
+            <img 
+              alt="Esnaaf AI Avatar" 
+              className="w-20 h-20 rounded-full object-contain shrink-0 select-none shadow-sm bg-white p-0.5 border border-slate-100" 
+              src="/bot-avatar.png" 
+            />
+            <div className="bg-white border border-slate-100 rounded-[20px] rounded-bl-[4px] px-5 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-1.5 h-3">
-                <div className="w-2.5 h-2.5 bg-[#888888] rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                <div className="w-2.5 h-2.5 bg-[#888888] rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                <div className="w-2.5 h-2.5 bg-[#888888] rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                <div className="w-2.5 h-2.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
               </div>
             </div>
           </div>
@@ -779,14 +817,14 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
         {/* BEKLEME EKRANI loader displayed after job submission */}
         {jobId && currentStep === "completed" && !completionState && (
-          <div className="w-full flex flex-col items-center justify-center p-6 bg-white border border-[#E0E0E0] rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-center animate-scale-up gap-4 mt-2 mb-12">
+          <div className="w-full flex flex-col items-center justify-center p-6 bg-white border border-slate-150 rounded-[24px] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.02)] text-center animate-scale-up gap-4.5 mt-2 mb-12">
             <div className="relative w-12 h-12 flex items-center justify-center">
               {/* Premium Neon lime spinning loading loader */}
-              <div className="absolute inset-0 rounded-full border-4 border-[#F5F5F5] border-t-[#D4F54E] animate-spin"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#c8f252] animate-spin"></div>
             </div>
-            <div className="flex flex-col gap-1">
-              <h4 className="font-bold text-sm text-[#232323]">Teklifler Bekleniyor...</h4>
-              <p className="text-xs text-[#888888] leading-relaxed max-w-[280px]">
+            <div className="flex flex-col gap-1.5">
+              <h4 className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-[280px] font-semibold">
                 Talebiniz bölgedeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
               </p>
             </div>
@@ -799,34 +837,34 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
         {/* CASE 1: Pending Seeker Confirmation Card */}
         {completionState === "pending_seeker" && (
-          <div className="w-full flex flex-col p-5 bg-white border border-[#D4F54E] shadow-[0_4px_20px_rgba(212,245,78,0.12)] rounded-[20px] animate-scale-up gap-4 my-4 mb-12">
-            <div className="flex items-center gap-3 border-b border-[#F5F5F5] pb-3">
-              <div className="w-10 h-10 rounded-full bg-[#232323] text-white flex items-center justify-center font-bold text-lg select-none">
+          <div className="w-full flex flex-col p-5 bg-white border border-slate-150 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.03)] rounded-[24px] animate-scale-up gap-4 my-4 mb-12">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-lg select-none">
                 💼
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm text-[#232323]">İş Tamamlama Teyidi</span>
-                <span className="text-xs text-[#888888] font-semibold">Karşılıklı Ücret Onayı</span>
+                <span className="font-bold text-sm text-slate-900">İş Tamamlama Teyidi</span>
+                <span className="text-xs text-slate-500 font-bold">Karşılıklı Ücret Onayı</span>
               </div>
             </div>
 
             {!showDiscrepancyForm ? (
               <>
-                <p className="text-sm text-[#555555] leading-relaxed font-medium">
+                <p className="text-sm text-slate-600 leading-relaxed font-semibold">
                   <strong>{providerName || "Usta"}</strong> işi bitirdiğini ve sizden <strong>{providerDeclaredAmount} ₺</strong> aldığını beyan etti.
                   <br /><br />
                   Ödediğiniz bu tutar doğru mu?
                 </p>
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2.5 pt-2">
                   <button
                     onClick={() => setShowDiscrepancyForm(true)}
-                    className="flex-1 bg-white hover:bg-[#F5F5F5] text-[#232323] text-xs font-semibold py-3 rounded-[12px] cursor-pointer transition-all border border-[#E0E0E0] active:scale-95"
+                    className="flex-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-3 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
                   >
                     Hayır, Farklı / İtiraz
                   </button>
                   <button
                     onClick={() => handleConfirmCompletion(true)}
-                    className="flex-1 bg-[#D4F54E] hover:bg-[#c5e645] text-[#232323] text-xs font-extrabold py-3 rounded-[12px] cursor-pointer shadow-[0_2px_4px_rgba(212,245,78,0.15)] transition-all active:scale-95"
+                    className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-3 rounded-xl cursor-pointer shadow-md shadow-[#c8f252]/10 transition-all active:scale-95"
                   >
                     Evet, Tutar Doğru
                   </button>
@@ -834,53 +872,53 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
               </>
             ) : (
               <div className="flex flex-col gap-4 animate-scale-up text-left">
-                <div className="flex items-center gap-2.5 bg-[#F5F5F5] p-2.5 rounded-[10px]">
+                <div className="flex items-center gap-2.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/50">
                   <input
                     type="checkbox"
                     id="serviceNotReceived"
                     checked={isServiceNotReceived}
                     onChange={(e) => setIsServiceNotReceived(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#232323] focus:ring-[#D4F54E] accent-[#232323] cursor-pointer"
+                    className="w-4 h-4 rounded text-slate-900 focus:ring-[#c8f252] accent-slate-900 cursor-pointer"
                   />
-                  <label htmlFor="serviceNotReceived" className="text-xs font-bold text-[#232323] cursor-pointer select-none">
+                  <label htmlFor="serviceNotReceived" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
                     Hizmeti almadım / İş eksik yapıldı
                   </label>
                 </div>
 
                 {!isServiceNotReceived && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-[#888888]">Ödediğiniz Gerçek Tutar (₺):</label>
+                    <label className="text-xs font-bold text-slate-500">Ödediğiniz Gerçek Tutar (₺):</label>
                     <input
                       type="number"
                       placeholder="Örn: 800"
                       value={seekerDisputeAmount}
                       onChange={(e) => setSeekerDisputeAmount(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-[12px] p-2.5 outline-none focus:border-[#D4F54E] text-sm text-[#232323] font-extrabold"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-extrabold"
                     />
                   </div>
                 )}
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#888888]">İtiraz / Açıklama Notu:</label>
+                  <label className="text-xs font-bold text-slate-500">İtiraz / Açıklama Notu:</label>
                   <textarea
                     placeholder="Lütfen itiraz gerekçenizi veya ödediğiniz farklı tutarın nedenini açıklayın..."
                     value={disputeNote}
                     onChange={(e) => setDisputeNote(e.target.value)}
                     rows={2}
-                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-[12px] p-2.5 outline-none focus:border-[#D4F54E] text-sm text-[#232323] resize-none font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-[#c8f252] text-sm text-slate-900 resize-none font-semibold"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-[#F5F5F5]">
+                <div className="flex items-center gap-2.5 pt-2 border-t border-slate-100">
                   <button
                     onClick={() => setShowDiscrepancyForm(false)}
-                    className="flex-1 bg-white hover:bg-[#F5F5F5] text-[#232323] text-xs font-semibold py-2.5 rounded-[12px] border border-[#E0E0E0] cursor-pointer transition-all active:scale-95"
+                    className="flex-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-2.5 rounded-xl border border-slate-200 cursor-pointer transition-all active:scale-95"
                   >
                     Vazgeç
                   </button>
                   <button
                     onClick={() => handleConfirmCompletion(false)}
-                    className="flex-1 bg-[#232323] hover:bg-[#333333] text-white text-xs font-bold py-2.5 rounded-[12px] cursor-pointer transition-all active:scale-95"
+                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
                   >
                     İtirazı Gönder
                   </button>
@@ -892,19 +930,19 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
         {/* CASE 2: Finished & Completed Success Panel (with Rating & Photo Review widget) */}
         {completionState === "completed" && (
-          <div className="w-full flex flex-col p-5 bg-white border border-[#D4F54E] shadow-[0_4px_20px_rgba(212,245,78,0.08)] rounded-[20px] animate-scale-up gap-4 my-4 mb-12 items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-[#F7FCD4] text-[#D4F54E] flex items-center justify-center font-bold text-2xl animate-bounce shadow-sm">
+          <div className="w-full flex flex-col p-5 bg-white border border-slate-150 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.03)] rounded-[24px] animate-scale-up gap-4.5 my-4 mb-12 items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-lime-50 text-[#c8f252] flex items-center justify-center font-bold text-2xl animate-bounce shadow-sm border border-lime-100">
               🎉
             </div>
             <div className="flex flex-col gap-1">
-              <span className="font-extrabold text-sm text-[#232323]">İş Başarıyla Tamamlandı!</span>
-              <p className="text-xs text-[#888888] font-medium leading-relaxed max-w-[280px]">
+              <span className="font-extrabold text-sm text-slate-900">İş Başarıyla Tamamlandı!</span>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
                 Ücret teyidi başarıyla sağlandı ve iş başarıyla kapatıldı. Ustanızı değerlendirebilirsiniz!
               </p>
             </div>
  
             {!ratingSubmitted ? (
-              <div className="flex flex-col items-center gap-4 w-full border-t border-[#F5F5F5] pt-3 text-left">
+              <div className="flex flex-col items-center gap-4 w-full border-t border-slate-100 pt-3.5 text-left">
                 <div className="flex justify-center items-center gap-1.5 w-full">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -919,29 +957,29 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
                 </div>
 
                 {selectedRating > 0 && (
-                  <div className="flex flex-col gap-3 w-full animate-scale-up">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#888888]">Görüşleriniz:</label>
+                  <div className="flex flex-col gap-3.5 w-full animate-scale-up">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-500">Görüşleriniz:</label>
                       <textarea
                         rows={3}
                         placeholder="Ustanızın hizmet kalitesi hakkında yorum yazın..."
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
                         disabled={isUploadingPhoto}
-                        className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-[12px] p-2.5 outline-none focus:border-[#D4F54E] text-sm text-[#232323] resize-none font-medium"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-[#c8f252] text-sm text-slate-900 resize-none font-semibold"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#888888]">Fotoğraf Ekle (Opsiyonel):</label>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-500">Fotoğraf Ekle (Opsiyonel):</label>
                       
                       {!photoPreview ? (
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-[#E0E0E0] hover:border-[#D4F54E] rounded-[12px] p-4 bg-[#F5F5F5] cursor-pointer transition-all">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6 text-[#888888]">
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-[#c8f252] rounded-xl p-4 bg-slate-50 cursor-pointer transition-all">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6 text-slate-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
                           </svg>
-                          <span className="text-[11px] font-bold text-[#888888] mt-1.5">Fotoğraf Yükle</span>
+                          <span className="text-[11px] font-bold text-slate-500 mt-1.5">Fotoğraf Yükle</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -951,7 +989,7 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
                           />
                         </label>
                       ) : (
-                        <div className="relative w-full h-24 rounded-[12px] overflow-hidden border border-[#E0E0E0] shadow-sm">
+                        <div className="relative w-full h-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                           <img
                             src={photoPreview}
                             alt="Yorum Fotoğrafı"
@@ -975,7 +1013,7 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
                       type="button"
                       onClick={handleSubmitReview}
                       disabled={isUploadingPhoto}
-                      className="w-full bg-[#D4F54E] hover:bg-[#c5e645] disabled:bg-[#C0C0C0] text-[#232323] disabled:text-white text-xs font-extrabold py-3 rounded-[12px] cursor-pointer transition-all active:scale-95 shadow-sm mt-1 text-center"
+                      className="w-full bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-950 disabled:text-slate-400 text-xs font-black py-3 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm mt-1 text-center border border-transparent"
                     >
                       {isUploadingPhoto ? "Yükleniyor..." : "Değerlendirmeyi Gönder"}
                     </button>
@@ -984,19 +1022,19 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <span className="text-xs font-bold text-[#D4F54E] bg-[#232323] px-4 py-1.5 rounded-full shadow-sm">
+                <span className="text-xs font-bold text-slate-800 bg-slate-100 px-4 py-2 rounded-full shadow-sm border border-slate-200/50">
                   ✓ Değerlendirmeniz İçin Teşekkür Ederiz!
                 </span>
                 {!isAddedToFavorites ? (
                   <button
                     type="button"
                     onClick={handleAddToFavorites}
-                    className="flex items-center gap-2 border border-[#D4F54E] bg-[#F7FCD4]/50 hover:bg-[#F7FCD4] text-[#232323] text-xs font-extrabold px-4 py-2 rounded-[12px] cursor-pointer transition-all active:scale-95 shadow-sm mt-1"
+                    className="flex items-center gap-2 border border-[#c8f252]/40 bg-[#c8f252]/10 hover:bg-[#c8f252]/20 text-slate-800 text-xs font-black px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm mt-1"
                   >
                     ❤️ Ustayı Favorilerime Ekle
                   </button>
                 ) : (
-                  <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mt-1">
+                  <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1 font-semibold">
                     ❤️ Usta Favorilerinize Eklendi!
                   </span>
                 )}
@@ -1007,18 +1045,18 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
 
         {/* CASE 3: Disputed & Warning Panel */}
         {completionState === "disputed" && (
-          <div className="w-full flex flex-col p-5 bg-white border border-red-500 shadow-[0_4px_20px_rgba(239,68,68,0.08)] rounded-[20px] animate-scale-up gap-3 my-4 mb-12 items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center font-bold text-2xl animate-pulse shadow-sm">
+          <div className="w-full flex flex-col p-5 bg-white border border-red-200 shadow-[0_10px_25px_-5px_rgba(239,68,68,0.05)] rounded-[24px] animate-scale-up gap-3.5 my-4 mb-12 items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center font-bold text-2xl animate-pulse shadow-sm border border-red-100">
               ⚠️
             </div>
             <div className="flex flex-col gap-1">
-              <span className="font-extrabold text-sm text-[#232323]">Uyuşmazlık Kaydı Oluşturuldu</span>
-              <p className="text-xs text-[#888888] font-medium leading-relaxed max-w-[280px]">
+              <span className="font-extrabold text-sm text-slate-900">Uyuşmazlık Kaydı Oluşturuldu</span>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
                 Usta ile beyan ettiğiniz ücretler uyuşmamaktadır. Kalite personeli ekibimiz iki tarafla da görüşerek çözüm sağlayacaktır.
               </p>
             </div>
             {finalDetails && (
-              <div className="bg-red-50/50 p-3 rounded-[12px] border border-red-100 text-[11px] text-red-700 font-bold w-full flex flex-col gap-1.5 text-left">
+              <div className="bg-red-50/50 p-3.5 rounded-xl border border-red-100 text-[11px] text-red-700 font-bold w-full flex flex-col gap-1.5 text-left">
                 <div>Usta Beyan Tutarı: {finalDetails.providerDeclared || providerDeclaredAmount} ₺</div>
                 <div>Sizin Beyan Tutarınız: {finalDetails.seekerDeclared || seekerDisputeAmount} ₺</div>
                 <div>Sapma Oranı: %{finalDetails.amountDiffPct ? finalDetails.amountDiffPct.toFixed(1) : "0.0"}</div>
@@ -1031,8 +1069,8 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
       </div>
 
       {/* Bottom Fixed Chat Input Bar */}
-      <footer className="w-full border-t border-[#E0E0E0] bg-white p-4 shrink-0 z-50">
-        <div className="w-full md:max-w-[720px] md:mx-auto flex items-center gap-3 relative bg-[#F5F5F5] rounded-[16px] border border-[#E0E0E0] focus-within:border-[#D4F54E] focus-within:ring-2 focus-within:ring-[rgba(212,245,78,0.15)] transition-all p-2.5">
+      <footer className="w-full border-t border-slate-100 bg-white p-4 shrink-0 z-50 shadow-sm">
+        <div className="w-full md:max-w-[720px] md:mx-auto flex items-center gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -1046,12 +1084,12 @@ export default function ChatScreen({ initialMessage, onClose }: ChatScreenProps)
             }}
             placeholder="Mesajınızı buraya yazın..."
             disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
-            className="flex-1 bg-transparent border-0 outline-none text-[#232323] font-medium text-sm p-1.5 resize-none leading-relaxed focus:ring-0 disabled:text-[#888888]"
+            className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400"
           />
           <button
             onClick={handleSend}
             disabled={!inputVal.trim() || isLoading || currentStep === "confirm_form" || currentStep === "completed"}
-            className="bg-[#D4F54E] hover:bg-[#c5e645] disabled:bg-[#C0C0C0] text-[#232323] disabled:text-[#FFFFFF] w-10 h-10 rounded-[12px] flex items-center justify-center cursor-pointer shadow-sm hover:scale-102 active:scale-97 transition-all duration-150 shrink-0"
+            className="bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-950 disabled:text-slate-400 w-10 h-10 rounded-[12px] flex items-center justify-center cursor-pointer shadow-sm hover:scale-102 active:scale-97 transition-all duration-150 shrink-0 border border-transparent"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

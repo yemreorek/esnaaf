@@ -14,9 +14,27 @@ export class ChatController {
   @Public()
   @Post('ortak/chat/anonim/baslat')
   @HttpCode(HttpStatus.OK)
-  async startAnonymousSession(@Headers('x-session-id') sessionUuid?: string) {
+  async startAnonymousSession(
+    @Headers('x-session-id') sessionUuid?: string,
+    @Headers('authorization') authHeader?: string,
+  ) {
     console.log(`[ChatController] startAnonymousSession received x-session-id: ${sessionUuid}`);
-    return this.chatService.startAnonymousSession(sessionUuid);
+    
+    let userId: string | null = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const payload = this.jwtService.verify(token, {
+          secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
+        });
+        userId = payload.sub;
+        console.log(`[ChatController] Resolved userId ${userId} for startAnonymousSession`);
+      } catch (err) {
+        console.log('[ChatController] Invalid optional JWT in startAnonymousSession, processing as guest');
+      }
+    }
+
+    return this.chatService.startAnonymousSession(sessionUuid, userId);
   }
 
   @Public()
@@ -47,6 +65,26 @@ export class ChatController {
     }
 
     // 2. Delegate message parsing to the ChatService
-    return this.chatService.handleMessage(userId, sessionId, dto.message);
+    const result: any = await this.chatService.handleMessage(userId, sessionId, dto.message);
+
+    // 3. If session has migrated (OTP verified), issue JWT tokens
+    if (result && result.sessionMigrated && result.user) {
+      const payload = { sub: result.user.id, phone: result.user.phone, role: result.user.role };
+      
+      const accessToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
+        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN || '15m') as any,
+      });
+
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_REFRESH_SECRET || 'some_super_secret_refresh_key_min_32_characters',
+        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
+      });
+
+      result.accessToken = accessToken;
+      result.refreshToken = refreshToken;
+    }
+
+    return result;
   }
 }

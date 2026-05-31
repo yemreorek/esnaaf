@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import ChatScreen from "../components/ChatScreen";
-import { startNewSession } from "../lib/session";
+import SeekerDashboard from "../components/SeekerDashboard";
+import { startNewSession, isLoggedIn, getAuthUser } from "../lib/session";
 
 // All 20 categories for the full selection [Explore] modal
 const categories = [
@@ -28,21 +29,156 @@ const categories = [
   { name: "Organizasyon & Etkinlik", icon: "🎉", phase: "Faz 3" },
 ];
 
+// Helper function to render a thin, elegant, mono-colored SVG outline icon for categories
+const renderCategoryIcon = (icon: string) => {
+  const baseClass = "w-5 h-5 text-slate-500 shrink-0 stroke-[2.2]";
+  switch (icon) {
+    case "🏠": // Ev Temizliği (Clean House Icon)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+      );
+    case "🧹": // Tadilat Sonrası Temizlik (Broom brush)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3h-3m-3-3h-3m-3 3H3M9 12V3m6 9V3M4 12v6a2 2 0 002 2h12a2 2 0 002-2v-6"></path>
+        </svg>
+      );
+    case "🔨": // Tadilat / Çekiç
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+      );
+    case "📦": // Nakliyat / Truck
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 17a2 2 0 11-4 0 2 2 0 014 0zM7 17a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 17h10M19 17h2v-6l-3-3h-3V5H3v10h2" />
+        </svg>
+      );
+    case "🔧": // Su Tesisatı (Water Droplet)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"></path>
+        </svg>
+      );
+    case "📚": // Özel Ders / Kep
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6M12 21a9.003 9.003 0 008.361-5.639M12 21a9.003 9.003 0 01-8.361-5.639"></path>
+        </svg>
+      );
+    case "🎨": // Boya Badana / Rulo
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3"></path>
+        </svg>
+      );
+    case "⚡": // Elektrik / Yıldırım
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+      );
+    case "🧼": // Halı Koltuk Yıkama (Bubbles)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8a3 3 0 100-6 3 3 0 000 6zm-7 9a2 2 0 100-4 2 2 0 000 4zm14 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM7.5 12a1 1 0 100-2 1 1 0 000 2z"></path>
+        </svg>
+      );
+    case "🧱": // Fayans & Parke (Tiled Grid Pattern)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v4m-6 0v4m12-4v4m-9-12v4m6-4v4"></path>
+        </svg>
+      );
+    case "🐜": // Haşere
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12a3 3 0 106 0a3 3 0 00-6 0zm-4 0h4m6 0h4m-7-5V3m0 18v-4m-4-1.5L5 19m4-13.5L5 5m10 10.5l4 3.5m-4-10.5l4-3.5"></path>
+        </svg>
+      );
+    case "❄️": // Kombi Klima
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m9-9H3m15-6l-6 6 6 6m-12 0l6-6-6-6"></path>
+        </svg>
+      );
+    case "🏢": // Ofis / Bina
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+      );
+    case "🪚": // Mobilya
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0V12m-3-2.5h3m1-4.5V14m0-7.5v-2a1.5 1.5 0 113 0V12m-3-5.5h3m2 3.5h3a1.5 1.5 0 010 3h-3v4M4 19h16"></path>
+        </svg>
+      );
+    case "🪟": // Cam Balkon
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm8-1v16M4 12h16"></path>
+        </svg>
+      );
+    case "🔥": // Doğalgaz (Flame)
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.58a8.5 8.5 0 11-11.314 0zM12 15a3 3 0 11-3-3"></path>
+        </svg>
+      );
+    case "📐": // İç mimar
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+        </svg>
+      );
+    case "📷": // Fotoğraf
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+      );
+    case "🎉": // Etkinlik
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+      );
+    default:
+      return (
+        <svg className={baseClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      );
+  }
+};
+
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("explore"); // For mobile navigation highlights
+  const [activeTab, setActiveTab] = useState("marketplace"); // Marketplace highlighted in mockup
   const [notification, setNotification] = useState<string | null>(null);
 
   // Scroll targets refs
-  const howItWorksRef = useRef<HTMLDivElement>(null);
-  const testimonialsRef = useRef<HTMLDivElement>(null);
-  const partnerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Transition States for Chat Interaction
-  const [isChatActive, setIsChatActive] = useState(false);
+  const [activeView, setActiveView] = useState<"home" | "chat" | "dashboard">("home");
   const [chatInitialMessage, setChatInitialMessage] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [isClientLoggedIn, setIsClientLoggedIn] = useState(false);
+  const [clientUser, setClientUser] = useState<any>(null);
+
+  // Sync client auth state on mount and view changes
+  useEffect(() => {
+    setIsClientLoggedIn(isLoggedIn());
+    setClientUser(getAuthUser());
+  }, [activeView]);
 
   // Dismiss notification automatically
   useEffect(() => {
@@ -69,18 +205,11 @@ export default function Home() {
     if (!messageText.trim()) return;
     startNewSession();
     setChatInitialMessage(messageText);
-    setIsChatActive(true);
+    setActiveView("chat");
   };
 
   const handleSend = () => {
     handleStartChat(inputValue);
-  };
-
-  // Smooth scroll handler
-  const scrollTo = (elementRef: React.RefObject<HTMLDivElement | null>) => {
-    if (elementRef && elementRef.current) {
-      elementRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   };
 
   // Show premium alert instead of standard browser alert
@@ -89,502 +218,471 @@ export default function Home() {
   };
 
   // Render full-screen ChatScreen if chat is active
-  if (isChatActive) {
+  if (activeView === "chat") {
     return (
       <ChatScreen
         initialMessage={chatInitialMessage}
         onClose={() => {
-          setIsChatActive(false);
+          setActiveView(isLoggedIn() ? "dashboard" : "home");
           setInputValue("");
+        }}
+        onJobCompleted={(jobId) => {
+          setSelectedJobId(jobId);
+          setActiveView("dashboard");
+        }}
+      />
+    );
+  }
+
+  // Render Seeker Dashboard if dashboard active
+  if (activeView === "dashboard") {
+    return (
+      <SeekerDashboard
+        initialJobId={selectedJobId}
+        onLogout={() => {
+          setActiveView("home");
+          setSelectedJobId(null);
         }}
       />
     );
   }
 
   return (
-    <div className="bg-white text-gray-900 font-body-md antialiased overflow-x-hidden selection:bg-primary-fixed selection:text-gray-900 min-h-screen pb-16 md:pb-0 relative">
+    <div className="bg-[#f8fafc] text-slate-900 font-body-md antialiased overflow-x-hidden selection:bg-accent selection:text-slate-900 min-h-screen pb-16 md:pb-0 relative">
       
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-20 right-4 z-50 bg-gray-900/95 text-white backdrop-blur-md px-6 py-3.5 rounded-[12px] shadow-2xl border border-white/10 flex items-center gap-3 animate-slide-up max-w-sm">
-          <span className="material-symbols-outlined text-primary-fixed">info</span>
-          <span className="font-button-text text-sm">{notification}</span>
+        <div className="fixed top-24 right-4 z-[99] bg-white/95 text-slate-900 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-slide-up max-w-sm">
+          <svg className="w-5 h-5 text-[#2ecc71] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span className="font-button-text text-sm text-slate-800">{notification}</span>
         </div>
       )}
 
-      {/* TopAppBar */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-12 py-4 max-w-[1440px] mx-auto bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <a className="flex items-center" href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <img 
-              alt="Esnaaf Logo" 
-              className="h-10 w-auto object-contain select-none" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBptmJN3hqvYxRihZRqKcLceXhb79LA3c8lAd_vIye27uTtG8soeAw8liWOYXSyEfl-FjbLyt4Y_I-a2tq7Yu4NyHDusAHRkgog5ziwTa3TgC8mxcpR8fFV_GQG-K-KVetA5B1F1uxKQ2msUQDShDG3A93DbshYfza3MEL_K8qpHrBc4vCpwK99tKHllB6ftOhW3nAa2rZTHhbLkIiP6PNG3SmS3F02i9WEg7KsS6yoTJej_rkrOfl_TtpRwbQ46NwiFamefsRVH_V7" 
-            />
-          </a>
-        </div>
-        
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-          <button 
-            onClick={() => setIsModalOpen(true)} 
-            className="text-gray-900 hover:text-gray-950 font-button-text text-button-text border-b-2 border-primary-fixed pb-1 cursor-pointer transition-all"
-          >
-            Kategoriler (Explore)
-          </button>
-          <button 
-            onClick={() => scrollTo(howItWorksRef)} 
-            className="text-gray-600 hover:text-gray-900 transition-colors font-button-text text-button-text hover:bg-gray-50 px-3 py-1 rounded cursor-pointer"
-          >
-            Nasıl Çalışır
-          </button>
-          <button 
-            onClick={() => scrollTo(partnerRef)} 
-            className="text-gray-600 hover:text-gray-900 transition-colors font-button-text text-button-text hover:bg-gray-50 px-3 py-1 rounded cursor-pointer"
-          >
-            Hizmet Verenler
-          </button>
-        </div>
+      {/* 🧭 Header & Floating Navigation Bar */}
+      <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-4 md:px-12 py-4 h-16">
+          
+          {/* Logo & Brand Name */}
+          <div className="flex items-center w-48 h-10 relative">
+            <a className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center" href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              <img 
+                alt="Esnaaf Logo" 
+                className="w-auto select-none max-w-none" 
+                style={{ height: '120px', objectFit: 'contain' }}
+                src="/logo.png" 
+              />
+            </a>
+          </div>
+          
+          {/* Mockup Tabs - Marketplace, Services, Help */}
+          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-slate-100/50 border border-slate-200/50">
+            <button 
+              onClick={() => setActiveTab("marketplace")} 
+              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "marketplace" ? "bg-white text-slate-900 shadow-sm border-b-2 border-[#88b000]" : "text-slate-500 hover:text-slate-800"}`}
+            >
+              Pazaryeri
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab("services");
+                setIsModalOpen(true);
+              }} 
+              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "services" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            >
+              Hizmetler
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab("help");
+                triggerNotification("Yardım ve Destek merkezimiz çok yakında hizmetinizde!");
+              }} 
+              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "help" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            >
+              Yardım
+            </button>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => triggerNotification("Giriş Yap özelliği yakında hizmetinizde!")}
-            className="px-4 py-2 rounded-full border border-gray-300 font-button-text text-button-text text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors bg-white cursor-pointer"
-          >
-            Giriş Yap
-          </button>
-          <button 
-            onClick={() => scrollTo(partnerRef)}
-            className="px-4 py-2 rounded-full bg-primary-fixed text-gray-900 font-button-text text-button-text hover:bg-[#b5e639] transition-colors border border-transparent cursor-pointer shadow-sm"
-          >
-            Hizmet Ver
-          </button>
+          {/* Action Icons on the Right (Bell, Chat, Profile) */}
+          <div className="flex items-center gap-4">
+            {isClientLoggedIn && (
+              <button
+                onClick={() => setActiveView("dashboard")}
+                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[11px] font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5 border border-transparent mr-1.5 scale-bounce"
+              >
+                <span>Panelime Git</span>
+                <svg className="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </button>
+            )}
+            <button 
+              onClick={() => triggerNotification("Bildirim bulunmuyor.")}
+              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer relative"
+              title="Bildirimler"
+            >
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+            </button>
+            <button 
+              onClick={() => triggerNotification("Gelen kutunuz temiz.")}
+              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer relative"
+              title="Mesajlar"
+            >
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </button>
+            <button 
+              onClick={() => triggerNotification("Giriş Yap özelliği yakında hizmetinizde!")}
+              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+              title="Profil"
+            >
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="relative flex flex-col items-center justify-center pt-32 pb-24 px-4 md:px-12 particle-bg hero-glow min-h-[90vh]">
-        <div className="w-full max-w-4xl text-center z-10 space-y-6 mt-12 md:mt-0">
-          <h1 className="font-headline-xl text-3xl md:text-headline-xl text-gray-900 tracking-tighter leading-tight">
-            Hizmetin Geleceği:<br />
-            <span className="text-gray-900 relative inline-block mt-1">
-              Yapay Zeka ile Kusursuz Eşleşme
-              <span className="absolute -bottom-1.5 left-0 w-full h-3 bg-primary-fixed/40 -z-10 rounded"></span>
+      {/* 🚀 Hero Section - "Hizmet Piş, Ağzıma Düş" */}
+      <main className="relative flex flex-col items-center justify-center pt-32 pb-20 px-4 md:px-12 hero-glow min-h-[70vh] border-b border-slate-100">
+        <div className="w-full max-w-4xl text-center z-10 space-y-6 mt-6 md:mt-0">
+          
+          <h1 className="font-headline-xl text-4xl md:text-[56px] text-slate-900 tracking-tight leading-[1.15] font-extrabold">
+            Aynı Mahalleyi Paylaştığın <br />
+            <span className="text-[#88b000] font-black tracking-tight relative inline-block mt-2">
+              Esnaf'tan Teklif Al
             </span>
           </h1>
-          <p className="font-body-lg text-body-lg text-gray-600 max-w-2xl mx-auto">
-            Yapay zeka destekli hassas eşleştirme ile fikirlerinizi gerçeğe dönüştürün. İhtiyaçlarınız için mükemmel profesyoneli anında bulun.
+          
+          <p className="font-body-md text-slate-500 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed font-semibold">
+            Yıllardır aynı sokaktan geçtiğin, belki selamlaştığın ama henüz tanışmadığın esnafları keşfet.
           </p>
           
-          {/* AI Search Bar */}
-          <div className="w-full max-w-3xl mx-auto mt-12 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-[16px] p-6 shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-fixed/10 to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-            
-            <div className="flex flex-col gap-4 relative z-10">
-              <p className="font-body-md text-gray-500 text-left">Hangi hizmete ihtiyacınız var?</p>
+          {/* AI Sparkle Search Bar */}
+          <div className="w-full max-w-2xl mx-auto mt-8 bg-white border border-slate-200/80 rounded-full p-2 pl-5 shadow-2xl shadow-slate-200/30 hover:shadow-slate-200/50 hover:border-slate-350 focus-within:border-[#88b000] focus-within:ring-4 focus-within:ring-[#88b000]/5 transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
               
-              <div className="flex items-center gap-4 border-b border-gray-200 pb-4 focus-within:border-gray-400 transition-colors">
-                <input 
-                  ref={searchInputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSend();
-                    }
-                  }}
-                  className="bg-transparent border-none outline-none w-full text-gray-900 font-body-lg placeholder-gray-400 focus:ring-0" 
-                  placeholder="Örn: Ev temizliği, İngilizce özel ders..." 
-                  type="text"
-                />
-                
-                <button 
-                  onClick={() => triggerNotification("Sesli arama özelliği çok yakında esnaflarımızla buluşuyor!")}
-                  className="bg-gray-100 p-2.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer"
-                  title="Sesle Anlat"
-                >
-                  <span className="material-symbols-outlined text-[20px]">mic</span>
-                </button>
-                <button 
-                  onClick={() => triggerNotification("Fotoğrafla hasar/talep analizi ve arama özelliği çok yakında!")}
-                  className="bg-gray-100 p-2.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer"
-                  title="Fotoğraf Yükle"
-                >
-                  <span className="material-symbols-outlined text-[20px]">image</span>
-                </button>
-              </div>
+              <input 
+                ref={searchInputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSend();
+                  }
+                }}
+                className="bg-transparent border-none outline-none w-full text-slate-900 font-body-md placeholder-slate-400 focus:ring-0 text-xs md:text-sm py-1.5" 
+                placeholder="Hangi hizmete ihtiyacın var? (Örn: Ev Temizliği, Nakliyat)" 
+                type="text"
+              />
               
-              <div className="flex justify-between items-center mt-2 flex-wrap gap-4">
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleSelectCategory("Ev Temizliği")}
-                    className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:border-gray-300 transition-colors font-button-text text-button-text text-gray-700 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">cleaning_services</span> Temizlik
-                  </button>
-                  <button 
-                    onClick={() => handleSelectCategory("Özel Ders")}
-                    className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:border-gray-300 transition-colors font-button-text text-button-text text-gray-700 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">school</span> Eğitim
-                  </button>
-                </div>
-                
-                <button 
-                  onClick={handleSend}
-                  disabled={!inputValue.trim()}
-                  className="bg-primary-fixed text-gray-900 px-8 py-3 rounded-full font-button-text text-button-text flex items-center gap-2 hover:bg-[#b5e639] disabled:opacity-50 disabled:cursor-not-allowed transition-colors glow-hover shadow-sm border border-transparent cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[20px]">auto_awesome</span> Eşleş
-                </button>
-              </div>
+              <button 
+                onClick={handleSend}
+                disabled={!inputValue.trim()}
+                className="bg-[#4c630a] hover:bg-[#3d5008] text-white px-7 py-3 rounded-full font-button-text text-xs font-bold transition-all shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-[#4c630a]/10"
+              >
+                Ara
+              </button>
             </div>
           </div>
           
-          {/* Suggestion Chips */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
+          {/* Quick Selection Chips with Icons */}
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
             <button 
-              onClick={() => handleSelectCategory("Su Tesisatçısı")}
-              className="px-4 py-2 rounded-full border border-gray-200 bg-white/50 font-button-text text-button-text text-gray-600 cursor-pointer hover:border-gray-400 hover:text-gray-900 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+              onClick={() => handleSelectCategory("Ev Temizliği")}
+              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
             >
-              <span className="material-symbols-outlined text-[16px]">bolt</span> Hızlı Tesisatçı
+              {renderCategoryIcon("🧹")} Temizlik
             </button>
             <button 
-              onClick={() => handleSelectCategory("UX Tasarımcı")}
-              className="px-4 py-2 rounded-full border border-gray-200 bg-white/50 font-button-text text-button-text text-gray-600 cursor-pointer hover:border-gray-400 hover:text-gray-900 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+              onClick={() => handleSelectCategory("Ev Tadilat")}
+              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
             >
-              <span className="material-symbols-outlined text-[16px]">design_services</span> UX Tasarımcı
+              {renderCategoryIcon("🔨")} Tadilat
             </button>
             <button 
-              onClick={() => handleSelectCategory("Özel Şoför")}
-              className="px-4 py-2 rounded-full border border-gray-200 bg-white/50 font-button-text text-button-text text-gray-600 cursor-pointer hover:border-gray-400 hover:text-gray-900 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+              onClick={() => handleSelectCategory("Evden Eve Nakliyat")}
+              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
             >
-              <span className="material-symbols-outlined text-[16px]">directions_car</span> Şoför
+              {renderCategoryIcon("📦")} Nakliyat
+            </button>
+            <button 
+              onClick={() => handleSelectCategory("Su Tesisatı")}
+              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
+            >
+              {renderCategoryIcon("🔧")} Tamir
+            </button>
+            <button 
+              onClick={() => handleSelectCategory("Özel Ders")}
+              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
+            >
+              {renderCategoryIcon("📚")} Özel Ders
             </button>
           </div>
         </div>
       </main>
 
-      {/* Popular Categories Section */}
-      <section className="py-24 px-4 md:px-12 max-w-[1440px] mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="font-headline-lg text-headline-lg text-gray-900 mb-4">Popüler Hizmet Kategorileri</h2>
-          <p className="font-body-lg text-gray-600">En çok aranan profesyonelleri keşfedin.</p>
+      {/* 📊 Haftanın Trend Hizmetleri Section */}
+      <section className="py-20 px-4 md:px-12 max-w-7xl mx-auto">
+        
+        {/* Section Header */}
+        <div className="flex justify-between items-end mb-10">
+          <div>
+            <h2 className="font-headline-lg text-2xl md:text-3xl text-slate-900 font-bold tracking-tight">
+              Haftanın Trend Hizmetleri
+            </h2>
+            <p className="font-body-md text-slate-400 text-xs mt-1.5 font-semibold">
+              En çok tercih edilen hizmetleri keşfet
+            </p>
+          </div>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-button-text text-xs transition-colors cursor-pointer group font-bold"
+          >
+            <span>Tümünü Gör</span>
+            <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform stroke-current shrink-0" fill="none" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {/* Category Cards */}
-          <button 
-            onClick={() => handleSelectCategory("Ev Temizliği")}
-            className="glass-card rounded-[16px] p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-gray-300 hover:-translate-y-1 transition-all duration-300 group cursor-pointer w-full"
-          >
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary-fixed/20 transition-colors border border-gray-100">
-              <span className="material-symbols-outlined text-3xl text-gray-600 group-hover:text-gray-900 transition-colors">cleaning_services</span>
+        {/* Horizontal Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+          
+          {/* Card 1: Evden Eve Nakliyat (Takes 6 cols in large screens) */}
+          <div className="md:col-span-6 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
+            <div className="relative h-60 w-full overflow-hidden shrink-0">
+              <img 
+                alt="Evden Eve Nakliyat" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                src="/nakliyat.png" 
+              />
+              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
+                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <span className="ml-1">4.9</span>
+              </span>
             </div>
-            <div>
-              <h3 className="font-button-text text-gray-900 mb-1">Temizlik</h3>
-              <p className="font-label-sm text-gray-500">Ev, Ofis, İnşaat Sonrası</p>
+            
+            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
+              <div>
+                <h3 className="font-headline-lg text-slate-900 text-base md:text-lg font-bold">Evden Eve Nakliyat</h3>
+                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">2.976 profesyonel • 172.197 onaylı yorum</p>
+              </div>
+              
+              <button 
+                onClick={() => handleSelectCategory("Evden Eve Nakliyat")}
+                className="w-full bg-accent hover:bg-accent-hover text-slate-950 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-transparent shadow-sm shadow-[#c8f252]/10 cursor-pointer text-center"
+              >
+                Teklif Al
+              </button>
             </div>
-          </button>
+          </div>
 
-          <button 
-            onClick={() => handleSelectCategory("Tadilat & Tamirat")}
-            className="glass-card rounded-[16px] p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-gray-300 hover:-translate-y-1 transition-all duration-300 group cursor-pointer w-full"
-          >
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary-fixed/20 transition-colors border border-gray-100">
-              <span className="material-symbols-outlined text-3xl text-gray-600 group-hover:text-gray-900 transition-colors">home_repair_service</span>
+          {/* Card 2: Ev Temizliği (Takes 3 cols in large screens) */}
+          <div className="md:col-span-3 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
+            <div className="relative h-60 w-full overflow-hidden shrink-0">
+              <img 
+                alt="Ev Temizliği" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                src="/temizlik.png" 
+              />
+              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
+                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <span className="ml-1">4.6</span>
+              </span>
             </div>
-            <div>
-              <h3 className="font-button-text text-gray-900 mb-1">Tadilat &amp; Tamirat</h3>
-              <p className="font-label-sm text-gray-500">Boya, Tesisat, Marangoz</p>
+            
+            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
+              <div>
+                <h3 className="font-headline-lg text-slate-900 text-base font-bold">Ev Temizliği</h3>
+                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">9.861 profesyonel</p>
+              </div>
+              
+              <button 
+                onClick={() => handleSelectCategory("Ev Temizliği")}
+                className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] text-slate-800 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-slate-200/40 cursor-pointer text-center"
+              >
+                Rezervasyon
+              </button>
             </div>
-          </button>
+          </div>
 
-          <button 
-            onClick={() => handleSelectCategory("Teknoloji ve Yazılım")}
-            className="glass-card rounded-[16px] p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-gray-300 hover:-translate-y-1 transition-all duration-300 group cursor-pointer w-full"
-          >
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary-fixed/20 transition-colors border border-gray-100">
-              <span className="material-symbols-outlined text-3xl text-gray-600 group-hover:text-gray-900 transition-colors">computer</span>
+          {/* Card 3: Boya Badana (Takes 3 cols in large screens) */}
+          <div className="md:col-span-3 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
+            <div className="relative h-60 w-full overflow-hidden shrink-0">
+              <img 
+                alt="Boya Badana" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                src="/boya.png" 
+              />
+              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
+                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <span className="ml-1">4.8</span>
+              </span>
             </div>
-            <div>
-              <h3 className="font-button-text text-gray-900 mb-1">Teknoloji</h3>
-              <p className="font-label-sm text-gray-500">Yazılım, Ağ Kurulumu, Onarım</p>
+            
+            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
+              <div>
+                <h3 className="font-headline-lg text-slate-900 text-base font-bold">Boya Badana</h3>
+                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">11.214 profesyonel</p>
+              </div>
+              
+              <button 
+                onClick={() => handleSelectCategory("Boya Badana")}
+                className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] text-slate-800 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-slate-200/40 cursor-pointer text-center"
+              >
+                Teklif Al
+              </button>
             </div>
-          </button>
+          </div>
 
-          <button 
-            onClick={() => handleSelectCategory("Özel Ders")}
-            className="glass-card rounded-[16px] p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-gray-300 hover:-translate-y-1 transition-all duration-300 group cursor-pointer w-full"
-          >
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary-fixed/20 transition-colors border border-gray-100">
-              <span className="material-symbols-outlined text-3xl text-gray-600 group-hover:text-gray-900 transition-colors">school</span>
-            </div>
-            <div>
-              <h3 className="font-button-text text-gray-900 mb-1">Eğitim</h3>
-              <p className="font-label-sm text-gray-500">Özel Ders, Dil Eğitimi, Koçluk</p>
-            </div>
-          </button>
         </div>
       </section>
 
-      {/* AI Trust Section */}
-      <section ref={howItWorksRef} className="py-24 px-4 md:px-12 bg-gray-50 relative overflow-hidden border-y border-gray-200">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center gap-16 relative z-10">
-          <div className="flex-1 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed/20 border border-primary-fixed/40 text-gray-900 font-label-sm">
-              <span className="material-symbols-outlined text-sm">memory</span>
-              Akıllı Eşleştirme Motoru
+      {/* 💼 Footer Section */}
+      <footer className="bg-white border-t border-slate-100 py-12 px-4 md:px-12 mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 w-full">
+          
+          {/* Logo & Copyright */}
+          <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex items-center">
+              <img 
+                alt="Esnaaf Logo" 
+                className="w-auto object-contain select-none" 
+                style={{ height: '80px' }}
+                src="/logo.png" 
+              />
             </div>
-            <h2 className="font-headline-lg text-gray-900">Nasıl Çalışır?</h2>
-            <p className="font-body-lg text-gray-600">
-              Yapay zeka algoritmamız, talebinizi analiz eder, profesyonellerin geçmiş performanslarını, yetkinliklerini ve müsaitlik durumlarını saniyeler içinde tarayarak size en uygun eşleşmeyi sunar.
+            <p className="text-[11px] text-slate-400 font-semibold text-center md:text-left">
+              &copy; {new Date().getFullYear()} Esnaaf Pazaryeri. Premium Hizmet Mükemmelliği.
             </p>
-            
-            <ul className="space-y-4 mt-8">
-              <li className="flex items-start gap-4">
-                <div className="mt-1 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-900 font-bold">1</div>
-                <div>
-                  <h4 className="font-button-text text-gray-900">Talebinizi İletin</h4>
-                  <p className="font-body-md text-gray-600 text-sm">İhtiyacınızı detaylı veya özet olarak yazın veya sesli anlatın.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="mt-1 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-900 font-bold">2</div>
-                <div>
-                  <h4 className="font-button-text text-gray-900">Yapay Zeka Analizi</h4>
-                  <p className="font-body-md text-gray-600 text-sm">Motorumuz, kelime dağarcığınızdan niyetinizi anlar ve doğru kategoriyi belirler.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="mt-1 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-900 font-bold">3</div>
-                <div>
-                  <h4 className="font-button-text text-gray-900">Anında Eşleşme</h4>
-                  <p className="font-body-md text-gray-600 text-sm">En yüksek puanlı ve müsait profesyonellerle saniyeler içinde bağlantı kurun.</p>
-                </div>
-              </li>
-            </ul>
           </div>
           
-          <div className="flex-1 w-full max-w-md mx-auto">
-            {/* Visual aesthetic matching graphic */}
-            <div className="relative w-full aspect-square glass-card rounded-[24px] p-8 flex items-center justify-center bg-white/50">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary-fixed/20 to-transparent rounded-[24px]"></div>
-              
-              <div className="relative z-10 grid grid-cols-2 gap-4 w-full">
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center gap-2 animate-pulse">
-                  <span className="material-symbols-outlined text-gray-900">search</span>
-                  <span className="font-label-sm text-gray-600">Analiz</span>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-gray-900">filter_alt</span>
-                  <span className="font-label-sm text-gray-600">Filtreleme</span>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-gray-900">verified_user</span>
-                  <span className="font-label-sm text-gray-600">Doğrulama</span>
-                </div>
-                <div className="bg-primary-fixed p-4 rounded-xl flex flex-col items-center justify-center gap-2 shadow-[0_4px_20px_rgba(200,242,82,0.4)] border border-transparent">
-                  <span className="material-symbols-outlined text-gray-900">handshake</span>
-                  <span className="font-label-sm text-gray-900 font-bold">Eşleşme</span>
-                </div>
-              </div>
-              
-              {/* Connection lines (decorative) */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <path className="text-gray-900" d="M25 25 L75 75 M75 25 L25 75" stroke="currentColor" strokeWidth="2"></path>
-              </svg>
-            </div>
+          {/* Footer Links */}
+          <div className="flex flex-wrap justify-center gap-6">
+            <button 
+              onClick={() => triggerNotification("Kullanım koşulları yakında güncellenecektir.")}
+              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
+            >
+              Kullanım Koşulları
+            </button>
+            <button 
+              onClick={() => triggerNotification("Gizlilik politikamız kişisel verilerin korunmasını garanti eder.")}
+              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
+            >
+              Gizlilik Politikası
+            </button>
+            <button 
+              onClick={() => triggerNotification("Hizmet veren kayıt portalı yakında yayında olcaktır!")}
+              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
+            >
+              Esnaf Olun
+            </button>
+            <button 
+              onClick={() => triggerNotification("Destek ekibimiz 7/24 hizmetinizde!")}
+              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
+            >
+              Destek Alın
+            </button>
           </div>
         </div>
-      </section>
+      </footer>
 
-      {/* Testimonials Section */}
-      <section ref={testimonialsRef} className="py-24 px-4 md:px-12 max-w-[1440px] mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="font-headline-lg text-gray-900 mb-4">Güvenle Hizmet Alanlar</h2>
-          <p className="font-body-lg text-gray-600">Binlerce mutlu müşteri yapay zeka ile eşleşti.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Testimonial Cards */}
-          <div className="glass-card rounded-[16px] p-8 flex flex-col gap-6 bg-white">
-            <div className="flex gap-1 text-[#a5cc2b]">
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-            </div>
-            <p className="font-body-md text-gray-700 italic">
-              "Sadece neye ihtiyacım olduğunu yazdım, sistem beni 2 dakika içinde mükemmel bir tesisatçı ile eşleştirdi. Fiyat da çok uygundu."
-            </p>
-            <div className="mt-auto flex items-center gap-4 pt-4 border-t border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center font-button-text text-gray-900">A</div>
-              <div>
-                <h4 className="font-button-text text-gray-900 flex items-center gap-1">Ahmet Y. <span className="material-symbols-outlined text-[#a5cc2b] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span></h4>
-                <p className="font-label-sm text-gray-500">Tadilat Hizmeti Aldı</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-card rounded-[16px] p-8 flex flex-col gap-6 bg-white">
-            <div className="flex gap-1 text-[#a5cc2b]">
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-            </div>
-            <p className="font-body-md text-gray-700 italic">
-              "Kızımın İngilizce dersleri için hoca arıyordum. Seçenekler arasında kaybolmadan, yapay zeka tam istediğimiz profili buldu."
-            </p>
-            <div className="mt-auto flex items-center gap-4 pt-4 border-t border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center font-button-text text-gray-900">Z</div>
-              <div>
-                <h4 className="font-button-text text-gray-900 flex items-center gap-1">Zeynep K. <span className="material-symbols-outlined text-[#a5cc2b] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span></h4>
-                <p className="font-label-sm text-gray-500">Eğitim Hizmeti Aldı</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-card rounded-[16px] p-8 flex flex-col gap-6 bg-white">
-            <div className="flex gap-1 text-[#a5cc2b]">
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-xl">star_half</span>
-            </div>
-            <p className="font-body-md text-gray-700 italic">
-              "Yeni taşındığım evin temizliği için acil birine ihtiyacım vardı. Hızlı eşleşme sayesinde aynı gün içinde hallettik."
-            </p>
-            <div className="mt-auto flex items-center gap-4 pt-4 border-t border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center font-button-text text-gray-900">M</div>
-              <div>
-                <h4 className="font-button-text text-gray-900 flex items-center gap-1">Murat T. <span className="material-symbols-outlined text-[#a5cc2b] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span></h4>
-                <p className="font-label-sm text-gray-500">Temizlik Hizmeti Aldı</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Partner Entry Point */}
-      <section ref={partnerRef} className="py-24 px-4 md:px-12 bg-gray-50 border-t border-gray-200 text-center">
-        <div className="max-w-4xl mx-auto flex flex-col items-center gap-8">
-          <h2 className="font-headline-lg text-gray-900">Siz de mi bir profesyonelsiniz?</h2>
-          <p className="font-body-lg text-gray-600 max-w-2xl">
-            Yeteneklerinizi binlerce müşteriyle buluşturun. Esnaaf ile işinizi büyütün ve yeni müşterilere zahmetsizce ulaşın.
-          </p>
-          <button 
-            onClick={() => triggerNotification("Hizmet veren kayıt portalı yakında yayında olcaktır!")}
-            className="inline-flex items-center gap-3 text-gray-900 bg-primary-fixed hover:bg-[#b5e639] transition-colors font-button-text px-8 py-4 rounded-full glow-hover mt-4 shadow-sm border border-transparent cursor-pointer"
-          >
-            <span className="material-symbols-outlined">work</span>
-            Hemen Hizmet Vermeye Başla
-          </button>
-        </div>
-      </section>
-
-      {/* BottomNavBar (Mobile Only) */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-xl pb-4">
+      {/* 📱 BottomNavBar (Mobile Only) */}
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_25px_rgba(0,0,0,0.03)] rounded-t-2xl pb-4">
         <button 
           onClick={() => {
-            setActiveTab("explore");
+            setActiveTab("marketplace");
             setIsModalOpen(true);
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer ${activeTab === "explore" ? "text-gray-900 bg-primary-fixed/20 font-bold" : "text-gray-500"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "marketplace" ? "text-slate-900 bg-accent/20 font-bold animate-pulse" : "text-slate-400"}`}
         >
-          <span className="material-symbols-outlined mb-1">search_spark</span>
-          <span className="font-label-sm text-[10px]">Explore</span>
+          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+          <span className="font-label-sm text-[9px] font-bold">Kategoriler</span>
         </button>
         
         <button 
           onClick={() => {
-            setActiveTab("matches");
+            setActiveTab("services");
             if (searchInputRef.current) searchInputRef.current.focus();
             triggerNotification("Yeni bir eşleşme başlatmak için yukarıdaki arama alanını kullanabilirsiniz.");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer ${activeTab === "matches" ? "text-gray-900 bg-primary-fixed/20 font-bold" : "text-gray-500"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "services" ? "text-slate-900 bg-accent/20 font-bold" : "text-slate-400"}`}
         >
-          <span className="material-symbols-outlined mb-1">bolt</span>
-          <span className="font-label-sm text-[10px]">Matches</span>
+          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          <span className="font-label-sm text-[9px] font-bold">Eşleşmeler</span>
         </button>
         
         <button 
           onClick={() => {
-            setActiveTab("requests");
-            triggerNotification("Önceki talepleriniz ve aktif iş durumlarınız yakında burada listelenecektir!");
+            setActiveTab("help");
+            triggerNotification("Gelen kutunuz yakında burada aktif olacaktır!");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer ${activeTab === "requests" ? "text-gray-900 bg-primary-fixed/20 font-bold" : "text-gray-500"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-slate-900 bg-accent/20 font-bold" : "text-slate-400"}`}
         >
-          <span className="material-symbols-outlined mb-1">auto_awesome_motion</span>
-          <span className="font-label-sm text-[10px]">Requests</span>
-        </button>
-        
-        <button 
-          onClick={() => {
-            setActiveTab("profile");
-            triggerNotification("Profil sekmesi ve üyelik paneli yakında aktif edilecektir!");
-          }}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer ${activeTab === "profile" ? "text-gray-900 bg-primary-fixed/20 font-bold" : "text-gray-500"}`}
-        >
-          <span className="material-symbols-outlined mb-1">account_circle</span>
-          <span className="font-label-sm text-[10px]">Profile</span>
+          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 002 2h4a2 2 0 002-2h2a2 2 0 012 2z"></path>
+          </svg>
+          <span className="font-label-sm text-[9px] font-bold">Gelen Kutusu</span>
         </button>
       </nav>
 
-      {/* Category Overlay Sheet (Modal) */}
+      {/* 🪟 Category Overlay Sheet (Modal) */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-xs animate-fade-in p-0 sm:p-4"
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs animate-fade-in p-0 sm:p-4"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="w-full sm:max-w-[600px] bg-white rounded-t-[24px] sm:rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.15)] flex flex-col max-h-[85vh] sm:max-h-[75vh] animate-slide-up"
+            className="w-full sm:max-w-[560px] bg-white rounded-t-[20px] sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[70vh] animate-slide-up border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#E0E0E0] px-6 py-4">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div className="flex flex-col">
-                <h3 className="font-bold text-lg text-[#232323]">Hizmet Kategorileri</h3>
-                <p className="text-xs text-[#888888]">İhtiyacınız olan hizmeti seçip başlayın</p>
+                <h3 className="font-button-text text-sm md:text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
+                <p className="text-[11px] text-slate-400 font-medium">Lütfen ihtiyaç duyduğunuz iş kolunu seçin</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#888888] hover:text-[#232323] p-1.5 rounded-full hover:bg-[#F5F5F5] cursor-pointer transition-all duration-150"
+                className="text-slate-400 hover:text-slate-800 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-5 h-5"
-                >
-                  <path d="M18 6 6 18M6 6l12 12" />
+                <svg className="w-4.5 h-4.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
 
             {/* Grid list of categories */}
-            <div className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-3">
+            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-2.5">
               {categories.map((cat, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSelectCategory(cat.name)}
-                  className="flex items-center gap-3 p-3 border border-[#E0E0E0] rounded-[16px] hover:border-[#D4F54E] hover:bg-[#F7FCD4] text-left cursor-pointer active:scale-98 transition-all duration-150 w-full"
+                  className="flex items-center gap-3.5 p-3 border border-slate-100 rounded-2xl hover:border-accent hover:bg-accent/10 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-sm"
                 >
-                  <span className="text-2xl">{cat.icon}</span>
+                  {renderCategoryIcon(cat.icon)}
                   <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-sm text-[#232323] truncate">
+                    <span className="font-button-text text-sm font-extrabold text-slate-800 truncate">
                       {cat.name}
-                    </span>
-                    <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider">
-                      {cat.phase}
                     </span>
                   </div>
                 </button>
@@ -606,15 +704,15 @@ export default function Home() {
         }
         @media (min-width: 640px) {
           @keyframes slideUp {
-            from { transform: scale(0.95) translateY(20px); opacity: 0; }
+            from { transform: scale(0.97) translateY(15px); opacity: 0; }
             to { transform: scale(1) translateY(0); opacity: 1; }
           }
         }
         .animate-fade-in {
-          animation: fadeIn 200ms ease-out forwards;
+          animation: fadeIn 180ms ease-out forwards;
         }
         .animate-slide-up {
-          animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
     </div>

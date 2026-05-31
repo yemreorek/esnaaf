@@ -72,7 +72,18 @@ export class TaleplerService {
   async findAll(seekerUserId: string) {
     return this.prisma.serviceRequest.findMany({
       where: { seeker_id: seekerUserId },
-      include: { category: true },
+      include: {
+        category: true,
+        offers: {
+          include: {
+            provider: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: { created_at: 'desc' },
     });
   }

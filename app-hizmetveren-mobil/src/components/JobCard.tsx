@@ -30,6 +30,29 @@ interface JobCardProps {
   onOfferPress: () => void;
 }
 
+export function resolveCityFromDistrict(district?: string): string {
+  if (!district) return 'İstanbul';
+  const adanaDistricts = [
+    'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'
+  ];
+  const istanbulDistricts = [
+    'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 'bakırköy', 'ataşehir', 'beylikdüzü'
+  ];
+  const ankaraDistricts = [
+    'çankaya', 'keçiören', 'yenimahalle', 'mamak', 'etimesgut', 'sincan', 'altındağ', 'gölbaşı', 'pursaklar'
+  ];
+  const izmirDistricts = [
+    'karşıyaka', 'konak', 'bornova', 'buca', 'karabağlar', 'çiğli', 'gaziemir', 'balçova', 'narlıdere', 'güzelbahçe', 'bayraklı', 'urla'
+  ];
+
+  const dLower = district.toLowerCase().trim();
+  if (adanaDistricts.includes(dLower)) return 'Adana';
+  if (istanbulDistricts.includes(dLower)) return 'İstanbul';
+  if (ankaraDistricts.includes(dLower)) return 'Ankara';
+  if (izmirDistricts.includes(dLower)) return 'İzmir';
+  return 'İstanbul';
+}
+
 export default function JobCard({ job, onOfferPress }: JobCardProps) {
   const slug = job.category.slug;
   const formData = job.form_data;
@@ -65,11 +88,11 @@ export default function JobCard({ job, onOfferPress }: JobCardProps) {
           <>
             <View style={styles.row}>
               <Text style={styles.label}>Çıkış:</Text>
-              <Text style={styles.value}>{formData.district}, İstanbul</Text>
+              <Text style={styles.value}>{formData.district}, {resolveCityFromDistrict(formData.district)}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Varış:</Text>
-              <Text style={styles.value}>{formData.destinationDistrict}, İstanbul</Text>
+              <Text style={styles.value}>{formData.destinationDistrict}, {resolveCityFromDistrict(formData.destinationDistrict)}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Daire:</Text>
@@ -88,7 +111,7 @@ export default function JobCard({ job, onOfferPress }: JobCardProps) {
           <>
             <View style={styles.row}>
               <Text style={styles.label}>Konum:</Text>
-              <Text style={styles.value}>{formData.district || 'Belirtilmedi'}, İstanbul</Text>
+              <Text style={styles.value}>{formData.district || 'Belirtilmedi'}{formData.district ? `, ${resolveCityFromDistrict(formData.district)}` : ''}</Text>
             </View>
 
             {slug === 'ev-temizligi' && (
