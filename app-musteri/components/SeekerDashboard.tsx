@@ -846,63 +846,293 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     <div className="space-y-8">
                       {/* Render real requests first if database has active entries */}
                       {requests.length > 0 && requests.some(r => r.status === "pending" || r.status === "distributed") ? (
-                        requests.filter(r => r.status === "pending" || r.status === "distributed").map((req) => (
-                          <div key={req.id} className="space-y-4">
-                            {/* Request Code Header */}
-                            <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 pl-1">
-                              <span>🛠️</span>
-                              <span className="hover:underline cursor-pointer" onClick={() => setSelectedRequest(req)}>
-                                {req.category?.name || "Hizmet Talebi"}
-                              </span>
-                              <span className="text-slate-400 font-bold">{`#TR-${req.id.substring(0, 5).toUpperCase()}`}</span>
+                        requests.filter(r => r.status === "pending" || r.status === "distributed").map((req) => {
+                          const slug = req.category?.slug || "";
+                          let categoryIcon = "🛠️";
+                          if (slug.includes("temizlik")) categoryIcon = "🧹";
+                          else if (slug.includes("nakliyet") || slug.includes("tasima")) categoryIcon = "🚚";
+                          else if (slug.includes("klima") || slug.includes("kombi")) categoryIcon = "❄️";
+                          else if (slug.includes("boya") || slug.includes("badana")) categoryIcon = "🎨";
+                          else if (slug.includes("tadilat") || slug.includes("tamir")) categoryIcon = "🔧";
+
+                          const createdDate = new Date(req.created_at).toLocaleDateString("tr-TR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric"
+                          });
+
+                          const offerCount = req.offers?.length || 0;
+
+                          return (
+                            <div key={req.id} className="bg-white rounded-[32px] border border-slate-100 p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.025)] transition-all duration-300 space-y-6">
+                              {/* 🚀 Premium Group Header */}
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                                <div className="flex items-start gap-4">
+                                  {/* Category Icon Circle */}
+                                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-xl shrink-0">
+                                    {categoryIcon}
+                                  </div>
+                                  
+                                  <div className="space-y-1 text-left">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <h3 
+                                        className="font-black text-slate-900 text-lg md:text-xl hover:underline cursor-pointer tracking-tight"
+                                        onClick={() => setSelectedRequest(req)}
+                                      >
+                                        {req.category?.name || "Hizmet Talebi"}
+                                      </h3>
+                                      
+                                      <span className="bg-slate-100 text-slate-500 font-extrabold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200/50">
+                                        {`#TR-${req.id.substring(0, 5).toUpperCase()}`}
+                                      </span>
+
+                                      {offerCount > 0 ? (
+                                        <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
+                                          {offerCount} Teklif Alındı
+                                        </span>
+                                      ) : (
+                                        <span className="bg-[#c8f252]/15 text-[#4c630a] text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-[#c8f252]/20 animate-pulse">
+                                          TEKLİF BEKLENİYOR
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Quick Metadata Tags */}
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400 font-bold pt-1">
+                                      <span className="flex items-center gap-1">
+                                        📍 {req.form_data.district || "Bilinmiyor"}{req.form_data.district ? `, ${req.form_data.city || resolveCityFromDistrict(req.form_data.district)}` : ''}
+                                      </span>
+                                      <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                      <span className="flex items-center gap-1">
+                                        📅 {req.form_data.tarih || createdDate}
+                                      </span>
+                                      {req.form_data.butce && (
+                                        <>
+                                          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                          <span className="flex items-center gap-1 text-slate-600">
+                                            💰 ₺{Number(req.form_data.butce).toLocaleString("tr-TR")}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Header Right Actions */}
+                                <div className="flex items-center gap-2 self-end md:self-center">
+                                  <button 
+                                    onClick={() => setSelectedRequest(req)}
+                                    className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 shadow-sm active:scale-95 flex items-center gap-1"
+                                  >
+                                    Detayları İncele
+                                  </button>
+                                  <button 
+                                    onClick={() => handleCancelRequest(req.id)}
+                                    className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                  >
+                                    İptal Et
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 📥 Offers Nested List / Grid */}
+                              <div>
+                                {!req.offers || req.offers.length === 0 ? (
+                                  /* Real-time Radar Scan Waiting Panel */
+                                  <div className="flex flex-col items-center justify-center py-10 px-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200/80 text-center gap-2.5">
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c8f252] opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#c8f252]"></span>
+                                    </span>
+                                    <div className="space-y-1">
+                                      <p className="text-xs text-slate-500 font-extrabold tracking-wide uppercase">Ustalar Taranıyor...</p>
+                                      <p className="text-[11px] text-slate-400 font-semibold max-w-sm leading-relaxed">
+                                        Talep sisteme iletildi. WebSocket canlı bağlantısı üzerinden ustaların teklifleri anlık olarak buraya yansıyacaktır.
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}>
+                                    {req.offers.map((offer) => (
+                                      <div 
+                                        key={offer.id}
+                                        className="bg-white p-5 rounded-[24px] border border-slate-100/90 shadow-[0_4px_15px_rgba(15,23,42,0.015)] hover:shadow-[0_10px_25px_rgba(15,23,42,0.03)] hover:border-slate-200 transition-all duration-200 flex flex-col justify-between gap-4"
+                                      >
+                                        <div className="flex items-start gap-4">
+                                          {/* Provider avatar */}
+                                          <div className="relative shrink-0">
+                                            <img
+                                              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"
+                                              alt={offer.provider.user.name}
+                                              className="w-12 h-12 rounded-2xl object-cover border border-slate-250/50 shadow-sm"
+                                            />
+                                            <div className="absolute -bottom-1 -right-1 bg-white border border-[#c8f252] rounded-full p-0.5 shadow-sm flex items-center justify-center w-4 h-4 text-[#88b000] font-bold text-[8px]">
+                                              ✓
+                                            </div>
+                                          </div>
+                                          
+                                          <div className="space-y-1.5 overflow-hidden text-left flex-1">
+                                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                              <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.provider.user.name}</h4>
+                                              <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ 4.8 (85 Yorum)</span>
+                                            </div>
+                                            <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+                                              {offer.description}
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        {/* Footer Bid amount & Actions */}
+                                        <div className="border-t border-slate-100/80 pt-4 flex items-center justify-between gap-4">
+                                          <div className="text-left">
+                                            <span className="text-lg font-black text-slate-900 tracking-tight">₺{offer.price.toLocaleString("tr-TR")}</span>
+                                            <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
+                                          </div>
+
+                                          <div className="flex items-center gap-2">
+                                            <button 
+                                              onClick={() => setSelectedRequest(req)}
+                                              className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
+                                            >
+                                              Teklifi İncele
+                                            </button>
+                                            <button 
+                                              onClick={() => handleAcceptOffer(offer)}
+                                              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95 border border-transparent"
+                                            >
+                                              Teklifi Onayla
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : null}
+
+                      {/* Mockup Active Offers from design mockup (Always rendered to show gorgeous aesthetics) */}
+                      {MOCKUP_ACTIVE_OFFERS.map((group) => {
+                        const offerCount = group.offers?.length || 0;
+                        const categoryIcon = group.icon === "tools" ? "🛠️" : group.icon === "cleaning" ? "🧹" : "🛠️";
+
+                        return (
+                          <div key={group.id} className="bg-white rounded-[32px] border border-slate-100 p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.025)] transition-all duration-300 space-y-6">
+                            {/* 🚀 Premium Group Header */}
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                              <div className="flex items-start gap-4">
+                                {/* Category Icon Circle */}
+                                <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-xl shrink-0">
+                                  {categoryIcon}
+                                </div>
+                                
+                                <div className="space-y-1 text-left">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 
+                                      className="font-black text-slate-900 text-lg md:text-xl hover:underline cursor-pointer tracking-tight"
+                                      onClick={() => alert("Bu mockup talebidir. Gerçek teklif akışlarını test etmek için anasayfadan canlı bir talep oluşturabilirsiniz!")}
+                                    >
+                                      {group.title}
+                                    </h3>
+                                    
+                                    <span className="bg-slate-100 text-slate-500 font-extrabold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200/50">
+                                      {group.code}
+                                    </span>
+
+                                    {offerCount > 0 ? (
+                                      <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
+                                        {offerCount} Teklif Alındı
+                                      </span>
+                                    ) : (
+                                      <span className="bg-[#c8f252]/15 text-[#4c630a] text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-[#c8f252]/20 animate-pulse">
+                                        TEKLİF BEKLENİYOR
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Quick Metadata Tags */}
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400 font-bold pt-1">
+                                    <span className="flex items-center gap-1">
+                                      📍 Adana, Seyhan
+                                    </span>
+                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span className="flex items-center gap-1">
+                                      📅 15 Haziran 2026
+                                    </span>
+                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span className="flex items-center gap-1 text-slate-600">
+                                      💰 ₺15.000
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Header Right Actions */}
+                              <div className="flex items-center gap-2 self-end md:self-center">
+                                <button 
+                                  onClick={() => alert("Bu mockup talebidir. Gerçek teklif inceleme aksiyonlarını test etmek için lütfen anasayfadan yeni bir talep oluşturun!")}
+                                  className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 shadow-sm active:scale-95 flex items-center gap-1"
+                                >
+                                  Detayları İncele
+                                </button>
+                                <button 
+                                  onClick={() => alert("Mockup talebi iptal edilemez.")}
+                                  className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                >
+                                  İptal Et
+                                </button>
+                              </div>
                             </div>
 
-                            {/* Offers Card Grid / List */}
-                            <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}>
-                              {!req.offers || req.offers.length === 0 ? (
-                                <div className="col-span-full bg-white p-8 rounded-[24px] border border-slate-100 text-center shadow-sm text-xs text-slate-400 font-semibold italic">
-                                  Bu talebe henüz teklif iletilmedi. WebSocket ile anlık olarak buraya yansıyacaktır.
-                                </div>
-                              ) : (
-                                req.offers.map((offer) => (
+                            {/* 📥 Offers Nested List / Grid */}
+                            <div>
+                              <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}>
+                                {group.offers.map((offer) => (
                                   <div 
                                     key={offer.id}
-                                    className="bg-white p-6 rounded-[24px] border border-slate-100/90 shadow-[0_4px_15px_rgba(15,23,42,0.01)] hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between gap-4"
+                                    className="bg-white p-5 rounded-[24px] border border-slate-100/90 shadow-[0_4px_15px_rgba(15,23,42,0.015)] hover:shadow-[0_10px_25px_rgba(15,23,42,0.03)] hover:border-slate-200 transition-all duration-200 flex flex-col justify-between gap-4 animate-scale-up"
                                   >
                                     <div className="flex items-start gap-4">
-                                      {/* Provider avatar */}
-                                      <img
-                                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"
-                                        alt={offer.provider.user.name}
-                                        className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shrink-0"
-                                      />
-                                      <div className="space-y-1.5 overflow-hidden text-left flex-1">
-                                        <div className="flex items-baseline gap-2">
-                                          <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.provider.user.name}</h4>
-                                          <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ 4.8 (85 Yorum)</span>
+                                      <div className="relative shrink-0">
+                                        <img 
+                                          src={offer.avatar} 
+                                          alt={offer.providerName} 
+                                          className="w-12 h-12 rounded-2xl object-cover border border-slate-100 shadow-sm"
+                                        />
+                                        <div className="absolute -bottom-1 -right-1 bg-white border border-[#c8f252] rounded-full p-0.5 shadow-sm flex items-center justify-center w-4 h-4 text-[#88b000] font-bold text-[8px]">
+                                          ✓
                                         </div>
-                                        <p className="text-xs text-slate-550 leading-relaxed font-semibold">
+                                      </div>
+                                      
+                                      <div className="space-y-1.5 overflow-hidden text-left flex-1">
+                                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                          <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.providerName}</h4>
+                                          <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ {offer.rating} ({offer.reviewsCount} Yorum)</span>
+                                        </div>
+                                        <p className="text-xs text-slate-650 leading-relaxed font-semibold">
                                           {offer.description}
                                         </p>
                                       </div>
                                     </div>
 
-                                    {/* Footer Bid amount & Actions */}
-                                    <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
+                                    <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
                                       <div className="text-left">
-                                        <span className="text-lg font-black text-[#88b000] tracking-tight">₺{offer.price.toLocaleString("tr-TR")}</span>
+                                        <span className="text-lg font-black text-slate-900 tracking-tight">₺{offer.price}</span>
                                         <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
                                       </div>
 
                                       <div className="flex items-center gap-2">
                                         <button 
-                                          onClick={() => setSelectedRequest(req)}
+                                          onClick={() => alert("Bu mockup teklif inceleme penceresidir.")}
                                           className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
                                         >
                                           İncele
                                         </button>
                                         <button 
-                                          onClick={() => handleAcceptOffer(offer)}
+                                          onClick={() => alert("Mockup teklif kabulü başarıyla simüle edildi!")}
                                           className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95 border border-transparent"
                                         >
                                           Onayla
@@ -910,75 +1140,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </div>
                                     </div>
                                   </div>
-                                ))
-                              )}
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        ))
-                      ) : null}
-
-                      {/* Mockup Active Offers from design mockup (Always rendered to show gorgeous aesthetics) */}
-                      {MOCKUP_ACTIVE_OFFERS.map((group) => (
-                        <div key={group.id} className="space-y-4">
-                          {/* Request Title */}
-                          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 pl-1">
-                            <span>{group.icon === "tools" ? "🛠️" : "🧹"}</span>
-                            <span className="hover:underline cursor-pointer" onClick={() => alert("Bu mockup talebidir. Gerçek teklif akışlarını test etmek için anasayfadan canlı bir talep oluşturabilirsiniz!")}>
-                              {group.title}
-                            </span>
-                            <span className="text-slate-400 font-bold">{group.code}</span>
-                          </div>
-
-                          {/* Grid layout */}
-                          <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}>
-                            {group.offers.map((offer) => (
-                              <div 
-                                key={offer.id}
-                                className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-[0_4px_15px_rgba(15,23,42,0.01)] hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between gap-4 animate-scale-up"
-                              >
-                                <div className="flex items-start gap-4">
-                                  <img 
-                                    src={offer.avatar} 
-                                    alt={offer.providerName} 
-                                    className="w-12 h-12 rounded-2xl object-cover border border-slate-100 shrink-0 shadow-sm"
-                                  />
-                                  <div className="space-y-1.5 overflow-hidden text-left flex-1">
-                                    <div className="flex items-baseline gap-2">
-                                      <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.providerName}</h4>
-                                      <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ {offer.rating} ({offer.reviewsCount} Yorum)</span>
-                                    </div>
-                                    <p className="text-xs text-slate-650 leading-relaxed font-semibold">
-                                      {offer.description}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
-                                  <div className="text-left">
-                                    <span className="text-lg font-black text-slate-900 tracking-tight">₺{offer.price}</span>
-                                    <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <button 
-                                      onClick={() => alert("Bu mockup teklif inceleme penceresidir.")}
-                                      className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
-                                    >
-                                      İncele
-                                    </button>
-                                    <button 
-                                      onClick={() => alert("Mockup teklif kabulü başarıyla simüle edildi!")}
-                                      className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95 border border-transparent"
-                                    >
-                                      Onayla
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </section>
 
