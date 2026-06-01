@@ -873,7 +873,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     <img 
                                       src="/logo-icon.png" 
                                       alt="Esnaaf Logo Icon" 
-                                      className="w-8 h-8 object-contain" 
+                                      className="w-11 h-11 object-contain" 
                                     />
                                   </div>
                                   
@@ -1033,7 +1033,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   <img 
                                     src="/logo-icon.png" 
                                     alt="Esnaaf Logo Icon" 
-                                    className="w-8 h-8 object-contain" 
+                                    className="w-11 h-11 object-contain" 
                                   />
                                 </div>
                                 
