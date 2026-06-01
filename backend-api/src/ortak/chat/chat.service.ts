@@ -7,7 +7,6 @@ import { RedisService } from '../../common/redis/redis.service';
 import { ChatGateway } from './chat.gateway';
 import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phone.util';
 import { GeminiService } from '../../common/gemini/gemini.service';
-import { TaleplerProcessor } from '../../musteri/talepler/talepler.processor';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -40,8 +39,6 @@ export class ChatService {
     private chatGateway: ChatGateway,
     @InjectQueue('chat-retry') private chatRetryQueue: Bull.Queue,
     private geminiService: GeminiService,
-    @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
-    private taleplerProcessor: TaleplerProcessor,
   ) {}
 
   /**
@@ -862,20 +859,61 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
 
           createdJobId = job.id;
 
-          // Trigger matches & distribution (failsafe synchronous distribution + background queueing)
+          // Trigger matches & distribution (failsafe direct synchronous distribution)
           try {
-            await this.distributionQueue.add('distribute', { jobId: job.id });
-            console.log(`[ChatService Failsafe] Talep ${job.id} dağıtım kuyruğuna başarıyla eklendi.`);
-            
-            // Run distribution synchronously in request thread to bypass serverless CPU freezing
-            this.taleplerProcessor.handleDistribution({
-              data: { jobId: job.id },
-              queue: this.distributionQueue,
-            } as any).catch(err => {
-              console.error(`[ChatService Failsafe] Eşzamanlı dağıtım hatası: ${err.message}`, err.stack);
+            const requestDistrict = state.collected_data.district || 'Kadıköy';
+            const requestCity = state.collected_data.city || 'İstanbul';
+
+            // Find all active, approved providers supporting this category in the database
+            const providers = await this.prisma.serviceProvider.findMany({
+              where: {
+                is_approved: true,
+                category_ids: { has: category.id }
+              },
+              include: { user: true }
             });
+
+            console.log(`[ChatService Failsafe Match] Found ${providers.length} approved providers in database for category ${category.name}`);
+
+            for (const provider of providers) {
+              const providerCity = provider.city || 'Adana';
+              let providerDistricts = provider.service_districts || [];
+              if (providerDistricts.length === 0) {
+                providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+              }
+
+              // Match City and District
+              const cityMatch = providerCity.toLowerCase() === requestCity.toLowerCase();
+              const districtMatch = providerDistricts.map(d => d.toLowerCase()).includes(requestDistrict.toLowerCase());
+
+              if (cityMatch && districtMatch) {
+                // Create responseTime mapping record
+                await this.prisma.responseTime.create({
+                  data: {
+                    provider_id: provider.id,
+                    job_id: job.id,
+                    notified_at: new Date()
+                  }
+                });
+
+                // Emit new job event to the provider via WebSocket in real-time
+                this.chatGateway.emitNewJobToProvider(provider.id, {
+                  id: job.id,
+                  categoryName: category.name,
+                  district: requestDistrict,
+                  details: state.collected_data.details || '',
+                  viewerCount: 1,
+                  created_at: job.created_at,
+                  isFavoriteCustomer: false
+                });
+
+                console.log(`[ChatService Failsafe Match] Successfully matched and assigned job ${job.id} to provider ${provider.user.name}`);
+              } else {
+                console.log(`[ChatService Failsafe Match] Provider ${provider.user.name} mismatched: CityMatch=${cityMatch}, DistrictMatch=${districtMatch}`);
+              }
+            }
           } catch (err: any) {
-            console.error(`[ChatService Failsafe] Dağıtım tetikleme hatası: ${err.message}`, err.stack);
+            console.error(`[ChatService Failsafe Match] Error during direct request distribution matching: ${err.message}`, err.stack);
           }
 
           state.step = 'completed';

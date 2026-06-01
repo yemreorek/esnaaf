@@ -6,7 +6,6 @@ import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatRetryProcessor } from './chat-retry.processor';
 import { GeminiService } from '../../common/gemini/gemini.service';
-import { TaleplerProcessor } from '../../musteri/talepler/talepler.processor';
 
 @Module({
   imports: [
@@ -14,12 +13,9 @@ import { TaleplerProcessor } from '../../musteri/talepler/talepler.processor';
     BullModule.registerQueue({
       name: 'chat-retry',
     }),
-    BullModule.registerQueue({
-      name: 'talepler-distribution',
-    }),
   ],
   controllers: [ChatController],
-  providers: [ChatService, ChatGateway, ChatRetryProcessor, GeminiService, TaleplerProcessor],
+  providers: [ChatService, ChatGateway, ChatRetryProcessor, GeminiService],
   exports: [ChatService, ChatGateway],
 })
 export class ChatModule {}
