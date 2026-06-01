@@ -1472,49 +1472,70 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           </div>
 
                           {selectedRequest.offers?.length === 0 ? (
-                            <div className="py-8 text-center text-xs text-slate-400 font-semibold space-y-1">
-                              <div className="text-2xl animate-pulse">⏳</div>
-                              <div>Bölgenizdeki esnaflara talebiniz iletildi.</div>
-                              <div className="font-medium text-[10px]">İlk teklifler birkaç dakika içinde burada listelenecektir.</div>
+                            <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
+                              <div className="relative w-12 h-12 flex items-center justify-center">
+                                {/* Premium Neon lime spinning loading loader */}
+                                <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#c8f252] animate-spin"></div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</div>
+                                <div className="text-slate-500 text-xs font-semibold max-w-[280px] leading-relaxed mx-auto">
+                                  Talebiniz bölgenizdeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
+                                </div>
+                              </div>
                             </div>
                           ) : (
                             <div className="space-y-4">
                               {selectedRequest.offers?.map((offer) => (
                                 <div
                                   key={offer.id}
-                                  className="border border-slate-100 hover:border-[#c8f252] bg-slate-50/20 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
+                                  className="border border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)] animate-scale-up"
                                 >
-                                  <div className="space-y-1.5 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-8 h-8 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-xs select-none">
-                                        🧑‍🔧
+                                  <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
+                                    <div className="flex items-center gap-3">
+                                      <span className="w-10 h-10 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-lg select-none">
+                                        🔔
                                       </span>
                                       <div className="flex flex-col">
-                                        <span className="font-extrabold text-xs text-slate-800">
+                                        <span className="font-extrabold text-xs md:text-sm text-slate-800">
                                           {offer.provider.user.name}
                                         </span>
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
                                           Profesyonel Esnaf
                                         </span>
                                       </div>
                                     </div>
-                                    <p className="text-xs text-slate-600 font-semibold italic bg-white p-2.5 rounded-xl border border-slate-100 leading-relaxed font-semibold">
-                                      &ldquo;{offer.description}&rdquo;
-                                    </p>
-                                  </div>
-                                  <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-2 shrink-0">
-                                    <span className="text-base font-black text-slate-900 tracking-tight">
+                                    <span className="text-base md:text-lg font-black text-slate-900 tracking-tight">
                                       {offer.price} ₺
                                     </span>
+                                  </div>
+
+                                  <p className="text-xs md:text-sm text-slate-600 font-semibold italic bg-white p-3 rounded-2xl border border-slate-100/80 leading-relaxed">
+                                    &ldquo;{offer.description}&rdquo;
+                                  </p>
+
+                                  <div className="flex items-center gap-2.5 w-full pt-1">
+                                    <button 
+                                      onClick={() => alert("Usta profili çok yakında görüntülenebilecek!")}
+                                      className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
+                                    >
+                                      Profili Gör
+                                    </button>
+                                    <button 
+                                      onClick={() => alert("Canlı mesajlaşma modülü çok yakında hizmetinizde!")}
+                                      className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
+                                    >
+                                      Mesaj Gönder
+                                    </button>
                                     {offer.status === "pending" ? (
                                       <button
                                         onClick={() => handleAcceptOffer(offer)}
-                                        className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black px-4 py-2 rounded-lg cursor-pointer transition-all shadow-sm active:scale-95"
+                                        className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] md:text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all shadow-md shadow-[#c8f252]/20 active:scale-95 border border-transparent"
                                       >
                                         Kabul Et
                                       </button>
                                     ) : (
-                                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-md uppercase tracking-wider font-mono">
+                                      <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
                                         Kabul Edildi
                                       </span>
                                     )}

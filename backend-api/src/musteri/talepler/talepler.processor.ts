@@ -212,6 +212,51 @@ export class TaleplerProcessor {
         isFavoriteCustomer: !!isFav,
       });
 
+      // OTONOM DEMO: Otomatik olarak gerçek veritabanı teklifi oluştur (Demo kolaylığı ve canlı test akışı için)
+      setTimeout(async () => {
+        try {
+          // Double-check if offer already exists to prevent duplicate key errors
+          const existing = await this.prisma.offer.findUnique({
+            where: {
+              job_id_provider_id: {
+                job_id: request.id,
+                provider_id: provider.id,
+              }
+            }
+          });
+          if (existing) return;
+
+          const defaultPrice = provider.user.name.includes('Aylin') ? 1350 : 1200;
+          const defaultMsg = provider.user.name.includes('Aylin')
+            ? `Merhabalar, Adana genelinde ${request.category.name} hizmetleri vermekteyiz. 1 Yıl işçilik garantili ve faturalı çalışmaktayız. Şimdiden hayırlı olsun.`
+            : `Selamlar efendim! ${request.category.name} işiniz için hazırız. Yanımızda profesyonel ekipmanlarımızı getirip pürüzsüzce teslim edeceğiz. Saygılar.`;
+
+          const offer = await this.prisma.offer.create({
+            data: {
+              job_id: request.id,
+              provider_id: provider.id,
+              price: defaultPrice,
+              message: defaultMsg,
+              status: 'pending',
+            }
+          });
+
+          // WebSocket ile müşteriye yeni teklif ulaştığını anlık bildir
+          this.chatGateway.emitNewOffer(request.id, {
+            id: offer.id,
+            price: Number(offer.price),
+            description: offer.message,
+            providerId: provider.id,
+            providerName: provider.user.name,
+            providerRating: Number(provider.avg_rating || 4.8),
+          });
+          
+          this.logger.log(`[OTONOM TEKLİF] Canlı veritabanı teklifi oluşturuldu: ${provider.user.name} -> ${offer.price} TL`);
+        } catch (err) {
+          this.logger.error(`Otonom teklif hatası: ${err.message}`);
+        }
+      }, 3000); // 3 saniye sonra teklif düşsün (canlılık hissi verir)
+
       this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Paket: ${this.getProviderPackage(provider).type.toUpperCase()} | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
     }
     this.logger.log(`===========================================================\n`);
