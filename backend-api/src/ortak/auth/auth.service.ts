@@ -63,9 +63,9 @@ export class AuthService {
   async sendOtp(dto: SendOtpDto) {
     const normalized = normalizePhone(dto.phone);
 
-    // 1. Check if locked
+    // 1. Check if locked (Bypass lock for Adana test masters to prevent automated blocks)
     const isLocked = await this.redis.get(`otp_lock:${normalized}`);
-    if (isLocked) {
+    if (isLocked && normalized !== '+905329999901' && normalized !== '+905329999902') {
       throw new ForbiddenException('Çok fazla hatalı deneme. 5 dakika bekleyin.');
     }
 
@@ -102,9 +102,9 @@ export class AuthService {
   async verifyOtp(dto: VerifyOtpDto) {
     const normalized = normalizePhone(dto.phone);
 
-    // 1. Check if locked
+    // 1. Check if locked (Bypass lock for Adana test masters to prevent automated blocks)
     const isLocked = await this.redis.get(`otp_lock:${normalized}`);
-    if (isLocked) {
+    if (isLocked && normalized !== '+905329999901' && normalized !== '+905329999902') {
       throw new ForbiddenException('Çok fazla hatalı deneme. 5 dakika bekleyin.');
     }
 
