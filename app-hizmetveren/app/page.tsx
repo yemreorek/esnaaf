@@ -58,12 +58,12 @@ export function resolveCityFromDistrict(district?: string): string {
 }
 
 const MOCK_USTAS = [
-  { name: 'Mert Yılmaz (VIP)', phone: '+905320000001', rating: 4.8 },
-  { name: 'Usta Ahmet (VIP)', phone: '+905320000001', rating: 4.8 },
+  { name: 'Kemal Usta (Adana - Klima & Temizlik)', phone: '+905329999901', rating: 4.8 },
+  { name: 'Aylin Teknik (Adana - Hizmet Grubu)', phone: '+905329999902', rating: 4.9 },
+  { name: 'Mert Yılmaz (VIP - İstanbul)', phone: '+905320000001', rating: 4.8 },
+  { name: 'Usta Ahmet (VIP - İstanbul)', phone: '+905320000001', rating: 4.8 },
   { name: 'Usta Mehmet (Premium - Yeni)', phone: '+905320000002', rating: 4.5 },
   { name: 'Usta Can (Standart)', phone: '+905320000003', rating: 4.2 },
-  { name: 'Usta Hasan (Standart - Eski)', phone: '+905320000004', rating: 3.9 },
-  { name: 'Usta Veli (Basic)', phone: '+905320000005', rating: 3.5 },
 ];
 
 // Screenshot Mock Opportunities used for preview state
