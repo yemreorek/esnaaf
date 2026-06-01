@@ -72,6 +72,8 @@ export class HizmetverenService {
         name: formData.name || 'Müşteri',
         created_at: job.created_at,
         viewerCount,
+        butce: formData.butce || null,
+        aciliyet: formData.aciliyet || null,
       });
     }
 

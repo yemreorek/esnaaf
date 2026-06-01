@@ -59,6 +59,22 @@ export function resolveCityFromDistrict(district?: string): string {
   return 'İstanbul';
 }
 
+export function formatRelativeTime(dateString: string): string {
+  try {
+    const diffMs = Date.now() - new Date(dateString).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Az önce';
+    if (diffMins < 60) return `${diffMins} dakika önce`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} saat önce`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Dün';
+    return `${diffDays} gün önce`;
+  } catch (e) {
+    return 'Az önce';
+  }
+}
+
 export function normalizePhone(rawPhone: string): string {
   let digits = rawPhone.replace(/\D/g, '');
   if (digits.startsWith('90') && digits.length === 12) {
@@ -144,6 +160,8 @@ interface Job {
   name: string;
   created_at: string;
   viewerCount: number;
+  butce?: string | null;
+  aciliyet?: string | null;
 }
 
 interface Quota {
@@ -923,61 +941,105 @@ export default function ProviderDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             
             {/* If logged in and has actual jobs in database, render them. Otherwise show mockup grid */}
-            {token && jobs.length > 0 ? (
-              jobs.map((job) => (
-                <div 
-                  key={job.id} 
-                  className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
-                >
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex items-center gap-3">
-                        {renderMockupIcon(
-                          job.categoryName.includes("Temizlik") ? "cleaning" :
-                          job.categoryName.includes("Nakliyat") ? "truck" :
-                          job.categoryName.includes("Tadilat") ? "tools" : "paint"
-                        )}
-                        <div className="flex flex-col text-left">
-                          <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
-                          <span className="text-[9px] font-black text-rose-500 bg-rose-50 border border-rose-100/50 px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono">
-                            ACİL TALEP
-                          </span>
+            {token ? (
+              jobs.length > 0 ? (
+                jobs.map((job) => {
+                  const badgeText = job.aciliyet || (
+                    job.categoryName.includes("Temizlik") ? "ACİL TALEP" :
+                    job.categoryName.includes("Nakliyat") ? "PLANLI İŞ" :
+                    job.categoryName.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
+                  );
+                  const badgeType = job.aciliyet ? (
+                    job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
+                    job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
+                    job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
+                  ) : (
+                    job.categoryName.includes("Temizlik") ? "urgent" :
+                    job.categoryName.includes("Nakliyat") ? "planned" :
+                    job.categoryName.includes("Tadilat") ? "high" : "standard"
+                  );
+
+                  const estBudget = job.butce || (
+                    job.categoryName.includes("Temizlik") ? "1.200 TL – 1.500 TL" :
+                    job.categoryName.includes("Nakliyat") ? "2.500 TL – 3.200 TL" :
+                    job.categoryName.includes("Tadilat") ? "4.000 TL – 6.000 TL" :
+                    job.categoryName.includes("Boya") ? "8.500 TL – 12.000 TL" : "1.500 TL – 3.000 TL"
+                  );
+
+                  return (
+                    <div 
+                      key={job.id} 
+                      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
+                    >
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex items-center gap-3">
+                            {renderMockupIcon(
+                              job.categoryName.includes("Temizlik") ? "cleaning" :
+                              job.categoryName.includes("Nakliyat") ? "truck" :
+                              job.categoryName.includes("Tadilat") ? "tools" : "paint"
+                            )}
+                            <div className="flex flex-col text-left">
+                              <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
+                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
+                                badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
+                                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
+                                badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
+                              }`}>
+                                {badgeText}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
+                            <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
+                            <span>{formatRelativeTime(job.created_at)}</span>
+                          </div>
                         </div>
+
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
+                          <svg className="w-4 h-4 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                          <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
+                        </div>
+
+                        <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold">
+                          &ldquo;{job.details}&rdquo;
+                        </p>
                       </div>
-                      
-                      <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-                        <span className="flex items-center gap-1 justify-end">👁️ 3 usta inceliyor</span>
-                        <span>Az önce</span>
+
+                      <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
+                        <div className="text-left">
+                          <span className="block text-[9px] text-slate-450 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
+                          <span className="text-base font-black text-slate-900 tracking-tight">{estBudget}</span>
+                        </div>
+
+                        <button
+                          onClick={() => setActiveJob(job)}
+                          className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
+                        >
+                          Teklif Ver
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
-                      <svg className="w-4 h-4 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                      </svg>
-                      <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
-                    </div>
-
-                    <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold">
-                      &ldquo;{job.details}&rdquo;
+                  );
+                })
+              ) : (
+                /* Premium Empty State */
+                <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 shadow-[0_4px_30px_rgba(15,23,42,0.015)] text-center space-y-5 animate-scale-up py-16">
+                  <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                    <Briefcase className="w-8 h-8 text-[#4c630a] stroke-[2.2]" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-slate-950 text-base">Aktif İş Fırsatı Bulunmuyor</h3>
+                    <p className="text-slate-400 text-xs max-w-md mx-auto leading-relaxed font-semibold">
+                      Bölgenizde ve kategorinizde şu anda bekleyen aktif bir iş talebi bulunmamaktadır. 
+                      Müşterilerimiz yeni talepler oluşturduğunda bu sayfada gerçek zamanlı (WebSocket) olarak anında listelenecektir!
                     </p>
                   </div>
-
-                  <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
-                    <div className="text-left">
-                      <span className="block text-[9px] text-slate-450 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
-                      <span className="text-base font-black text-slate-900 tracking-tight">1.500 TL – 3.000 TL</span>
-                    </div>
-
-                    <button
-                      onClick={() => setActiveJob(job)}
-                      className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-                    >
-                      Teklif Ver
-                    </button>
-                  </div>
                 </div>
-              ))
+              )
             ) : (
               // Preview State: Render exact screenshot cards
               MOCKUP_OPPORTUNITIES.map((opp) => (

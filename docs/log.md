@@ -2,6 +2,12 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-01 build | esnaaf.com Özel Domain Entegrasyonu ve Firebase Hosting Yayını
+
+- **Özel Domain Yönlendirmesi ve Wix DNS Ayarları:** `esnaaf.com` (yalın domain) için `199.36.158.100` A kaydı ve `hosting-site=esnaaf-prod-orek` TXT sahiplik doğrulaması Wix DNS üzerinde tamamlandı. `www.esnaaf.com` için eski Wix CNAME kaydı silinerek default Firebase Hosting domainine (`esnaaf-prod-orek.web.app`) yönlenen yeni CNAME kaydı başarıyla tescillendi.
+- **Firebase CDN Refresh & Re-deploy:** SSL sertifikası üretildikten (Minting certificate) ve domain "Connected" durumuna geçtikten sonra, küresel Google CDN yönlendirme tablolarını anında güncellemeye zorlamak amacıyla `firebase deploy --only hosting` dağıtımı tetiklendi.
+- **Uçtan Uca Doğrulama:** `https://esnaaf.com` ve `https://www.esnaaf.com` adreslerinin her ikisinin de sıfır güvenlik uyarısıyla (HTTPS/SSL), anlık 301 yönlendirmesiyle ve `200 OK` Next.js uygulama çıktısıyla yayına girdiği canlı HTTP sorgularıyla doğrulanmıştır.
+
 ## 2026-05-28 build | Adım 22 Tamamlandı — Google Cloud Platform (GCP) Canlı Ortam Kurulumu & Otomatik CI/CD Dağıtım Altyapısı
 
 - **Git ve Sessiz Kurulum Entegrasyonu:**

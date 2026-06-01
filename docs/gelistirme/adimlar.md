@@ -30,6 +30,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 19** | **Yükleme & 20 Kategori** | S3/R2 presigned URL güvenli yükleme altyapısı, 20 kategori tam aktivasyonu ve AI Chat yeni kategoriler entegrasyonu | **✅ Tamamlandı** |
 | **Adım 20** | **Docker & ECS Deployment** | Production multi-stage Dockerfile, local docker-compose.yml orkestrasyonu, AWS ECS Task Definition, deploy CI/CD pipeline ve DB/Redis /api/health kontrol sistemi | **✅ Tamamlandı** |
 | **Adım 21** | **Gemini Active Agent** | Resmi Google Gen AI SDK (`@google/genai`) entegrasyonu, otonom 'detectCategory', 'sendOTP' ve 'createServiceRequest' araç çağırma (Function Calling) akışı, dinamik syncStep algoritması, üstel geri çekilme (exponential backoff) hata toleransı, coğrafi kısıtlayıcı kilitler ve parametre bozulmalarını önleyen akıllı filtreleme mimarisi | **✅ Tamamlandı** |
+| **Adım 22** | **GCP & Canlı Dağıtım** | Google Cloud Platform (GCP) Canlı Ortam Kurulumu, Cloud Run API/Frontend Servisleri, Memorystore Redis VPC Egress, Firebase Hosting Özel Alan Adı (esnaaf.com) Entegrasyonu ve Otomatik GitHub Actions CI/CD Dağıtım Altyapısı | **✅ Tamamlandı** |
 
 ---
 
@@ -666,4 +667,28 @@ Ajanın konuşmanın akışına göre otonom olarak veritabanı işlemlerini tet
 ### 5. E2E Test & Tip Doğrulama
 *   `test-gemini-agent-e2e.ts` E2E entegrasyon testi gerçek Gemini Flash modeli ile programatik olarak test edilmiş ve **%100 başarıyla** geçmiştir.
 *   Tüm monorepo genelinde `npx tsc --noEmit` çalıştırılarak sıfır derleme ve tip hatası ile doğrulandı.
+
+---
+
+## 🛠️ Adım 22 Geliştirme Detayları (Google Cloud Platform (GCP) Canlı Ortam Kurulumu, Firebase Hosting Özel Alan Adı (esnaaf.com) Entegrasyonu & Otomatik CI/CD Dağıtım Altyapısı)
+
+Esnaaf platformunun Faz 3 hedefleri doğrultusunda canlıya geçiş, özel alan adı entegrasyonu ve tam otomatik GitHub Actions CI/CD dağıtım altyapısı tamamlanmıştır:
+
+### 1. Git ve Güvenli Depolama Konfigürasyonu
+*   Monorepo kök dizini için `.gitignore` dosyası oluşturularak; veritabanı şifreleri, `.env` dosyaları, devasa `node_modules` klasörleri ve bilgisayardaki portatif araçların (`node-portable`, `pg-portable`, `redis-portable` vb.) GitHub'a sızması tamamen engellendi.
+*   Monorepo başarıyla GitHub deposuna (`https://github.com/yemreorek/esnaaf`) aktarılarak sürüm kontrolüne alındı.
+
+### 2. Cloud Run & Memorystore Redis VPC Egress Mimarisi
+*   `esnaaf-backend` API servisi GCP Cloud Run üzerinde pre-deploy edildi. Canlı PostgreSQL veritabanı bağlantısı, güvenli rastgele üretilen JWT Secret anahtarları ve Gemini API anahtarı enjekte edildi.
+*   Servisin Memorystore Redis özel IP'sine (`10.126.134.147`) erişebilmesi için `default` VPC ağına Direct VPC Egress bağlantısı sağlandı.
+*   Next.js frontend uygulamaları için build-time argümanları (`ARG NEXT_PUBLIC_API_URL` vb.) Dockerfile şablonlarına entegre edilerek derleme sırasında canlı API adresleri enjekte edildi.
+
+### 3. Firebase Hosting & Özel Alan Adı (esnaaf.com) Entegrasyonu
+*   Google Cloud'un pahalı ve karmaşık Load Balancer'ları yerine, tamamen ücretsiz ve CDN destekli **Firebase Hosting** köprüsü kuruldu.
+*   `firebase.json` ve `.firebaserc` dosyaları kurgulanarak, gelen tüm web trafiğinin (`**`) `europe-west3` (Frankfurt) bölgesindeki `esnaaf-musteri` Cloud Run servisine yönlendirilmesi sağlandı.
+*   **Wix DNS Ayarları:** `esnaaf.com` (yalın domain) için `199.36.158.100` A kaydı ve `hosting-site=esnaaf-prod-orek` TXT sahiplik doğrulaması Wix DNS üzerinde tamamlandı. `www.esnaaf.com` için eski Wix CNAME kaydı silinerek default Firebase Hosting domainine (`esnaaf-prod-orek.web.app`) yönlenen yeni CNAME kaydı başarıyla tescillendi.
+*   **Firebase CDN Refresh & Re-deploy:** SSL sertifikası üretildikten sonra küresel Google CDN yönlendirme tablolarını güncel domain eşleşmesiyle yenilemek amacıyla `firebase deploy --only hosting` dağıtımı tetiklendi. Alan adları başarıyla yayına girdi.
+
+### 4. Otomatik CI/CD Dağıtım Hattı
+*   `.github/workflows/deploy-gcp.yml` boru hattı güncellenerek, ana depoya (main branch) push yapıldığında Google Cloud Platform üzerinde otomatik imaj derleme, GCP Artifact Registry tescili ve Cloud Run servislerinin güncel imajlarla otomatik dağıtılması sağlandı.
 
