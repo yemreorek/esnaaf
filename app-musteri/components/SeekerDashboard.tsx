@@ -869,8 +869,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                                 <div className="flex items-start gap-4">
                                   {/* Category Icon Circle */}
-                                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-xl shrink-0">
-                                    {categoryIcon}
+                                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                    <img 
+                                      src="/logo-icon.png" 
+                                      alt="Esnaaf Logo Icon" 
+                                      className="w-8 h-8 object-contain" 
+                                    />
                                   </div>
                                   
                                   <div className="space-y-1 text-left">
@@ -1025,8 +1029,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                               <div className="flex items-start gap-4">
                                 {/* Category Icon Circle */}
-                                <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-xl shrink-0">
-                                  {categoryIcon}
+                                <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                  <img 
+                                    src="/logo-icon.png" 
+                                    alt="Esnaaf Logo Icon" 
+                                    className="w-8 h-8 object-contain" 
+                                  />
                                 </div>
                                 
                                 <div className="space-y-1 text-left">
