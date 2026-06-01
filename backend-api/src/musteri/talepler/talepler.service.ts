@@ -6,6 +6,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { ChatGateway } from '../../ortak/chat/chat.gateway';
 import { CreateTalepDto } from './dto/create-talep.dto';
 import { decryptPhone } from '../../common/utils/phone.util';
+import { TaleplerProcessor } from './talepler.processor';
 
 @Injectable()
 export class TaleplerService {
@@ -15,6 +16,7 @@ export class TaleplerService {
     private prisma: PrismaService,
     private chatGateway: ChatGateway,
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
+    private taleplerProcessor: TaleplerProcessor,
   ) {}
 
   /**
@@ -58,6 +60,20 @@ export class TaleplerService {
     // 3. Akıllı Dağıtım Algoritmasını BullMQ kuyruğuna ekle (Asenkron)
     await this.distributionQueue.add('distribute', { jobId: job.id });
     this.logger.log(`[Kuyruğa Eklendi] Talep ${job.id} dağıtım kuyruğuna başarıyla eklendi.`);
+
+    // 4. Serverless Google Cloud Run Failsafe: Run distribution synchronously in the background thread immediately!
+    // Since Cloud Run may freeze background CPU when there are no HTTP requests, running it inline ensures instant matching!
+    try {
+      this.logger.log(`[Eşzamanlı Dağıtım Başladı] Failsafe tetikleniyor: Talep ${job.id}`);
+      this.taleplerProcessor.handleDistribution({
+        data: { jobId: job.id },
+        queue: this.distributionQueue,
+      } as any).catch(err => {
+        this.logger.error(`Eşzamanlı dağıtım hatası: ${err.message}`, err.stack);
+      });
+    } catch (err: any) {
+      this.logger.error(`Eşzamanlı dağıtım tetiklenemedi: ${err.message}`);
+    }
 
     return {
       success: true,
