@@ -356,6 +356,65 @@ export class ChatService {
               },
             });
 
+            createdJobId = job.id;
+
+            // Trigger matches & distribution (failsafe direct request distribution)
+            try {
+              const requestDistrict = state.collected_data.district || 'Kadıköy';
+              const requestCity = state.collected_data.city || 'İstanbul';
+
+              // Find all active, approved providers supporting this category in the database
+              const providers = await this.prisma.serviceProvider.findMany({
+                where: {
+                  is_approved: true,
+                  category_ids: { has: category.id }
+                },
+                include: { user: true }
+              });
+
+              console.log(`[ChatService Failsafe Match] Found ${providers.length} approved providers in database for category ${category.name}`);
+
+              for (const provider of providers) {
+                const providerCity = provider.city || 'Adana';
+                let providerDistricts = provider.service_districts || [];
+                if (providerDistricts.length === 0) {
+                  providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+                }
+
+                // Match City and District
+                const cityMatch = providerCity.toLowerCase() === requestCity.toLowerCase();
+                const districtMatch = providerDistricts.map(d => d.toLowerCase()).includes(requestDistrict.toLowerCase());
+
+                if (cityMatch && districtMatch) {
+                  // Create responseTime mapping record
+                  await this.prisma.responseTime.create({
+                    data: {
+                      provider_id: provider.id,
+                      job_id: job.id,
+                      notified_at: new Date()
+                    }
+                  });
+
+                  // Emit new job event to the provider via WebSocket in real-time
+                  this.chatGateway.emitNewJobToProvider(provider.id, {
+                    id: job.id,
+                    categoryName: category.name,
+                    district: requestDistrict,
+                    details: state.collected_data.details || '',
+                    viewerCount: 1,
+                    created_at: job.created_at,
+                    isFavoriteCustomer: false
+                  });
+
+                  console.log(`[ChatService Failsafe Match] Successfully matched and assigned job ${job.id} to provider ${provider.user.name}`);
+                } else {
+                  console.log(`[ChatService Failsafe Match] Provider ${provider.user.name} mismatched: CityMatch=${cityMatch}, DistrictMatch=${districtMatch}`);
+                }
+              }
+            } catch (err: any) {
+              console.error(`[ChatService Failsafe Match] Error during direct request distribution matching: ${err.message}`, err.stack);
+            }
+
             state.step = 'completed';
             responseMessage = `Tebrikler! Talebiniz başarıyla gönderildi. 15 dakika içinde burada veya hesabınızda taleplerinizi inceleyebilir, teklifleri değerlendirebilir veya onaylayabilirsiniz.`;
             
