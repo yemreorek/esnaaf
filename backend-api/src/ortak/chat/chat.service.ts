@@ -7,6 +7,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { ChatGateway } from './chat.gateway';
 import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phone.util';
 import { GeminiService } from '../../common/gemini/gemini.service';
+import { TaleplerProcessor } from '../../musteri/talepler/talepler.processor';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -39,6 +40,8 @@ export class ChatService {
     private chatGateway: ChatGateway,
     @InjectQueue('chat-retry') private chatRetryQueue: Bull.Queue,
     private geminiService: GeminiService,
+    @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
+    private taleplerProcessor: TaleplerProcessor,
   ) {}
 
   /**
@@ -858,6 +861,22 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
           });
 
           createdJobId = job.id;
+
+          // Trigger matches & distribution (failsafe synchronous distribution + background queueing)
+          try {
+            await this.distributionQueue.add('distribute', { jobId: job.id });
+            console.log(`[ChatService Failsafe] Talep ${job.id} dağıtım kuyruğuna başarıyla eklendi.`);
+            
+            // Run distribution synchronously in request thread to bypass serverless CPU freezing
+            this.taleplerProcessor.handleDistribution({
+              data: { jobId: job.id },
+              queue: this.distributionQueue,
+            } as any).catch(err => {
+              console.error(`[ChatService Failsafe] Eşzamanlı dağıtım hatası: ${err.message}`, err.stack);
+            });
+          } catch (err: any) {
+            console.error(`[ChatService Failsafe] Dağıtım tetikleme hatası: ${err.message}`, err.stack);
+          }
 
           state.step = 'completed';
           responseMessage = `Tebrikler! Talebiniz başarıyla gönderildi. 15 dakika içinde burada veya hesabınızda taleplerinizi inceleyebilir, teklifleri değerlendirebilir veya onaylayabilirsiniz.`;
