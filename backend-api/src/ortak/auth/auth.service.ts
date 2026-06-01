@@ -108,18 +108,25 @@ export class AuthService {
       throw new ForbiddenException('Çok fazla hatalı deneme. 5 dakika bekleyin.');
     }
 
-    // 2. Get OTP code from Redis
+    // 2. Get OTP code from Redis (Allow bypass OTP for active test accounts)
     const otpData = await this.redis.get(`otp:${normalized}`);
-    if (!otpData) {
+    
+    const isBypassMatch = 
+      (normalized === '+905329999901' && dto.code === '915960') ||
+      (normalized === '+905329999902' && dto.code === '673334');
+
+    if (!otpData && !isBypassMatch) {
       throw new BadRequestException('Kodun süresi doldu. Yeni kod isteyin.');
     }
 
-    const { code: storedCode, attempts } = JSON.parse(otpData);
+    const { code: storedCode, attempts } = otpData ? JSON.parse(otpData) : { code: null, attempts: 0 };
 
     // 3. Verify OTP
-    if (dto.code === storedCode) {
-      // Correct code - delete Redis key
-      await this.redis.del(`otp:${normalized}`);
+    if (dto.code === storedCode || isBypassMatch) {
+      // Correct code - delete Redis key if it exists
+      if (otpData) {
+        await this.redis.del(`otp:${normalized}`);
+      }
 
       // Check / Register User
       const encryptedPhone = encryptPhone(normalized);
@@ -161,18 +168,22 @@ export class AuthService {
       if (newAttempts >= 3) {
         // Lock user for 5 minutes
         await this.redis.set(`otp_lock:${normalized}`, '1', 'EX', 300);
-        await this.redis.del(`otp:${normalized}`);
+        if (otpData) {
+          await this.redis.del(`otp:${normalized}`);
+        }
         throw new ForbiddenException('Çok fazla hatalı deneme. 5 dakika bekleyin.');
       } else {
         // Update attempts and preserve TTL
-        const remainingTtl = await this.redis.ttl(`otp:${normalized}`);
-        if (remainingTtl > 0) {
-          await this.redis.set(
-            `otp:${normalized}`,
-            JSON.stringify({ code: storedCode, attempts: newAttempts }),
-            'EX',
-            remainingTtl,
-          );
+        if (otpData) {
+          const remainingTtl = await this.redis.ttl(`otp:${normalized}`);
+          if (remainingTtl > 0) {
+            await this.redis.set(
+              `otp:${normalized}`,
+              JSON.stringify({ code: storedCode, attempts: newAttempts }),
+              'EX',
+              remainingTtl,
+            );
+          }
         }
         throw new BadRequestException('Kod hatalı, tekrar deneyin.');
       }
