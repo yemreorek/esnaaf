@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import ChatScreen from "../components/ChatScreen";
 import SeekerDashboard from "../components/SeekerDashboard";
-import { startNewSession, isLoggedIn, getAuthUser } from "../lib/session";
+import { startNewSession, isLoggedIn, getAuthUser, logout } from "../lib/session";
 
 // All 20 categories for the full selection [Explore] modal
 const categories = [
@@ -174,11 +174,107 @@ export default function Home() {
   const [isClientLoggedIn, setIsClientLoggedIn] = useState(false);
   const [clientUser, setClientUser] = useState<any>(null);
 
-  // Sync client auth state on mount and view changes
-  useEffect(() => {
-    setIsClientLoggedIn(isLoggedIn());
-    setClientUser(getAuthUser());
-  }, [activeView]);
+  // Giriş (Login) & OTP States
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginPhone, setLoginPhone] = useState("");
+  const [loginOtp, setLoginOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [devOtp, setDevOtp] = useState<string | null>(null);
+
+  const handleHizmetVerRedirect = () => {
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        window.location.href = "http://localhost:3001";
+      } else {
+        window.location.href = "https://esnaaf-hizmetveren-339090537138.europe-west3.run.app";
+      }
+    }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError("");
+    setDevOtp(null);
+
+    const cleanPhone = loginPhone.replace(/\s+/g, "");
+    if (!cleanPhone) {
+      setLoginError("Telefon numarası giriniz.");
+      setLoginLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/ortak/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: cleanPhone }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "OTP kodu gönderilemedi.");
+      }
+
+      setOtpSent(true);
+      if (data.devOtpCode) {
+        setDevOtp(data.devOtpCode);
+      }
+      triggerNotification("Doğrulama kodu gönderildi.");
+    } catch (err: any) {
+      setLoginError(err.message || "Bir hata oluştu.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError("");
+
+    const cleanPhone = loginPhone.replace(/\s+/g, "");
+    if (!loginOtp || loginOtp.length !== 6) {
+      setLoginError("6 haneli doğrulama kodunu giriniz.");
+      setLoginLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/ortak/auth/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: cleanPhone, code: loginOtp }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Doğrulama kodu hatalı.");
+      }
+
+      localStorage.setItem("esnaaf_token", data.accessToken);
+      localStorage.setItem("esnaaf_refresh_token", data.refreshToken);
+      localStorage.setItem("esnaaf_user", JSON.stringify(data.user));
+
+      setIsClientLoggedIn(true);
+      setClientUser(data.user);
+      setIsLoginModalOpen(false);
+      setOtpSent(false);
+      setLoginOtp("");
+      setLoginPhone("");
+      setDevOtp(null);
+
+      triggerNotification("Giriş başarılı!");
+      setActiveView("dashboard");
+    } catch (err: any) {
+      setLoginError(err.message || "Giriş başarısız.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   // Dismiss notification automatically
   useEffect(() => {
@@ -304,46 +400,57 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Action Icons on the Right (Bell, Chat, Profile) */}
-          <div className="flex items-center gap-4">
-            {isClientLoggedIn && (
-              <button
-                onClick={() => setActiveView("dashboard")}
-                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[11px] font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5 border border-transparent mr-1.5 scale-bounce"
-              >
-                <span>Panelime Git</span>
-                <svg className="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-              </button>
+          {/* Action Icons on the Right (Giriş & Hizmet Ver) */}
+          <div>
+            {isClientLoggedIn ? (
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleHizmetVerRedirect}
+                  className="bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5"
+                >
+                  <span>Hizmet Ver</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveView("dashboard")}
+                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5 border border-transparent scale-bounce"
+                >
+                  <span>Panelime Git</span>
+                  <svg className="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                </button>
+
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsClientLoggedIn(false);
+                    setClientUser(null);
+                    setActiveView("home");
+                    triggerNotification("Çıkış yapıldı.");
+                  }}
+                  className="text-slate-500 hover:text-slate-850 hover:bg-slate-50 text-xs font-bold px-4 py-2 rounded-xl transition-all border border-slate-200 cursor-pointer"
+                >
+                  Çıkış
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold px-4.5 py-2.5 rounded-xl transition-all border border-slate-250 cursor-pointer"
+                >
+                  Giriş
+                </button>
+                
+                <button 
+                  onClick={handleHizmetVerRedirect}
+                  className="bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1.5 hover:shadow-lg hover:shadow-[#c8f252]/10"
+                >
+                  <span>Hizmet Ver</span>
+                </button>
+              </div>
             )}
-            <button 
-              onClick={() => triggerNotification("Bildirim bulunmuyor.")}
-              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer relative"
-              title="Bildirimler"
-            >
-              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-              </svg>
-            </button>
-            <button 
-              onClick={() => triggerNotification("Gelen kutunuz temiz.")}
-              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer relative"
-              title="Mesajlar"
-            >
-              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              </svg>
-            </button>
-            <button 
-              onClick={() => triggerNotification("Giriş Yap özelliği yakında hizmetinizde!")}
-              className="text-slate-500 hover:text-slate-850 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
-              title="Profil"
-            >
-              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-            </button>
           </div>
         </div>
       </nav>
@@ -688,6 +795,166 @@ export default function Home() {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔐 Login Modal */}
+      {isLoginModalOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs animate-fade-in p-0 sm:p-4"
+          onClick={() => {
+            setIsLoginModalOpen(false);
+            setOtpSent(false);
+            setLoginError("");
+            setDevOtp(null);
+          }}
+        >
+          <div
+            className="w-full sm:max-w-[420px] bg-white rounded-t-[24px] sm:rounded-3xl shadow-2xl flex flex-col animate-slide-up border border-slate-100 p-8 relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Background decorative glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#c8f252]/10 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setIsLoginModalOpen(false);
+                setOtpSent(false);
+                setLoginError("");
+                setDevOtp(null);
+              }}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-850 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+
+            {/* Logo and Intro */}
+            <div className="flex flex-col items-center text-center mt-2 mb-6">
+              <img 
+                alt="Esnaaf Logo" 
+                className="h-14 w-auto object-contain select-none mb-3" 
+                src="/logo.png" 
+              />
+              <h3 className="font-headline-lg text-slate-900 text-lg md:text-xl font-bold tracking-tight">
+                {otpSent ? "Doğrulama Kodunu Girin" : "Esnaaf'a Giriş Yap"}
+              </h3>
+              <p className="font-body-md text-xs text-slate-500 mt-1 max-w-[280px]">
+                {otpSent 
+                  ? `${loginPhone} numaralı telefona gelen 6 haneli kodu yazın.` 
+                  : "Mahallendeki güvenilir hizmet verenlere anında ulaşın."}
+              </p>
+            </div>
+
+            {loginError && (
+              <div className="bg-red-50 text-red-600 border border-red-150 rounded-2xl px-4 py-3 text-xs font-semibold flex items-start gap-2.5 mb-4">
+                <svg className="w-4 h-4 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Telefon Numarası
+                  </label>
+                  <div className="relative flex items-center bg-slate-50 border border-slate-200/80 rounded-2xl p-3 pl-4 focus-within:bg-white focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-slate-100 transition-all duration-300">
+                    <span className="text-slate-400 font-semibold text-sm shrink-0 mr-2 select-none">🇹🇷 +90</span>
+                    <input 
+                      type="tel"
+                      value={loginPhone}
+                      onChange={(e) => setLoginPhone(e.target.value)}
+                      placeholder="555 123 4567"
+                      className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold text-sm focus:ring-0 p-0"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                >
+                  {loginLoading ? (
+                    <div className="w-5 h-5 border-2 border-t-transparent border-[#c8f252] rounded-full animate-spin" />
+                  ) : (
+                    "Doğrulama Kodu Gönder"
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Doğrulama Kodu (OTP)
+                  </label>
+                  <input 
+                    type="text"
+                    maxLength={6}
+                    value={loginOtp}
+                    onChange={(e) => setLoginOtp(e.target.value)}
+                    placeholder="123456"
+                    className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center tracking-widest text-lg font-bold text-slate-900 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all"
+                    required
+                  />
+                </div>
+
+                {devOtp && (
+                  <div 
+                    onClick={() => setLoginOtp(devOtp)}
+                    className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-150 rounded-2xl px-4 py-3 text-xs cursor-pointer transition-colors flex justify-between items-center group font-medium"
+                  >
+                    <span>Test Kodu: <strong className="font-extrabold">{devOtp}</strong></span>
+                    <span className="text-[10px] text-amber-600 group-hover:text-amber-700 font-bold underline">Kodu Doldur</span>
+                  </div>
+                )}
+
+                {/* Default fallback helper for developers */}
+                {!devOtp && (
+                  <div 
+                    onClick={() => setLoginOtp("123456")}
+                    className="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 rounded-2xl px-4 py-3 text-[11px] cursor-pointer transition-colors flex justify-between items-center group font-medium"
+                  >
+                    <span>Geliştirici Girişi için kod: <strong className="font-extrabold">123456</strong></span>
+                    <span className="text-[10px] text-slate-500 group-hover:text-slate-650 font-bold underline">Kodu Doldur</span>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setLoginOtp("");
+                      setLoginError("");
+                      setDevOtp(null);
+                    }}
+                    className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
+                  >
+                    Geri
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loginLoading || loginOtp.length !== 6}
+                    className="w-2/3 bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                  >
+                    {loginLoading ? (
+                      <div className="w-5 h-5 border-2 border-t-transparent border-[#c8f252] rounded-full animate-spin" />
+                    ) : (
+                      "Giriş Yap"
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

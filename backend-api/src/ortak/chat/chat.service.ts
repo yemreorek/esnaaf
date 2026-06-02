@@ -21,6 +21,9 @@ interface SessionState {
     [key: string]: any;
   };
   token_count: number;
+  ab_variant?: 'control' | 'variant';
+  ab_model?: string;
+  ab_temp?: number;
 }
 
 @Injectable()
@@ -85,14 +88,37 @@ export class ChatService {
     const uuid = sessionUuid || randomUUID();
     const sessionKey = userId ? `ai_session:${userId}:${uuid}` : `temp_session:${uuid}`;
 
+    // 1. Fetch A/B Test parameters from Redis
+    const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-1.5-flash';
+    const tempStr = await this.redis.get('ab_test:temperature');
+    const temperature = tempStr ? parseFloat(tempStr) : 0.7;
+    const splitRatioStr = await this.redis.get('ab_test:split_ratio');
+    const splitRatio = splitRatioStr ? parseFloat(splitRatioStr) : 0.5;
+
+    let ab_variant: 'control' | 'variant' = 'control';
+    let ab_model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    let ab_temp = 0.7;
+
+    if (Math.random() < splitRatio) {
+      ab_variant = 'variant';
+      ab_model = chatModel;
+      ab_temp = temperature;
+    }
+
     const initialState: SessionState = {
       step: 'greeting',
       messages: [{ role: 'system', content: 'Esnaaf AI Asistanı Hizmet Arama Konuşması' }],
       collected_data: {},
       token_count: 0,
+      ab_variant,
+      ab_model,
+      ab_temp,
     };
 
     await this.redis.set(sessionKey, JSON.stringify(initialState), 'EX', userId ? 86400 : 7200); // 24 hours for logged in user, 2 hours for temp session
+
+    // Increment session start counter in Redis
+    await this.redis.incr(`ab_test:sessions:total:${ab_variant}`);
 
     return {
       session_uuid: uuid,
@@ -155,6 +181,29 @@ export class ChatService {
     }
 
     const state: SessionState = JSON.parse(rawSession);
+
+    // Initialize A/B test parameters if missing (failsafe/migration for legacy sessions)
+    if (!state.ab_variant) {
+      const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-1.5-flash';
+      const tempStr = await this.redis.get('ab_test:temperature');
+      const temperature = tempStr ? parseFloat(tempStr) : 0.7;
+      const splitRatioStr = await this.redis.get('ab_test:split_ratio');
+      const splitRatio = splitRatioStr ? parseFloat(splitRatioStr) : 0.5;
+
+      let ab_variant: 'control' | 'variant' = 'control';
+      let ab_model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+      let ab_temp = 0.7;
+
+      if (Math.random() < splitRatio) {
+        ab_variant = 'variant';
+        ab_model = chatModel;
+        ab_temp = temperature;
+      }
+
+      state.ab_variant = ab_variant;
+      state.ab_model = ab_model;
+      state.ab_temp = ab_temp;
+    }
 
     if (message.length > 500) {
       throw new BadRequestException('Tek mesaj en fazla 500 karakter olabilir.');
@@ -357,6 +406,7 @@ export class ChatService {
             });
 
             createdJobId = job.id;
+            await this.redis.incr(`ab_test:sessions:completed:${state.ab_variant || 'control'}`);
 
             // Trigger matches & distribution (failsafe direct request distribution)
             try {
@@ -619,7 +669,15 @@ Müşterinin talebine göre 'detectCategory' fonksiyonunu çağırırken YALNIZC
 Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm odaklı olsun.
 `;
 
-        const geminiRes = await this.geminiService.generateResponse(state.messages, systemInstruction);
+        const start = Date.now();
+        const geminiRes = await this.geminiService.generateResponse(
+          state.messages,
+          systemInstruction,
+          { modelName: state.ab_model, temperature: state.ab_temp }
+        );
+        const latency = Date.now() - start;
+        await this.redis.incrby(`ab_test:latency:total:${state.ab_variant || 'control'}`, latency);
+        await this.redis.incr(`ab_test:latency:count:${state.ab_variant || 'control'}`);
 
         // B3. Handle Tool Calls / Function Calls
         if (geminiRes.functionCalls && geminiRes.functionCalls.length > 0) {
@@ -917,6 +975,7 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
           });
 
           createdJobId = job.id;
+          await this.redis.incr(`ab_test:sessions:completed:${state.ab_variant || 'control'}`);
 
           // Trigger matches & distribution (failsafe direct synchronous distribution)
           try {

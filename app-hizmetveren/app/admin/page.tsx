@@ -2397,8 +2397,8 @@ export default function AdminPortal() {
                         className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#c8f252]"
                       />
                       <div className="flex justify-between text-[10px] font-black text-slate-700">
-                        <span>Sürüm A (Gemini 3.5 Flash - Stabil): {((1 - abTestConfig.splitRatio) * 100).toFixed(0)}%</span>
-                        <span>Sürüm B (Ar-Ge Test Modeli): {(abTestConfig.splitRatio * 100).toFixed(0)}%</span>
+                        <span>Sürüm A ({abTestConfig.stats?.control?.modelName || 'Gemini 3.5 Flash'}): {((1 - abTestConfig.splitRatio) * 100).toFixed(0)}% ({abTestConfig.stats?.control?.sessions || 0} Oturum)</span>
+                        <span>Sürüm B ({abTestConfig.stats?.variant?.modelName || 'Gemini 3.1 Pro'}): {(abTestConfig.splitRatio * 100).toFixed(0)}% ({abTestConfig.stats?.variant?.sessions || 0} Oturum)</span>
                       </div>
                     </div>
                   </div>
@@ -2423,27 +2423,49 @@ export default function AdminPortal() {
                             <TrendingUp className="w-3.5 h-3.5 text-slate-700" />
                             Talep Dönüşüm Oranı (%)
                           </span>
-                          <span className="text-green-600 font-bold text-xs bg-green-50 px-1.5 py-0.5 rounded">+2.8% Kayma</span>
+                          {abTestConfig.stats && (abTestConfig.stats.control.sessions > 0 || abTestConfig.stats.variant.sessions > 0) ? (
+                            <span className={`font-bold text-xs px-1.5 py-0.5 rounded ${
+                              abTestConfig.stats.variant.rate >= abTestConfig.stats.control.rate
+                                ? 'text-green-600 bg-green-50'
+                                : 'text-red-650 bg-red-50'
+                            }`}>
+                              {abTestConfig.stats.variant.rate >= abTestConfig.stats.control.rate
+                                ? `+${(abTestConfig.stats.variant.rate - abTestConfig.stats.control.rate).toFixed(1)}% Fark`
+                                : `-${(abTestConfig.stats.control.rate - abTestConfig.stats.variant.rate).toFixed(1)}% Fark`}
+                            </span>
+                          ) : (
+                            <span className="text-green-650 font-bold text-xs bg-green-50 px-1.5 py-0.5 rounded">+2.8% Kayma</span>
+                          )}
                         </div>
                         <div className="space-y-2.5 pt-1">
                           {/* Flash */}
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px] font-semibold text-slate-650">
-                              <span>Sürüm A (Gemini 3.5 Flash)</span>
-                              <span className="font-extrabold text-slate-900">88.4%</span>
+                              <span>Sürüm A ({abTestConfig.stats?.control?.modelName || 'Gemini 3.5 Flash'})</span>
+                              <span className="font-extrabold text-slate-900">
+                                {abTestConfig.stats?.control?.sessions > 0 ? `${abTestConfig.stats.control.rate}%` : '88.4%'}
+                              </span>
                             </div>
                             <div className="w-full bg-slate-200/50 h-2.5 rounded-full overflow-hidden">
-                              <div className="bg-[#c8f252] h-full rounded-full shadow-sm border border-[#c8f252]/10" style={{ width: '88.4%' }}></div>
+                              <div 
+                                className="bg-[#c8f252] h-full rounded-full shadow-sm border border-[#c8f252]/10" 
+                                style={{ width: abTestConfig.stats?.control?.sessions > 0 ? `${abTestConfig.stats.control.rate}%` : '88.4%' }}
+                              ></div>
                             </div>
                           </div>
                           {/* Pro */}
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px] font-semibold text-slate-650">
-                              <span>Sürüm B (Gemini 3.1 Pro)</span>
-                              <span className="font-extrabold text-slate-900">91.2%</span>
+                              <span>Sürüm B ({abTestConfig.stats?.variant?.modelName || 'Gemini 3.1 Pro'})</span>
+                              <span className="font-extrabold text-slate-900">
+                                {abTestConfig.stats?.variant?.sessions > 0 ? `${abTestConfig.stats.variant.rate}%` : '91.2%'}
+                              </span>
                             </div>
                             <div className="w-full bg-slate-200/50 h-2.5 rounded-full overflow-hidden">
-                              <div className="bg-slate-700 h-full rounded-full" style={{ width: '91.2%' }}></div>
+                              <div 
+                                className="bg-slate-700 h-full rounded-full" 
+                                style={{ width: abTestConfig.stats?.variant?.sessions > 0 ? `${abTestConfig.stats.variant.rate}%` : '91.2%' }}
+                              ></div>
                             </div>
                           </div>
                         </div>
@@ -2457,27 +2479,45 @@ export default function AdminPortal() {
                             <RefreshCw className="w-3.5 h-3.5 text-slate-700 animate-spin" style={{ animationDuration: '6s' }} />
                             Ortalama Yanıt Hızı (ms)
                           </span>
-                          <span className="text-[#c8f252] font-black text-[9px] bg-slate-900 px-1.5 py-0.5 rounded">4x Daha Hızlı</span>
+                          {abTestConfig.stats && abTestConfig.stats.control.latency > 0 && abTestConfig.stats.variant.latency > 0 ? (
+                            <span className="text-[#c8f252] font-black text-[9px] bg-slate-900 px-1.5 py-0.5 rounded">
+                              {abTestConfig.stats.control.latency > abTestConfig.stats.variant.latency
+                                ? `${(abTestConfig.stats.control.latency / abTestConfig.stats.variant.latency).toFixed(1)}x Hızlı`
+                                : `${(abTestConfig.stats.variant.latency / abTestConfig.stats.control.latency).toFixed(1)}x Yavaş`}
+                            </span>
+                          ) : (
+                            <span className="text-[#c8f252] font-black text-[9px] bg-slate-900 px-1.5 py-0.5 rounded">4x Daha Hızlı</span>
+                          )}
                         </div>
                         <div className="space-y-2.5 pt-1">
                           {/* Flash */}
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px] font-semibold text-slate-650">
-                              <span>Sürüm A (Gemini 3.5 Flash)</span>
-                              <span className="font-extrabold text-slate-900">120 ms</span>
+                              <span>Sürüm A ({abTestConfig.stats?.control?.modelName || 'Gemini 3.5 Flash'})</span>
+                              <span className="font-extrabold text-slate-900">
+                                {abTestConfig.stats?.control?.latency > 0 ? `${abTestConfig.stats.control.latency} ms` : '120 ms'}
+                              </span>
                             </div>
                             <div className="w-full bg-slate-200/50 h-2.5 rounded-full overflow-hidden">
-                              <div className="bg-[#c8f252] h-full rounded-full shadow-sm border border-[#c8f252]/10" style={{ width: '12%' }}></div>
+                              <div 
+                                className="bg-[#c8f252] h-full rounded-full shadow-sm border border-[#c8f252]/10" 
+                                style={{ width: abTestConfig.stats?.control?.latency > 0 ? `${Math.min(100, (abTestConfig.stats.control.latency / 2000) * 100)}%` : '12%' }}
+                              ></div>
                             </div>
                           </div>
                           {/* Pro */}
                           <div className="space-y-1">
                             <div className="flex justify-between text-[11px] font-semibold text-slate-650">
-                              <span>Sürüm B (Gemini 3.1 Pro)</span>
-                              <span className="font-extrabold text-slate-900">480 ms</span>
+                              <span>Sürüm B ({abTestConfig.stats?.variant?.modelName || 'Gemini 3.1 Pro'})</span>
+                              <span className="font-extrabold text-slate-900">
+                                {abTestConfig.stats?.variant?.latency > 0 ? `${abTestConfig.stats.variant.latency} ms` : '480 ms'}
+                              </span>
                             </div>
                             <div className="w-full bg-slate-200/50 h-2.5 rounded-full overflow-hidden">
-                              <div className="bg-slate-700 h-full rounded-full" style={{ width: '48%' }}></div>
+                              <div 
+                                className="bg-slate-700 h-full rounded-full" 
+                                style={{ width: abTestConfig.stats?.variant?.latency > 0 ? `${Math.min(100, (abTestConfig.stats.variant.latency / 2000) * 100)}%` : '48%' }}
+                              ></div>
                             </div>
                           </div>
                         </div>

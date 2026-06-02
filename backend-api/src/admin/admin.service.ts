@@ -1048,16 +1048,50 @@ export class AdminService {
       await this.checkPermission(adminEmail, 'dashboard', 'read');
     }
 
-    const chatModel = await this.redis.get('ab_test:chat_model') || 'gpt-4o';
+    const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-3.1-pro';
     const temperatureStr = await this.redis.get('ab_test:temperature');
     const temperature = temperatureStr ? parseFloat(temperatureStr) : 0.7;
     const splitRatioStr = await this.redis.get('ab_test:split_ratio');
     const splitRatio = splitRatioStr ? parseFloat(splitRatioStr) : 0.5;
 
+    const controlSessions = parseInt(await this.redis.get('ab_test:sessions:total:control') || '0', 10);
+    const controlCompletions = parseInt(await this.redis.get('ab_test:sessions:completed:control') || '0', 10);
+    const controlLatencyTotal = parseInt(await this.redis.get('ab_test:latency:total:control') || '0', 10);
+    const controlLatencyCount = parseInt(await this.redis.get('ab_test:latency:count:control') || '0', 10);
+
+    const variantSessions = parseInt(await this.redis.get('ab_test:sessions:total:variant') || '0', 10);
+    const variantCompletions = parseInt(await this.redis.get('ab_test:sessions:completed:variant') || '0', 10);
+    const variantLatencyTotal = parseInt(await this.redis.get('ab_test:latency:total:variant') || '0', 10);
+    const variantLatencyCount = parseInt(await this.redis.get('ab_test:latency:count:variant') || '0', 10);
+
+    const controlRate = controlSessions > 0 ? (controlCompletions / controlSessions) * 100 : 0;
+    const variantRate = variantSessions > 0 ? (variantCompletions / variantSessions) * 100 : 0;
+
+    const controlAvgLatency = controlLatencyCount > 0 ? controlLatencyTotal / controlLatencyCount : 0;
+    const variantAvgLatency = variantLatencyCount > 0 ? variantLatencyTotal / variantLatencyCount : 0;
+
+    const controlModelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+
     return {
       chatModel,
       temperature,
       splitRatio,
+      stats: {
+        control: {
+          modelName: controlModelName,
+          sessions: controlSessions,
+          completions: controlCompletions,
+          rate: Number(controlRate.toFixed(1)),
+          latency: Math.round(controlAvgLatency),
+        },
+        variant: {
+          modelName: chatModel,
+          sessions: variantSessions,
+          completions: variantCompletions,
+          rate: Number(variantRate.toFixed(1)),
+          latency: Math.round(variantAvgLatency),
+        }
+      }
     };
   }
 

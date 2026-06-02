@@ -101,9 +101,19 @@ export class GeminiService {
   async generateResponse(
     history: { role: 'system' | 'user' | 'assistant'; content: string }[],
     systemInstruction: string,
+    options?: { modelName?: string; temperature?: number },
   ) {
     if (!this.ai) {
       throw new Error('Gemini API Client is not initialized.');
+    }
+
+    let modelToUse = options?.modelName || this.modelName;
+
+    // Map administrative placeholders to actual available models in API
+    if (modelToUse === 'gemini-3.5-flash') {
+      modelToUse = 'gemini-2.5-flash';
+    } else if (modelToUse === 'gemini-3.1-pro') {
+      modelToUse = 'gemini-2.5-pro';
     }
 
     // Map history to Gemini API format
@@ -121,11 +131,12 @@ export class GeminiService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await this.ai.models.generateContent({
-          model: this.modelName,
+          model: modelToUse,
           contents,
           config: {
             systemInstruction,
             tools: this.getTools(),
+            temperature: options?.temperature !== undefined ? options.temperature : undefined,
           },
         });
 
