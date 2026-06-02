@@ -182,6 +182,7 @@ export default function Home() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [devOtp, setDevOtp] = useState<string | null>(null);
+  const [unregisteredUser, setUnregisteredUser] = useState(false);
 
   const handleHizmetVerRedirect = () => {
     if (typeof window !== "undefined") {
@@ -220,16 +221,9 @@ export default function Home() {
         throw new Error(checkData.message || "Telefon numarası kontrol edilemedi.");
       }
 
-      // 2. If not registered, close modal and redirect directly to AI Chat to create request & register
+      // 2. If not registered, show the unregistered panel inside the modal
       if (!checkData.isRegistered) {
-        setIsLoginModalOpen(false);
-        triggerNotification("Kaydınız bulunamadı. Yapay zeka asistanı ile konuşarak anında talep oluşturabilirsiniz!");
-        setInputValue("Merhaba, hizmet almak istiyorum.");
-        
-        // Short timeout for modal exit animation before starting chat
-        setTimeout(() => {
-          handleStartChat("Merhaba, hizmet almak istiyorum.");
-        }, 300);
+        setUnregisteredUser(true);
         return;
       }
 
@@ -857,6 +851,7 @@ export default function Home() {
             setOtpSent(false);
             setLoginError("");
             setDevOtp(null);
+            setUnregisteredUser(false);
           }}
         >
           <div
@@ -873,6 +868,7 @@ export default function Home() {
                 setOtpSent(false);
                 setLoginError("");
                 setDevOtp(null);
+                setUnregisteredUser(false);
               }}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-850 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
             >
@@ -881,13 +877,56 @@ export default function Home() {
               </svg>
             </button>
 
-            {/* Logo and Intro */}
-            <div className="flex flex-col items-center text-center mt-2 mb-6">
-              <img 
-                alt="Esnaaf Logo" 
-                className="h-14 w-auto object-contain select-none mb-3" 
-                src="/logo.png" 
-              />
+            {unregisteredUser ? (
+              <div className="flex flex-col items-center text-center mt-2 space-y-6">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-100 shadow-sm animate-pulse">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-headline-lg text-slate-900 text-lg font-bold tracking-tight">
+                    Kayıt Bulunamadı
+                  </h3>
+                  <p className="font-body-md text-xs text-slate-500 max-w-[280px] leading-relaxed">
+                    Telefon numaranız sistemde kayıtlı değil. Yanlış veya eksik giriş yapmış olabilirsiniz.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 w-full pt-2">
+                  <button
+                    onClick={() => {
+                      setUnregisteredUser(false);
+                    }}
+                    className="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center font-semibold"
+                  >
+                    Telefon Gir
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsLoginModalOpen(false);
+                      setUnregisteredUser(false);
+                      setInputValue("Merhaba, hizmet almak istiyorum.");
+                      setTimeout(() => {
+                        handleStartChat("Merhaba, hizmet almak istiyorum.");
+                      }, 300);
+                    }}
+                    className="w-1/2 bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
+                  >
+                    Hizmet Ara
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Logo and Intro */}
+                <div className="flex flex-col items-center text-center mt-2 mb-6">
+                  <img 
+                    alt="Esnaaf Logo" 
+                    className="h-14 w-auto object-contain select-none mb-3" 
+                    src="/logo.png" 
+                  />
               <h3 className="font-headline-lg text-slate-900 text-lg md:text-xl font-bold tracking-tight">
                 {otpSent ? "Doğrulama Kodunu Girin" : "Esnaaf'a Giriş Yap"}
               </h3>
@@ -1003,6 +1042,8 @@ export default function Home() {
                   </button>
                 </div>
               </form>
+            )}
+              </>
             )}
           </div>
         </div>
