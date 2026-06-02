@@ -198,6 +198,8 @@ export default function ProviderDashboard() {
   const [countdown, setCountdown] = useState(0);
   const [loginError, setLoginError] = useState('');
   const [devOtpSuggested, setDevOtpSuggested] = useState('');
+  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
+  const [password, setPassword] = useState('');
 
   // Helper to add system log messages in the console log panel
   const addLog = (msg: string) => {
@@ -321,6 +323,48 @@ export default function ProviderDashboard() {
       localStorage.setItem('provider_token', accessToken);
       localStorage.setItem('provider_phone', phoneNumber);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
+      
+      await loadDashboardData(accessToken);
+    } catch (err: any) {
+      setLoginError(err.message);
+      addLog(`Hata: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phoneNumber) {
+      setLoginError("Lütfen telefon numaranızı girin.");
+      return;
+    }
+    if (!password) {
+      setLoginError("Lütfen şifrenizi girin.");
+      return;
+    }
+    
+    setLoading(true);
+    setLoginError('');
+    addLog(`Şifreli giriş isteği başlatıldı: ${phoneNumber}`);
+    
+    try {
+      const loginRes = await fetch('/api/ortak/auth/provider-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber, password }),
+      });
+      
+      const loginData = await loginRes.json();
+      if (!loginRes.ok) {
+        throw new Error(loginData.message || 'Giriş başarısız.');
+      }
+      
+      const accessToken = loginData.accessToken;
+      setToken(accessToken);
+      localStorage.setItem('provider_token', accessToken);
+      localStorage.setItem('provider_phone', phoneNumber);
+      addLog(`Şifreli giriş başarılı! Jetonlar alındı.`);
       
       await loadDashboardData(accessToken);
     } catch (err: any) {
@@ -587,8 +631,138 @@ export default function ProviderDashboard() {
             </div>
           )}
 
-          {!otpSent ? (
-            /* PHONE NUMBER STEP */
+          {/* Method Tabs */}
+          <div className="flex border-b border-slate-100 mb-6 text-xs font-bold">
+            <button
+              onClick={() => { setLoginMethod('otp'); setLoginError(''); }}
+              className={`flex-1 pb-3 text-center transition-all border-b-2 cursor-pointer ${loginMethod === 'otp' ? 'border-[#4c630a] text-[#4c630a]' : 'border-transparent text-slate-400 hover:text-slate-650'}`}
+            >
+              SMS Kodu (OTP)
+            </button>
+            <button
+              onClick={() => { setLoginMethod('password'); setLoginError(''); }}
+              className={`flex-1 pb-3 text-center transition-all border-b-2 cursor-pointer ${loginMethod === 'password' ? 'border-[#4c630a] text-[#4c630a]' : 'border-transparent text-slate-400 hover:text-slate-650'}`}
+            >
+              Şifre ile Giriş
+            </button>
+          </div>
+
+          {loginMethod === 'otp' ? (
+            !otpSent ? (
+              /* PHONE NUMBER STEP */
+              <div className="space-y-6">
+                <div className="text-left">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
+                    Telefon Numaranız
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-[15px] text-xs font-black text-slate-800 font-mono">+90</span>
+                    <input
+                      type="tel"
+                      maxLength={15}
+                      disabled={loading}
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setPhoneNumber(val);
+                      }}
+                      placeholder="5XX XXX XX XX"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-2 focus:ring-[#4c630a]/5 rounded-xl py-3.5 px-4 pl-12 text-xs font-black text-slate-900 focus:outline-none transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleSendOtp()}
+                  disabled={loading || phoneNumber.length < 7}
+                  className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 active:scale-[0.98] cursor-pointer shadow-md shadow-[#4c630a]/10"
+                >
+                  {loading ? (
+                    <span>Gönderiliyor...</span>
+                  ) : (
+                    <>
+                      <Phone className="w-4 h-4 shrink-0 text-white" />
+                      <span>Doğrulama Kodu Gönder</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              /* OTP CODE STEP */
+              <div className="space-y-6">
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex justify-between items-center text-left">
+                  <div>
+                    <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Doğrulanacak Numara</span>
+                    <span className="text-xs font-black text-slate-850 font-mono">{phoneNumber}</span>
+                  </div>
+                  <button
+                    onClick={() => setOtpSent(false)}
+                    disabled={loading}
+                    className="text-xs font-bold text-[#4c630a] hover:underline bg-white px-3 py-1.5 border border-slate-200 rounded-xl active:scale-95 transition-all cursor-pointer"
+                  >
+                    Değiştir
+                  </button>
+                </div>
+
+                <div className="text-left">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
+                    6 Haneli Doğrulama Kodu (OTP)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      disabled={loading}
+                      value={otpCode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setOtpCode(val);
+                      }}
+                      placeholder="0 0 0 0 0 0"
+                      className="w-full bg-slate-50 text-center tracking-[12px] border border-slate-200 focus:border-[#4c630a]/50 focus:ring-2 focus:ring-[#4c630a]/5 rounded-xl py-3.5 px-4 text-sm font-black text-slate-900 focus:outline-none transition-all shadow-inner font-mono pl-[12px]"
+                    />
+                  </div>
+                </div>
+
+                {devOtpSuggested && (
+                  <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-2xl p-4 text-[11px] text-[#4c630a] font-bold text-center leading-relaxed animate-pulse">
+                    💡 Bu usta için geçerli doğrulama kodu: <span className="font-black text-sm tracking-wider underline font-mono bg-white px-2 py-0.5 rounded border border-[#c8f252]/30 text-slate-900">{devOtpSuggested}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                  <span>Kodu almadınız mı?</span>
+                  {countdown > 0 ? (
+                    <span className="font-mono text-slate-500 font-bold">{countdown} sn içinde tekrar isteyebilirsiniz</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSendOtp()}
+                      className="text-[#4c630a] font-bold hover:underline cursor-pointer"
+                    >
+                      Tekrar Kod Gönder
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handleVerifyOtp()}
+                  disabled={loading || otpCode.length < 6}
+                  className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 active:scale-[0.98] cursor-pointer shadow-md shadow-[#4c630a]/10"
+                >
+                  {loading ? (
+                    <span>Doğrulanıyor...</span>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4 shrink-0 text-white" />
+                      <span>Kodu Doğrula ve Giriş Yap</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )
+          ) : (
+            /* PASSWORD LOGIN FLOW */
             <div className="space-y-6">
               <div className="text-left">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
@@ -611,90 +785,31 @@ export default function ProviderDashboard() {
                 </div>
               </div>
 
-              <button
-                onClick={() => handleSendOtp()}
-                disabled={loading || phoneNumber.length < 7}
-                className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 active:scale-[0.98] cursor-pointer shadow-md shadow-[#4c630a]/10"
-              >
-                {loading ? (
-                  <span>Gönderiliyor...</span>
-                ) : (
-                  <>
-                    <Phone className="w-4 h-4 shrink-0 text-white" />
-                    <span>Doğrulama Kodu Gönder</span>
-                  </>
-                )}
-              </button>
-            </div>
-          ) : (
-            /* OTP CODE STEP */
-            <div className="space-y-6">
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex justify-between items-center text-left">
-                <div>
-                  <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Doğrulanacak Numara</span>
-                  <span className="text-xs font-black text-slate-850 font-mono">{phoneNumber}</span>
-                </div>
-                <button
-                  onClick={() => setOtpSent(false)}
-                  disabled={loading}
-                  className="text-xs font-bold text-[#4c630a] hover:underline bg-white px-3 py-1.5 border border-slate-200 rounded-xl active:scale-95 transition-all cursor-pointer"
-                >
-                  Değiştir
-                </button>
-              </div>
-
               <div className="text-left">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
-                  6 Haneli Doğrulama Kodu (OTP)
+                  Şifreniz
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    disabled={loading}
-                    value={otpCode}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setOtpCode(val);
-                    }}
-                    placeholder="0 0 0 0 0 0"
-                    className="w-full bg-slate-50 text-center tracking-[12px] border border-slate-200 focus:border-[#4c630a]/50 focus:ring-2 focus:ring-[#4c630a]/5 rounded-xl py-3.5 px-4 text-sm font-black text-slate-900 focus:outline-none transition-all shadow-inner font-mono pl-[12px]"
-                  />
-                </div>
-              </div>
-
-              {devOtpSuggested && (
-                <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-2xl p-4 text-[11px] text-[#4c630a] font-bold text-center leading-relaxed animate-pulse">
-                  💡 Bu usta için geçerli doğrulama kodu: <span className="font-black text-sm tracking-wider underline font-mono bg-white px-2 py-0.5 rounded border border-[#c8f252]/30 text-slate-900">{devOtpSuggested}</span>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
-                <span>Kodu almadınız mı?</span>
-                {countdown > 0 ? (
-                  <span className="font-mono text-slate-500 font-bold">{countdown} sn içinde tekrar isteyebilirsiniz</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleSendOtp()}
-                    className="text-[#4c630a] font-bold hover:underline cursor-pointer"
-                  >
-                    Tekrar Kod Gönder
-                  </button>
-                )}
+                <input
+                  type="password"
+                  disabled={loading}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-2 focus:ring-[#4c630a]/5 rounded-xl py-3.5 px-4 text-xs font-black text-slate-900 focus:outline-none transition-all shadow-inner"
+                />
               </div>
 
               <button
-                onClick={() => handleVerifyOtp()}
-                disabled={loading || otpCode.length < 6}
+                onClick={() => handlePasswordLogin()}
+                disabled={loading || phoneNumber.length < 7 || !password}
                 className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 active:scale-[0.98] cursor-pointer shadow-md shadow-[#4c630a]/10"
               >
                 {loading ? (
-                  <span>Doğrulanıyor...</span>
+                  <span>Giriş Yapılıyor...</span>
                 ) : (
                   <>
                     <Lock className="w-4 h-4 shrink-0 text-white" />
-                    <span>Kodu Doğrula ve Giriş Yap</span>
+                    <span>Şifre ile Giriş Yap</span>
                   </>
                 )}
               </button>

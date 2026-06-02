@@ -53,6 +53,7 @@ interface Provider {
   id: string;
   user_id: string;
   category_ids: string[];
+  description?: string;
   is_approved: boolean;
   user: User;
 }
@@ -3333,93 +3334,166 @@ export default function AdminPortal() {
       )}
 
       {/* 📄 Belgeleri İnceleme Modalı */}
-      {viewDocsTarget && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-5">
-              <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#c8f252]" />
-                <span>Usta Belgeleri: {viewDocsTarget.user.name}</span>
-              </h3>
-              <button 
-                onClick={() => setViewDocsTarget(null)}
-                className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
-              {/* Document 1: Identity Card Mockup */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/60 relative overflow-hidden flex flex-col justify-between h-64 shadow-inner">
-                <div>
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">T.C. KİMLİK KARTI</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-555"></span>
-                  </div>
-                  <h5 className="font-extrabold text-slate-800 text-sm tracking-wide">TÜRKİYE CUMHURİYETİ KİMLİK VESİKASI</h5>
-                  <div className="space-y-1 mt-4 text-[11px] font-mono text-slate-600">
-                    <p>Soyadı: <span className="text-slate-800 font-bold">USTA</span></p>
-                    <p>Adı: <span className="text-slate-800 font-bold">{(viewDocsTarget.user.name || '').split(' ')[1] || 'DAVUT'}</span></p>
-                    <p>T.C. No: <span className="text-slate-800 font-bold">123*****890</span></p>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-450 mt-4">
-                  <span>Esnaaf Doğrulama Servisi</span>
-                  <span>Belge Durumu: E-Devlet Onaylı</span>
-                </div>
+      {viewDocsTarget && (() => {
+        let onboardingData: any = null;
+        try {
+          if (viewDocsTarget.description && viewDocsTarget.description.startsWith('{')) {
+            onboardingData = JSON.parse(viewDocsTarget.description);
+          }
+        } catch (e) {
+          console.error("Error parsing onboarding data", e);
+        }
+        return (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-5">
+                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#c8f252]" />
+                  <span>Usta Belgeleri: {viewDocsTarget.user.name}</span>
+                </h3>
+                <button 
+                  onClick={() => setViewDocsTarget(null)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Document 2: Tax Certificate Mockup */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/60 relative overflow-hidden flex flex-col justify-between h-64 shadow-inner">
-                <div>
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">VERGİ LEVHASI</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-555"></span>
+              {onboardingData ? (
+                <div className="space-y-6 pb-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin text-left">
+                  {/* Profile Photo & Basic Company Details */}
+                  <div className="flex flex-col md:flex-row gap-5 items-start bg-slate-50 border border-slate-100 p-5 rounded-2xl">
+                    {onboardingData.profilePhoto && (
+                      <img 
+                        src={onboardingData.profilePhoto} 
+                        alt="Profil Resmi" 
+                        className="w-24 h-24 rounded-full object-cover border-2 border-slate-200 shadow-sm shrink-0 mx-auto md:mx-0"
+                      />
+                    )}
+                    <div className="space-y-2 flex-1 w-full">
+                      <h4 className="font-extrabold text-slate-800 text-base">{viewDocsTarget.user.name}</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Şirket Türü</span>
+                          <span className="text-slate-850 font-bold">{onboardingData.companyType}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Firma Adı</span>
+                          <span className="text-slate-855 font-bold">{onboardingData.companyName || 'Belirtilmemiş'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Telefon</span>
+                          <span className="text-slate-855 font-bold font-mono">{viewDocsTarget.user.phone_decrypted || viewDocsTarget.user.phone_masked}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">E-Posta</span>
+                          <span className="text-slate-855 font-bold">{viewDocsTarget.user.email || 'Belirtilmemiş'}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <h5 className="font-extrabold text-slate-800 text-sm tracking-wide">T.C. GELİR İDARESİ BAŞKANLIĞI</h5>
-                  <div className="space-y-1 mt-4 text-[11px] font-mono text-slate-600">
-                    <p>Unvan: <span className="text-slate-800 font-bold">{(viewDocsTarget.user.name || 'TEMİZLİK USTASI').toUpperCase()}</span></p>
-                    <p>Vergi Dairesi: <span className="text-slate-800 font-bold">KADIKÖY VD.</span></p>
-                    <p>Vergi No: <span className="text-slate-800 font-bold">9876543210</span></p>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-455 mt-4">
-                  <span>Maliye Bakanlığı Entegrasyonu</span>
-                  <span>İş Kolu: Ev Temizliği Hizmetleri</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="flex gap-3 pt-3 border-t border-slate-100 justify-end">
-              <button
-                onClick={() => setViewDocsTarget(null)}
-                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold px-6 py-3 rounded-xl transition-all text-xs text-slate-600 cursor-pointer shadow-sm"
-              >
-                Kapat
-              </button>
-              <button
-                onClick={() => {
-                  setViewDocsTarget(null);
-                  setRejectProviderTarget(viewDocsTarget);
-                }}
-                className="bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 font-bold px-6 py-3 rounded-xl transition-all text-xs cursor-pointer"
-              >
-                Başvuruyu Reddet
-              </button>
-              <button
-                onClick={() => {
-                  setViewDocsTarget(null);
-                  handleApproveProvider(viewDocsTarget.id);
-                }}
-                className="bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] font-black px-6 py-3 rounded-xl transition-all text-xs cursor-pointer"
-              >
-                Başvuruyu Onayla
-              </button>
+                  {/* Tanıtım Yazısı */}
+                  <div className="space-y-1.5 bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Tanıtım Yazısı</span>
+                    <p className="text-xs text-slate-700 leading-relaxed italic">{onboardingData.descriptionText || 'Tanıtım yazısı yok.'}</p>
+                  </div>
+
+                  {/* Referans Resimleri */}
+                  {onboardingData.referencePhotos && onboardingData.referencePhotos.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-slate-400 block text-[9px] uppercase font-bold">Referans İş Resimleri ({onboardingData.referencePhotos.length})</span>
+                      <div className="grid grid-cols-5 gap-3">
+                        {onboardingData.referencePhotos.map((url: string, idx: number) => (
+                          <a 
+                            key={idx} 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="aspect-square bg-slate-100 border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:scale-[1.03] transition-all animate-scale-up"
+                          >
+                            <img src={url} alt={`Referans ${idx}`} className="w-full h-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Fallback (Mockup Identity & Tax certificate) */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 text-left">
+                  {/* Document 1: Identity Card Mockup */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/60 relative overflow-hidden flex flex-col justify-between h-64 shadow-inner">
+                    <div>
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">T.C. KİMLİK KARTI</span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-555"></span>
+                      </div>
+                      <h5 className="font-extrabold text-slate-800 text-sm tracking-wide">TÜRKİYE CUMHURİYETİ KİMLİK VESİKASI</h5>
+                      <div className="space-y-1 mt-4 text-[11px] font-mono text-slate-600">
+                        <p>Soyadı: <span className="text-slate-800 font-bold">USTA</span></p>
+                        <p>Adı: <span className="text-slate-800 font-bold">{(viewDocsTarget.user.name || '').split(' ')[1] || 'DAVUT'}</span></p>
+                        <p>T.C. No: <span className="text-slate-800 font-bold">123*****890</span></p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-450 mt-4">
+                      <span>Esnaaf Doğrulama Servisi</span>
+                      <span>Belge Durumu: E-Devlet Onaylı</span>
+                    </div>
+                  </div>
+
+                  {/* Document 2: Tax Certificate Mockup */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/60 relative overflow-hidden flex flex-col justify-between h-64 shadow-inner">
+                    <div>
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">VERGİ LEVHASI</span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-555"></span>
+                      </div>
+                      <h5 className="font-extrabold text-slate-800 text-sm tracking-wide">T.C. GELİR İDARESİ BAŞKANLIĞI</h5>
+                      <div className="space-y-1 mt-4 text-[11px] font-mono text-slate-600">
+                        <p>Unvan: <span className="text-slate-800 font-bold">{(viewDocsTarget.user.name || 'TEMİZLİK USTASI').toUpperCase()}</span></p>
+                        <p>Vergi Dairesi: <span className="text-slate-800 font-bold">KADIKÖY VD.</span></p>
+                        <p>Vergi No: <span className="text-slate-800 font-bold">9876543210</span></p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-455 mt-4">
+                      <span>Maliye Bakanlığı Entegrasyonu</span>
+                      <span>İş Kolu: Ev Temizliği Hizmetleri</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-3 border-t border-slate-100 justify-end">
+                <button
+                  onClick={() => setViewDocsTarget(null)}
+                  className="bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold px-6 py-3 rounded-xl transition-all text-xs text-slate-600 cursor-pointer shadow-sm"
+                >
+                  Kapat
+                </button>
+                <button
+                  onClick={() => {
+                    setViewDocsTarget(null);
+                    setRejectProviderTarget(viewDocsTarget);
+                  }}
+                  className="bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 font-bold px-6 py-3 rounded-xl transition-all text-xs cursor-pointer"
+                >
+                  Başvuruyu Reddet
+                </button>
+                <button
+                  onClick={() => {
+                    setViewDocsTarget(null);
+                    handleApproveProvider(viewDocsTarget.id);
+                  }}
+                  className="bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] font-black px-6 py-3 rounded-xl transition-all text-xs cursor-pointer"
+                >
+                  Başvuruyu Onayla
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ⚖️ Uyuşmazlık Çözüm Karar Modalı */}
       {selectedDispute && (

@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Headers, UseGuards, Req, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, UseGuards, Req, HttpStatus, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterProviderDto } from './dto/register-provider.dto';
+import { ProviderLoginDto } from './dto/provider-login.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Public } from '../../common/decorators';
 
@@ -31,6 +33,27 @@ export class AuthController {
     return this.authService.refreshTokens(dto);
   }
 
+  @Public()
+  @Post('register-provider')
+  @HttpCode(HttpStatus.OK)
+  async registerProvider(@Body() dto: RegisterProviderDto) {
+    return this.authService.registerProvider(dto);
+  }
+
+  @Public()
+  @Post('provider-login')
+  @HttpCode(HttpStatus.OK)
+  async providerLogin(@Body() dto: ProviderLoginDto) {
+    return this.authService.providerLogin(dto);
+  }
+
+  @Public()
+  @Get('categories')
+  @HttpCode(HttpStatus.OK)
+  async getCategories() {
+    return this.authService.getCategories();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('kvkk/accept')
   @HttpCode(HttpStatus.OK)
@@ -45,3 +68,4 @@ export class AuthController {
     return this.authService.startAnonymousSession(sessionUuid);
   }
 }
+

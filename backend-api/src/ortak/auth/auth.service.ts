@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import axios from 'axios';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
@@ -8,6 +8,8 @@ import { encryptPhone, maskPhone, normalizePhone } from '../../common/utils/phon
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterProviderDto } from './dto/register-provider.dto';
+import { ProviderLoginDto } from './dto/provider-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -256,5 +258,107 @@ export class AuthService {
       session_uuid: uuid,
       message: 'Oturum başarıyla başlatıldı.',
     };
+  }
+
+  async registerProvider(dto: RegisterProviderDto) {
+    const normalized = normalizePhone(dto.phone);
+    const encryptedPhone = encryptPhone(normalized);
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { phone: encryptedPhone },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Bu telefon numarası zaten kayıtlı.');
+    }
+
+    const hashedPassword = createHash('sha256').update(dto.password).digest('hex');
+
+    const descriptionJson = JSON.stringify({
+      companyType: dto.companyType,
+      companyName: dto.companyName || '',
+      password: hashedPassword,
+      profilePhoto: dto.profilePhoto,
+      referencePhotos: dto.referencePhotos || [],
+      descriptionText: dto.description,
+    });
+
+    await this.prisma.user.create({
+      data: {
+        phone: encryptedPhone,
+        phone_masked: maskPhone(normalized),
+        role: 'service_provider',
+        is_active: true,
+        kvkk_consent: true,
+        kvkk_consent_date: new Date(),
+        name: dto.name,
+        email: dto.email,
+        service_provider: {
+          create: {
+            category_ids: dto.categoryIds,
+            description: descriptionJson,
+            city: dto.city,
+            service_districts: dto.districts,
+            is_approved: false,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Başvurunuz başarıyla alındı. Yönetici onayından sonra giriş yapabilirsiniz.',
+    };
+  }
+
+  async providerLogin(dto: ProviderLoginDto) {
+    const normalized = normalizePhone(dto.phone);
+    const encryptedPhone = encryptPhone(normalized);
+
+    const user = await this.prisma.user.findUnique({
+      where: { phone: encryptedPhone },
+      include: { service_provider: true },
+    });
+
+    if (!user || user.role !== 'service_provider' || !user.service_provider) {
+      throw new UnauthorizedException('Geçersiz telefon numarası veya şifre.');
+    }
+
+    let providerData: any = {};
+    try {
+      providerData = JSON.parse(user.service_provider.description || '{}');
+    } catch (e) {
+      throw new UnauthorizedException('Geçersiz hesap verileri.');
+    }
+
+    const hashedIncoming = createHash('sha256').update(dto.password).digest('hex');
+    if (providerData.password !== hashedIncoming) {
+      throw new UnauthorizedException('Geçersiz telefon numarası veya şifre.');
+    }
+
+    if (!user.service_provider.is_approved) {
+      throw new ForbiddenException('Hesabınız henüz yönetici onayından geçmemiştir.');
+    }
+
+    const tokens = await this.generateTokens(user);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        phone_masked: user.phone_masked,
+        role: user.role,
+        kvkk_consent: user.kvkk_consent,
+        name: user.name,
+        email: user.email,
+      },
+    };
+  }
+
+  async getCategories() {
+    return this.prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
   }
 }

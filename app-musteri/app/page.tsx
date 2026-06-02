@@ -186,12 +186,7 @@ export default function Home() {
 
   const handleHizmetVerRedirect = () => {
     if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
-        window.location.href = "http://localhost:3001";
-      } else {
-        window.location.href = "https://esnaaf-hizmetveren-339090537138.europe-west3.run.app";
-      }
+      window.location.href = "/hizmetveren-basvuru";
     }
   };
 
