@@ -2,6 +2,17 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-02 build | Seeker Dashboard Arayüz Yenilemesi & Gemini Ajan WebSocket Eşleştirme Düzeltmeleri
+
+- **Gemini Aktif Ajan Eşleştirme Düzeltmesi (`backend-api`):** Gemini Flash aktif ajan akışındaki onay (`confirm_form`) adımında, doğrudan eşleştirme ve WebSocket olay fırlatma tetikleyicilerinin çalışmaması sorunu giderildi. Eşleştirme motoru entegre edilerek usta ve müşteri arasında anlık WebSocket teklif akışı uçtan uca %100 çalışır hale getirildi. Canlıya `esnaaf-backend-00022` sürümüyle dağıtıldı.
+- **Hizmet Veren Paneli Dinamik Kart Yapısı (`app-hizmetveren`):** Usta gelen işler paneli güncellenerek dinamik bütçe göstergeleri, göreli zaman bildirimleri ve aciliyet rozetleri eklendi.
+- **Seeker Dashboard "Tekliflerim" Tabı Redesign (`app-musteri`):** Müşteri panelindeki teklif kontrol alanı baştan tasarlandı:
+    - Her bir talep, estetik açıdan zengin ve gruplanmış birer "Talep Grubu Kartı" (`rounded-[32px]`) kapsayıcısına alındı.
+    - Talep isimlerinin yanındaki generic emojiler yerine, kurumsal Esnaaf logo-ikon görseli (`logo-icon.png`, `w-11 h-11`) yerleştirildi.
+    - Taleplerin hemen altına konum (📍), tarih (📅) ve bütçe (💰) meta verilerini içeren estetik mini etiketler ile `Detayları İncele` / `İptal Et` hızlı aksiyonları eklendi.
+    - Henüz teklif gelmemiş talepler için yanıp sönen yeşil pulsing radar animasyonlu ve "Ustalar Taranıyor..." açıklamalı premium bekleme paneli entegre edildi.
+    - Gelen teklifler, talep grup kartının altında net bir şekilde gruplanarak listelendi.
+
 ## 2026-06-01 build | esnaaf.com Özel Domain Entegrasyonu ve Firebase Hosting Yayını
 
 - **Özel Domain Yönlendirmesi ve Wix DNS Ayarları:** `esnaaf.com` (yalın domain) için `199.36.158.100` A kaydı ve `hosting-site=esnaaf-prod-orek` TXT sahiplik doğrulaması Wix DNS üzerinde tamamlandı. `www.esnaaf.com` için eski Wix CNAME kaydı silinerek default Firebase Hosting domainine (`esnaaf-prod-orek.web.app`) yönlenen yeni CNAME kaydı başarıyla tescillendi.
