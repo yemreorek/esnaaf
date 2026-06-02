@@ -208,6 +208,32 @@ export default function Home() {
     }
 
     try {
+      // 1. Check if the user is registered first
+      const checkResponse = await fetch("/api/ortak/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: cleanPhone, checkOnly: true }),
+      });
+      const checkData = await checkResponse.json();
+
+      if (!checkResponse.ok) {
+        throw new Error(checkData.message || "Telefon numarası kontrol edilemedi.");
+      }
+
+      // 2. If not registered, close modal and redirect directly to AI Chat to create request & register
+      if (!checkData.isRegistered) {
+        setIsLoginModalOpen(false);
+        triggerNotification("Kaydınız bulunamadı. Yapay zeka asistanı ile konuşarak anında talep oluşturabilirsiniz!");
+        setInputValue("Merhaba, hizmet almak istiyorum.");
+        
+        // Short timeout for modal exit animation before starting chat
+        setTimeout(() => {
+          handleStartChat("Merhaba, hizmet almak istiyorum.");
+        }, 300);
+        return;
+      }
+
+      // 3. If registered, proceed to send standard OTP
       const response = await fetch("/api/ortak/auth/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,6 +281,29 @@ export default function Home() {
         throw new Error(data.message || "Doğrulama kodu hatalı.");
       }
 
+      // Check role - if service_provider (hizmet veren), redirect them to their provider dashboard
+      if (data.user && data.user.role === "service_provider") {
+        triggerNotification("Hizmet Veren paneline yönlendiriliyorsunuz...");
+        let providerBaseUrl = "https://esnaaf-hizmetveren-339090537138.europe-west3.run.app";
+        if (typeof window !== "undefined") {
+          const hostname = window.location.hostname;
+          if (hostname === "localhost" || hostname === "127.0.0.1") {
+            providerBaseUrl = "http://localhost:3001";
+          }
+        }
+
+        setIsLoginModalOpen(false);
+        setOtpSent(false);
+        setLoginOtp("");
+        setLoginPhone("");
+        setDevOtp(null);
+
+        // Redirect to provider app passing the token and phone in parameters
+        window.location.href = `${providerBaseUrl}?token=${encodeURIComponent(data.accessToken)}&phone=${encodeURIComponent(data.user.phone_masked || "")}`;
+        return;
+      }
+
+      // Standard customer / admin role login
       localStorage.setItem("esnaaf_token", data.accessToken);
       localStorage.setItem("esnaaf_refresh_token", data.refreshToken);
       localStorage.setItem("esnaaf_user", JSON.stringify(data.user));

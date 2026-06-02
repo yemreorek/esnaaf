@@ -206,6 +206,20 @@ export default function ProviderDashboard() {
 
   // Load saved session on mount
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
+      const phoneParam = params.get('phone');
+      if (tokenParam) {
+        localStorage.setItem('provider_token', tokenParam);
+        if (phoneParam) {
+          localStorage.setItem('provider_phone', phoneParam);
+        }
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     const savedToken = localStorage.getItem('provider_token');
     const savedPhone = localStorage.getItem('provider_phone');
     if (savedToken) {

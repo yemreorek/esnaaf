@@ -63,6 +63,20 @@ export class AuthService {
   async sendOtp(dto: SendOtpDto) {
     const normalized = normalizePhone(dto.phone);
 
+    const encryptedPhone = encryptPhone(normalized);
+    const user = await this.prisma.user.findUnique({
+      where: { phone: encryptedPhone },
+    });
+
+    if (dto.checkOnly) {
+      return {
+        success: true,
+        message: user ? 'Kullanıcı kayıtlı.' : 'Kullanıcı bulunamadı.',
+        isRegistered: !!user,
+        role: user ? user.role : null,
+      };
+    }
+
     // 1. Check if locked (Bypass lock for Adana test masters to prevent automated blocks)
     const isLocked = await this.redis.get(`otp_lock:${normalized}`);
     if (isLocked && normalized !== '+905329999901' && normalized !== '+905329999902') {
