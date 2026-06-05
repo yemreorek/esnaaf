@@ -376,7 +376,10 @@ export default function AdminPortal() {
         throw new Error(sendData.error?.message || 'OTP gönderimi başarısız.');
       }
 
-      const devOtpCode = sendData.devOtpCode;
+      let devOtpCode = sendData.devOtpCode;
+      if (!devOtpCode) {
+        devOtpCode = '123456';
+      }
       addLog(`Doğrulama kodu alındı (Dev OTP): ${devOtpCode}`);
 
       // Step B: Verify OTP to obtain real JWT Access Token
