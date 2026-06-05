@@ -2,9 +2,10 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
-## 2026-06-05 build | Hizmet Veren Başvuru Sihirbazı Vektörel İkon Düzeltmeleri
+## 2026-06-05 build | Hizmet Veren Başvuru Sihirbazı Vektörel İkon Düzeltmeleri & Gemini 404 Model Hatası Çözümü
 
 - **Lucide-React İkon Entegrasyonu (`app-musteri`):** Hizmet veren başvuru sihirbazında ([hizmetveren-basvuru/page.tsx](file:///c:/Users/HaTicEmRe/OneDrive/Masaüstü/esnaaf/app-musteri/app/hizmetveren-basvuru/page.tsx)) Material Symbols fontunun yüklenememesinden kaynaklanan ikonların metin olarak (business, person, corporate_fare) görünmesi sorunu çözüldü. Tüm ikonlar bağımsız vektörel SVG Lucide React bileşenleri ile güncellendi.
+- **Gemini Active Agent API 404 Model Eşleme Hotfix (`backend-api`):** A/B testi variant grubuna düşen kullanıcılarda, eski `gemini-1.5-flash` model adının Vertex AI / yeni resmi `@google/genai` SDK'sı tarafından desteklenmemesinden kaynaklanan `404 NOT FOUND` ve chat arayüzünde "Sistemimiz yoğun" hata bloğuna düşme hatası giderildi. Tüm legacy model çağrıları (`gemini-1.5-flash` ve `gemini-1.5-pro`) otomatik olarak yeni nesil `gemini-2.5-flash` ve `gemini-2.5-pro` modellerine maplendi. Varsayılan fallbacks `gemini-2.5-flash` olarak güncellendi.
 
 ## 2026-06-02 build | Seeker Dashboard Arayüz Yenilemesi & Gemini Ajan WebSocket Eşleştirme Düzeltmeleri
 
