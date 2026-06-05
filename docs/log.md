@@ -2,6 +2,10 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-05 build | Hizmet Veren Başvuru Sihirbazı Vektörel İkon Düzeltmeleri
+
+- **Lucide-React İkon Entegrasyonu (`app-musteri`):** Hizmet veren başvuru sihirbazında ([hizmetveren-basvuru/page.tsx](file:///c:/Users/HaTicEmRe/OneDrive/Masaüstü/esnaaf/app-musteri/app/hizmetveren-basvuru/page.tsx)) Material Symbols fontunun yüklenememesinden kaynaklanan ikonların metin olarak (business, person, corporate_fare) görünmesi sorunu çözüldü. Tüm ikonlar bağımsız vektörel SVG Lucide React bileşenleri ile güncellendi.
+
 ## 2026-06-02 build | Seeker Dashboard Arayüz Yenilemesi & Gemini Ajan WebSocket Eşleştirme Düzeltmeleri
 
 - **Gemini Aktif Ajan Eşleştirme Düzeltmesi (`backend-api`):** Gemini Flash aktif ajan akışındaki onay (`confirm_form`) adımında, doğrudan eşleştirme ve WebSocket olay fırlatma tetikleyicilerinin çalışmaması sorunu giderildi. Eşleştirme motoru entegre edilerek usta ve müşteri arasında anlık WebSocket teklif akışı uçtan uca %100 çalışır hale getirildi. Canlıya `esnaaf-backend-00022` sürümüyle dağıtıldı.

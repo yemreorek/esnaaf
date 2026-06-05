@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Search, Briefcase, User, Building, Contact, MapPin, Phone, Mail, CheckSquare, Camera, Upload, FileText, Images, Plus, Handshake, Lock } from "lucide-react";
 
 const CITIES = {
   "Adana": ["Seyhan", "Çukurova", "Yüreğir", "Sarıçam", "Ceyhan", "Kozan"],
@@ -332,7 +333,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 1 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">search</span>
+                  <Search className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Hizmet Seçimi</h2>
@@ -383,7 +384,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 2 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">business</span>
+                  <Briefcase className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Şirket Türünüz Nedir?</h2>
@@ -392,22 +393,27 @@ export default function HizmetVerenBasvuru() {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {["Şahıs", "Şirket"].map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setFormData({ ...formData, companyType: type })}
-                      className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all cursor-pointer ${
-                        formData.companyType === type
-                          ? "border-slate-900 bg-slate-50 text-slate-900 font-bold"
-                          : "border-slate-100 hover:border-slate-200 text-slate-500"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-3xl mb-2">
-                        {type === "Şahıs" ? "person" : "corporate_fare"}
-                      </span>
-                      <span className="text-xs font-bold">{type}</span>
-                    </button>
-                  ))}
+                  {["Şahıs", "Şirket"].map((type) => {
+                    const isSelected = formData.companyType === type;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setFormData({ ...formData, companyType: type })}
+                        className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-slate-900 bg-slate-50 text-slate-900 font-bold"
+                            : "border-slate-100 hover:border-slate-200 text-slate-500"
+                        }`}
+                      >
+                        {type === "Şahıs" ? (
+                          <User className={`w-8 h-8 mb-2 ${isSelected ? "text-slate-900" : "text-slate-450"}`} />
+                        ) : (
+                          <Building className={`w-8 h-8 mb-2 ${isSelected ? "text-slate-900" : "text-slate-450"}`} />
+                        )}
+                        <span className="text-xs font-bold">{type}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -416,7 +422,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 3 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">badge</span>
+                  <Contact className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Firma Adınız Nedir?</h2>
@@ -444,7 +450,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 4 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">person</span>
+                  <User className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Adınız ve Soyadınız Nedir?</h2>
@@ -481,7 +487,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 5 && (
               <div className="space-y-5 text-center">
                 <div className="mx-auto w-15 h-15 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-2xl font-black text-slate-850">location_on</span>
+                  <MapPin className="w-6 h-6 text-slate-800" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="font-headline-lg text-lg text-slate-900 leading-tight">Nerede Hizmet Veriyorsunuz?</h2>
@@ -554,7 +560,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 6 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">call</span>
+                  <Phone className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Cep Telefonu Numaranız Nedir?</h2>
@@ -586,7 +592,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 7 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">mail</span>
+                  <Mail className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">E-posta Adresiniz Nedir?</h2>
@@ -611,7 +617,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 8 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">add_task</span>
+                  <CheckSquare className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Başka Hangi Hizmetleri Veriyorsunuz?</h2>
@@ -661,7 +667,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 9 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">add_a_photo</span>
+                  <Camera className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Yüzünüzün Net Göründüğü Profil Resmi</h2>
@@ -696,7 +702,7 @@ export default function HizmetVerenBasvuru() {
                         </div>
                       ) : (
                         <>
-                          <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-all text-slate-500">upload_file</span>
+                          <Upload className="w-8 h-8 group-hover:scale-110 transition-all text-slate-400 group-hover:text-slate-500" />
                           <span className="text-[9px] font-bold text-slate-500 text-center mt-1.5">Fotoğraf Seç</span>
                         </>
                       )}
@@ -717,7 +723,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 10 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">description</span>
+                  <FileText className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Ustalık Tanıtım Yazısı</h2>
@@ -745,7 +751,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 11 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">photo_library</span>
+                  <Images className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Önceki İşlerinize Ait Fotoğraflar</h2>
@@ -775,7 +781,7 @@ export default function HizmetVerenBasvuru() {
                         <div className="w-5 h-5 border-2 border-[#88b000] border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
-                          <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-all text-slate-500">add</span>
+                          <Plus className="w-6 h-6 group-hover:scale-110 transition-all text-slate-400 group-hover:text-slate-500" />
                           <span className="text-[8px] font-bold text-slate-500 text-center mt-1">Ekle</span>
                         </>
                       )}
@@ -800,7 +806,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 12 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">handshake</span>
+                  <Handshake className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Esnaaf'a Hoş Geldiniz!</h2>
@@ -828,7 +834,7 @@ export default function HizmetVerenBasvuru() {
             {currentStep === 13 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl font-black text-slate-850">lock</span>
+                  <Lock className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Giriş Şifrenizi Belirleyin</h2>
