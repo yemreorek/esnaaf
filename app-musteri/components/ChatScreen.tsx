@@ -108,19 +108,9 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         }
         const startData = await startRes.json();
         
+        setMessages([]);
         if (initialMessage && initialMessage.trim() !== "") {
-          // Senaryo A: Karşılama balonunu atla, doğrudan kullanıcının ilk mesajıyla başla
-          setMessages([]);
           await sendMessage(initialMessage);
-        } else {
-          // Senaryo B: Önce sistem karşılama balonunu göster
-          setMessages([
-            {
-              id: "system-greet",
-              role: "assistant",
-              content: startData.message || "Merhaba! Esnaaf platformuna hoş geldiniz. Size bugün hangi konuda yardımcı olabilirim?",
-            },
-          ]);
         }
       } catch (err) {
         console.error("Chat initialization failed:", err);

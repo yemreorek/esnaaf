@@ -63,17 +63,17 @@ export default function ChatScreen() {
         const startRes = await customFetch('/api/ortak/chat/anonim/baslat', { method: 'POST' });
         const startData = await startRes.json();
         
-        setMessages([
-          {
-            id: 'system-greet',
-            role: 'assistant',
-            content: startData.message || 'Merhaba! Esnaaf platformuna hoş geldiniz. Size bugün hangi konuda yardımcı olabilirim?',
-          },
-        ]);
-
-        // 2. Send initial message
-        if (initialMsg) {
+        if (initialMsg && initialMsg.trim() !== '') {
+          setMessages([]);
           await sendMessage(initialMsg);
+        } else {
+          setMessages([
+            {
+              id: 'system-greet',
+              role: 'assistant',
+              content: startData.message || 'Merhaba! Esnaaf platformuna hoş geldiniz. Size bugün hangi konuda yardımcı olabilirim?',
+            },
+          ]);
         }
       } catch (err) {
         console.error('Chat init error:', err);
