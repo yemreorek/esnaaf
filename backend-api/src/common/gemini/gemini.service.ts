@@ -4,13 +4,13 @@ import { GoogleGenAI, Type } from '@google/genai';
 @Injectable()
 export class GeminiService {
   private ai: GoogleGenAI | null = null;
-  private modelName = 'gemini-2.5-flash';
+  private modelName = 'gemini-3.5-flash';
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
       this.ai = new GoogleGenAI({ apiKey });
-      this.modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+      this.modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
       console.log(`[GeminiService] Initialized with model: ${this.modelName}`);
     } else {
       console.warn('[GeminiService] GEMINI_API_KEY is not defined. Active Agent will run in Mock Fallback mode.');
@@ -109,11 +109,11 @@ export class GeminiService {
 
     let modelToUse = options?.modelName || this.modelName;
 
-    // Map administrative placeholders and legacy models to actual available models in API
-    if (modelToUse === 'gemini-3.5-flash' || modelToUse === 'gemini-1.5-flash') {
-      modelToUse = 'gemini-2.5-flash';
-    } else if (modelToUse === 'gemini-3.1-pro' || modelToUse === 'gemini-1.5-pro') {
-      modelToUse = 'gemini-2.5-pro';
+    // Map legacy models to actual available models in API
+    if (modelToUse === 'gemini-1.5-flash' || modelToUse === 'gemini-2.5-flash') {
+      modelToUse = 'gemini-3.5-flash';
+    } else if (modelToUse === 'gemini-1.5-pro' || modelToUse === 'gemini-2.5-pro' || modelToUse === 'gemini-3.1-pro') {
+      modelToUse = 'gemini-3.5-pro';
     }
 
     // Map history to Gemini API format
