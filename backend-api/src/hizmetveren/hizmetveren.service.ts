@@ -3,6 +3,7 @@ import { PrismaService } from '../common/prisma/prisma.service';
 import { ChatGateway } from '../ortak/chat/chat.gateway';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { decryptPhone } from '../common/utils/phone.util';
 
 @Injectable()
 export class HizmetverenService {
@@ -295,5 +296,185 @@ export class HizmetverenService {
     } else {
       return { type: 'basic', limit: 14 };
     }
+  }
+
+  /**
+   * Hizmet verenin vermiş olduğu tüm teklifleri ve ilgili talepleri getirir
+   */
+  async getOffers(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const offers = await this.prisma.offer.findMany({
+      where: { provider_id: provider.id },
+      include: {
+        job: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return offers.map((o) => {
+      const formData = o.job.form_data as any;
+      return {
+        id: o.id,
+        price: Number(o.price),
+        message: o.message,
+        status: o.status,
+        created_at: o.created_at,
+        job: {
+          id: o.job.id,
+          categoryName: o.job.category.name,
+          district: formData.district || 'Kadıköy',
+          details: formData.details || '',
+          name: formData.name || 'Müşteri',
+          status: o.job.status,
+        },
+      };
+    });
+  }
+
+  /**
+   * Ustanın teklifi kabul edilen (kazanılan) işleri ve müşteri iletişim bilgilerini döner
+   */
+  async getWonJobs(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const acceptedOffers = await this.prisma.acceptedOffer.findMany({
+      where: { provider_id: provider.id },
+      include: {
+        job: {
+          include: {
+            category: true,
+            phone_reveal_logs: {
+              where: { requester_id: provider.user_id },
+            },
+          },
+        },
+        seeker: true,
+        offer: true,
+      },
+      orderBy: { accepted_at: 'desc' },
+    });
+
+    return acceptedOffers.map((ao) => {
+      const formData = ao.job.form_data as any;
+      const revealLogExists = ao.job.phone_reveal_logs.length > 0;
+      
+      let customerPhone = ao.seeker.phone_masked;
+      if (revealLogExists) {
+        try {
+          customerPhone = decryptPhone(ao.seeker.phone);
+        } catch (err) {
+          this.logger.error('Telefon numarası çözümlenemedi:', err);
+        }
+      }
+
+      return {
+        id: ao.id,
+        accepted_at: ao.accepted_at,
+        price: Number(ao.offer.price),
+        status: ao.offer.status,
+        offerId: ao.offer.id,
+        job: {
+          id: ao.job.id,
+          categoryName: ao.job.category.name,
+          district: formData.district || 'Kadıköy',
+          details: formData.details || '',
+          name: ao.seeker.name || 'Müşteri',
+          phone: customerPhone,
+          phoneMasked: ao.seeker.phone_masked,
+          status: ao.job.status,
+          revealLogExists,
+        },
+      };
+    });
+  }
+
+  /**
+   * Tamamlanmış işleri listeler
+   */
+  async getCompletedJobs(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const completions = await this.prisma.jobCompletion.findMany({
+      where: { provider_id: provider.id, status: 'completed' },
+      include: {
+        job: {
+          include: {
+            category: true,
+          },
+        },
+        offer: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return completions.map((c) => {
+      const formData = c.job.form_data as any;
+      return {
+        id: c.id,
+        price: c.provider_declared_amount ? Number(c.provider_declared_amount) : Number(c.offer.price),
+        completed_at: c.updated_at,
+        job: {
+          id: c.job.id,
+          categoryName: c.job.category.name,
+          district: formData.district || 'Kadıköy',
+          details: formData.details || '',
+          name: formData.name || 'Müşteri',
+        },
+      };
+    });
+  }
+
+  /**
+   * Hizmet verene ait onaylanmış müşteri yorumlarını listeler
+   */
+  async getReviews(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const reviews = await this.prisma.review.findMany({
+      where: { provider_id: provider.id, status: 'approved' },
+      include: {
+        reviewer: true,
+        job: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return reviews.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      created_at: r.created_at,
+      reviewerName: r.reviewer.name || 'Hizmet Alan',
+      categoryName: r.job.category.name,
+    }));
   }
 }

@@ -191,6 +191,29 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik'>('firsatlar');
+  const [offersList, setOffersList] = useState<any[]>([]);
+  const [wonJobs, setWonJobs] = useState<any[]>([]);
+  const [completedJobs, setCompletedJobs] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  // Chat states
+  const [activeChat, _setActiveChat] = useState<{ jobId: string; offerId: string; customerName: string } | null>(null);
+  const activeChatRef = useRef<{ jobId: string; offerId: string; customerName: string } | null>(null);
+  const setActiveChat = (val: { jobId: string; offerId: string; customerName: string } | null) => {
+    activeChatRef.current = val;
+    _setActiveChat(val);
+  };
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [newMessageText, setNewMessageText] = useState<string>("");
+  const [loadingChatMessages, setLoadingChatMessages] = useState<boolean>(false);
+
+  // Completion modal states
+  const [completingJob, setCompletingJob] = useState<any | null>(null);
+  const [declarePrice, setDeclarePrice] = useState<string>('');
+  const [declareNote, setDeclareNote] = useState<string>('');
+  const [submittingDeclaration, setSubmittingDeclaration] = useState(false);
+
   // New state variables for manual premium login
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -484,10 +507,200 @@ export default function ProviderDashboard() {
       });
     });
 
+    socket.on('new_message', (msg: any) => {
+      addLog(`💬 [YENİ MESAJ] Room: job_${msg.jobId}`);
+      setChatMessages((prev) => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        const currentChat = activeChatRef.current;
+        if (currentChat && msg.jobId === currentChat.jobId && msg.offerId === currentChat.offerId) {
+          return [...prev, {
+            id: msg.id,
+            job_id: msg.jobId,
+            offer_id: msg.offerId,
+            sender_id: msg.senderId,
+            receiver_id: msg.receiverId,
+            content: msg.content,
+            content_type: msg.contentType,
+            is_read: msg.isRead,
+            created_at: msg.createdAt
+          }];
+        }
+        return prev;
+      });
+    });
+
     socket.on('disconnect', () => {
       addLog(`WebSocket bağlantısı kesildi.`);
     });
   };
+
+  const fetchTabDependencies = async (tab: string, currentToken: string) => {
+    if (!currentToken) return;
+    setLoading(true);
+    try {
+      if (tab === 'firsatlar') {
+        const res = await fetch('/api/hizmetveren/gelen-isler', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setJobs(data);
+          addLog(`${data.length} adet yeni gelen iş listelendi.`);
+        }
+      } else if (tab === 'teklifler') {
+        const res = await fetch('/api/hizmetveren/teklifler', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setOffersList(data);
+          addLog(`${data.length} adet verilmiş teklif yüklendi.`);
+        }
+      } else if (tab === 'kazanilanlar') {
+        const res = await fetch('/api/hizmetveren/kazanilan-isler', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setWonJobs(data);
+          addLog(`${data.length} adet kazanılan iş yüklendi.`);
+        }
+      } else if (tab === 'tamamlananlar') {
+        const res = await fetch('/api/hizmetveren/tamamlanan-isler', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setCompletedJobs(data);
+          addLog(`${data.length} adet tamamlanan iş yüklendi.`);
+        }
+      } else if (tab === 'yorumlar') {
+        const res = await fetch('/api/hizmetveren/yorumlar', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setReviews(data);
+          addLog(`${data.length} adet yorum yüklendi.`);
+        }
+      }
+    } catch (err: any) {
+      addLog(`Hata (${tab}): ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchChatMessages = async (jobId: string, offerId: string) => {
+    if (!token) return;
+    setLoadingChatMessages(true);
+    try {
+      const res = await fetch(`/api/ortak/mesajlar/${jobId}/${offerId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages(data);
+      }
+    } catch (err) {
+      console.error("Fetch chat messages failed:", err);
+    } finally {
+      setLoadingChatMessages(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeChat || !newMessageText.trim() || !token) return;
+
+    const text = newMessageText.trim();
+    setNewMessageText("");
+
+    try {
+      const res = await fetch("/api/ortak/mesajlar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          jobId: activeChat.jobId,
+          offerId: activeChat.offerId,
+          content: text,
+          contentType: "text"
+        })
+      });
+
+      if (res.ok) {
+        const msg = await res.json();
+        setChatMessages(prev => {
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      } else {
+        const err = await res.json();
+        alert(err.message || "Mesaj gönderilemedi.");
+      }
+    } catch (err) {
+      console.error("Send message error:", err);
+    }
+  };
+
+  const handleDeclareCompletion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !completingJob) return;
+
+    const priceNum = Number(declarePrice);
+    if (!priceNum || priceNum < 1) {
+      alert("Lütfen geçerli bir beyan ücreti giriniz.");
+      return;
+    }
+
+    setSubmittingDeclaration(true);
+    try {
+      const res = await fetch('/api/hizmetveren/tamamlama/beyan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          jobId: completingJob.job.id,
+          price: priceNum,
+          note: declareNote
+        }),
+      });
+
+      if (res.ok) {
+        alert("İş tamamlanma beyanı başarıyla gönderildi!");
+        setCompletingJob(null);
+        setDeclarePrice('');
+        setDeclareNote('');
+        fetchTabDependencies(activeTab, token);
+      } else {
+        const data = await res.json();
+        alert(data.message || "Beyan gönderilemedi.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Bir hata oluştu.");
+    } finally {
+      setSubmittingDeclaration(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchTabDependencies(activeTab, token);
+    }
+  }, [activeTab, token]);
+
+  useEffect(() => {
+    if (!activeChat) return;
+    fetchChatMessages(activeChat.jobId, activeChat.offerId);
+    if (socketRef.current) {
+      socketRef.current.emit('join_job', { jobId: activeChat.jobId });
+    }
+  }, [activeChat?.jobId, activeChat?.offerId]);
 
   useEffect(() => {
     return () => {
@@ -900,46 +1113,77 @@ export default function ProviderDashboard() {
 
         {/* Sidebar Menu items */}
         <div className="flex-1 flex flex-col gap-1 overflow-y-auto scrollbar-none pr-0.5">
-          <a className="flex items-center gap-3.5 px-4 py-3 bg-[#4c630a] text-white font-extrabold rounded-2xl transition-all duration-150 shadow-sm shadow-[#4c630a]/20 scale-bounce text-xs" href="#">
+          <button
+            onClick={() => { setActiveTab('firsatlar'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'firsatlar' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <Briefcase className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Gelen İşler (Fırsatlar)</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
+          </button>
+          
+          <button
+            onClick={() => { setActiveTab('teklifler'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'teklifler' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Teklif Verilenler</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('kazanilanlar'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'kazanilanlar' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <CheckCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Kazanılan İşler (Aktif Süreç)</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
+            <span>Kazanılan İşler (Aktif)</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('tamamlananlar'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'tamamlananlar' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <CheckCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Tamamlanan İşler</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
-            <X className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>İptal Edilenler</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('yorumlar'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'yorumlar' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Yorumlar & Puanlar</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('abonelik'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'abonelik' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
             <CreditCard className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Abonelik & Paket Bilgisi</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
-            <Wallet className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Ödeme Geçmişi</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
-            <TrendingUp className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Kazanç Analizi</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-4 py-3 text-slate-450 hover:bg-slate-50 hover:text-slate-800 font-bold rounded-2xl transition-all text-xs" href="#">
-            <Navigation className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Rota Planlama</span>
-          </a>
+          </button>
         </div>
 
         {/* Sidebar bottom lime publish button */}
@@ -1025,250 +1269,474 @@ export default function ProviderDashboard() {
             <div className="hidden sm:flex items-center gap-2.5 text-left">
               <span className="text-xs font-black text-slate-850 leading-none">{quota ? quota.providerName : 'Mert Yılmaz'}</span>
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"
-                alt="Mert Yılmaz"
-                className="w-7 h-7 object-cover rounded-full border border-slate-200"
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                alt="Usta Profil"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100"
               />
             </div>
           </div>
         </header>
 
-        {/* 🎨 Canvas Dashboard Body */}
-        <div className="p-6 md:p-8 max-w-7xl w-full mx-auto flex-grow z-10 flex flex-col gap-6 text-left">
-          
-          {/* Dashboard Title & Overview Banner */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
-                Yeni Fırsatlar
-              </h2>
-              <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
-                Bölgenizdeki en yeni iş taleplerini inceleyin ve hemen teklif verin.
-              </p>
-            </div>
+        <div className="p-6 md:p-8 space-y-8 z-10 flex-1 relative overflow-y-auto">
+          {/* Switchable content based on activeTab */}
+          {activeTab === 'firsatlar' && (
+            <>
+              {/* Dashboard Title & Overview Banner */}
+              <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
+                    Yeni Fırsatlar
+                  </h2>
+                  <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                    Bölgenizdeki en yeni iş taleplerini inceleyin ve hemen teklif verin.
+                  </p>
+                </div>
 
-            {/* Filter & Sort buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => alert("Filtreleme özellikleri yakında aktif olacaktır.")}
-                className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-              >
-                <Filter className="w-3.5 h-3.5 text-slate-500" />
-                <span>Filtrele</span>
-              </button>
-              <button
-                onClick={() => alert("Sıralama parametreleri yakında eklenecektir.")}
-                className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-              >
-                <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
-                <span>Sırala</span>
-              </button>
-            </div>
-          </header>
+                {/* Filter & Sort buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => alert("Filtreleme özellikleri yakında aktif olacaktır.")}
+                    className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Filter className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Filtrele</span>
+                  </button>
+                  <button
+                    onClick={() => alert("Sıralama parametreleri yakında eklenecektir.")}
+                    className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Sırala</span>
+                  </button>
+                </div>
+              </header>
 
-          {/* ACTIVE OPPORTUNITIES GRID */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            
-            {/* If logged in and has actual jobs in database, render them. Otherwise show mockup grid */}
-            {token ? (
-              jobs.length > 0 ? (
-                jobs.map((job) => {
-                  const badgeText = job.aciliyet || (
-                    job.categoryName.includes("Temizlik") ? "ACİL TALEP" :
-                    job.categoryName.includes("Nakliyat") ? "PLANLI İŞ" :
-                    job.categoryName.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
-                  );
-                  const badgeType = job.aciliyet ? (
-                    job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
-                    job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
-                    job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
+              {/* ACTIVE OPPORTUNITIES GRID */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                
+                {/* If logged in and has actual jobs in database, render them. Otherwise show mockup grid */}
+                {token ? (
+                  jobs.length > 0 ? (
+                    jobs.map((job) => {
+                      const badgeText = job.aciliyet || (
+                        job.categoryName.includes("Temizlik") ? "ACİL TALEP" :
+                        job.categoryName.includes("Nakliyat") ? "PLANLI İŞ" :
+                        job.categoryName.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
+                      );
+                      const badgeType = job.aciliyet ? (
+                        job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
+                        job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
+                        job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
+                      ) : (
+                        job.categoryName.includes("Temizlik") ? "urgent" :
+                        job.categoryName.includes("Nakliyat") ? "planned" :
+                        job.categoryName.includes("Tadilat") ? "high" : "standard"
+                      );
+
+                      const estBudget = job.butce || (
+                        job.categoryName.includes("Temizlik") ? "1.200 TL – 1.500 TL" :
+                        job.categoryName.includes("Nakliyat") ? "2.500 TL – 3.200 TL" :
+                        job.categoryName.includes("Tadilat") ? "4.000 TL – 6.000 TL" :
+                        job.categoryName.includes("Boya") ? "8.500 TL – 12.000 TL" : "1.500 TL – 3.000 TL"
+                      );
+
+                      return (
+                        <div 
+                          key={job.id} 
+                          className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
+                        >
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex items-center gap-3">
+                                {renderMockupIcon(
+                                  job.categoryName.includes("Temizlik") ? "cleaning" :
+                                  job.categoryName.includes("Nakliyat") ? "truck" :
+                                  job.categoryName.includes("Tadilat") ? "tools" : "paint"
+                                )}
+                                <div className="flex flex-col text-left">
+                                  <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
+                                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
+                                    badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
+                                    badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
+                                    badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
+                                  }`}>
+                                    {badgeText}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
+                                <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
+                                <span>{formatRelativeTime(job.created_at)}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
+                              <svg className="w-4 h-4 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                              </svg>
+                              <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
+                            </div>
+
+                            <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold">
+                              &ldquo;{job.details}&rdquo;
+                            </p>
+                          </div>
+
+                          <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
+                            <div className="text-left">
+                              <span className="block text-[9px] text-slate-450 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
+                              <span className="text-base font-black text-slate-900 tracking-tight">{estBudget}</span>
+                            </div>
+
+                            <button
+                              onClick={() => setActiveJob(job)}
+                              className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
+                            >
+                              Teklif Ver
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
-                    job.categoryName.includes("Temizlik") ? "urgent" :
-                    job.categoryName.includes("Nakliyat") ? "planned" :
-                    job.categoryName.includes("Tadilat") ? "high" : "standard"
-                  );
-
-                  const estBudget = job.butce || (
-                    job.categoryName.includes("Temizlik") ? "1.200 TL – 1.500 TL" :
-                    job.categoryName.includes("Nakliyat") ? "2.500 TL – 3.200 TL" :
-                    job.categoryName.includes("Tadilat") ? "4.000 TL – 6.000 TL" :
-                    job.categoryName.includes("Boya") ? "8.500 TL – 12.000 TL" : "1.500 TL – 3.000 TL"
-                  );
-
-                  return (
+                    /* Premium Empty State */
+                    <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 shadow-[0_4px_30px_rgba(15,23,42,0.015)] text-center space-y-5 animate-scale-up py-16 w-full">
+                      <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                        <Briefcase className="w-8 h-8 text-[#4c630a] stroke-[2.2]" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="font-extrabold text-slate-950 text-base">Aktif İş Fırsatı Bulunmuyor</h3>
+                        <p className="text-slate-400 text-xs max-w-md mx-auto leading-relaxed font-semibold">
+                          Bölgenizde ve kategorinizde şu anda bekleyen aktif bir iş talebi bulunmamaktadır. 
+                          Müşterilerimiz yeni talepler oluşturduğunda bu sayfada gerçek zamanlı (WebSocket) olarak anında listelenecektir!
+                        </p>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  // Preview State: Render exact screenshot cards
+                  MOCKUP_OPPORTUNITIES.map((opp) => (
                     <div 
-                      key={job.id} 
-                      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
+                      key={opp.id} 
+                      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-200 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
                     >
                       <div className="space-y-4">
                         <div className="flex justify-between items-start gap-4">
                           <div className="flex items-center gap-3">
-                            {renderMockupIcon(
-                              job.categoryName.includes("Temizlik") ? "cleaning" :
-                              job.categoryName.includes("Nakliyat") ? "truck" :
-                              job.categoryName.includes("Tadilat") ? "tools" : "paint"
-                            )}
+                            {renderMockupIcon(opp.iconType)}
                             <div className="flex flex-col text-left">
-                              <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
-                                badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
-                                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
-                                badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
+                              <span className="font-extrabold text-sm text-slate-900 leading-none">{opp.categoryName}</span>
+                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-1 self-start tracking-wider font-mono ${
+                                opp.badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
+                                opp.badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
+                                opp.badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
                               }`}>
-                                {badgeText}
+                                {opp.subBadge}
                               </span>
                             </div>
                           </div>
                           
                           <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-                            <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
-                            <span>{formatRelativeTime(job.created_at)}</span>
+                            <span className="flex items-center gap-1 justify-end">👁️ {opp.viewerCount} usta inceliyor</span>
+                            <span>{opp.timeText}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
-                          <svg className="w-4 h-4 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                           </svg>
-                          <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
+                          <span>{opp.name} • {opp.district}</span>
                         </div>
 
-                        <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold">
-                          &ldquo;{job.details}&rdquo;
+                        <p className="text-xs text-slate-650 font-semibold italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed text-left">
+                          &ldquo;{opp.details}&rdquo;
                         </p>
                       </div>
 
-                      <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
+                      <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
                         <div className="text-left">
-                          <span className="block text-[9px] text-slate-450 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
-                          <span className="text-base font-black text-slate-900 tracking-tight">{estBudget}</span>
+                          <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
+                          <span className="text-sm md:text-base font-black text-slate-900 tracking-tight">{opp.budget}</span>
                         </div>
 
                         <button
-                          onClick={() => setActiveJob(job)}
+                          onClick={() => {
+                            if (!token) {
+                              alert("Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!");
+                            } else {
+                              setActiveJob({
+                                id: opp.id,
+                                categoryName: opp.categoryName,
+                                district: opp.district,
+                                details: opp.details
+                              });
+                            }
+                          }}
                           className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
                         >
                           Teklif Ver
                         </button>
                       </div>
                     </div>
-                  );
-                })
-              ) : (
-                /* Premium Empty State */
-                <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 shadow-[0_4px_30px_rgba(15,23,42,0.015)] text-center space-y-5 animate-scale-up py-16">
-                  <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                    <Briefcase className="w-8 h-8 text-[#4c630a] stroke-[2.2]" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-extrabold text-slate-950 text-base">Aktif İş Fırsatı Bulunmuyor</h3>
-                    <p className="text-slate-400 text-xs max-w-md mx-auto leading-relaxed font-semibold">
-                      Bölgenizde ve kategorinizde şu anda bekleyen aktif bir iş talebi bulunmamaktadır. 
-                      Müşterilerimiz yeni talepler oluşturduğunda bu sayfada gerçek zamanlı (WebSocket) olarak anında listelenecektir!
-                    </p>
-                  </div>
-                </div>
-              )
-            ) : (
-              // Preview State: Render exact screenshot cards
-              MOCKUP_OPPORTUNITIES.map((opp) => (
-                <div 
-                  key={opp.id} 
-                  className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-200 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
-                >
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex items-center gap-3">
-                        {renderMockupIcon(opp.iconType)}
-                        <div className="flex flex-col text-left">
-                          <span className="font-extrabold text-sm text-slate-900 leading-none">{opp.categoryName}</span>
-                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-1 self-start tracking-wider font-mono ${
-                            opp.badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
-                            opp.badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
-                            opp.badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
-                          }`}>
-                            {opp.subBadge}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-                        <span className="flex items-center gap-1 justify-end">👁️ {opp.viewerCount} usta inceliyor</span>
-                        <span>{opp.timeText}</span>
-                      </div>
-                    </div>
+                  ))
+                )}
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                      </svg>
-                      <span>{opp.name} • {opp.district}</span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold text-left">
-                      &ldquo;{opp.details}&rdquo;
-                    </p>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
-                    <div className="text-left">
-                      <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
-                      <span className="text-sm md:text-base font-black text-slate-900 tracking-tight">{opp.budget}</span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (!token) {
-                          alert("Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!");
-                        } else {
-                          setActiveJob({
-                            id: opp.id,
-                            categoryName: opp.categoryName,
-                            district: opp.district,
-                            details: opp.details
-                          });
-                        }
-                      }}
-                      className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-                    >
-                      Teklif Ver
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-
-          </div>
-
-          {/* Simulated quota details in preview or active states */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
-            
-            {/* Quota overview (Full Width) */}
-            <div className="lg:col-span-12 bg-white border border-slate-100 shadow-sm p-6 rounded-[24px]">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Kota Limit Bilgileri</h3>
-                <span className="bg-[#c8f252] text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider font-mono">
-                  {quota ? quota.packageName : 'Mert Yılmaz - VIP'}
-                </span>
               </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-400">Teklif Kotası:</span>
-                  <span className="text-slate-800 font-black font-mono">
-                    {quota?.limit ? `${quota.used} / ${quota.limit} İş` : `${quota ? quota.used : 2} / Sınırsız (VIP)`}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/50">
-                  <div className="bg-[#c8f252] h-full rounded-full shadow-sm" style={{ width: quota ? `${(quota.used / (quota.limit || 100)) * 100}%` : '5%' }} />
-                </div>
-                <p className="text-[10px] text-slate-400 font-semibold leading-relaxed font-mono">
-                  * VIP paketlerde kota sınırı yoktur. Test esnaflarımız sınırsız işlem yapabilmektedir.
+            </>
+          )}
+
+          {activeTab === 'teklifler' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Teklif Verilenler
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Gönderdiğiniz aktif teklifleri ve durumlarını bu ekrandan takip edin.
                 </p>
               </div>
-            </div>
 
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                {offersList.length > 0 ? (
+                  offersList.map((off) => (
+                    <div key={off.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                            {off.job.categoryName}
+                          </span>
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider ${
+                            off.status === 'accepted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                            off.status === 'rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                            'bg-amber-50 text-amber-705 border border-amber-100'
+                          }`}>
+                            {off.status === 'accepted' ? 'Kabul Edildi' : off.status === 'rejected' ? 'Reddedildi' : 'Beklemede'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-650 font-semibold italic text-left bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          &ldquo;{off.message || 'Teklif mesajı boş bırakıldı.'}&rdquo;
+                        </p>
+                        <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
+                          <div><strong>Müşteri Konumu:</strong> {off.job.district}</div>
+                          <div><strong>Talep Açıklaması:</strong> {off.job.details}</div>
+                        </div>
+                      </div>
+                      <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
+                        <span className="text-slate-900 font-black text-sm">₺{off.price.toLocaleString("tr-TR")}</span>
+                        <span className="text-[10px] text-slate-400 font-mono font-bold">
+                          {new Date(off.created_at).toLocaleDateString("tr-TR")}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <span className="text-3xl">📝</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Verilmiş Teklif Yok</h3>
+                    <p className="text-slate-400 text-xs mt-1">Henüz hiçbir iş fırsatına teklif göndermediniz. Fırsatlar sekmesinden teklif verebilirsiniz.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'kazanilanlar' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Kazanılan İşler
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Müşterilerinizin onayladığı işleri görün, iletişime geçip hemen başlayın.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                {wonJobs.length > 0 ? (
+                  wonJobs.map((wj) => (
+                    <div key={wj.id} className="bg-white p-6 rounded-[24px] border border-slate-150 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                            {wj.job.categoryName}
+                          </span>
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                            Anlaşma Sağlandı
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-2 text-slate-700 font-semibold border-t border-slate-50 pt-3">
+                          <div><strong>Müşteri:</strong> {wj.job.name}</div>
+                          <div className="flex items-center gap-1.5">
+                            <strong>Telefon:</strong> 
+                            <span className="font-mono text-slate-900 font-black bg-slate-50 px-2 py-0.5 border border-slate-100 rounded">{wj.job.phone}</span>
+                          </div>
+                          <div><strong>Konum:</strong> {wj.job.district}</div>
+                          <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed">
+                            &ldquo;{wj.job.details}&rdquo;
+                          </p>
+                        </div>
+                      </div>
+                      <div className="border-t border-slate-100 pt-3.5 flex items-center justify-between gap-3">
+                        <div className="text-left">
+                          <span className="text-[9px] block text-slate-400 font-bold uppercase tracking-wider">Anlaşılan Fiyat</span>
+                          <span className="text-slate-900 font-black text-base">₺{wj.price.toLocaleString("tr-TR")}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setActiveChat({ jobId: wj.job.id, offerId: wj.offerId, customerName: wj.job.name })}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                          >
+                            Mesaj Gönder
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletingJob(wj);
+                              setDeclarePrice(String(wj.price));
+                            }}
+                            className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                          >
+                            İşi Tamamla
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <span className="text-3xl">🤝</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Kazanılan İş Yok</h3>
+                    <p className="text-slate-400 text-xs mt-1">Tekliflerinizi gönderdikten sonra müşteriler onayladığında bu sekmede listelenecektir.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'tamamlananlar' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Tamamlanan İşler
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Başarıyla tamamlayıp teslim ettiğiniz geçmiş işleriniz.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                {completedJobs.length > 0 ? (
+                  completedJobs.map((cj) => (
+                    <div key={cj.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                            {cj.job.categoryName}
+                          </span>
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                            Tamamlandı
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
+                          <div><strong>Müşteri:</strong> {cj.job.name}</div>
+                          <div><strong>Konum:</strong> {cj.job.district}</div>
+                          <div><strong>Açıklama:</strong> {cj.job.details}</div>
+                        </div>
+                      </div>
+                      <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
+                        <span className="text-slate-900 font-black text-sm">₺{cj.price.toLocaleString("tr-TR")}</span>
+                        <span className="text-[10px] text-slate-400 font-mono font-bold">
+                          {new Date(cj.completed_at).toLocaleDateString("tr-TR")}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <span className="text-3xl">🏆</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Tamamlanan İş Yok</h3>
+                    <p className="text-slate-400 text-xs mt-1">Tamamladığınız ve her iki tarafça onaylanan iş geçmişiniz burada listelenecektir.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'yorumlar' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Yorumlar & Puanlar
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Hizmet alan müşterilerinizin sizin hakkınızda bıraktığı yorumlar.
+                </p>
+              </div>
+
+              <div className="space-y-6 w-full max-w-4xl">
+                {reviews.length > 0 ? (
+                  reviews.map((rev) => (
+                    <div key={rev.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-xs text-amber-550 font-black">{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</span>
+                          <h4 className="font-black text-slate-800 text-sm mt-1">{rev.reviewerName}</h4>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono font-bold">
+                          {new Date(rev.created_at).toLocaleDateString("tr-TR")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-650 font-semibold bg-slate-50 p-4 rounded-xl border border-slate-100 italic leading-relaxed">
+                        &ldquo;{rev.comment}&rdquo;
+                      </p>
+                      <span className="text-[9px] bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] px-2.5 py-0.5 rounded font-mono font-black tracking-wider uppercase inline-block">
+                        {rev.categoryName}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <span className="text-3xl">⭐</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Değerlendirme Bulunmuyor</h3>
+                    <p className="text-slate-400 text-xs mt-1">Müşterileriniz tamamlanan işler için puanlama ve yorum yaptığında burada gösterilecektir.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'abonelik' && (
+            <div className="space-y-6 animate-scale-up text-left w-full">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Abonelik & Limit Bilgisi
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Paketinizin detaylarını, aylık kullanım ve kalan kota bilgilerinizi inceleyin.
+                </p>
+              </div>
+
+              {/* Quota overview (Full Width) */}
+              <div className="bg-white border border-slate-150 shadow-sm p-6 rounded-[24px] max-w-2xl w-full">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Kota Limit Bilgileri</h3>
+                  <span className="bg-[#c8f252] text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider font-mono">
+                    {quota ? quota.packageName : 'Mert Yılmaz - VIP'}
+                  </span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-400">Teklif Kotası:</span>
+                    <span className="text-slate-800 font-black font-mono">
+                      {quota?.limit ? `${quota.used} / ${quota.limit} İş` : `${quota ? quota.used : 2} / Sınırsız (VIP)`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </main>
@@ -1304,7 +1772,7 @@ export default function ProviderDashboard() {
                   {activeJob.district}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed italic font-semibold">
+              <p className="text-xs text-slate-650 font-semibold leading-relaxed italic">
                 &ldquo;{activeJob.details}&rdquo;
               </p>
             </div>
@@ -1365,6 +1833,161 @@ export default function ProviderDashboard() {
                     <>
                       <Send className="w-4 h-4 shrink-0 text-white" />
                       <span>Teklifi İlet</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 💬 Canlı Sohbet Modalı */}
+      {activeChat && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 flex flex-col h-[550px] animate-scale-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4 shrink-0">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-slate-950" />
+                <span>{activeChat.customerName} ile Sohbet</span>
+              </h3>
+              <button 
+                onClick={() => {
+                  setActiveChat(null);
+                  setChatMessages([]);
+                }}
+                className="text-slate-400 hover:text-slate-850 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 rounded-2xl border border-slate-100/60 mb-4 scrollbar-none text-left flex flex-col">
+              {loadingChatMessages ? (
+                <div className="w-full h-full flex items-center justify-center m-auto">
+                  <div className="w-6 h-6 rounded-full border-2 border-slate-200 border-t-[#c8f252] animate-spin"></div>
+                </div>
+              ) : chatMessages.length === 0 ? (
+                <p className="text-center text-slate-400 text-xs py-12 font-medium m-auto">Müşterinize bir mesaj yazarak sohbete başlayın!</p>
+              ) : (
+                chatMessages.map((msg) => {
+                  const isMe = msg.sender_id !== (activeChat as any).seekerUserId;
+                  return (
+                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[75%] p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
+                        isMe 
+                          ? 'bg-slate-900 text-white rounded-tr-none' 
+                          : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                      }`}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <span className="block text-[8px] mt-1.5 text-right font-mono text-slate-400">
+                          {new Date(msg.created_at).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Send Input bar */}
+            <form onSubmit={handleSendMessage} className="border-t border-slate-100 pt-3 flex gap-2 shrink-0 bg-white">
+              <input
+                type="text"
+                value={newMessageText}
+                onChange={(e) => setNewMessageText(e.target.value)}
+                placeholder="Mesajınızı yazın..."
+                className="flex-1 bg-slate-50 border border-slate-200 focus:border-[#c8f252] outline-none rounded-xl px-4 py-3 text-xs font-semibold text-slate-850"
+              />
+              <button
+                type="submit"
+                disabled={!newMessageText.trim()}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-3 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+              >
+                Gönder
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🏆 İş Tamamlama Beyan Modalı */}
+      {completingJob && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-slate-950" />
+                <span>İşi Tamamlandı Olarak Beyan Et</span>
+              </h3>
+              <button 
+                onClick={() => {
+                  setCompletingJob(null);
+                  setDeclarePrice('');
+                  setDeclareNote('');
+                }}
+                className="text-slate-400 hover:text-slate-850 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleDeclareCompletion} className="space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
+                  Gerçekleşen İş Ücreti (TL)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={declarePrice}
+                    onChange={(e) => setDeclarePrice(e.target.value)}
+                    placeholder="Örn: 850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-1 focus:ring-[#4c630a]/10 rounded-xl py-3.5 px-4 pl-10 text-xs font-black text-slate-900 focus:outline-none transition-all shadow-inner"
+                  />
+                  <span className="absolute left-4 top-3.5 text-xs font-black text-slate-900">₺</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
+                  Tamamlama Notu (Müşteriye İletilecek)
+                </label>
+                <textarea
+                  value={declareNote}
+                  onChange={(e) => setDeclareNote(e.target.value)}
+                  placeholder="İşle ilgili yaptığınız uygulamaları kısaca açıklayın..."
+                  rows={3}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-1 focus:ring-[#4c630a]/10 rounded-xl py-3.5 px-4 text-xs text-slate-900 focus:outline-none transition-all resize-none leading-relaxed shadow-inner font-semibold"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCompletingJob(null);
+                    setDeclarePrice('');
+                    setDeclareNote('');
+                  }}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs border border-slate-200 active:scale-[0.98] cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingDeclaration}
+                  className="flex-1 bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-55 shadow-md shadow-[#4c630a]/10 active:scale-[0.98] cursor-pointer border border-transparent"
+                >
+                  {submittingDeclaration ? (
+                    <span>Gönderiliyor...</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 shrink-0 text-white" />
+                      <span>Tamamlandığını Bildir</span>
                     </>
                   )}
                 </button>

@@ -61,4 +61,44 @@ export class HizmetverenController {
   async updateProfile(@CurrentUser() user: any, @Body() dto: UpdateProfileDto) {
     return this.hizmetverenService.updateProfile(user.id, dto);
   }
+
+  /**
+   * Hizmet verenin tüm tekliflerini listeler
+   * GET /api/hizmetveren/teklifler
+   */
+  @Get('teklifler')
+  @HttpCode(HttpStatus.OK)
+  async getOffers(@CurrentUser() user: any) {
+    return this.hizmetverenService.getOffers(user.id);
+  }
+
+  /**
+   * Hizmet verenin kazandığı işleri listeler
+   * GET /api/hizmetveren/kazanilan-isler
+   */
+  @Get('kazanilan-isler')
+  @HttpCode(HttpStatus.OK)
+  async getWonJobs(@CurrentUser() user: any) {
+    return this.hizmetverenService.getWonJobs(user.id);
+  }
+
+  /**
+   * Hizmet verenin tamamladığı işleri listeler
+   * GET /api/hizmetveren/tamamlanan-isler
+   */
+  @Get('tamamlanan-isler')
+  @HttpCode(HttpStatus.OK)
+  async getCompletedJobs(@CurrentUser() user: any) {
+    return this.hizmetverenService.getCompletedJobs(user.id);
+  }
+
+  /**
+   * Hizmet verene yapılan yorumları listeler
+   * GET /api/hizmetveren/yorumlar
+   */
+  @Get('yorumlar')
+  @HttpCode(HttpStatus.OK)
+  async getReviews(@CurrentUser() user: any) {
+    return this.hizmetverenService.getReviews(user.id);
+  }
 }

@@ -90,6 +90,15 @@ export class TaleplerService {
       where: { seeker_id: seekerUserId },
       include: {
         category: true,
+        job_completions: {
+          include: {
+            provider: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
         offers: {
           include: {
             provider: {
@@ -112,6 +121,15 @@ export class TaleplerService {
       where: { id: jobId },
       include: {
         category: true,
+        job_completions: {
+          include: {
+            provider: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
         offers: {
           include: {
             provider: {

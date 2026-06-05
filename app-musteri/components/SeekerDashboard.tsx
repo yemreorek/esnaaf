@@ -107,6 +107,18 @@ interface RequestItem {
     slug: string;
   };
   offers: Offer[];
+  job_completions?: {
+    id: string;
+    status: string;
+    provider_declared_amount?: number | string;
+    provider?: {
+      id: string;
+      user?: {
+        name?: string;
+      };
+    };
+  }[];
+  reviews?: any[];
 }
 
 interface SeekerDashboardProps {
@@ -208,6 +220,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile">("tekliflerim");
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
+  const [compareJobId, setCompareJobId] = useState<string>("");
+  const [activeChat, setActiveChat] = useState<{ jobId: string; offerId: string; providerName: string; providerId: string } | null>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [newMessageText, setNewMessageText] = useState<string>("");
+  const [loadingChatMessages, setLoadingChatMessages] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -262,46 +279,76 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     }
   }, [initialJobId, requests]);
 
-  // Connect to Socket.io for selectedRequest
-  useEffect(() => {
-    if (!selectedRequest) return;
-
-    // Reset temporary interactive states
-    setCompletionState(null);
-    setProviderName("");
-    setProviderDeclaredAmount(null);
-    setProviderId(null);
-    setShowDiscrepancyForm(false);
-    setSelectedRating(0);
-    setRatingSubmitted(false);
-    setCommentText("");
-    setPhotoPreview(null);
-    setPhotoFile(null);
-    setIsAddedToFavorites(false);
-    setMutualPhones(null);
-
-    // If request already has accepted offers, check if we can populate mutual details
-    const acceptedOffer = selectedRequest.offers?.find(o => o.status === 'accepted');
-    if (acceptedOffer) {
-      setProviderId(acceptedOffer.provider.id);
-      setProviderName(acceptedOffer.provider.user.name);
+  const fetchChatMessages = async (jobId: string, offerId: string) => {
+    setLoadingChatMessages(true);
+    try {
+      const res = await customFetch(`/api/ortak/mesajlar/${jobId}/${offerId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages(data);
+      }
+    } catch (err) {
+      console.error("Fetch chat messages failed:", err);
+    } finally {
+      setLoadingChatMessages(false);
     }
+  };
 
-    console.log(`[Dashboard WS] Connecting for request ${selectedRequest.id}`);
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeChat || !newMessageText.trim()) return;
+
+    const text = newMessageText.trim();
+    setNewMessageText("");
+
+    try {
+      const res = await customFetch("/api/ortak/mesajlar", {
+        method: "POST",
+        body: JSON.stringify({
+          jobId: activeChat.jobId,
+          offerId: activeChat.offerId,
+          content: text,
+          contentType: "text"
+        })
+      });
+
+      if (res.ok) {
+        const msg = await res.json();
+        setChatMessages(prev => {
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      } else {
+        const err = await res.json();
+        alert(err.error?.message || "Mesaj gönderilemedi.");
+      }
+    } catch (err) {
+      console.error("Send message error:", err);
+    }
+  };
+
+  // Connect to Socket.io globally and join all relevant rooms
+  useEffect(() => {
+    const authUser = getAuthUser();
+    if (!authUser) return;
+
+    console.log("[Dashboard WS] Connecting global socket");
     const socket = io(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3005/chat", {
       transports: ["websocket"],
     });
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log(`[Dashboard WS] Connected, joining room: job_${selectedRequest.id}`);
-      socket.emit("join_job", { jobId: selectedRequest.id });
+      console.log(`[Dashboard WS] Connected globally: ${socket.id}`);
+      // Join all seeker's requests rooms
+      requests.forEach(req => {
+        socket.emit("join_job", { jobId: req.id });
+      });
     });
 
     // Real-time incoming offer
     socket.on("new_offer", (offer: any) => {
       console.log("[Dashboard WS] New offer received:", offer);
-      // Append offer to selected request in state
       const newOfferObj: Offer = {
         id: offer.offerId,
         price: offer.price,
@@ -318,10 +365,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
       setRequests((prev) =>
         prev.map((req) => {
-          if (req.id === selectedRequest.id) {
+          if (req.id === offer.jobId) {
             const updatedOffers = [...(req.offers || []), newOfferObj];
             const updatedReq = { ...req, offers: updatedOffers };
-            setSelectedRequest(updatedReq);
+            if (selectedRequest?.id === offer.jobId) {
+              setSelectedRequest(updatedReq);
+            }
             return updatedReq;
           }
           return req;
@@ -332,25 +381,29 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     // Provider job completion declaration (Step 6)
     socket.on("job_completed_by_provider", (data: any) => {
       console.log("[Dashboard WS] Job completed by provider:", data);
-      setProviderName(data.providerName);
-      setProviderDeclaredAmount(data.price);
-      if (data.providerId) {
-        setProviderId(data.providerId);
+      if (selectedRequest?.id === data.jobId) {
+        setProviderName(data.providerName);
+        setProviderDeclaredAmount(data.price);
+        if (data.providerId) {
+          setProviderId(data.providerId);
+        }
+        setCompletionState("pending_seeker");
       }
-      setCompletionState("pending_seeker");
     });
 
     // Finalized completion status (Step 6)
     socket.on("job_completion_finalized", (data: any) => {
       console.log("[Dashboard WS] Job completion finalized:", data);
-      setCompletionState(data.status);
-      
-      // Update selected request status locally
+      if (selectedRequest?.id === data.jobId) {
+        setCompletionState(data.status);
+      }
       setRequests((prev) =>
         prev.map((req) => {
-          if (req.id === selectedRequest.id) {
+          if (req.id === data.jobId) {
             const updatedReq = { ...req, status: (data.status === "completed" ? "completed" : req.status) as any };
-            setSelectedRequest(updatedReq);
+            if (selectedRequest?.id === data.jobId) {
+              setSelectedRequest(updatedReq);
+            }
             return updatedReq;
           }
           return req;
@@ -358,10 +411,36 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       );
     });
 
+    socket.on("new_message", (msg: any) => {
+      console.log("[Dashboard WS] New message received:", msg);
+      setChatMessages((prev) => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        if (activeChat && msg.jobId === activeChat.jobId && msg.offerId === activeChat.offerId) {
+          return [...prev, {
+            id: msg.id,
+            job_id: msg.jobId,
+            offer_id: msg.offerId,
+            sender_id: msg.senderId,
+            receiver_id: msg.receiverId,
+            content: msg.content,
+            content_type: msg.contentType,
+            is_read: msg.isRead,
+            created_at: msg.createdAt
+          }];
+        }
+        return prev;
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
-  }, [selectedRequest?.id]);
+  }, [requests.map(r => r.id).join(","), selectedRequest?.id, activeChat?.jobId]);
+
+  useEffect(() => {
+    if (!activeChat) return;
+    fetchChatMessages(activeChat.jobId, activeChat.offerId);
+  }, [activeChat?.jobId, activeChat?.offerId]);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -1753,100 +1832,409 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                 )}
 
                 {/* VIEW 3: TEKLİF KARŞILAŞTIRMA VIEW */}
-                {activeTab === "karsilastirma" && (
-                  <div className="space-y-6 animate-scale-up text-left">
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-2xl">Teklif Karşılaştırma Analizi</h3>
-                      <p className="text-xs text-slate-400 font-semibold mt-1 font-sans">Gelen teklifleri fiyat, usta puanı ve teslimat sürelerine göre yan yana karşılaştırın.</p>
-                    </div>
+                {activeTab === "karsilastirma" && (() => {
+                  const requestsWithOffers = requests.filter(r => r.offers && r.offers.length > 0 && (r.status === 'pending' || r.status === 'distributed'));
+                  const activeCompareJob = requestsWithOffers.find(r => r.id === compareJobId) || requestsWithOffers[0];
+                  
+                  let lowestPriceOffer = null;
+                  let highestRatingOffer = null;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-                      <div className="bg-white border border-[#c8f252] rounded-[24px] p-6 shadow-sm flex flex-col justify-between gap-5">
-                        <div className="space-y-3">
-                          <span className="bg-[#c8f252]/20 text-[#4c630a] text-[9px] font-black px-2 py-0.5 rounded uppercase font-mono tracking-wider">EN DÜŞÜK FİYAT</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">🧑‍🔧</span>
-                            <div>
-                              <h4 className="font-black text-sm text-slate-900 leading-none">Usta El Yapı</h4>
-                              <span className="text-[10px] text-slate-400 font-bold block mt-1">Ev & İşyeri Tadilatı</span>
-                            </div>
-                          </div>
-                          <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
-                            <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-extrabold text-slate-900">₺16.200</span></div>
-                            <div className="flex justify-between"><span>Değerlendirme:</span><span className="font-extrabold text-slate-900">⭐ 4.7 (89 Yorum)</span></div>
-                            <div className="flex justify-between"><span>Teslim Süresi:</span><span className="font-extrabold text-slate-900">3 İş Günü</span></div>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => alert("Usta El Yapı teklifi simülasyon kabulü yapıldı!")}
-                          className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 text-center"
-                        >
-                          Hızlı Kabul Et
-                        </button>
+                  if (activeCompareJob && activeCompareJob.offers?.length > 0) {
+                    const sortedByPrice = [...activeCompareJob.offers].sort((a, b) => Number(a.price) - Number(b.price));
+                    lowestPriceOffer = sortedByPrice[0];
+
+                    const sortedByRating = [...activeCompareJob.offers].sort((a, b) => {
+                      const rA = Number((a.provider as any).avg_rating || 0);
+                      const rB = Number((b.provider as any).avg_rating || 0);
+                      return rB - rA;
+                    });
+                    highestRatingOffer = sortedByRating[0];
+                  }
+
+                  return (
+                    <div className="space-y-6 animate-scale-up text-left">
+                      <div>
+                        <h3 className="font-extrabold text-slate-900 text-2xl">Teklif Karşılaştırma Analizi</h3>
+                        <p className="text-xs text-slate-400 font-semibold mt-1 font-sans">Gelen teklifleri fiyat, usta puanı ve teslimat sürelerine göre yan yana karşılaştırın.</p>
                       </div>
 
-                      <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-between gap-5">
-                        <div className="space-y-3">
-                          <span className="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase font-mono tracking-wider">EN YÜKSEK PUAN</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">🧑‍🔧</span>
-                            <div>
-                              <h4 className="font-black text-sm text-slate-900 leading-none">Kaya Dekorasyon</h4>
-                              <span className="text-[10px] text-slate-400 font-bold block mt-1">Dekorasyon & Mimari</span>
-                            </div>
-                          </div>
-                          <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
-                            <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-extrabold text-slate-900">₺18.500</span></div>
-                            <div className="flex justify-between"><span>Değerlendirme:</span><span className="font-extrabold text-slate-900">⭐ 4.9 (156 Yorum)</span></div>
-                            <div className="flex justify-between"><span>Teslim Süresi:</span><span className="font-extrabold text-slate-900">5 İş Günü</span></div>
-                          </div>
+                      {requestsWithOffers.length === 0 ? (
+                        <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
+                          <div className="text-4xl mb-4 font-sans">📊</div>
+                          <h4 className="font-extrabold text-slate-800 text-sm mb-1.5 font-sans">Karşılaştırılacak Teklif Bulunmuyor</h4>
+                          <p className="text-slate-400 text-xs font-semibold leading-relaxed">
+                            Teklif aldığınız aktif bir hizmet talebiniz olduğunda teklifleri burada yan yana analiz edebilirsiniz.
+                          </p>
                         </div>
-                        <button 
-                          onClick={() => alert("Kaya Dekorasyon teklifi simülasyon kabulü yapıldı!")}
-                          className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 text-center"
-                        >
-                          Hızlı Kabul Et
-                        </button>
-                      </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {/* Request Selector */}
+                          <div className="flex flex-col gap-2 max-w-md">
+                            <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest font-mono">Hizmet Talebi Seçin</label>
+                            <select
+                              value={compareJobId || (activeCompareJob ? activeCompareJob.id : "")}
+                              onChange={(e) => setCompareJobId(e.target.value)}
+                              className="bg-white border border-slate-250 text-slate-800 rounded-xl p-3.5 outline-none text-xs font-bold transition-all shadow-sm focus:border-[#c8f252]"
+                            >
+                              {requestsWithOffers.map((r) => (
+                                <option key={r.id} value={r.id}>
+                                  {r.category?.name} (#{r.id.substring(0, 5).toUpperCase()}) - {r.offers?.length} Teklif
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {activeCompareJob && activeCompareJob.offers && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+                              {/* Best Price Card */}
+                              {lowestPriceOffer && (
+                                <div className="bg-white border-2 border-emerald-450 rounded-[24px] p-6 shadow-sm flex flex-col justify-between gap-5 relative overflow-hidden">
+                                  <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[8px] font-black tracking-widest px-3 py-1.5 uppercase rounded-bl-xl font-mono">
+                                    EN UYGUN FİYAT
+                                  </div>
+                                  <div className="space-y-3">
+                                    <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded uppercase font-mono tracking-wider">
+                                      EKONOMİK SEÇENEK
+                                    </span>
+                                    <div className="flex items-center gap-2.5 pt-2">
+                                      <span className="text-2xl">🧑‍🔧</span>
+                                      <div>
+                                        <h4 className="font-black text-sm text-slate-900 leading-none">{(lowestPriceOffer.provider?.user as any)?.name || "Usta"}</h4>
+                                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Usta Ortak</span>
+                                      </div>
+                                    </div>
+                                    <p className="text-xs text-slate-650 font-semibold italic border-t border-slate-50 pt-2.5 leading-relaxed">
+                                      &ldquo;{lowestPriceOffer.description}&rdquo;
+                                    </p>
+                                    <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
+                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{lowestPriceOffer.price.toLocaleString("tr-TR")}</span></div>
+                                      <div className="flex justify-between"><span>Ortalama Puan:</span><span className="font-extrabold text-slate-900">⭐ {Number((lowestPriceOffer.provider as any)?.avg_rating || 4.5).toFixed(1)}</span></div>
+                                      <div className="flex justify-between"><span>Talep Kodu:</span><span className="font-mono text-slate-900 font-bold">#TR-{activeCompareJob.id.substring(0, 5).toUpperCase()}</span></div>
+                                    </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => handleAcceptOffer(lowestPriceOffer)}
+                                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black py-3 rounded-xl cursor-pointer transition-all active:scale-95 text-center shadow-sm"
+                                  >
+                                    Teklifi Kabul Et
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Best Rating Card */}
+                              {highestRatingOffer && (
+                                <div className="bg-white border-2 border-amber-450 rounded-[24px] p-6 shadow-sm flex flex-col justify-between gap-5 relative overflow-hidden">
+                                  <div className="absolute top-0 right-0 bg-amber-500 text-white text-[8px] font-black tracking-widest px-3 py-1.5 uppercase rounded-bl-xl font-mono">
+                                    EN YÜKSEK PUAN
+                                  </div>
+                                  <div className="space-y-3">
+                                    <span className="bg-amber-50 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded uppercase font-mono tracking-wider">
+                                      KALİTE SEÇENEĞİ
+                                    </span>
+                                    <div className="flex items-center gap-2.5 pt-2">
+                                      <span className="text-2xl">🧑‍🔧</span>
+                                      <div>
+                                        <h4 className="font-black text-sm text-slate-900 leading-none">{(highestRatingOffer.provider?.user as any)?.name || "Usta"}</h4>
+                                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Usta Ortak</span>
+                                      </div>
+                                    </div>
+                                    <p className="text-xs text-slate-650 font-semibold italic border-t border-slate-50 pt-2.5 leading-relaxed">
+                                      &ldquo;{highestRatingOffer.description}&rdquo;
+                                    </p>
+                                    <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
+                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{highestRatingOffer.price.toLocaleString("tr-TR")}</span></div>
+                                      <div className="flex justify-between"><span>Ortalama Puan:</span><span className="font-black text-[#4c630a] text-sm">⭐ {Number((highestRatingOffer.provider as any)?.avg_rating || 4.5).toFixed(1)}</span></div>
+                                      <div className="flex justify-between"><span>Talep Kodu:</span><span className="font-mono text-slate-900 font-bold">#TR-{activeCompareJob.id.substring(0, 5).toUpperCase()}</span></div>
+                                    </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => handleAcceptOffer(highestRatingOffer)}
+                                    className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-black py-3 rounded-xl cursor-pointer transition-all active:scale-95 text-center shadow-sm"
+                                  >
+                                    Teklifi Kabul Et
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* VIEW 4: MESAJLAŞMA VIEW */}
-                {activeTab === "mesajlar" && (
-                  <div className="space-y-6 animate-scale-up text-left">
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-2xl">Sohbet & İletişim Kutusu</h3>
-                      <p className="text-xs text-slate-400 font-semibold mt-1">Anlaştığınız esnaflarla gerçekleştirdiğiniz mesaj geçmişini yönetin.</p>
-                    </div>
+                {activeTab === "mesajlar" && (() => {
+                  const acceptedRequests = requests.filter(r => r.offers?.some(o => o.status === 'accepted'));
 
-                    <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
-                      <div className="text-4xl mb-4">💬</div>
-                      <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Henüz Aktif Sohbet Yok</h4>
-                      <p className="text-slate-400 text-xs font-semibold leading-relaxed">
-                        Bir esnafın teklifini kabul ettiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
-                      </p>
+                  return (
+                    <div className="space-y-6 animate-scale-up text-left">
+                      <div>
+                        <h3 className="font-extrabold text-slate-900 text-2xl">Sohbet & İletişim Kutusu</h3>
+                        <p className="text-xs text-slate-400 font-semibold mt-1">Anlaştığınız esnaflarla gerçekleştirdiğiniz mesaj geçmişini yönetin.</p>
+                      </div>
+
+                      {acceptedRequests.length === 0 ? (
+                        <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
+                          <div className="text-4xl mb-4">💬</div>
+                          <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Henüz Aktif Sohbet Yok</h4>
+                          <p className="text-slate-400 text-xs font-semibold leading-relaxed">
+                            Bir esnafın teklifini kabul ettiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch min-h-[500px]">
+                          {/* Left: Chats Sidebar */}
+                          <div className="lg:col-span-4 bg-white border border-slate-100 rounded-[24px] p-4 flex flex-col gap-3.5 max-h-[600px] overflow-y-auto">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono border-b border-slate-50 pb-2 mb-1">Aktif Görüşmeler</h4>
+                            {acceptedRequests.map((req) => {
+                              const accOffer = req.offers.find(o => o.status === 'accepted');
+                              if (!accOffer) return null;
+                              const isActive = activeChat?.offerId === accOffer.id;
+                              return (
+                                <button
+                                  key={accOffer.id}
+                                  onClick={() => setActiveChat({
+                                    jobId: req.id,
+                                    offerId: accOffer.id,
+                                    providerName: accOffer.provider.user.name,
+                                    providerId: accOffer.provider.id
+                                  })}
+                                  className={`w-full p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                                    isActive 
+                                      ? "bg-[#c8f252]/10 border-[#c8f252]/80 shadow-sm" 
+                                      : "bg-slate-50 border-slate-100 hover:bg-slate-100/60"
+                                  }`}
+                                >
+                                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-black shrink-0 text-sm">
+                                    {accOffer.provider.user.name.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="overflow-hidden flex-1">
+                                    <span className="block text-xs font-extrabold text-slate-850 truncate">{accOffer.provider.user.name}</span>
+                                    <span className="block text-[10px] text-slate-400 font-bold truncate mt-0.5">{req.category?.name}</span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Right: Message Window */}
+                          <div className="lg:col-span-8 bg-white border border-slate-100 rounded-[24px] flex flex-col justify-between max-h-[600px] overflow-hidden shadow-sm relative">
+                            {activeChat ? (
+                              <>
+                                {/* Chat Header */}
+                                <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex justify-between items-center shrink-0">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-black text-xs">
+                                      {activeChat.providerName.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div className="text-left">
+                                      <span className="block text-xs font-black text-slate-850 leading-none">{activeChat.providerName}</span>
+                                      <span className="text-[9px] text-[#88b000] font-black uppercase tracking-wider block mt-1">Sohbet Odası Aktif</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => setActiveChat(null)}
+                                    className="text-slate-400 hover:text-slate-800 text-xs font-bold px-3 py-1.5 hover:bg-slate-100 rounded-lg cursor-pointer"
+                                  >
+                                    Kapat
+                                  </button>
+                                </div>
+
+                                {/* Messages list */}
+                                <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/35 scrollbar-none min-h-[300px]">
+                                  {loadingChatMessages ? (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <div className="w-6 h-6 rounded-full border-2 border-slate-200 border-t-[#c8f252] animate-spin"></div>
+                                    </div>
+                                  ) : chatMessages.length === 0 ? (
+                                    <p className="text-center text-slate-400 text-xs py-12 font-medium">Ustanıza bir mesaj atarak başlayın!</p>
+                                  ) : (
+                                    chatMessages.map((msg) => {
+                                      const isMe = msg.sender_id === user?.id;
+                                      return (
+                                        <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                          <div className={`max-w-[70%] p-3.5 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
+                                            isMe 
+                                              ? 'bg-slate-900 text-white rounded-tr-none' 
+                                              : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                                          }`}>
+                                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                                            <span className="block text-[8px] mt-1.5 text-right font-mono text-slate-400">
+                                              {new Date(msg.created_at).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                  )}
+                                </div>
+
+                                {/* Send Input bar */}
+                                <form onSubmit={handleSendMessage} className="border-t border-slate-100 p-3 flex gap-2 shrink-0 bg-white">
+                                  <input
+                                    type="text"
+                                    value={newMessageText}
+                                    onChange={(e) => setNewMessageText(e.target.value)}
+                                    placeholder="Mesajınızı buraya yazın..."
+                                    className="flex-1 bg-slate-50 border border-slate-200 focus:border-[#c8f252] focus:ring-1 focus:ring-[#c8f252] outline-none rounded-xl px-4 py-3 text-xs font-semibold text-slate-800"
+                                  />
+                                  <button
+                                    type="submit"
+                                    disabled={!newMessageText.trim()}
+                                    className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-3 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    Gönder
+                                  </button>
+                                </form>
+                              </>
+                            ) : (
+                              <div className="m-auto text-center p-8">
+                                <span className="text-3xl">💬</span>
+                                <h4 className="text-xs font-black text-slate-800 mt-3 font-sans">Sohbet Başlatılmadı</h4>
+                                <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                                  Soldaki listeden görüşmek istediğiniz esnafı seçerek anlık sohbete başlayabilirsiniz.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* VIEW 5: İŞ TEYİT & PUANLAMA VIEW */}
-                {activeTab === "puanlama" && (
-                  <div className="space-y-6 animate-scale-up text-left">
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
-                      <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
-                    </div>
+                {activeTab === "puanlama" && (() => {
+                  const pendingCompletionsRequests = requests.filter(r => r.job_completions?.some(jc => jc.status === "pending_seeker"));
+                  const completedNoReviewRequests = requests.filter(r => r.status === "completed" && (!r.reviews || r.reviews.length === 0));
 
-                    <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
-                      <div className="text-4xl mb-4">⭐</div>
-                      <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Teyit Bekleyen İşiniz Yok</h4>
-                      <p className="text-slate-400 text-xs font-semibold leading-relaxed">
-                        Ustanız işi bitirip onay talebi yolladığında teyit ekranı otomatik belirecektir. Dilerseniz aktif teklifler listesinden işinizin durumunu kontrol edebilirsiniz.
-                      </p>
+                  if (pendingCompletionsRequests.length === 0 && completedNoReviewRequests.length === 0) {
+                    return (
+                      <div className="space-y-6 animate-scale-up text-left">
+                        <div>
+                          <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
+                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                        </div>
+
+                        <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
+                          <div className="text-4xl mb-4">⭐</div>
+                          <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Teyit Bekleyen İşiniz Yok</h4>
+                          <p className="text-slate-400 text-xs font-semibold leading-relaxed">
+                            Ustanız işi bitirip onay talebi yolladığında teyit ekranı otomatik belirecektir. Dilerseniz aktif teklifler listesinden işinizin durumunu kontrol edebilirsiniz.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-6 animate-scale-up text-left">
+                      <div>
+                        <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
+                        <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                      </div>
+
+                      <div className="space-y-6 max-w-3xl">
+                        {/* Pending completions */}
+                        {pendingCompletionsRequests.map((req) => {
+                          const jc = req.job_completions?.find(c => c.status === "pending_seeker");
+                          if (!jc) return null;
+                          return (
+                            <div key={req.id} className="bg-white border-2 border-[#c8f252] rounded-[24px] p-6 shadow-sm space-y-4">
+                              <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Teyit Bekliyor</h4>
+                              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                                Ustanız bu işin tamamlandığını beyan etti. Lütfen beyan edilen tutarı kontrol ederek teyit ediniz.
+                              </p>
+                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-bold space-y-2 text-slate-700">
+                                <div className="flex justify-between"><span>Esnaf Adı:</span><span className="text-slate-900">{jc.provider?.user?.name || "Usta"}</span></div>
+                                <div className="flex justify-between"><span>Beyan Edilen Ücret:</span><span className="text-slate-900">₺{Number(jc.provider_declared_amount || 0).toLocaleString("tr-TR")}</span></div>
+                              </div>
+                              <div className="flex gap-3 pt-2">
+                                <button
+                                  onClick={async () => {
+                                    setSelectedRequest(req);
+                                    setProviderDeclaredAmount(Number(jc.provider_declared_amount || 0));
+                                    await handleConfirmCompletion(true);
+                                  }}
+                                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-6 rounded-xl cursor-pointer transition-all active:scale-95"
+                                >
+                                  Teyit Et ve Onayla
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedRequest(req);
+                                    setProviderDeclaredAmount(Number(jc.provider_declared_amount || 0));
+                                    setShowDiscrepancyForm(true);
+                                  }}
+                                  className="bg-white hover:bg-red-50 text-red-500 border border-slate-200 hover:border-red-200 text-xs font-bold py-2.5 px-6 rounded-xl cursor-pointer transition-all active:scale-95"
+                                >
+                                  Uyuşmazlık Bildir
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Pending Reviews */}
+                        {completedNoReviewRequests.map((req) => {
+                          const completedJc = req.job_completions?.[0];
+                          const providerName = completedJc?.provider?.user?.name || "Esnaf";
+                          const isCurrentReviewReq = selectedRequest?.id === req.id;
+                          
+                          return (
+                            <div key={req.id} className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm space-y-4">
+                              <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Değerlendirme Yapın</h4>
+                              <p className="text-xs text-slate-650 font-semibold leading-relaxed">
+                                Tebrikler! İş başarıyla tamamlandı. Ustanız <strong>{providerName}</strong> için değerlendirme yazarak diğer kullanıcılara yardımcı olabilirsiniz.
+                              </p>
+
+                              {/* Star Rating selector */}
+                              <div className="space-y-3 pt-2">
+                                <div className="flex items-center gap-1.5">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      onClick={() => {
+                                        setSelectedRequest(req);
+                                        setSelectedRating(star);
+                                      }}
+                                      className={`text-2xl cursor-pointer transition-all ${
+                                        isCurrentReviewReq && selectedRating >= star
+                                          ? "text-amber-400 scale-110" 
+                                          : "text-slate-200 hover:text-amber-300"
+                                      }`}
+                                    >
+                                      ★
+                                    </button>
+                                  ))}
+                                </div>
+                                
+                                {selectedRating > 0 && isCurrentReviewReq && (
+                                  <div className="space-y-4 pt-2 animate-scale-up">
+                                    <textarea
+                                      value={commentText}
+                                      onChange={(e) => setCommentText(e.target.value)}
+                                      placeholder="Yorumunuzu buraya yazın (isteğe bağlı)..."
+                                      rows={3}
+                                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] outline-none rounded-xl p-3 text-xs font-semibold text-slate-800"
+                                    />
+                                    <button
+                                      onClick={handleSubmitReview}
+                                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-black py-2.5 px-6 rounded-xl cursor-pointer transition-all active:scale-95"
+                                    >
+                                      Değerlendirmeyi Gönder
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* VIEW 6: PROFILE & SETTINGS */}
                 {activeTab === "profile" && (
