@@ -127,11 +127,12 @@ export class GeminiService {
 
     const maxRetries = 3;
     let lastError: any = null;
+    let currentModel = modelToUse;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await this.ai.models.generateContent({
-          model: modelToUse,
+          model: currentModel,
           contents,
           config: {
             systemInstruction,
@@ -158,9 +159,17 @@ export class GeminiService {
           errMsg.includes('quota');
 
         if (isTransient && attempt < maxRetries) {
-          const delay = attempt * 1000; // 1s, 2s backoff
-          console.warn(`[GeminiService] Transient error detected (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          if (currentModel === 'gemini-3.5-flash') {
+            console.warn(`[GeminiService] Model gemini-3.5-flash is experiencing high demand (${status || errMsg}). Falling back to gemini-2.5-flash immediately for attempt ${attempt + 1}.`);
+            currentModel = 'gemini-2.5-flash';
+          } else if (currentModel === 'gemini-3.5-pro') {
+            console.warn(`[GeminiService] Model gemini-3.5-pro is experiencing high demand (${status || errMsg}). Falling back to gemini-2.5-pro immediately for attempt ${attempt + 1}.`);
+            currentModel = 'gemini-2.5-pro';
+          } else {
+            const delay = attempt * 1000; // 1s, 2s backoff
+            console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          }
           continue;
         }
 
