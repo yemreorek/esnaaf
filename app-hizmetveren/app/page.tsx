@@ -194,6 +194,35 @@ export default function ProviderDashboard() {
   const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik'>('firsatlar');
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
+  const groupedWonJobs = React.useMemo(() => {
+    const groups: { [year: number]: { [month: number]: any[] } } = {};
+    wonJobs.forEach(wj => {
+      const date = new Date(wj.accepted_at || wj.created_at || new Date());
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      if (!groups[year]) {
+        groups[year] = {};
+      }
+      if (!groups[year][month]) {
+        groups[year][month] = [];
+      }
+      groups[year][month].push(wj);
+    });
+    Object.keys(groups).forEach(y => {
+      const year = Number(y);
+      Object.keys(groups[year]).forEach(m => {
+        const month = Number(m);
+        groups[year][month].sort((a, b) => {
+          const dateA = new Date(a.accepted_at || a.created_at || 0);
+          const dateB = new Date(b.accepted_at || b.created_at || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+      });
+    });
+    return groups;
+  }, [wonJobs]);
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
 
@@ -1553,64 +1582,134 @@ export default function ProviderDashboard() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
-                {wonJobs.length > 0 ? (
-                  wonJobs.map((wj) => (
-                    <div key={wj.id} className="bg-white p-6 rounded-[24px] border border-slate-150 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start gap-4">
-                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                            {wj.job.categoryName}
-                          </span>
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                            Anlaşma Sağlandı
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-2 text-slate-700 font-semibold border-t border-slate-50 pt-3">
-                          <div><strong>Müşteri:</strong> {wj.job.name}</div>
-                          <div className="flex items-center gap-1.5">
-                            <strong>Telefon:</strong> 
-                            <span className="font-mono text-slate-900 font-black bg-slate-50 px-2 py-0.5 border border-slate-100 rounded">{wj.job.phone}</span>
-                          </div>
-                          <div><strong>Konum:</strong> {wj.job.district}</div>
-                          <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed">
-                            &ldquo;{wj.job.details}&rdquo;
-                          </p>
-                        </div>
-                      </div>
-                      <div className="border-t border-slate-100 pt-3.5 flex items-center justify-between gap-3">
-                        <div className="text-left">
-                          <span className="text-[9px] block text-slate-400 font-bold uppercase tracking-wider">Anlaşılan Fiyat</span>
-                          <span className="text-slate-900 font-black text-base">₺{wj.price.toLocaleString("tr-TR")}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setActiveChat({ jobId: wj.job.id, offerId: wj.offerId, customerName: wj.job.name })}
-                            className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                          >
-                            Mesaj Gönder
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompletingJob(wj);
-                              setDeclarePrice(String(wj.price));
-                            }}
-                            className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                          >
-                            İşi Tamamla
-                          </button>
-                        </div>
-                      </div>
+              {(() => {
+                const yearsList = Object.keys(groupedWonJobs).map(Number).sort((a, b) => b - a);
+                const activeYear = yearsList.includes(selectedYear) ? selectedYear : (yearsList[0] || new Date().getFullYear());
+                const monthsInActiveYear = groupedWonJobs[activeYear] || {};
+                const sortedMonths = Object.keys(monthsInActiveYear).map(Number).sort((a, b) => b - a);
+                const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+                if (wonJobs.length === 0) {
+                  return (
+                    <div className="bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                      <span className="text-3xl">🤝</span>
+                      <h3 className="font-extrabold text-slate-950 text-base mt-3">Kazanılan İş Yok</h3>
+                      <p className="text-slate-400 text-xs mt-1">Tekliflerinizi gönderdikten sonra müşteriler onayladığında bu sekmede listelenecektir.</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
-                    <span className="text-3xl">🤝</span>
-                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Kazanılan İş Yok</h3>
-                    <p className="text-slate-400 text-xs mt-1">Tekliflerinizi gönderdikten sonra müşteriler onayladığında bu sekmede listelenecektir.</p>
+                  );
+                }
+
+                return (
+                  <div className="space-y-8 w-full">
+                    {/* Yıl Seçici Sekmeleri */}
+                    {yearsList.length > 1 && (
+                      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4 mb-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2 font-mono">Yıl Filtresi:</span>
+                        {yearsList.map((y) => (
+                          <button
+                            key={y}
+                            onClick={() => setSelectedYear(y)}
+                            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95 ${
+                              activeYear === y
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200/85'
+                            }`}
+                          >
+                            {y} Yılı
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Aylara Göre Gruplanmış Liste */}
+                    <div className="space-y-10">
+                      {sortedMonths.map((m) => {
+                        const monthName = MONTH_NAMES[m] || `${m + 1}. Ay`;
+                        const jobsInMonth = monthsInActiveYear[m] || [];
+                        
+                        return (
+                          <div key={m} className="space-y-4">
+                            {/* Ay Başlığı */}
+                            <div className="flex items-center gap-3 border-b border-slate-100 pb-2.5">
+                              <span className="bg-slate-900 text-[#c8f252] text-[10px] font-black px-3 py-1 rounded-lg uppercase font-mono tracking-wider shadow-sm">
+                                {monthName} {activeYear}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-bold font-sans">
+                                ({jobsInMonth.length} Kazanılan İş)
+                              </span>
+                              <div className="h-[1px] bg-slate-100 flex-1"></div>
+                            </div>
+
+                            {/* İş Kartları Izgarası */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                              {jobsInMonth.map((wj) => (
+                                <div key={wj.id} className="bg-white p-6 rounded-[24px] border border-slate-150 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 animate-scale-up">
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between items-start gap-4">
+                                      <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                                        {wj.job.categoryName}
+                                      </span>
+                                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                                        Anlaşma Sağlandı
+                                      </span>
+                                    </div>
+                                    <div className="text-xs space-y-2 text-slate-700 font-semibold border-t border-slate-50 pt-3">
+                                      <div><strong>Müşteri:</strong> {wj.job.name}</div>
+                                      <div className="flex items-center gap-1.5">
+                                        <strong>Telefon:</strong> 
+                                        <span className="font-mono text-slate-900 font-black bg-slate-50 px-2 py-0.5 border border-slate-100 rounded">{wj.job.phone}</span>
+                                      </div>
+                                      <div><strong>Konum:</strong> {wj.job.district}</div>
+                                      <div>
+                                        <strong>Kabul Tarihi:</strong>{' '}
+                                        <span className="text-slate-800 font-bold">
+                                          {new Date(wj.accepted_at).toLocaleDateString("tr-TR", { 
+                                            day: 'numeric', 
+                                            month: 'long', 
+                                            year: 'numeric',
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                          })}
+                                        </span>
+                                      </div>
+                                      <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed">
+                                        &ldquo;{wj.job.details}&rdquo;
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="border-t border-slate-100 pt-3.5 flex items-center justify-between gap-3">
+                                    <div className="text-left">
+                                      <span className="text-[9px] block text-slate-400 font-bold uppercase tracking-wider">Anlaşılan Fiyat</span>
+                                      <span className="text-slate-900 font-black text-base">₺{wj.price.toLocaleString("tr-TR")}</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => setActiveChat({ jobId: wj.job.id, offerId: wj.offerId, customerName: wj.job.name })}
+                                        className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                      >
+                                        Mesaj Gönder
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setCompletingJob(wj);
+                                          setDeclarePrice(String(wj.price));
+                                        }}
+                                        className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                      >
+                                        İşi Tamamla
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
           )}
 
