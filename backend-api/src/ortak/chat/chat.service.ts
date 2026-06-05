@@ -329,7 +329,7 @@ export class ChatService {
             state.step = 'confirm_form';
             await this.redis.set(newSessionKey, JSON.stringify(state), 'EX', 86400);
 
-            let summaryMessage = `Harika! Telefon numaranız başarıyla doğrulandı ve kaydınız tamamlandı. Lütfen aşağıdaki panelden talep bilgilerinizi kontrol edip onaylayın:`;
+            let summaryMessage = `Telefon numaranız başarıyla doğrulandı ve kaydınız tamamlandı. Lütfen aşağıdaki panelden talep bilgilerinizi kontrol edip onaylayın:`;
 
             responseMessage = summaryMessage;
             state.messages.push({ role: 'assistant', content: responseMessage });
@@ -666,7 +666,7 @@ Müşterinin talebine göre 'detectCategory' fonksiyonunu çağırırken YALNIZC
    - Beşiktaş, Kadıköy, Çankaya vb. yerler zaten kendi başlarına birer **İLÇEDİR**. Müşteri konumu Beşiktaş veya Kadıköy olarak belirttiğinde, kesinlikle "Beşiktaş'ın hangi ilçesinde oturuyorsunuz?" veya "Kadıköy ilçesinin hangi ilçesinde..." gibi yanlış ve hatalı ifadeler kullanma!
    - Eğer müşterinin ilçesi zaten seçilmişse (Örn: Beşiktaş) ve ek detay sormak istersen, bunu "Beşiktaş'ın hangi semtinde/mahallesinde oturuyorsunuz?" veya "Beşiktaş'ta nerede oturuyorsunuz?" şeklinde doğru coğrafi terimlerle sor.
 
-Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm odaklı olsun.
+Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. Giriş veya geçiş cümlelerinde "harika", "çok iyi", "süper" gibi övgü veya gereksiz ünlem kelimeleri kullanma. Doğrudan müşterinin problemini çözmeye yönelik sorular sor ve talebi hızlıca tamamlamaya odaklan.
 `;
 
         const start = Date.now();
@@ -704,10 +704,10 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
 
             const nextQ = this.getNextQuestion(state);
             if (nextQ) {
-              responseMessage = `Harika! ${this.getCategoryName(categorySlug)} talebiniz için yardımcı olayım. \n\n${nextQ.question}`;
+              responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
             } else {
               state.step = 'ask_name';
-              responseMessage = 'Harika! Talebinizle ilgili tüm detayları başarıyla kaydettim! Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
+              responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
             }
           }
           else if (call.name === 'sendOTP') {
@@ -785,10 +785,10 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
           
           const nextQ = this.getNextQuestion(state);
           if (nextQ) {
-            responseMessage = `Harika! ${detection.categoryName} talebiniz için yardımcı olayım. \n\n${nextQ.question}`;
+            responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
           } else {
             state.step = 'ask_name';
-            responseMessage = 'Harika! Talebinizle ilgili tüm detayları başarıyla kaydettim! Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
+            responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
           }
         } else {
           state.step = 'category_detection';
@@ -901,7 +901,7 @@ Tamamen Türkçe konuş. Konuşma tarzın samimi, kısa, enerjik ve çözüm oda
           state.step = 'confirm_form';
           await this.redis.set(newSessionKey, JSON.stringify(state), 'EX', 86400); // 24h
 
-          let summaryMessage = `Harika! Telefon numaranız başarıyla doğrulandı ve kaydınız tamamlandı. Lütfen aşağıdaki panelden talep bilgilerinizi kontrol edip onaylayın:`;
+          let summaryMessage = `Telefon numaranız başarıyla doğrulandı ve kaydınız tamamlandı. Lütfen aşağıdaki panelden talep bilgilerinizi kontrol edip onaylayın:`;
 
           responseMessage = summaryMessage;
           
