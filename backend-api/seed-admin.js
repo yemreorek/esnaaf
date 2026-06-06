@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const crypto = require('crypto');
 
@@ -40,24 +41,69 @@ function maskPhone(phone) {
 async function main() {
   console.log('--- SEEDING ADMIN & UNAPPROVED PROVIDERS ---');
 
-  // 1. Create/Verify Admin User
-  const adminPhone = '+905999999999';
-  const encryptedAdminPhone = encryptPhone(adminPhone);
-  const adminUser = await prisma.user.upsert({
-    where: { phone: encryptedAdminPhone },
-    update: { name: 'Süper Admin' },
-    create: {
-      phone: encryptedAdminPhone,
-      phone_masked: maskPhone(adminPhone),
-      name: 'Süper Admin',
+  // 1. Create/Verify Staff and Admin Users
+  const mockStaff = [
+    {
+      name: 'Mert Yılmaz',
+      phone: '+905999999999',
       email: 'admin@esnaaf.com',
-      role: 'admin',
-      kvkk_consent: true,
-      kvkk_consent_date: new Date(),
-      is_active: true,
+      staffRole: 'super_admin',
     },
-  });
-  console.log(`Admin User: ${adminUser.name} | Phone: ${adminPhone} (ID: ${adminUser.id})`);
+    {
+      name: 'Can Demir',
+      phone: '+905329990011',
+      email: 'can.demir@esnaaf.com',
+      staffRole: 'quality_staff',
+    },
+    {
+      name: 'Elif Kaya',
+      phone: '+905449992233',
+      email: 'elif.kaya@esnaaf.com',
+      staffRole: 'ops_staff',
+    },
+    {
+      name: 'Burak Yılmaz',
+      phone: '+905559994455',
+      email: 'burak.yilmaz@esnaaf.com',
+      staffRole: 'finance_staff',
+    },
+  ];
+
+  for (const item of mockStaff) {
+    const encryptedPhoneNum = encryptPhone(item.phone);
+    const user = await prisma.user.upsert({
+      where: { phone: encryptedPhoneNum },
+      update: { name: item.name, role: 'admin', email: item.email, is_active: true, deleted_at: null },
+      create: {
+        phone: encryptedPhoneNum,
+        phone_masked: maskPhone(item.phone),
+        name: item.name,
+        email: item.email,
+        role: 'admin',
+        kvkk_consent: true,
+        kvkk_consent_date: new Date(),
+        is_active: true,
+      },
+    });
+
+    const staff = await prisma.staff.upsert({
+      where: { email: item.email },
+      update: {
+        name: item.name,
+        phone: item.phone,
+        role: item.staffRole,
+        is_active: true,
+      },
+      create: {
+        name: item.name,
+        email: item.email,
+        phone: item.phone,
+        role: item.staffRole,
+        is_active: true,
+      },
+    });
+    console.log(`Seeded Staff Member: ${staff.name} | Role: ${staff.role} | Phone: ${item.phone} (User ID: ${user.id})`);
+  }
 
   // 2. Get Ev Temizliği Category
   const category = await prisma.category.findUnique({

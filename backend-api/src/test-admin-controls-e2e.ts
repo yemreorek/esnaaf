@@ -387,6 +387,24 @@ async function run() {
     throw new Error('Matching User record creation failed.');
   }
 
+  // --- TEST 6: Get Admin Profile & Permissions ---
+  console.log('\n--- TEST 6: Get Admin Profile & Permissions ---');
+  // 1. Kemal Super Admin Profile
+  const superAdminProfile = await adminService.getAdminProfile(superAdminEmail);
+  if (superAdminProfile && superAdminProfile.role === StaffRole.super_admin && superAdminProfile.permissions.dashboard === 'full') {
+    console.log('✅ Success: Super Admin profile and full permissions verified.');
+  } else {
+    throw new Error('Super Admin profile verification failed.');
+  }
+
+  // 2. Ayşe HR Profile
+  const hrProfile = await adminService.getAdminProfile(hrEmail);
+  if (hrProfile && hrProfile.role === StaffRole.hr_staff && hrProfile.permissions.staff === 'full' && hrProfile.permissions.payments === 'none') {
+    console.log('✅ Success: HR Staff profile and restricted permissions verified.');
+  } else {
+    throw new Error('HR Staff profile verification failed.');
+  }
+
   console.log('\n===========================================================');
   console.log('=== 🎉 ALL ADMIN CONTROLS E2E TESTS PASSED 🎉 ===');
   console.log('===========================================================');

@@ -212,7 +212,7 @@ export default function AdminPortal() {
   const [logMessages, setLogMessages] = useState<string[]>([]);
   
   // Simulated Logged-In User Profile and RBAC States
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string; email?: string; phone?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string; email?: string; phone?: string; permissions?: Record<string, string> } | null>(null);
   const [loginPhone, setLoginPhone] = useState<string>('+905999999999');
 
   // Data states
@@ -230,12 +230,47 @@ export default function AdminPortal() {
   const [auditLogsPage, setAuditLogsPage] = useState(1);
   const [totalAuditLogs, setTotalAuditLogs] = useState(defaultAuditLogs.length);
 
-  // Tab permissions checker based on user roles
+  // Tab permissions checker based on user roles and permissions from backend
   const isTabAllowed = (tab: string): boolean => {
     if (!currentUser) return false;
-    const role = currentUser.role;
-    if (role === 'admin') return true; // Super Admin sees everything
+    
+    // Super admin sees everything
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true;
 
+    // Check if user has permissions object loaded from backend
+    if (currentUser.permissions) {
+      const perms = currentUser.permissions;
+      
+      switch (tab) {
+        case 'dashboard':
+          return !!(perms.dashboard && perms.dashboard !== 'none');
+        case 'users':
+          return !!(perms.users && perms.users !== 'none');
+        case 'approvals':
+          return !!(perms.providers && perms.providers !== 'none');
+        case 'reviews':
+          return !!(perms.reviews && perms.reviews !== 'none');
+        case 'nps':
+          return !!(perms.reviews && perms.reviews !== 'none'); // NPS shares reviews/satisfaction permission
+        case 'calltasks':
+          return !!(perms.reviews && perms.reviews !== 'none'); // Call tasks also under reviews/satisfaction
+        case 'disputes':
+          return !!(perms.disputes && perms.disputes !== 'none');
+        case 'staff':
+          return !!(perms.staff && perms.staff !== 'none');
+        case 'campaigns':
+          return !!(perms.campaigns && perms.campaigns !== 'none');
+        case 'auditlogs':
+          return !!(perms.staff && perms.staff !== 'none'); // Audit logs under staff permission
+        case 'abtest':
+          return !!(perms.ab_test && perms.ab_test !== 'none');
+        default:
+          return false;
+      }
+    }
+
+    // Fallback static rules if permissions not loaded yet
+    const role = currentUser.role;
     switch (role) {
       case 'quality_staff':
         return ['calltasks', 'reviews', 'nps', 'dashboard'].includes(tab);
@@ -250,41 +285,76 @@ export default function AdminPortal() {
     }
   };
 
+  const loadUserProfile = async (accessToken: string) => {
+    try {
+      const res = await fetch('/api/admin/me', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCurrentUser({
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          email: data.email,
+          phone: data.phone,
+          permissions: data.permissions
+        });
+        addLog(`Profil ve yetkiler yüklendi. Rol: ${data.role}`);
+        return data;
+      } else {
+        throw new Error(data.message || 'Profil yüklenemedi.');
+      }
+    } catch (err: any) {
+      addLog(`Profil yükleme hatası: ${err.message}`);
+      return null;
+    }
+  };
+
   // Decode JWT and set current user info when token changes
   useEffect(() => {
-    if (token) {
-      const decoded = decodeJwt(token);
-      if (decoded) {
-        // Match with defaultStaffList or user records to find names
-        const matchingStaff = defaultStaffList.find(s => s.phone_decrypted === decoded.phone || s.phone_masked === decoded.phone);
-        const nameToUse = matchingStaff ? matchingStaff.name : (decoded.role === 'admin' ? 'Süper Admin' : 'Personel');
-        
-        setCurrentUser({
-          id: decoded.sub,
-          name: nameToUse,
-          role: decoded.role,
-          email: decoded.email || (matchingStaff ? matchingStaff.email : undefined),
-          phone: decoded.phone
-        });
+    const initUser = async () => {
+      if (token) {
+        const decoded = decodeJwt(token);
+        if (decoded) {
+          // First set a temp local match so UI doesn't flicker
+          const matchingStaff = defaultStaffList.find(s => s.phone_decrypted === decoded.phone || s.phone_masked === decoded.phone);
+          const nameToUse = matchingStaff ? matchingStaff.name : (decoded.role === 'admin' ? 'Süper Admin' : 'Personel');
+          const roleToUse = matchingStaff ? matchingStaff.role : decoded.role;
+          
+          setCurrentUser({
+            id: decoded.sub,
+            name: nameToUse,
+            role: roleToUse,
+            email: decoded.email || (matchingStaff ? matchingStaff.email : undefined),
+            phone: decoded.phone
+          });
 
-        addLog(`Giriş yapıldı. Rol: ${decoded.role} | Kullanıcı: ${nameToUse}`);
-        
-        // Auto routing active tab to allowed section based on role
-        if (decoded.role === 'quality_staff') {
-          setActiveTab('calltasks'); // Can Demir goes directly to call tasks!
-        } else if (decoded.role === 'finance_staff') {
-          setActiveTab('campaigns');
-        } else if (decoded.role === 'ops_staff') {
-          setActiveTab('approvals');
-        } else if (decoded.role === 'sales_staff') {
-          setActiveTab('dashboard');
-        } else {
-          setActiveTab('dashboard');
+          addLog(`İlk giriş yapıldı. Rol: ${roleToUse} | Kullanıcı: ${nameToUse}`);
+          
+          // Now fetch the real profile and permissions from backend
+          const profile = await loadUserProfile(token);
+          const activeRole = profile ? profile.role : roleToUse;
+
+          // Auto routing active tab to allowed section based on role
+          if (activeRole === 'quality_staff') {
+            setActiveTab('calltasks'); // Can Demir goes directly to call tasks!
+          } else if (activeRole === 'finance_staff') {
+            setActiveTab('campaigns');
+          } else if (activeRole === 'ops_staff') {
+            setActiveTab('approvals');
+          } else if (activeRole === 'sales_staff') {
+            setActiveTab('dashboard');
+          } else {
+            setActiveTab('dashboard');
+          }
         }
+      } else {
+        setCurrentUser(null);
       }
-    } else {
-      setCurrentUser(null);
-    }
+    };
+
+    initUser();
   }, [token]);
 
   // Expanded Modal / Action States
@@ -410,20 +480,71 @@ export default function AdminPortal() {
 
   // 2. Load/Refresh Admin Data
   const refreshAllData = async (accessToken: string) => {
-    await Promise.all([
-      loadStats(accessToken),
-      loadUsers(accessToken, 1),
-      loadApprovals(accessToken),
-      loadPendingReviews(accessToken),
-      loadRoleDashboardStats(accessToken, dashboardRole),
-      loadNpsData(accessToken),
-      loadAbTestConfig(accessToken),
-      loadDisputes(accessToken),
-      loadCallTasks(accessToken),
-      loadStaffList(accessToken),
-      loadCampaigns(accessToken),
-      loadAuditLogs(accessToken, 1)
-    ]);
+    let profile = null;
+    try {
+      const res = await fetch('/api/admin/me', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      if (res.ok) {
+        profile = await res.json();
+        setCurrentUser({
+          id: profile.id,
+          name: profile.name,
+          role: profile.role,
+          email: profile.email,
+          phone: profile.phone,
+          permissions: profile.permissions
+        });
+        addLog(`Yetkiler doğrulandı. Rol: ${profile.role}`);
+      }
+    } catch (e) {
+      addLog('Profil doğrulaması atlanıyor, yerel modda veri yükleniyor.');
+    }
+
+    const perms = profile?.permissions || {};
+    const isSuper = profile?.role === 'super_admin' || profile?.role === 'admin' || !profile;
+
+    const promises: Promise<any>[] = [];
+
+    if (isSuper || (perms.dashboard && perms.dashboard !== 'none')) {
+      promises.push(loadStats(accessToken));
+    }
+    if (isSuper || (perms.users && perms.users !== 'none')) {
+      promises.push(loadUsers(accessToken, 1));
+    }
+    if (isSuper || (perms.providers && perms.providers !== 'none')) {
+      promises.push(loadApprovals(accessToken));
+    }
+    if (isSuper || (perms.reviews && perms.reviews !== 'none')) {
+      promises.push(loadPendingReviews(accessToken));
+      promises.push(loadNpsData(accessToken));
+      promises.push(loadCallTasks(accessToken));
+    }
+    if (isSuper || (perms.disputes && perms.disputes !== 'none')) {
+      promises.push(loadDisputes(accessToken));
+    }
+    if (isSuper || (perms.staff && perms.staff !== 'none')) {
+      promises.push(loadStaffList(accessToken));
+      promises.push(loadAuditLogs(accessToken, 1));
+    }
+    if (isSuper || (perms.campaigns && perms.campaigns !== 'none')) {
+      promises.push(loadCampaigns(accessToken));
+    }
+    if (isSuper || (perms.ab_test && perms.ab_test !== 'none')) {
+      promises.push(loadAbTestConfig(accessToken));
+    }
+
+    // Role-specific metrics if allowed dashboard
+    if (profile && (isSuper || (perms.dashboard && perms.dashboard !== 'none'))) {
+      const roleName = profile.role;
+      if (['quality_staff', 'finance_staff', 'sales_staff', 'executive'].includes(roleName)) {
+        promises.push(loadRoleDashboardStats(accessToken, roleName));
+      }
+    } else if (!profile) {
+      promises.push(loadRoleDashboardStats(accessToken, dashboardRole));
+    }
+
+    await Promise.all(promises);
   };
 
   const loadNpsData = async (accessToken: string) => {
@@ -1084,15 +1205,17 @@ export default function AdminPortal() {
               <div className="text-right">
                 <p className="text-xs font-black text-slate-900">{currentUser?.name || 'Süper Admin'}</p>
                 <p className="text-[10px] text-slate-400 font-mono uppercase bg-slate-200/60 px-1.5 py-0.5 rounded text-slate-700 font-extrabold mt-0.5 inline-block">
-                  {currentUser?.role === 'quality_staff' 
-                    ? 'Kalite Sorumlusu' 
-                    : currentUser?.role === 'finance_staff' 
-                      ? 'Finans Personeli' 
-                      : currentUser?.role === 'ops_staff' 
-                        ? 'Operasyon Temsilcisi' 
-                        : currentUser?.role === 'sales_staff' 
-                          ? 'Satış Sorumlusu' 
-                          : 'Süper Admin'}
+                  {currentUser?.role === 'admin'
+                    ? 'Süper Admin'
+                    : currentUser?.role === 'quality_staff'
+                      ? 'Kalite Sorumlusu'
+                      : currentUser?.role === 'finance_staff'
+                        ? 'Finans Personeli'
+                        : currentUser?.role === 'ops_staff'
+                          ? 'Operasyon Temsilcisi'
+                          : currentUser?.role === 'sales_staff'
+                            ? 'Satış Sorumlusu'
+                            : 'Yetkisiz Rol'}
                 </p>
               </div>
               <button 

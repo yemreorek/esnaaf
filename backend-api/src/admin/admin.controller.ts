@@ -21,6 +21,16 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   /**
+   * Giriş yapan admin personelin profil ve yetki bilgilerini getirir
+   * GET /api/admin/me
+   */
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async getAdminProfile(@CurrentUser() user: any) {
+    return this.adminService.getAdminProfile(user.email);
+  }
+
+  /**
    * Admin paneli ana sayfa metrikleri
    * GET /api/admin/dashboard/stats
    */
