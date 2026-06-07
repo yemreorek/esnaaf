@@ -5,6 +5,7 @@ import { TekliflerMusteriController } from './teklifler-musteri.controller';
 import { TaleplerService } from './talepler.service';
 import { TaleplerProcessor } from './talepler.processor';
 import { ChatModule } from '../../ortak/chat/chat.module';
+import { BildirimModule } from '../../ortak/bildirimler/bildirim.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ChatModule } from '../../ortak/chat/chat.module';
       name: 'talepler-distribution',
     }),
     ChatModule,
+    BildirimModule,
   ],
   controllers: [TaleplerController, TekliflerMusteriController],
   providers: [TaleplerService, TaleplerProcessor],

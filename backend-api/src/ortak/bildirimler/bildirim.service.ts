@@ -1,20 +1,86 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import * as Bull from 'bull';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { BILDIRIM_SABLONLARI, formatMessage } from './bildirim-sablonlari';
 import { NpsRespondDto } from './dto/bildirim.dto';
 import { NotifChannel, NpsGroup, NotifStatus } from '@prisma/client';
+import * as admin from 'firebase-admin';
 
 @Injectable()
-export class BildirimService {
+export class BildirimService implements OnModuleInit {
   private readonly logger = new Logger(BildirimService.name);
+  private fcmApp: admin.app.App | null = null;
 
   constructor(
     private prisma: PrismaService,
     @InjectQueue('nps-survey') private npsSurveyQueue: Bull.Queue,
     @InjectQueue('dispute-alert') private disputeAlertQueue: Bull.Queue,
   ) {}
+
+  onModuleInit() {
+    this.initFirebase();
+  }
+
+  private initFirebase() {
+    const projectId = process.env.FCM_PROJECT_ID;
+    const clientEmail = process.env.FCM_CLIENT_EMAIL;
+    const privateKey = process.env.FCM_PRIVATE_KEY;
+
+    if (!projectId || !clientEmail || !privateKey) {
+      this.logger.log('Firebase FCM environment variables are missing. FCM will run in MOCK mode.');
+      return;
+    }
+
+    try {
+      if (admin.apps.length > 0) {
+        this.fcmApp = admin.apps[0];
+        this.logger.log('Firebase App already initialized. Reusing existing app.');
+        return;
+      }
+      
+      const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+
+      this.fcmApp = admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId,
+          clientEmail,
+          privateKey: formattedPrivateKey,
+        }),
+      });
+      this.logger.log('Firebase App initialized successfully.');
+    } catch (error) {
+      this.logger.error('Failed to initialize Firebase App:', error);
+    }
+  }
+
+  private async sendFcmPush(token: string, title: string, body: string, payload: Record<string, any>): Promise<void> {
+    if (!this.fcmApp) {
+      this.logger.log(`[FCM MOCK PUSH] Sent push to token "${token}" -> Title: "${title}", Body: "${body}", Data: ${JSON.stringify(payload)}`);
+      return;
+    }
+
+    try {
+      const dataPayload: Record<string, string> = {};
+      for (const [key, value] of Object.entries(payload)) {
+        if (value !== undefined && value !== null) {
+          dataPayload[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        }
+      }
+
+      await admin.messaging(this.fcmApp).send({
+        token,
+        notification: {
+          title,
+          body,
+        },
+        data: dataPayload,
+      });
+      this.logger.log(`[FCM PUSH SUCCESS] Sent push to token "${token}"`);
+    } catch (error) {
+      this.logger.error(`[FCM PUSH ERROR] Failed to send push to token "${token}":`, error);
+    }
+  }
 
   /**
    * Saves FCM token for the user
@@ -73,6 +139,10 @@ export class BildirimService {
 
       // Simulate sending
       this.logger.log(`[Bildirim Gönderiliyor] [${eventCode}] [Kanal: ${channel}] Alıcı: ${user.name || user.phone} -> Başlık: "${title}", Gövde: "${body}"`);
+
+      if (channel === NotifChannel.push && user.fcm_token) {
+        await this.sendFcmPush(user.fcm_token, title, body, payload);
+      }
 
       await this.prisma.notificationLog.create({
         data: {

@@ -62,7 +62,7 @@ export class GeminiService {
                 },
                 formData: {
                   type: Type.OBJECT,
-                  description: 'Kategoriye özel toplanan tüm detaylar ve form verileri (Örn: { city: "Adana", district: "Yüreğir", details: "klima arızalı çalışmıyor soğutmuyor", cihazTuru: "Klima", islemTuru: "Arıza Onarım" }). Konum bilgisi (district) mutlaka Adana ilçelerinden biri olmalıdır (Çukurova, Yüreğir, Sarıçam, Ceyhan, Seyhan). Açıklama (details) alanına müşterinin belirttiği arıza veya talebi yazın.',
+                  description: 'Kategoriye özel toplanan tüm detaylar ve form verileri (Örn: { city: "İstanbul", district: "Kadıköy", details: "klima arızalı çalışmıyor soğutmuyor", cihazTuru: "Klima", islemTuru: "Arıza Onarım" }). Konum bilgisi (district) mutlaka Adana, İstanbul, Ankara veya İzmir ilçelerinden biri olmalıdır. Açıklama (details) alanına müşterinin belirttiği arıza veya talebi yazın.',
                 },
               } as any,
               required: ['phone', 'name', 'formData'],

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldAlert, 
   Users, 
@@ -359,6 +359,7 @@ export default function AdminPortal() {
 
   // Expanded Modal / Action States
   const [selectedDispute, setSelectedDispute] = useState<any | null>(null);
+  const [disputeTab, setDisputeTab] = useState<'details' | 'evidence'>('details');
   const [resolutionDecision, setResolutionDecision] = useState<'provider_correct' | 'seeker_correct' | 'mutual_agreement'>('mutual_agreement');
   const [resolvedAmount, setResolvedAmount] = useState<string>('');
   const [resolutionNote, setResolutionNote] = useState('');
@@ -368,6 +369,14 @@ export default function AdminPortal() {
   const [callTaskResult, setCallTaskResult] = useState<'satisfied' | 'partial' | 'unsatisfied' | 'unreachable'>('satisfied');
   const [callTaskNotes, setCallTaskNotes] = useState('');
   const [submittingCallTask, setSubmittingCallTask] = useState(false);
+
+  // VoIP Dialer and Quality Survey states
+  const [isDialing, setIsDialing] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [surveyRating, setSurveyRating] = useState(5);
+  const [surveyTiming, setSurveyTiming] = useState<'ontime' | 'delayed' | 'noshow'>('ontime');
+  const [surveyPricing, setSurveyPricing] = useState<'correct' | 'overcharged'>('correct');
+  const callTimerRef = useRef<any>(null);
 
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
@@ -671,6 +680,7 @@ export default function AdminPortal() {
         setSelectedDispute(null);
         setResolutionNote('');
         setResolvedAmount('');
+        setDisputeTab('details');
         await loadDisputes(token);
         await loadStats(token);
       } else {
@@ -699,11 +709,57 @@ export default function AdminPortal() {
     }
   };
 
+  const startVoipCall = () => {
+    if (callTimerRef.current) clearInterval(callTimerRef.current);
+    setIsDialing(true);
+    setCallDuration(0);
+    callTimerRef.current = setInterval(() => {
+      setCallDuration((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const endVoipCall = () => {
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+    setIsDialing(false);
+  };
+
+  const closeCallTaskModal = () => {
+    endVoipCall();
+    setSelectedCallTask(null);
+    setCallTaskNotes('');
+    setSurveyRating(5);
+    setSurveyTiming('ontime');
+    setSurveyPricing('correct');
+    setCallDuration(0);
+  };
+
   const handleCallTaskResultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !selectedCallTask) return;
     setSubmittingCallTask(true);
     try {
+      const timingLabels: Record<string, string> = {
+        ontime: 'Zamanında Geldi',
+        delayed: 'Gecikmeli Geldi',
+        noshow: 'Gelmeyi Reddetti / İptal'
+      };
+      const pricingLabels: Record<string, string> = {
+        correct: 'Anlaşılan Fiyatla Uyumlu',
+        overcharged: 'Ekstra Tutar Talep Etti'
+      };
+
+      const formattedSurveyNotes = `[KALİTE ANKETİ]
+- Usta Deneyim Puanı: ${surveyRating}/5 Yıldız
+- Zamanlama Uyum: ${timingLabels[surveyTiming] || surveyTiming}
+- Fiyatlandırma Uyum: ${pricingLabels[surveyPricing] || surveyPricing}
+- Görüşme Süresi: ${callDuration} saniye
+
+[DETAY NOTLARI]
+${callTaskNotes}`;
+
       const res = await fetch(`/api/admin/call-tasks/${selectedCallTask.id}/result`, {
         method: 'POST',
         headers: {
@@ -712,15 +768,14 @@ export default function AdminPortal() {
         },
         body: JSON.stringify({
           result: callTaskResult,
-          notes: callTaskNotes
+          notes: formattedSurveyNotes
         })
       });
       const data = await res.json();
       if (res.ok) {
         addLog(`Arama görevi tamamlandı: ID ${selectedCallTask.id} | Sonuç: ${callTaskResult}`);
         alert('Arama görevi sonucu başarıyla sisteme işlendi.');
-        setSelectedCallTask(null);
-        setCallTaskNotes('');
+        closeCallTaskModal();
         await loadCallTasks(token);
         await loadStats(token);
       } else {
@@ -2871,51 +2926,91 @@ export default function AdminPortal() {
                     </div>
                   ) : (
                     callTasks.map((task) => {
-                      const isOverdue = new Date(task.due_at) < new Date();
+                      const now = new Date();
+                      const dueTime = new Date(task.due_at);
+                      const isOverdue = dueTime < now;
+                      
+                      let slaLabel = '';
+                      let slaBadgeClass = '';
+                      
+                      const diffMs = Math.abs(dueTime.getTime() - now.getTime());
+                      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                      if (isOverdue) {
+                        slaLabel = `⚠️ SLA AŞILDI (${diffHrs} sa ${diffMins} dk)`;
+                        slaBadgeClass = 'bg-red-50 border-red-100 text-red-655 animate-pulse font-extrabold';
+                      } else if (diffHrs < 2) {
+                        slaLabel = `⏳ SLA KRİTİK (${diffHrs} sa ${diffMins} dk)`;
+                        slaBadgeClass = 'bg-amber-55 border-amber-200 text-amber-700 animate-pulse font-bold';
+                      } else {
+                        slaLabel = `✅ SLA Güvenli (${diffHrs} sa ${diffMins} dk)`;
+                        slaBadgeClass = 'bg-emerald-50 border-emerald-150 text-emerald-700 font-semibold';
+                      }
+
+                      const attempts = task.attempt_count || 0;
+
                       return (
                         <div 
                           key={task.id}
                           className={`bg-white border rounded-3xl p-6 flex flex-col justify-between shadow-sm transition-all ${
-                            isOverdue ? 'border-red-200 shadow-red-50/20 shadow-md' : 'border-slate-100'
+                            isOverdue ? 'border-red-200 shadow-red-50/10 shadow-md' : 'border-slate-100 hover:shadow-md'
                           }`}
                         >
                           <div>
                             <div className="flex justify-between items-start mb-4">
                               <div>
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                                  task.priority === 'high' || isOverdue
-                                    ? 'bg-red-50 border-red-100 text-red-655'
-                                    : 'bg-amber-50 border-amber-100 text-amber-655'
-                                }`}>
-                                  {isOverdue ? 'SLA AŞILDI' : task.priority === 'high' ? 'Yüksek Öncelik' : 'Normal'}
+                                <span className={`text-[9px] uppercase px-2 py-0.5 rounded-md border ${slaBadgeClass}`}>
+                                  {slaLabel}
                                 </span>
                                 <h3 className="font-extrabold text-slate-800 text-base mt-2">
                                   Kalite Arama Görevi
                                 </h3>
                               </div>
-                              <span className="text-[10px] text-slate-400 font-mono">
+                              <span className="text-[10px] text-slate-400 font-mono font-bold">
                                 Vade: {new Date(task.due_at).toLocaleDateString('tr-TR')}
                               </span>
                             </div>
 
                             <div className="space-y-2 border-t border-slate-100 pt-4 mb-6 text-xs text-slate-655">
-                              <div className="flex justify-between">
+                              <div className="flex justify-between items-center">
                                 <span className="text-slate-400">Müşteri (Alıcı):</span>
-                                <span className="font-bold text-slate-800">{task.seeker?.name || 'N/A'} ({task.seeker?.phone_masked})</span>
+                                <span className="font-bold text-slate-800">{task.seeker?.name || 'N/A'}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Hizmet Veren (Usta):</span>
-                                <span className="font-bold text-slate-800">{task.provider?.name || 'N/A'} ({task.provider?.phone_masked})</span>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 font-medium">Usta (Hizmet Veren):</span>
+                                <span className="font-bold text-slate-800">{task.provider?.name || 'N/A'}</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="flex justify-between items-center">
                                 <span className="text-slate-400">İş Kategori:</span>
                                 <span className="font-semibold text-slate-700 bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-[10px]">{task.job?.categoryName || 'Genel'}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">SLA Bitiş Süresi:</span>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Beyan Edilen Tutar:</span>
+                                <span className="font-extrabold text-[#4c630a] bg-[#c8f252]/10 border border-[#c8f252]/30 px-2 py-0.5 rounded text-[10px] font-mono">₺{task.declaredAmount || 0}</span>
+                              </div>
+                              <div className="flex justify-between items-center pt-1">
+                                <span className="text-slate-400">SLA Son Tarih:</span>
                                 <span className={`font-mono font-bold ${isOverdue ? 'text-red-600' : 'text-slate-600'}`}>
                                   {new Date(task.due_at).toLocaleTimeString('tr-TR')}
                                 </span>
+                              </div>
+                              <div className="flex justify-between items-center pt-2 border-t border-slate-100/60">
+                                <span className="text-slate-400">Çağrı Denemeleri:</span>
+                                <div className="flex items-center gap-1.5">
+                                  {[1, 2, 3].map((step) => (
+                                    <span 
+                                      key={step} 
+                                      className={`w-2.5 h-2.5 rounded-full border ${
+                                        step <= attempts 
+                                          ? 'bg-amber-500 border-amber-600 shadow-sm' 
+                                          : 'bg-slate-100 border-slate-200'
+                                      }`}
+                                      title={`${attempts}/3 Deneme`}
+                                    />
+                                  ))}
+                                  <span className="text-[10px] text-slate-450 font-bold ml-1">({attempts}/3)</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -3695,7 +3790,79 @@ export default function AdminPortal() {
                         ))}
                       </div>
                     </div>
-                  )}
+                  {/* Doğrulama Belgeleri */}
+                  <div className="space-y-3 bg-slate-50 border border-slate-100 p-5 rounded-2xl">
+                    <span className="text-slate-400 block text-[9px] uppercase font-bold mb-2">Doğrulama Belgeleri</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Kimlik Belgesi */}
+                      <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex flex-col justify-between h-40">
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">T.C. KİMLİK BELGESİ</span>
+                            {onboardingData.identityDocument ? (
+                              <span className="bg-emerald-100 text-emerald-700 text-[8px] font-bold px-2 py-0.5 rounded-full font-mono">YÜKLENDİ</span>
+                            ) : (
+                              <span className="bg-red-100 text-red-700 text-[8px] font-bold px-2 py-0.5 rounded-full font-mono">YÜKLENMEDİ</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 font-semibold mb-2">Kimlik kartı veya sürücü belgesi görseli</p>
+                        </div>
+                        {onboardingData.identityDocument ? (
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                            {onboardingData.identityDocument.endsWith('.pdf') ? (
+                              <span className="text-[10px] font-black text-slate-550 font-mono">📄 PDF DOKÜMANI</span>
+                            ) : (
+                              <img src={onboardingData.identityDocument} className="w-12 h-8 object-cover rounded-md border border-slate-200" />
+                            )}
+                            <a 
+                              href={onboardingData.identityDocument} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-slate-900 bg-[#c8f252] hover:bg-[#b5e639] font-black px-4 py-2 rounded-lg transition-all"
+                            >
+                              Görüntüle
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 italic">Belge henüz yüklenmemiş.</span>
+                        )}
+                      </div>
+
+                      {/* Vergi Levhası */}
+                      <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex flex-col justify-between h-40">
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">VERGİ LEVHASI</span>
+                            {onboardingData.taxPlateDocument ? (
+                              <span className="bg-emerald-100 text-emerald-700 text-[8px] font-bold px-2 py-0.5 rounded-full font-mono">YÜKLENDİ</span>
+                            ) : (
+                              <span className="bg-red-100 text-red-700 text-[8px] font-bold px-2 py-0.5 rounded-full font-mono">YÜKLENMEDİ</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 font-semibold mb-2">Resmi maliye vergi levhası belgesi</p>
+                        </div>
+                        {onboardingData.taxPlateDocument ? (
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                            {onboardingData.taxPlateDocument.endsWith('.pdf') ? (
+                              <span className="text-[10px] font-black text-slate-550 font-mono">📄 PDF DOKÜMANI</span>
+                            ) : (
+                              <img src={onboardingData.taxPlateDocument} className="w-12 h-8 object-cover rounded-md border border-slate-200" />
+                            )}
+                            <a 
+                              href={onboardingData.taxPlateDocument} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-slate-900 bg-[#c8f252] hover:bg-[#b5e639] font-black px-4 py-2 rounded-lg transition-all"
+                            >
+                              Görüntüle
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 italic">Belge henüz yüklenmemiş.</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 /* Fallback (Mockup Identity & Tax certificate) */
@@ -3774,107 +3941,249 @@ export default function AdminPortal() {
       })()}
 
       {/* ⚖️ Uyuşmazlık Çözüm Karar Modalı */}
-      {selectedDispute && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-              <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-red-500" />
-                <span>Uyuşmazlık Karara Bağla</span>
-              </h3>
-              <button 
-                onClick={() => setSelectedDispute(null)}
-                className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-xs text-slate-655 space-y-2 mb-4">
-              <div className="flex justify-between">
-                <span>Müşteri:</span>
-                <span className="font-bold text-slate-800">{selectedDispute.job?.seeker?.user?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Hizmet Veren:</span>
-                <span className="font-bold text-slate-800">{selectedDispute.job?.provider?.user?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Toplam İş Tutarı:</span>
-                <span className="font-bold text-slate-800 font-mono">₺{selectedDispute.job?.price}</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleResolveDisputeSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nihai Hak Hakem Kararı</label>
-                <select
-                  value={resolutionDecision}
-                  onChange={(e) => setResolutionDecision(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200/60 text-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-[#c8f252] cursor-pointer"
+      {selectedDispute && (() => {
+        const totalVal = Number(selectedDispute.job?.price || 0);
+        const commission = totalVal * 0.1;
+        const netTotal = totalVal - commission;
+        const customerClaim = "Usta işi taahhüt ettiği tarihte bitirmedi, duvarlarda boya dalgalanmaları mevcut ve evi temizlemeden terk etti. Hizmet kusurlu olduğu için ücretin tamamının iadesini talep ediyorum.";
+        const providerDefense = "Duvar boyaması anlaşılan kat sayısında ve standartlara uygun tamamlandı. Müşteri sonradan ekstra tavan boyaması talep etti, ek bütçe vermeyeceğini söyleyince tartışma çıktı. Emeğimin tam karşılığı ödenmeli.";
+        return (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-scale-up max-h-[95vh] overflow-y-auto pr-2 scrollbar-thin">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-red-500" />
+                  <span>Uyuşmazlık Karara Bağla</span>
+                </h3>
+                <button 
+                  onClick={() => setSelectedDispute(null)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
                 >
-                  <option value="mutual_agreement">Karşılıklı Uzlaşma / Anlaşma</option>
-                  <option value="seeker_correct">Müşteri Haklı (İade Yapılsın)</option>
-                  <option value="provider_correct">Hizmet Veren Haklı (Hakediş Aktarılsın)</option>
-                </select>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Çözümlenen Hakediş Tutarı (₺)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="İade veya aktarım tutarını girin..."
-                  value={resolvedAmount}
-                  onChange={(e) => setResolvedAmount(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/60 focus:border-[#c8f252] text-slate-750 text-sm rounded-xl px-4 py-3 focus:outline-none"
-                />
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-xs text-slate-655 space-y-2 mb-4">
+                <div className="flex justify-between">
+                  <span>Müşteri:</span>
+                  <span className="font-bold text-slate-800">{selectedDispute.job?.seeker?.user?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Hizmet Veren:</span>
+                  <span className="font-bold text-slate-800">{selectedDispute.job?.provider?.user?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Toplam İş Tutarı:</span>
+                  <span className="font-bold text-slate-800 font-mono">₺{selectedDispute.job?.price}</span>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Hakem Çözüm Açıklaması / Rapor</label>
-                <textarea
-                  value={resolutionNote}
-                  onChange={(e) => setResolutionNote(e.target.value)}
-                  placeholder="Taraflara gönderilecek karar gerekçesini detaylıca yazın..."
-                  rows={4}
-                  required
-                  className="w-full bg-slate-50 border border-slate-200/60 focus:border-[#c8f252] text-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none transition-colors resize-none leading-relaxed"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
+              {/* Tabs for Details vs Claim/Defense */}
+              <div className="flex border-b border-slate-100 mb-4 text-xs font-bold">
                 <button
                   type="button"
-                  onClick={() => setSelectedDispute(null)}
-                  className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all text-xs cursor-pointer shadow-sm"
+                  onClick={() => setDisputeTab('details')}
+                  className={`flex-1 pb-2 border-b-2 transition-colors cursor-pointer text-center ${
+                    disputeTab === 'details' ? 'border-[#c8f252] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-655'
+                  }`}
                 >
-                  İptal
+                  Karar & Bölüşüm
                 </button>
                 <button
-                  type="submit"
-                  disabled={submittingResolution}
-                  className="flex-1 bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] font-black py-3.5 rounded-xl transition-all text-xs shadow-md border border-[#c8f252]/20 cursor-pointer"
+                  type="button"
+                  onClick={() => setDisputeTab('evidence')}
+                  className={`flex-1 pb-2 border-b-2 transition-colors cursor-pointer text-center ${
+                    disputeTab === 'evidence' ? 'border-[#c8f252] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-655'
+                  }`}
                 >
-                  {submittingResolution ? 'Karar Kaydediliyor...' : 'Uyuşmazlığı Kapat'}
+                  Savunma & Kanıtlar
                 </button>
               </div>
-            </form>
+
+              {disputeTab === 'evidence' && (
+                <div className="space-y-4 mb-4">
+                  <div className="bg-rose-50 border border-rose-100/60 p-3.5 rounded-2xl text-[11px] text-slate-700 animate-scale-up">
+                    <span className="font-extrabold text-rose-700 block mb-1">Müşteri İddiası (İtiraz Sebebi)</span>
+                    "{selectedDispute.job?.seekerClaim || customerClaim}"
+                  </div>
+
+                  <div className="bg-indigo-50 border border-indigo-100/60 p-3.5 rounded-2xl text-[11px] text-slate-700 animate-scale-up">
+                    <span className="font-extrabold text-indigo-700 block mb-1">Usta Savunması (Açıklama)</span>
+                    "{selectedDispute.job?.providerDefense || providerDefense}"
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200/60 p-3.5 rounded-2xl text-[10px] text-slate-500 animate-scale-up">
+                    <span className="font-extrabold text-slate-700 block mb-1">Kanıt Ekleri</span>
+                    <div className="flex gap-2 mt-2">
+                      <span className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono cursor-pointer hover:bg-slate-100">📷 hasar_goruntusu_1.jpg</span>
+                      <span className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono cursor-pointer hover:bg-slate-100">📄 is_sozlesmesi.pdf</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {disputeTab === 'details' && (
+                <form onSubmit={handleResolveDisputeSubmit} className="space-y-4 animate-scale-up">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nihai Hak Hakem Kararı</label>
+                    <select
+                      value={resolutionDecision}
+                      onChange={(e) => {
+                        const dec = e.target.value as any;
+                        setResolutionDecision(dec);
+                        if (dec === 'seeker_correct') setResolvedAmount('0');
+                        else if (dec === 'provider_correct') setResolvedAmount(netTotal.toString());
+                        else if (dec === 'mutual_agreement') setResolvedAmount((netTotal / 2).toString());
+                      }}
+                      className="w-full bg-slate-50 border border-slate-200/60 text-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-[#c8f252] cursor-pointer"
+                    >
+                      <option value="mutual_agreement">Karşılıklı Uzlaşma / Anlaşma</option>
+                      <option value="seeker_correct">Müşteri Haklı (İade Yapılsın)</option>
+                      <option value="provider_correct">Hizmet Veren Haklı (Hakediş Aktarılsın)</option>
+                    </select>
+                  </div>
+
+                  {/* Split Slider */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-[10px] font-bold text-slate-555 uppercase tracking-wider">Hakediş Bölüşüm Oranı</label>
+                      <span className="text-[11px] font-black text-indigo-650 font-mono">
+                        %{Math.round((Number(resolvedAmount || 0) / (netTotal || 1)) * 100)} Usta / %{Math.round(((netTotal - Number(resolvedAmount || 0)) / (netTotal || 1)) * 100)} Müşteri
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max={netTotal}
+                      step="1"
+                      value={Number(resolvedAmount || 0)}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setResolvedAmount(val.toString());
+                        if (val === 0) setResolutionDecision('seeker_correct');
+                        else if (val === netTotal) setResolutionDecision('provider_correct');
+                        else setResolutionDecision('mutual_agreement');
+                      }}
+                      className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#c8f252]"
+                    />
+                    <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-1">
+                      <span>Müşteri (%100 İade)</span>
+                      <span>Orta Uzlaşı</span>
+                      <span>Usta (%100 Payout)</span>
+                    </div>
+                  </div>
+
+                  {/* Preset split buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResolutionDecision('seeker_correct');
+                        setResolvedAmount('0');
+                      }}
+                      className={`flex-1 py-1.5 text-[10px] font-bold border rounded-lg transition-all cursor-pointer ${
+                        Number(resolvedAmount) === 0 ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-200 text-slate-655 hover:bg-slate-100'
+                      }`}
+                    >
+                      Müşteriye %100
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResolutionDecision('mutual_agreement');
+                        setResolvedAmount((netTotal / 2).toString());
+                      }}
+                      className={`flex-1 py-1.5 text-[10px] font-bold border rounded-lg transition-all cursor-pointer ${
+                        Math.abs(Number(resolvedAmount) - netTotal / 2) < 2 ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-200 text-slate-655 hover:bg-slate-100'
+                      }`}
+                    >
+                      %50 / %50
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResolutionDecision('provider_correct');
+                        setResolvedAmount(netTotal.toString());
+                      }}
+                      className={`flex-1 py-1.5 text-[10px] font-bold border rounded-lg transition-all cursor-pointer ${
+                        Number(resolvedAmount) === netTotal ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-200 text-slate-655 hover:bg-slate-100'
+                      }`}
+                    >
+                      Ustaya %100
+                    </button>
+                  </div>
+
+                  {/* Breakdown Summary Card */}
+                  <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-2 text-xs border border-slate-800 shadow-lg">
+                    <span className="text-[9px] font-black text-slate-400 block border-b border-slate-800 pb-1.5 mb-2 tracking-wider font-mono">HAKEDİŞ DAĞILIM RAPORU</span>
+                    <div className="flex justify-between items-center font-mono">
+                      <span className="text-slate-400">Brüt İş Bedeli:</span>
+                      <span className="font-bold">₺{totalVal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-mono text-[#c8f252]">
+                      <span className="text-slate-400">Platform Komisyonu (%10):</span>
+                      <span className="font-bold">-₺{commission.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-mono border-t border-slate-800 pt-1.5">
+                      <span className="text-slate-400">Net Dağıtılabilir:</span>
+                      <span className="font-bold text-slate-200">₺{netTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-mono text-emerald-400 border-t border-slate-800 pt-1.5">
+                      <span>Müşteriye İade:</span>
+                      <span className="font-black">₺{(netTotal - Number(resolvedAmount || 0)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-mono text-amber-400">
+                      <span>Hizmet Veren Payout:</span>
+                      <span className="font-black">₺{Number(resolvedAmount || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5 font-mono">Hakem Çözüm Açıklaması / Rapor</label>
+                    <textarea
+                      value={resolutionNote}
+                      onChange={(e) => setResolutionNote(e.target.value)}
+                      placeholder="İade veya ödeme gerekçesini, tarafların kanıt durumlarını detaylıca raporlayın..."
+                      rows={3}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200/60 focus:border-[#c8f252] text-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none transition-colors resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDispute(null)}
+                      className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all text-xs cursor-pointer shadow-sm"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingResolution}
+                      className="flex-1 bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] font-black py-3.5 rounded-xl transition-all text-xs shadow-md border border-[#c8f252]/20 cursor-pointer"
+                    >
+                      {submittingResolution ? 'Karar Kaydediliyor...' : 'Uyuşmazlığı Kapat'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 📞 SLA Kalite Arama Sonuç Modalı */}
       {selectedCallTask && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-scale-up max-h-[90vh] overflow-y-auto pr-2 scrollbar-thin">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
               <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
                 <Power className="w-5 h-5 text-[#c8f252]" />
                 <span>Çağrı Sonucu Kaydet</span>
               </h3>
               <button 
-                onClick={() => setSelectedCallTask(null)}
+                onClick={closeCallTaskModal}
                 className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -3887,17 +4196,116 @@ export default function AdminPortal() {
                 <span className="font-bold text-slate-800">{selectedCallTask.seeker?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span>Telefon:</span>
-                <span className="font-bold text-slate-850 font-mono">{selectedCallTask.seeker?.phone_decrypted || selectedCallTask.seeker?.phone_masked}</span>
+                <span>Hizmet Veren:</span>
+                <span className="font-bold text-slate-800">{selectedCallTask.provider?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span>Hizmet Veren:</span>
-                <span className="font-bold text-slate-800">{selectedCallTask.provider?.name} ({selectedCallTask.provider?.phone_masked})</span>
+                <span>İş Kategori / Tutar:</span>
+                <span className="font-bold text-slate-850">{selectedCallTask.job?.categoryName || 'Genel'} / ₺{selectedCallTask.declaredAmount || 0}</span>
+              </div>
+            </div>
+
+            {/* VoIP Simulation Area */}
+            <div className="bg-slate-900 text-white p-5 rounded-2xl mb-4 space-y-3 relative overflow-hidden shadow-inner">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">SANAL VOIP TELEFON</span>
+                {isDialing ? (
+                  <span className="flex items-center gap-1.5 bg-red-500/20 text-red-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-red-500/30 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    AKTİF GÖRÜŞME
+                  </span>
+                ) : (
+                  <span className="bg-slate-800 text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-full">ÇEVRİMİÇİ / HAZIR</span>
+                )}
+              </div>
+
+              <div className="text-center py-2">
+                <h4 className="text-slate-350 text-[10px] font-semibold">ARANAN NUMARA</h4>
+                <p className="text-lg font-black font-mono text-white tracking-wider mt-0.5">
+                  {selectedCallTask.seeker?.phone_decrypted || 'Gizli Numara'}
+                </p>
+                {isDialing && (
+                  <div className="text-2xl font-black font-mono text-[#c8f252] mt-1 tracking-widest">
+                    {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-2">
+                {!isDialing ? (
+                  <button
+                    type="button"
+                    onClick={startVoipCall}
+                    className="w-full bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] font-black py-2.5 rounded-xl transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 border border-[#c8f252]/20"
+                  >
+                    📞 Arama Başlat (VoIP)
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={endVoipCall}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-2.5 rounded-xl transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    🔴 Aramayı Sonlandır
+                  </button>
+                )}
               </div>
             </div>
 
             <form onSubmit={handleCallTaskResultSubmit} className="space-y-4">
-              <div>
+              {/* Kalite Anketi Form Alanı */}
+              <div className="border-t border-slate-100 pt-4 space-y-4">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Müşteri Memnuniyet Anketi</h4>
+                
+                {/* 1. Yıldız Puanı */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Usta Hizmet Kalitesi (Puanı)</label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setSurveyRating(star)}
+                        className="p-1 focus:outline-none transition-transform hover:scale-125 cursor-pointer"
+                      >
+                        <span className={`text-2xl ${star <= surveyRating ? 'text-amber-400' : 'text-slate-200'}`}>
+                          ★
+                        </span>
+                      </button>
+                    ))}
+                    <span className="text-xs font-black text-slate-600 ml-1">{surveyRating}/5 Puan</span>
+                  </div>
+                </div>
+
+                {/* 2. Zamanlama */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">İş Zamanlama Uyumu</label>
+                  <select
+                    value={surveyTiming}
+                    onChange={(e) => setSurveyTiming(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-slate-200/60 text-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-[#c8f252] cursor-pointer"
+                  >
+                    <option value="ontime">⏱️ Zamanında Geldi</option>
+                    <option value="delayed">🐢 Gecikmeli Geldi</option>
+                    <option value="noshow">❌ Gelmedi / İptal Etti</option>
+                  </select>
+                </div>
+
+                {/* 3. Fiyatlandırma */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fiyatlandırma Doğruluğu</label>
+                  <select
+                    value={surveyPricing}
+                    onChange={(e) => setSurveyPricing(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-slate-200/60 text-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-[#c8f252] cursor-pointer"
+                  >
+                    <option value="correct">💰 Anlaşılan Fiyatla Uyumlu</option>
+                    <option value="overcharged">📈 Ekstra Ücret Talep Etti</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Arama Kalite Değerlendirmesi</label>
                 <select
                   value={callTaskResult}
@@ -3917,7 +4325,7 @@ export default function AdminPortal() {
                   value={callTaskNotes}
                   onChange={(e) => setCallTaskNotes(e.target.value)}
                   placeholder="Görüşmede konuşulan detayları, varsa müşteri şikayetlerini not alın..."
-                  rows={4}
+                  rows={3}
                   required
                   className="w-full bg-slate-50 border border-slate-200/60 focus:border-[#c8f252] text-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none transition-colors resize-none leading-relaxed"
                 />
@@ -3926,7 +4334,7 @@ export default function AdminPortal() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setSelectedCallTask(null)}
+                  onClick={closeCallTaskModal}
                   className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all text-xs cursor-pointer shadow-sm"
                 >
                   İptal

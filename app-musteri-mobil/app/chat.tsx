@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { io, Socket } from 'socket.io-client';
-import { customFetch, startNewSession, getOrCreateSessionId } from '../src/lib/session';
+import { customFetch, startNewSession, getOrCreateSessionId, setAuthToken, getAuthToken } from '../src/lib/session';
 import { getSocketUrl } from '../src/config';
 import ChatBubble from '../src/components/ChatBubble';
 import SummaryCard from '../src/components/SummaryCard';
@@ -47,6 +47,26 @@ export default function ChatScreen() {
   const socketRef = useRef<Socket | null>(null);
   const hasInitialized = useRef(false);
 
+  const registerFcmToken = async () => {
+    try {
+      console.log('[FCM Seeker] Requesting notification permission...');
+      const mockToken = 'mock-fcm-token-seeker-' + Math.random().toString(36).substring(7);
+      console.log('[FCM Seeker] Mock token generated:', mockToken);
+      
+      const res = await customFetch('/api/ortak/bildirimler/fcm-token', {
+        method: 'POST',
+        body: JSON.stringify({ token: mockToken }),
+      });
+      if (res.ok) {
+        console.log('[FCM Seeker] FCM Token successfully registered on backend.');
+      } else {
+        console.warn('[FCM Seeker] Failed to register FCM token on backend:', res.status);
+      }
+    } catch (err) {
+      console.error('[FCM Seeker] Error registering token:', err);
+    }
+  };
+
   // Initialize Sohbet
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -56,6 +76,11 @@ export default function ChatScreen() {
       const sessionId = await getOrCreateSessionId();
       if (initializedSessions.has(sessionId)) return;
       initializedSessions.add(sessionId);
+
+      const existingToken = await getAuthToken();
+      if (existingToken) {
+        await registerFcmToken();
+      }
 
       setIsLoading(true);
       try {
@@ -172,6 +197,11 @@ export default function ChatScreen() {
 
       const data = await response.json();
       setCurrentStep(data.step);
+
+      if (data.sessionMigrated && data.accessToken) {
+        await setAuthToken(data.accessToken);
+        await registerFcmToken();
+      }
 
       setMessages((prev) => [
         ...prev,

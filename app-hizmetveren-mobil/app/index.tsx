@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as DocumentPicker from 'expo-document-picker';
 import { customFetch, setAuthToken, removeAuthToken, getAuthToken } from '../src/lib/auth';
 
 interface TestUsta {
@@ -34,6 +35,100 @@ export default function IndexScreen() {
   const [kota, setKota] = useState<any | null>(null);
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingIdentity, setUploadingIdentity] = useState(false);
+  const [uploadingTaxPlate, setUploadingTaxPlate] = useState(false);
+
+  const handleMobileDocumentUpload = async (type: 'identity' | 'tax') => {
+    try {
+      const pickerResult = await DocumentPicker.getDocumentAsync({
+        type: ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'],
+        copyToCacheDirectory: true
+      });
+
+      if (pickerResult.canceled || !pickerResult.assets || pickerResult.assets.length === 0) {
+        return;
+      }
+
+      const fileAsset = pickerResult.assets[0];
+      const fileName = fileAsset.name;
+      const fileUri = fileAsset.uri;
+      const contentType = fileAsset.mimeType || 'image/jpeg';
+
+      if (type === 'identity') setUploadingIdentity(true);
+      else setUploadingTaxPlate(true);
+
+      const presignedRes = await customFetch('/api/ortak/upload/presigned-url', {
+        method: 'POST',
+        body: JSON.stringify({
+          fileName,
+          contentType
+        })
+      });
+
+      const presignedData = await presignedRes.json();
+      if (!presignedRes.ok) {
+        throw new Error(presignedData.message || 'Presigned URL oluşturulamadı.');
+      }
+
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+
+      const uploadRes = await fetch(presignedData.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType
+        },
+        body: blob
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Dosya sunucuya yüklenemedi.');
+      }
+
+      const updatePayload = type === 'identity' 
+        ? { identityDocument: presignedData.fileUrl } 
+        : { taxPlateDocument: presignedData.fileUrl };
+
+      const updateRes = await customFetch('/api/hizmetveren/profil/belgeler', {
+        method: 'PUT',
+        body: JSON.stringify(updatePayload)
+      });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) {
+        throw new Error(updateData.message || 'Belgeler profilinizle ilişkilendirilemedi.');
+      }
+
+      Alert.alert('Başarılı', `${type === 'identity' ? 'Kimlik belgesi' : 'Vergi levhası'} başarıyla yüklendi.`);
+      fetchProfileAndKota();
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert('Yükleme Hatası', err.message || 'Belge yüklenirken bir hata oluştu.');
+    } finally {
+      if (type === 'identity') setUploadingIdentity(false);
+      else setUploadingTaxPlate(false);
+    }
+  };
+
+  const registerFcmToken = async () => {
+    try {
+      console.log('[FCM Provider] Requesting notification permission...');
+      const mockToken = 'mock-fcm-token-provider-' + Math.random().toString(36).substring(7);
+      console.log('[FCM Provider] Mock token generated:', mockToken);
+      
+      const res = await customFetch('/api/ortak/bildirimler/fcm-token', {
+        method: 'POST',
+        body: JSON.stringify({ token: mockToken }),
+      });
+      if (res.ok) {
+        console.log('[FCM Provider] FCM Token successfully registered on backend.');
+      } else {
+        console.warn('[FCM Provider] Failed to register FCM token on backend:', res.status);
+      }
+    } catch (err) {
+      console.error('[FCM Provider] Error registering token:', err);
+    }
+  };
 
   // Check login state on mount
   useEffect(() => {
@@ -45,6 +140,7 @@ export default function IndexScreen() {
     if (token) {
       setIsLoggedIn(true);
       fetchProfileAndKota();
+      registerFcmToken();
     } else {
       setIsLoggedIn(false);
     }
@@ -158,6 +254,7 @@ export default function IndexScreen() {
       await setAuthToken(token);
       setIsLoggedIn(true);
       fetchProfileAndKota();
+      await registerFcmToken();
 
       Alert.alert('Giriş Başarılı', `${usta.name} olarak başarıyla giriş yapıldı.`);
     } catch (err: any) {
@@ -217,7 +314,76 @@ export default function IndexScreen() {
           </View>
         )}
 
-        {!isLoading && isLoggedIn && (
+        {!isLoading && isLoggedIn && profile && !profile.isApproved && (
+          <View style={styles.onboardingSection}>
+            <View style={styles.alertCard}>
+              <Text style={styles.alertEmoji}>⚠️</Text>
+              <View style={styles.alertDetails}>
+                <Text style={styles.alertTitle}>Onay Bekleniyor</Text>
+                <Text style={styles.alertMessage}>
+                  Hizmet vermeye başlayabilmek için lütfen kimlik belgenizi ve vergi levhanızı yükleyin. Belgeleriniz onaylandıktan sonra paneliniz açılacaktır.
+                </Text>
+              </View>
+            </View>
+
+            {/* Kimlik Belgesi Yükleme */}
+            <View style={styles.documentCard}>
+              <View style={styles.documentHeader}>
+                <Text style={styles.documentTitle}>Kimlik Belgesi Görseli</Text>
+                <Text style={[styles.statusBadge, profile.identityDocument ? styles.statusUploaded : styles.statusPending]}>
+                  {profile.identityDocument ? 'YÜKLENDİ' : 'EKSİK'}
+                </Text>
+              </View>
+              <Text style={styles.documentDesc}>
+                Kimlik veya ehliyetinizin ön yüzünün fotoğrafını (PNG, JPG veya PDF) yükleyin.
+              </Text>
+              <TouchableOpacity
+                style={[styles.uploadButton, uploadingIdentity && styles.uploadButtonDisabled]}
+                onPress={() => handleMobileDocumentUpload('identity')}
+                disabled={uploadingIdentity}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.uploadButtonText}>
+                  {uploadingIdentity ? 'Yükleniyor...' : profile.identityDocument ? '🔄 Belgeyi Değiştir' : '➕ Belge Seç ve Yükle'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Vergi Levhası Yükleme */}
+            <View style={styles.documentCard}>
+              <View style={styles.documentHeader}>
+                <Text style={styles.documentTitle}>Vergi Levhası (Maliye)</Text>
+                <Text style={[styles.statusBadge, profile.taxPlateDocument ? styles.statusUploaded : styles.statusPending]}>
+                  {profile.taxPlateDocument ? 'YÜKLENDİ' : 'EKSİK'}
+                </Text>
+              </View>
+              <Text style={styles.documentDesc}>
+                Güncel vergi levhası görselini veya PDF dokümanını seçerek yükleyin.
+              </Text>
+              <TouchableOpacity
+                style={[styles.uploadButton, uploadingTaxPlate && styles.uploadButtonDisabled]}
+                onPress={() => handleMobileDocumentUpload('tax')}
+                disabled={uploadingTaxPlate}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.uploadButtonText}>
+                  {uploadingTaxPlate ? 'Yükleniyor...' : profile.taxPlateDocument ? '🔄 Belgeyi Değiştir' : '➕ Belge Seç ve Yükle'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Logout button */}
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.logoutText}>Oturumu Kapat</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!isLoading && isLoggedIn && profile && profile.isApproved && (
           <View style={styles.profileSection}>
             {/* Profile Info */}
             <View style={styles.profileCard}>
@@ -231,6 +397,40 @@ export default function IndexScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Health Score Card */}
+            {profile && profile.healthScore !== undefined && (
+              <View style={styles.healthCard}>
+                <View style={styles.healthHeader}>
+                  <Text style={styles.healthTitle}>Usta Sağlık Skoru</Text>
+                  <View 
+                    style={[
+                      styles.healthBadge, 
+                      profile.healthScore >= 85 
+                        ? styles.healthBadgeExcellent 
+                        : profile.healthScore >= 70 
+                        ? styles.healthBadgeGood 
+                        : styles.healthBadgePoor
+                    ]}
+                  >
+                    <Text style={styles.healthBadgeText}>
+                      {profile.healthScore >= 85 ? 'Mükemmel' : profile.healthScore >= 70 ? 'İyi' : 'Düşük'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.healthScoreRow}>
+                  <Text style={styles.healthScorePercent}>%{profile.healthScore}</Text>
+                  <Text style={styles.healthScoreText}>
+                    Sağlık skorunuz tamamladığınız iş adedi, NPS puanı, uyuşmazlıklar ve cevap hızınıza göre dinamik olarak belirlenir.
+                  </Text>
+                </View>
+                
+                <Text style={styles.healthScoreInfo}>
+                  💡 Yüksek sağlık skoru, iş dağıtımlarında sizi diğer ustaların önüne geçirir.
+                </Text>
+              </View>
+            )}
 
             {/* Quota Limits usage bar */}
             {kota && (
@@ -517,6 +717,71 @@ const styles = StyleSheet.create({
     color: '#232323',
     fontWeight: 'bold',
   },
+  healthCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 20,
+    padding: 16,
+  },
+  healthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  healthTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#232323',
+  },
+  healthBadge: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  healthBadgeExcellent: {
+    backgroundColor: '#E6F9F0',
+    borderColor: '#A7F3D0',
+  },
+  healthBadgeGood: {
+    backgroundColor: '#FFF9E6',
+    borderColor: '#FFE599',
+  },
+  healthBadgePoor: {
+    backgroundColor: '#FDE8E8',
+    borderColor: '#FBD5D5',
+  },
+  healthBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#232323',
+  },
+  healthScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  healthScorePercent: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#232323',
+  },
+  healthScoreText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#666666',
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  healthScoreInfo: {
+    fontSize: 10,
+    color: '#888888',
+    fontStyle: 'italic',
+    fontWeight: '600',
+  },
   actions: {
     flexDirection: 'column',
     gap: 12,
@@ -633,5 +898,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  onboardingSection: {
+    flexDirection: 'column',
+    gap: 20,
+  },
+  alertCard: {
+    backgroundColor: '#FFF9E6',
+    borderWidth: 1,
+    borderColor: '#FFE599',
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  alertEmoji: {
+    fontSize: 20,
+  },
+  alertDetails: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#8A6D00',
+    marginBottom: 4,
+  },
+  alertMessage: {
+    fontSize: 12,
+    color: '#B08F00',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  documentCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: 'column',
+    gap: 10,
+  },
+  documentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  documentTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#232323',
+  },
+  statusBadge: {
+    fontSize: 10,
+    fontWeight: '900',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statusUploaded: {
+    backgroundColor: '#E6F9F0',
+    color: '#10B981',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  statusPending: {
+    backgroundColor: '#F5F5F5',
+    color: '#6B7280',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  documentDesc: {
+    fontSize: 12,
+    color: '#666666',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  uploadButton: {
+    backgroundColor: '#D4F54E',
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  uploadButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  uploadButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#232323',
   },
 });

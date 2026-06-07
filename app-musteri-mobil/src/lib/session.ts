@@ -2,8 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiUrl } from '../config';
 
 const SESSION_KEY = 'esnaaf_session_id';
+const TOKEN_KEY = 'esnaaf_seeker_token';
 
 let activeSessionId: string | null = null;
+
+export const setAuthToken = async (token: string) => {
+  await AsyncStorage.setItem(TOKEN_KEY, token);
+};
+
+export const getAuthToken = async (): Promise<string | null> => {
+  return await AsyncStorage.getItem(TOKEN_KEY);
+};
+
+export const removeAuthToken = async () => {
+  await AsyncStorage.removeItem(TOKEN_KEY);
+};
 
 // Polyfill-free, pure JS self-contained UUIDv4 generator
 export const generateUUIDv4 = (): string => {
@@ -47,11 +60,13 @@ export const getOrCreateSessionId = async (): Promise<string> => {
 
 export const customFetch = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
   const sessionId = await getOrCreateSessionId();
+  const token = await getAuthToken();
   const baseUrl = getApiUrl();
   
   const headers = {
     'Content-Type': 'application/json',
     'X-Session-ID': sessionId,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 

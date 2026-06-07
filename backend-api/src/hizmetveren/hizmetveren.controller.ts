@@ -5,6 +5,7 @@ import { Roles, CurrentUser } from '../common/decorators';
 import { HizmetverenService } from './hizmetveren.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateDocumentsDto } from './dto/update-documents.dto';
 
 @Controller('hizmetveren')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -60,6 +61,16 @@ export class HizmetverenController {
   @HttpCode(HttpStatus.OK)
   async updateProfile(@CurrentUser() user: any, @Body() dto: UpdateProfileDto) {
     return this.hizmetverenService.updateProfile(user.id, dto);
+  }
+
+  /**
+   * Hizmet verenin kimlik ve vergi levhası belgelerini günceller
+   * PUT /api/hizmetveren/profil/belgeler
+   */
+  @Put('profil/belgeler')
+  @HttpCode(HttpStatus.OK)
+  async updateDocuments(@CurrentUser() user: any, @Body() dto: UpdateDocumentsDto) {
+    return this.hizmetverenService.updateDocuments(user.id, dto);
   }
 
   /**

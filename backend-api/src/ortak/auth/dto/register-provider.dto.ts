@@ -52,4 +52,12 @@ export class RegisterProviderDto {
   @IsNotEmpty({ message: 'Tanıtım yazısı boş bırakılamaz.' })
   @IsString({ message: 'Tanıtım yazısı geçerli bir metin olmalıdır.' })
   description: string;
+
+  @IsOptional()
+  @IsString({ message: 'Kimlik belgesi geçerli bir URL olmalıdır.' })
+  identityDocument?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Vergi levhası geçerli bir URL olmalıdır.' })
+  taxPlateDocument?: string;
 }

@@ -178,6 +178,7 @@ export default function ProviderDashboard() {
   const [selectedPhone, setSelectedPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   
   const [quota, setQuota] = useState<Quota | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -192,7 +193,7 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar'>('firsatlar');
+  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama'>('firsatlar');
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -266,6 +267,97 @@ export default function ProviderDashboard() {
   const [devOtpSuggested, setDevOtpSuggested] = useState('');
   const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
   const [password, setPassword] = useState('');
+
+  const isTabLocked = (tabName: typeof activeTab) => {
+    return profile && !profile.isApproved && tabName !== 'belge-dogrulama';
+  };
+
+  const handleTabClick = (tabName: typeof activeTab) => {
+    if (isTabLocked(tabName)) {
+      alert("Lütfen öncelikle belgelerinizi yükleyin ve onay sürecinin tamamlanmasını bekleyin.");
+      return;
+    }
+    setActiveTab(tabName);
+    setMobileMenuOpen(false);
+  };
+
+  const [uploadingIdentity, setUploadingIdentity] = useState(false);
+  const [uploadingTaxPlate, setUploadingTaxPlate] = useState(false);
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'identity' | 'tax') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Geçersiz dosya tipi. Yalnızca PNG, JPEG, WEBP ve PDF yükleyebilirsiniz.");
+      return;
+    }
+
+    if (type === 'identity') setUploadingIdentity(true);
+    else setUploadingTaxPlate(true);
+    setOnboardingError(null);
+
+    try {
+      const presignedRes = await fetch('/api/ortak/upload/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type
+        })
+      });
+
+      const presignedData = await presignedRes.json();
+      if (!presignedRes.ok) {
+        throw new Error(presignedData.message || 'Presigned URL oluşturulamadı.');
+      }
+
+      const uploadRes = await fetch(presignedData.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type
+        },
+        body: file
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Dosya sunucuya yüklenemedi.');
+      }
+
+      const updatePayload = type === 'identity' 
+        ? { identityDocument: presignedData.fileUrl } 
+        : { taxPlateDocument: presignedData.fileUrl };
+
+      const updateRes = await fetch('/api/hizmetveren/profil/belgeler', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatePayload)
+      });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) {
+        throw new Error(updateData.message || 'Belge veritabanına kaydedilemedi.');
+      }
+
+      await loadDashboardData(token!);
+      addLog(`${type === 'identity' ? 'Kimlik belgesi' : 'Vergi levhası'} başarıyla yüklendi.`);
+    } catch (err: any) {
+      console.error(err);
+      setOnboardingError(err.message || 'Dosya yüklenirken bir hata oluştu.');
+      addLog(`Belge yükleme hatası: ${err.message}`);
+    } finally {
+      if (type === 'identity') setUploadingIdentity(false);
+      else setUploadingTaxPlate(false);
+    }
+  };
 
   // Helper to add system log messages in the console log panel
   const addLog = (msg: string) => {
@@ -501,6 +593,18 @@ export default function ProviderDashboard() {
   // Load dashboard data
   const loadDashboardData = async (accessToken: string) => {
     try {
+      const profileRes = await fetch('/api/hizmetveren/profil', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      const profileData = await profileRes.json();
+      if (profileRes.ok) {
+        setProfile(profileData);
+        addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
+        if (!profileData.isApproved) {
+          setActiveTab('belge-dogrulama');
+        }
+      }
+
       const quotaRes = await fetch('/api/hizmetveren/kota', {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
@@ -1246,25 +1350,25 @@ export default function ProviderDashboard() {
           </button>
         </div>
 
-        {/* Circular Profile Card with green checkmark */}
+        {/* Circular Profile Card with status checkmark */}
         <div className="flex items-center gap-3 mb-6 p-3 rounded-2xl bg-[#f8fafc] border border-slate-100 shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
           <div className="relative w-10 h-10 shrink-0">
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"
-              alt="Mert Yılmaz"
+              src={profile?.profilePhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"}
+              alt="Profil Resmi"
               className="w-full h-full object-cover rounded-xl border border-slate-200"
             />
-            {/* Green verified check badge */}
-            <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white text-[8px] font-bold">
-              ✓
+            {/* Verified/Pending check badge */}
+            <span className={`absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full text-white flex items-center justify-center border-2 border-white text-[8px] font-bold ${profile && !profile.isApproved ? 'bg-amber-500' : 'bg-emerald-500'}`}>
+              {profile && !profile.isApproved ? '!' : '✓'}
             </span>
           </div>
           <div className="overflow-hidden text-left">
             <p className="font-extrabold text-slate-800 text-xs truncate leading-none">
-              {quota ? quota.providerName : 'Mert Yılmaz'}
+              {profile ? profile.name : 'Usta'}
             </p>
             <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase block tracking-wider font-mono">
-              DOĞRULANMIŞ UZMAN
+              {profile && !profile.isApproved ? 'ONAY BEKLEYEN USTA' : 'DOĞRULANMIŞ UZMAN'}
             </span>
           </div>
         </div>
@@ -1272,71 +1376,100 @@ export default function ProviderDashboard() {
         {/* Sidebar Menu items */}
         <div className="flex-1 flex flex-col gap-1 overflow-y-auto scrollbar-none pr-0.5">
           <button
-            onClick={() => { setActiveTab('firsatlar'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('belge-dogrulama')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'firsatlar' 
+              activeTab === 'belge-dogrulama' 
                 ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
                 : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-amber-500" />
+            <span>{profile && !profile.isApproved ? 'Belge Doğrulama' : 'Doğrulama Belgelerim'}</span>
+          </button>
+
+          <button
+            onClick={() => handleTabClick('firsatlar')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              isTabLocked('firsatlar')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'firsatlar' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <Briefcase className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Gelen İşler (Fırsatlar)</span>
+            {isTabLocked('firsatlar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
           
           <button
-            onClick={() => { setActiveTab('teklifler'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('teklifler')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'teklifler' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('teklifler')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'teklifler' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Teklif Verilenler</span>
+            {isTabLocked('teklifler') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
-            onClick={() => { setActiveTab('kazanilanlar'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('kazanilanlar')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'kazanilanlar' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('kazanilanlar')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'kazanilanlar' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <CheckCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Kazanılan İşler (Aktif)</span>
+            {isTabLocked('kazanilanlar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
-            onClick={() => { setActiveTab('tamamlananlar'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('tamamlananlar')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'tamamlananlar' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('tamamlananlar')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'tamamlananlar' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <CheckCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Tamamlanan İşler</span>
+            {isTabLocked('tamamlananlar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
-            onClick={() => { setActiveTab('yorumlar'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('yorumlar')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'yorumlar' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('yorumlar')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'yorumlar' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Yorumlar & Puanlar</span>
+            {isTabLocked('yorumlar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
-            onClick={() => { setActiveTab('uyusmazliklar'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('uyusmazliklar')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'uyusmazliklar' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('uyusmazliklar')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'uyusmazliklar' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <AlertTriangle className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-red-500" />
@@ -1348,18 +1481,22 @@ export default function ProviderDashboard() {
                 </span>
               )}
             </span>
+            {isTabLocked('uyusmazliklar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
-            onClick={() => { setActiveTab('abonelik'); setMobileMenuOpen(false); }}
+            onClick={() => handleTabClick('abonelik')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'abonelik' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+              isTabLocked('abonelik')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'abonelik' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
             }`}
           >
             <CreditCard className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Abonelik & Paket Bilgisi</span>
+            {isTabLocked('abonelik') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
         </div>
 
@@ -2033,6 +2170,183 @@ export default function ProviderDashboard() {
                     <p className="text-slate-400 text-xs mt-1">Müşterileriniz tamamlanan işler için puanlama ve yorum yaptığında burada gösterilecektir.</p>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'belge-dogrulama' && (
+            <div className="space-y-8 animate-scale-up text-left w-full">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-amber-500 stroke-[2.5]" />
+                  <span>Belge Doğrulama ve Onay Akışı</span>
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Esnaaf partner ağında yer almak ve canlı iş fırsatlarına teklif verebilmek için lütfen kimlik belgenizi ve vergi levhanızı yükleyin.
+                </p>
+              </div>
+
+              {profile && !profile.isApproved && (
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-3xl p-5 flex items-start gap-4 shadow-sm">
+                  <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-amber-900 text-sm">Hesabınız Onay Bekliyor</h4>
+                    <p className="text-amber-800/80 text-xs leading-relaxed font-medium">
+                      Yüklediğiniz belgeler yetkililerimiz tarafından en kısa sürede kontrol edilecektir. Onay süreci tamamlanana kadar iş fırsatlarını göremez ve teklif iletemezsiniz.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {profile && profile.isApproved && (
+                <div className="bg-emerald-50/60 border border-emerald-200/60 rounded-3xl p-5 flex items-start gap-4 shadow-sm">
+                  <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-emerald-900 text-sm">Tebrikler, Hesabınız Onaylandı!</h4>
+                    <p className="text-emerald-800/80 text-xs leading-relaxed font-medium">
+                      Tüm doğrulama belgeleriniz kontrol edilmiş ve onaylanmıştır. Artık canlı müşteri taleplerini inceleyebilir ve teklifler sunabilirsiniz!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {onboardingError && (
+                <div className="bg-red-50/80 border border-red-200/60 rounded-3xl p-4 text-xs font-bold text-red-600 flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5 shrink-0" />
+                  <span>{onboardingError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* 1. Kimlik Belgesi Card */}
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[360px] relative overflow-hidden group">
+                  <div>
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">T.C. KİMLİK KARTI</span>
+                      {profile?.identityDocument ? (
+                        <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">YÜKLENDİ</span>
+                      ) : (
+                        <span className="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">YÜKLENMEDİ</span>
+                      )}
+                    </div>
+
+                    <h3 className="font-black text-slate-900 text-base">Kimlik Belgesi Görseli</h3>
+                    <p className="text-slate-450 text-xs mt-1 leading-relaxed font-medium">
+                      Kimlik kartınızın veya ehliyetinizin ön yüzünün net çekilmiş bir görselini yükleyin.
+                    </p>
+
+                    {profile?.identityDocument && (
+                      <div className="mt-5 relative w-full h-32 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 group-hover:shadow-md transition-shadow">
+                        {profile.identityDocument.endsWith('.pdf') ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-slate-500">
+                            <FileText className="w-8 h-8 text-slate-400" />
+                            <span className="text-[10px] font-extrabold uppercase font-mono">PDF DOKÜMANI</span>
+                          </div>
+                        ) : (
+                          <img src={profile.identityDocument} alt="Kimlik Önizleme" className="w-full h-full object-cover" />
+                        )}
+                        <a 
+                          href={profile.identityDocument} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-black gap-1.5"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Görüntüle
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6">
+                    <label className={`w-full flex items-center justify-center gap-2 font-black text-xs py-3.5 rounded-2xl transition-all cursor-pointer border ${
+                      uploadingIdentity 
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-wait' 
+                        : 'bg-[#c8f252] text-slate-950 hover:bg-[#b5e639] border-transparent shadow-sm'
+                    }`}>
+                      {uploadingIdentity ? (
+                        <>Yükleniyor...</>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4" />
+                          <span>{profile?.identityDocument ? 'Yeni Belge Yükle' : 'Belge Seç ve Yükle'}</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/png, image/jpeg, image/webp, application/pdf" 
+                        onChange={(e) => handleDocumentUpload(e, 'identity')} 
+                        disabled={uploadingIdentity} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. Vergi Levhası Card */}
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[360px] relative overflow-hidden group">
+                  <div>
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">MALİYE BELGESİ</span>
+                      {profile?.taxPlateDocument ? (
+                        <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">YÜKLENDİ</span>
+                      ) : (
+                        <span className="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">YÜKLENMEDİ</span>
+                      )}
+                    </div>
+
+                    <h3 className="font-black text-slate-900 text-base">Vergi Levhası</h3>
+                    <p className="text-slate-450 text-xs mt-1 leading-relaxed font-medium">
+                      Güncel vergi levhanızın PDF formatını veya net çekilmiş görselini yükleyin.
+                    </p>
+
+                    {profile?.taxPlateDocument && (
+                      <div className="mt-5 relative w-full h-32 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 group-hover:shadow-md transition-shadow">
+                        {profile.taxPlateDocument.endsWith('.pdf') ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-slate-500">
+                            <FileText className="w-8 h-8 text-slate-400" />
+                            <span className="text-[10px] font-extrabold uppercase font-mono">PDF DOKÜMANI</span>
+                          </div>
+                        ) : (
+                          <img src={profile.taxPlateDocument} alt="Vergi Levhası Önizleme" className="w-full h-full object-cover" />
+                        )}
+                        <a 
+                          href={profile.taxPlateDocument} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-black gap-1.5"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Görüntüle
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6">
+                    <label className={`w-full flex items-center justify-center gap-2 font-black text-xs py-3.5 rounded-2xl transition-all cursor-pointer border ${
+                      uploadingTaxPlate 
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-wait' 
+                        : 'bg-[#c8f252] text-slate-950 hover:bg-[#b5e639] border-transparent shadow-sm'
+                    }`}>
+                      {uploadingTaxPlate ? (
+                        <>Yükleniyor...</>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4" />
+                          <span>{profile?.taxPlateDocument ? 'Yeni Belge Yükle' : 'Belge Seç ve Yükle'}</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/png, image/jpeg, image/webp, application/pdf" 
+                        onChange={(e) => handleDocumentUpload(e, 'tax')} 
+                        disabled={uploadingTaxPlate} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           )}

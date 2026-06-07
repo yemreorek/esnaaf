@@ -3,7 +3,9 @@ import { PrismaService } from '../common/prisma/prisma.service';
 import { ChatGateway } from '../ortak/chat/chat.gateway';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateDocumentsDto } from './dto/update-documents.dto';
 import { decryptPhone } from '../common/utils/phone.util';
+import { BildirimService } from '../ortak/bildirimler/bildirim.service';
 
 @Injectable()
 export class HizmetverenService {
@@ -12,6 +14,7 @@ export class HizmetverenService {
   constructor(
     private prisma: PrismaService,
     private chatGateway: ChatGateway,
+    private bildirimService: BildirimService,
   ) {}
 
   /**
@@ -223,11 +226,67 @@ export class HizmetverenService {
 
     this.logger.log(`[Teklif Verildi] Usta ${provider.user.name} tarafından Talep ${dto.jobId}'ye ${dto.price} TL teklif verildi.`);
 
+    // Send push notification to the customer (Seeker)
+    try {
+      const offerCount = await this.prisma.offer.count({
+        where: { job_id: dto.jobId },
+      });
+      // The current offer is already saved in database, so count will be >= 1.
+      if (offerCount <= 1) {
+        await this.bildirimService.sendNotification(job.seeker_id, 'HA-02', { jobId: job.id });
+      } else {
+        await this.bildirimService.sendNotification(job.seeker_id, 'HA-03', { count: offerCount, jobId: job.id });
+      }
+    } catch (notifErr) {
+      this.logger.error(`Failed to send offer notification to customer: ${notifErr.message}`);
+    }
+
     return {
       success: true,
       message: 'Teklifiniz başarıyla iletildi.',
       offer: result,
     };
+  }
+
+  /**
+   * Hesaplar ve usta sağlık skorunu döndürür (0-100 Puan)
+   */
+  async calculateProviderHealthScore(providerId: string, provider: any): Promise<number> {
+    // 1. Ortalama NPS Puanı (%40 ağırlık)
+    const npsAggregate = await this.prisma.npsResponse.aggregate({
+      where: { provider_id: providerId },
+      _avg: { score: true },
+    });
+    const avgNps = npsAggregate._avg.score !== null ? Number(npsAggregate._avg.score) : 8.0; // varsayılan 8.0
+    const npsScoreNormalized = avgNps * 10; // 0-10 -> 0-100
+
+    // 2. Uyuşmazlık Geçmişi (%20 ağırlık)
+    const disputeCount = await this.prisma.jobCompletion.count({
+      where: { provider_id: providerId, status: 'disputed' },
+    });
+    const disputeScore = Math.max(0, 100 - (disputeCount * 25)); // her uyuşmazlık için -25
+
+    // 3. Yanıt Verme Hızı (%20 ağırlık)
+    const speedAvg = provider.response_time_avg || 30; // varsayılan 30 dk
+    let speedScore = 20;
+    if (speedAvg < 10) speedScore = 100;
+    else if (speedAvg <= 30) speedScore = 80;
+    else if (speedAvg <= 60) speedScore = 50;
+    
+    // 4. Tamamlanan İş Sayısı (%20 ağırlık)
+    const totalJobs = provider.total_jobs || 0;
+    let jobsScore = 50;
+    if (totalJobs >= 15) jobsScore = 100;
+    else if (totalJobs >= 5) jobsScore = 90;
+    else if (totalJobs >= 1) jobsScore = 75;
+
+    const healthScore =
+      npsScoreNormalized * 0.4 +
+      disputeScore * 0.2 +
+      speedScore * 0.2 +
+      jobsScore * 0.2;
+
+    return Math.round(healthScore);
   }
 
   /**
@@ -243,12 +302,72 @@ export class HizmetverenService {
       throw new NotFoundException('Hizmet veren profili bulunamadı.');
     }
 
+    let onboardingData: any = {};
+    try {
+      if (provider.description && provider.description.startsWith('{')) {
+        onboardingData = JSON.parse(provider.description);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
+
     return {
       id: provider.id,
       name: provider.user.name || 'Usta',
       phone_masked: provider.user.phone_masked,
       city: provider.city || 'Adana',
       serviceDistricts: provider.service_districts || [],
+      isApproved: provider.is_approved,
+      identityDocument: onboardingData.identityDocument || '',
+      taxPlateDocument: onboardingData.taxPlateDocument || '',
+      companyType: onboardingData.companyType || '',
+      companyName: onboardingData.companyName || '',
+      healthScore,
+    };
+  }
+
+  /**
+   * Hizmet verenin yüklediği kimlik ve vergi levhasını günceller
+   */
+  async updateDocuments(providerUserId: string, dto: UpdateDocumentsDto) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    let descriptionObj: any = {};
+    try {
+      if (provider.description && provider.description.startsWith('{')) {
+        descriptionObj = JSON.parse(provider.description);
+      }
+    } catch (e) {
+      // fallback
+    }
+
+    if (dto.identityDocument !== undefined) {
+      descriptionObj.identityDocument = dto.identityDocument;
+    }
+    if (dto.taxPlateDocument !== undefined) {
+      descriptionObj.taxPlateDocument = dto.taxPlateDocument;
+    }
+
+    await this.prisma.serviceProvider.update({
+      where: { id: provider.id },
+      data: {
+        description: JSON.stringify(descriptionObj),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Belgeleriniz başarıyla güncellendi.',
+      identityDocument: descriptionObj.identityDocument || '',
+      taxPlateDocument: descriptionObj.taxPlateDocument || '',
     };
   }
 

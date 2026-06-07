@@ -29,11 +29,35 @@ interface SessionState {
 @Injectable()
 export class ChatService {
   private CITY_DISTRICTS: Record<string, string[]> = {
-    'Adana': ['çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan']
+    'Adana': ['çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'],
+    'İstanbul': [
+      'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 
+      'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 
+      'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 
+      'bakırköy', 'ataşehir', 'beylikdüzü'
+    ],
+    'Ankara': [
+      'çankaya', 'keçiören', 'yenimahalle', 'mamak', 
+      'etimesgut', 'sincan', 'altındağ', 'gölbaşı', 'pursaklar'
+    ],
+    'İzmir': [
+      'karşıyaka', 'konak', 'bornova', 'buca', 'karabağlar', 
+      'çiğli', 'gaziemir', 'balçova', 'narlıdere', 'güzelbahçe', 
+      'bayraklı', 'urla'
+    ]
   };
 
   private DISTRICT_CAPITALIZATION: Record<string, string> = {
-    'çukurova': 'Çukurova', 'yüreğir': 'Yüreğir', 'sarıçam': 'Sarıçam', 'ceyhan': 'Ceyhan', 'seyhan': 'Seyhan'
+    'çukurova': 'Çukurova', 'yüreğir': 'Yüreğir', 'sarıçam': 'Sarıçam', 'ceyhan': 'Ceyhan', 'seyhan': 'Seyhan',
+    'kadıköy': 'Kadıköy', 'şişli': 'Şişli', 'beşiktaş': 'Beşiktaş', 'ümraniye': 'Ümranıye', 'üsküdar': 'Üsküdar', 
+    'fatih': 'Fatih', 'beyoğlu': 'Beyoğlu', 'sarıyer': 'Sarıyer', 'maltepe': 'Maltepe', 'kartal': 'Kartal', 
+    'pendik': 'Pendik', 'başakşehir': 'Başakşehir', 'esenyurt': 'Esenyurt', 'bahçelievler': 'Bahçelievler', 
+    'bakırköy': 'Bakırköy', 'ataşehir': 'Ataşehir', 'beylikdüzü': 'Beylikdüzü',
+    'çankaya': 'Çankaya', 'keçiören': 'Keçiören', 'yenimahalle': 'Yenimahalle', 'mamak': 'Mamak', 
+    'etimesgut': 'Etimesgut', 'sincan': 'Sincan', 'altındağ': 'Altındağ', 'gölbaşı': 'Gölbaşı', 'pursaklar': 'Pursaklar',
+    'karşıyaka': 'Karşıyaka', 'konak': 'Konak', 'bornova': 'Bornova', 'buca': 'Buca', 'karabağlar': 'Karabağlar', 
+    'çiğli': 'Çiğli', 'gaziemir': 'Gaziemir', 'balçova': 'Balçova', 'narlıdere': 'Narlıdere', 'güzelbahçe': 'Güzelbahçe', 
+    'bayraklı': 'Bayraklı', 'urla': 'Urla'
   };
 
   constructor(
@@ -428,7 +452,15 @@ export class ChatService {
                 const providerCity = provider.city || 'Adana';
                 let providerDistricts = provider.service_districts || [];
                 if (providerDistricts.length === 0) {
-                  providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+                  if (providerCity === 'İstanbul') {
+                    providerDistricts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'];
+                  } else if (providerCity === 'Ankara') {
+                    providerDistricts = ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'];
+                  } else if (providerCity === 'İzmir') {
+                    providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
+                  } else {
+                    providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+                  }
                 }
 
                 // Match City and District
@@ -527,8 +559,6 @@ export class ChatService {
           }
           if (parsedLoc.city) {
             state.collected_data.city = parsedLoc.city;
-          } else if (parsedLoc.district && !state.collected_data.city) {
-            state.collected_data.city = 'Adana';
           }
 
           if (state.collected_data.categorySlug) {
@@ -617,11 +647,17 @@ export class ChatService {
 Sen Türkiye'nin en büyük hizmet pazarı olan Esnaaf platformunun akıllı, samimi ve son derece yardımcı yapay zeka asistanısın. Müşterilerin hizmet taleplerini almak, eksik detayları toplamak ve talebi oluşturmak için onlara rehberlik ediyorsun.
 
 ### ⚠️ ÇOK ÖNEMLİ - HİZMET BÖLGESİ KISITLAMASI ⚠️
-Esnaaf platformu YALNIZCA **Adana** ilinde ve bu ilin şu ilçelerinde hizmet vermektedir: **Çukurova, Yüreğir, Sarıçam, Ceyhan, Seyhan**.
-Eğer müşteri konuşmanın başında veya herhangi bir aşamasında bu il/ilçeler dışında bir konum belirtirse (Örn: "İstanbul'da...", "Ankara'da...", "Mersin'de...", "İzmir'de...", "Kozan'da..."):
+Esnaaf platformu YALNIZCA **Adana, İstanbul, Ankara ve İzmir** illerinde ve bu illerin belirli ilçelerinde hizmet vermektedir.
+Desteklenen iller ve ilçeler şunlardır:
+- **Adana:** Çukurova, Yüreğir, Sarıçam, Ceyhan, Seyhan
+- **İstanbul:** Kadıköy, Şişli, Beşiktaş, Ümraniye, Üsküdar, Fatih, Beyoğlu, Sarıyer, Maltepe, Kartal, Pendik, Başakşehir, Esenyurt, Bahçelievler, Bakırköy, Ataşehir, Beylikdüzü
+- **Ankara:** Çankaya, Keçiören, Yenimahalle, Mamak, Etimesgut, Sincan, Altındağ, Gölbaşı, Pursaklar
+- **İzmir:** Karşıyaka, Konak, Bornova, Buca, Karabağlar, Çiğli, Gaziemir, Balçova, Narlıdere, Güzelbahçe, Bayraklı, Urla
+
+Eğer müşteri bu illerin/ilçelerin dışında bir konum belirtirse (Örn: "Bursa'da...", "Mersin'de...", "Antalya'da..."):
 - KESİNLİKLE 'detectCategory' veya başka bir fonksiyon/tool çağırma!
-- Konuşmayı o aşamada durdur. Müşteriye nazikçe, sistemimizin şimdilik sadece Adana'nın Çukurova, Yüreğir, Sarıçam, Ceyhan ve Seyhan ilçelerinde hizmet verdiğini belirt.
-- Kendisinden bu Adana ilçelerinden birini belirtmesini iste. Müşteri bu ilçelerden birinde geçerli bir konum verene kadar sonraki aşamalara (detay toplama, ad-soyad, telefon, OTP) KESİNLİKLE geçme!
+- Konuşmayı o aşamada durdur. Müşteriye nazikçe, sistemimizin şimdilik sadece Adana, İstanbul, Ankara ve İzmir'in belirli ilçelerinde hizmet verdiğini belirt.
+- Kendisinden bu desteklenen ilçe ve illerden birini belirtmesini iste. Müşteri bu geçerli konumlardan birini verene kadar sonraki aşamalara (detay toplama, ad-soyad, telefon, OTP) KESİNLİKLE geçme!
 
 ### 📊 ŞU ANA KADAR TOPLANAN BİLGİLER:
 ${JSON.stringify(state.collected_data, null, 2)}
@@ -778,11 +814,9 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           state.collected_data.categorySlug = detection.categorySlug;
           
           const loc = this.parseLocation(message);
-          if (loc.city) {
-            state.collected_data.city = loc.city;
-          } else if (loc.district) {
-            state.collected_data.city = 'Adana';
-          }
+           if (loc.city) {
+             state.collected_data.city = loc.city;
+           }
           if (loc.district) {
             state.collected_data.district = loc.district;
           }
@@ -1018,7 +1052,15 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               const providerCity = provider.city || 'Adana';
               let providerDistricts = provider.service_districts || [];
               if (providerDistricts.length === 0) {
-                providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+                if (providerCity === 'İstanbul') {
+                  providerDistricts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'];
+                } else if (providerCity === 'Ankara') {
+                  providerDistricts = ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'];
+                } else if (providerCity === 'İzmir') {
+                  providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
+                } else {
+                  providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+                }
               }
 
               // Match City and District

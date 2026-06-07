@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as Bull from 'bull';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ChatGateway } from '../../ortak/chat/chat.gateway';
+import { BildirimService } from '../../ortak/bildirimler/bildirim.service';
 
 @Processor('talepler-distribution')
 @Injectable()
@@ -12,6 +13,7 @@ export class TaleplerProcessor {
   constructor(
     private prisma: PrismaService,
     private chatGateway: ChatGateway,
+    private bildirimService: BildirimService,
   ) {}
 
   @Process('distribute')
@@ -90,15 +92,22 @@ export class TaleplerProcessor {
       this.logger.log(`[Favori Dağıtımı] Fallback genel dağıtımı kuyruğa eklendi. Gecikme: ${delayMs}ms.`);
     }
 
-    const candidates: { provider: any; score: number }[] = [];
+    const candidates: { provider: any; score: number; healthScore: number }[] = [];
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
     for (const provider of providers) {
       const providerCity = provider.city || 'Adana';
       let providerDistricts = provider.service_districts || [];
       if (providerDistricts.length === 0) {
-        // Dev/Seed Compatibility: default to all 5 districts if empty
-        providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+        if (providerCity === 'İstanbul') {
+          providerDistricts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'];
+        } else if (providerCity === 'Ankara') {
+          providerDistricts = ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'];
+        } else if (providerCity === 'İzmir') {
+          providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
+        } else {
+          providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+        }
       }
 
       // Çoklu Şehir Sınır Koruması: Talebin ili ile hizmet verenin ili eşleşmeli
@@ -132,9 +141,11 @@ export class TaleplerProcessor {
         }
       }
 
-      // 4. Algoritma Skorlama (PRD §11 - 5 Ağırlıklı Faktör)
-      const packageScore = packageLevel.weight; // %35
-      const ratingScore = provider.avg_rating ? Number(provider.avg_rating) * 20 : 80; // %25 (varsayılan 4.0 -> 80 puan)
+      // 4. Algoritma Skorlama (PRD §11 - 5 Ağırlıklı Faktör + Sağlık Skoru)
+      const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
+      
+      const packageScore = packageLevel.weight; // %30
+      const ratingScore = provider.avg_rating ? Number(provider.avg_rating) * 20 : 80; // %20 (varsayılan 4.0 -> 80 puan)
       
       // Cevap hızı (%20) - response_time_avg (dakika)
       const speedAvg = provider.response_time_avg || 30; // varsayılan 30 dk
@@ -151,16 +162,16 @@ export class TaleplerProcessor {
       // Yeni üye bonusu (ilk 30 gün ise +20)
       const newMemberBonus = daysActive <= 30 ? 20 : 0;
 
-      // Toplam skor
+      // Toplam skor (Sağlık Skoru entegrasyonuyla yeniden tasarlandı)
       const totalScore =
-        packageScore * 0.35 +
-        ratingScore * 0.25 +
-        speedScore * 0.20 +
+        packageScore * 0.30 +
+        healthScore * 0.30 +
+        ratingScore * 0.20 +
         proximityScore * 0.15 +
         tenureScore * 0.05 +
         newMemberBonus;
 
-      candidates.push({ provider, score: totalScore });
+      candidates.push({ provider, score: totalScore, healthScore });
     }
 
     // 5. Skorlara göre sırala ve top 5-7 usta seç
@@ -212,6 +223,13 @@ export class TaleplerProcessor {
         isFavoriteCustomer: !!isFav,
       });
 
+      // Send push notification to the provider
+      try {
+        await this.bildirimService.sendNotification(provider.user_id, 'HV-01', { jobId: request.id });
+      } catch (notifErr) {
+        this.logger.error(`Failed to send job distribution notification to provider ${provider.id}: ${notifErr.message}`);
+      }
+
       // OTONOM DEMO: Otomatik olarak gerçek veritabanı teklifi oluştur (Demo kolaylığı ve canlı test akışı için)
       setTimeout(async () => {
         try {
@@ -257,7 +275,7 @@ export class TaleplerProcessor {
         }
       }, 3000); // 3 saniye sonra teklif düşsün (canlılık hissi verir)
 
-      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Paket: ${this.getProviderPackage(provider).type.toUpperCase()} | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
+      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Sağlık Skoru: %${item.healthScore} | Paket: ${this.getProviderPackage(provider).type.toUpperCase()} | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
     }
     this.logger.log(`===========================================================\n`);
 
@@ -290,5 +308,46 @@ export class TaleplerProcessor {
     } else {
       return { type: 'basic', limit: 14, weight: 25 };
     }
+  }
+
+  /**
+   * Dinamik Usta Sağlık Skorunu Hesaplar (0-100 Puan)
+   */
+  private async calculateProviderHealthScore(providerId: string, provider: any): Promise<number> {
+    // 1. Ortalama NPS Puanı (%40 ağırlık)
+    const npsAggregate = await this.prisma.npsResponse.aggregate({
+      where: { provider_id: providerId },
+      _avg: { score: true },
+    });
+    const avgNps = npsAggregate._avg.score !== null ? Number(npsAggregate._avg.score) : 8.0; // varsayılan 8.0
+    const npsScoreNormalized = avgNps * 10; // 0-10 -> 0-100
+
+    // 2. Uyuşmazlık Geçmişi (%20 ağırlık)
+    const disputeCount = await this.prisma.jobCompletion.count({
+      where: { provider_id: providerId, status: 'disputed' },
+    });
+    const disputeScore = Math.max(0, 100 - (disputeCount * 25)); // her uyuşmazlık için -25
+
+    // 3. Yanıt Verme Hızı (%20 ağırlık)
+    const speedAvg = provider.response_time_avg || 30; // varsayılan 30 dk
+    let speedScore = 20;
+    if (speedAvg < 10) speedScore = 100;
+    else if (speedAvg <= 30) speedScore = 80;
+    else if (speedAvg <= 60) speedScore = 50;
+    
+    // 4. Tamamlanan İş Sayısı (%20 ağırlık)
+    const totalJobs = provider.total_jobs || 0;
+    let jobsScore = 50;
+    if (totalJobs >= 15) jobsScore = 100;
+    else if (totalJobs >= 5) jobsScore = 90;
+    else if (totalJobs >= 1) jobsScore = 75;
+
+    const healthScore =
+      npsScoreNormalized * 0.4 +
+      disputeScore * 0.2 +
+      speedScore * 0.2 +
+      jobsScore * 0.2;
+
+    return Math.round(healthScore);
   }
 }

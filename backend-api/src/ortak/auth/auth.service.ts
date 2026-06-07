@@ -281,6 +281,8 @@ export class AuthService {
       profilePhoto: dto.profilePhoto,
       referencePhotos: dto.referencePhotos || [],
       descriptionText: dto.description,
+      identityDocument: dto.identityDocument || '',
+      taxPlateDocument: dto.taxPlateDocument || '',
     });
 
     await this.prisma.user.create({
@@ -334,10 +336,6 @@ export class AuthService {
     const hashedIncoming = createHash('sha256').update(dto.password).digest('hex');
     if (providerData.password !== hashedIncoming) {
       throw new UnauthorizedException('Geçersiz telefon numarası veya şifre.');
-    }
-
-    if (!user.service_provider.is_approved) {
-      throw new ForbiddenException('Hesabınız henüz yönetici onayından geçmemiştir.');
     }
 
     const tokens = await this.generateTokens(user);
