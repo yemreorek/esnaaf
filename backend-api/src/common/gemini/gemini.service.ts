@@ -48,7 +48,7 @@ export class GeminiService {
           },
           {
             name: 'sendOTP',
-            description: 'Müşterinin Ad-Soyad ve Telefon bilgilerini doğrulayıp SMS ile 6 haneli doğrulama kodu (OTP) gönderir. Telefon numarası ve ad-soyad alındığında çağrılmalıdır.',
+            description: 'Müşterinin Ad-Soyad ve Telefon bilgilerini doğrulayıp SMS ile 6 haneli doğrulama kodu (OTP) gönderir. Telefon numarası ve ad-soyad alındığında çağrılmalıdır. Çağrılırken o ana kadar toplanan tüm form verileri de formData parametresi ile iletilmelidir.',
             parameters: {
               type: Type.OBJECT,
               properties: {
@@ -60,8 +60,12 @@ export class GeminiService {
                   type: Type.STRING,
                   description: 'Kullanıcının adı ve soyadı (örn: "Ahmet Yılmaz")',
                 },
+                formData: {
+                  type: Type.OBJECT,
+                  description: 'Kategoriye özel toplanan tüm detaylar ve form verileri (Örn: { city: "Adana", district: "Yüreğir", details: "klima arızalı çalışmıyor soğutmuyor", cihazTuru: "Klima", islemTuru: "Arıza Onarım" }). Konum bilgisi (district) mutlaka Adana ilçelerinden biri olmalıdır (Çukurova, Yüreğir, Sarıçam, Ceyhan, Seyhan). Açıklama (details) alanına müşterinin belirttiği arıza veya talebi yazın.',
+                },
               } as any,
-              required: ['phone', 'name'],
+              required: ['phone', 'name', 'formData'],
             },
           },
           {

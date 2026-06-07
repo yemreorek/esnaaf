@@ -65,7 +65,18 @@ async function run() {
         functionCalls: [
           {
             name: 'sendOTP',
-            args: { phone: '05329998877', name: 'Mert Usta Sever' },
+            args: { 
+              phone: '05329998877', 
+              name: 'Mert Usta Sever',
+              formData: {
+                city: 'Adana',
+                district: 'Çukurova',
+                metrekare: '120 m²',
+                tur: 'İç mekan',
+                renkTip: 'beyaz',
+                details: '120 metrekare iç mekan beyaz renk olacak.'
+              }
+            },
           },
         ] as any,
       };

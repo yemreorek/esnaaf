@@ -397,8 +397,8 @@ export class ChatService {
                   ...state.collected_data,
                   details: state.collected_data.details || 'Detay girilmedi.',
                   name: state.collected_data.name || 'Misafir Kullanıcı',
-                  city: state.collected_data.city || 'İstanbul',
-                  district: state.collected_data.district || 'Kadıköy',
+                  city: state.collected_data.city || 'Adana',
+                  district: state.collected_data.district || 'Seyhan',
                   sendToFavoritesOnly: sendToFavoritesOnly,
                 },
                 status: 'pending',
@@ -410,8 +410,8 @@ export class ChatService {
 
             // Trigger matches & distribution (failsafe direct request distribution)
             try {
-              const requestDistrict = state.collected_data.district || 'Kadıköy';
-              const requestCity = state.collected_data.city || 'İstanbul';
+              const requestDistrict = state.collected_data.district || 'Seyhan';
+              const requestCity = state.collected_data.city || 'Adana';
 
               // Find all active, approved providers supporting this category in the database
               const providers = await this.prisma.serviceProvider.findMany({
@@ -528,7 +528,7 @@ export class ChatService {
           if (parsedLoc.city) {
             state.collected_data.city = parsedLoc.city;
           } else if (parsedLoc.district && !state.collected_data.city) {
-            state.collected_data.city = 'İstanbul';
+            state.collected_data.city = 'Adana';
           }
 
           if (state.collected_data.categorySlug) {
@@ -711,11 +711,17 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             }
           }
           else if (call.name === 'sendOTP') {
-            const { phone, name } = call.args as any;
+            const { phone, name, formData } = call.args as any;
             try {
               const normalized = normalizePhone(phone);
               state.collected_data.phone = normalized;
               state.collected_data.name = name;
+              if (formData && typeof formData === 'object') {
+                state.collected_data = {
+                  ...state.collected_data,
+                  ...formData
+                };
+              }
 
               const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
               await this.redis.set(`otp:${normalized}`, JSON.stringify({ code: otpCode, attempts: 0 }), 'EX', 300);
@@ -731,7 +737,22 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             }
           }
           else if (call.name === 'createServiceRequest') {
-            responseMessage = 'Talebiniz hazırlanıyor, lütfen onaylayın.';
+            const { seekerName, phone, categorySlug, formData } = call.args as any;
+            try {
+              if (seekerName) state.collected_data.name = seekerName;
+              if (phone) state.collected_data.phone = normalizePhone(phone);
+              if (categorySlug) state.collected_data.categorySlug = categorySlug;
+              if (formData && typeof formData === 'object') {
+                state.collected_data = {
+                  ...state.collected_data,
+                  ...formData
+                };
+              }
+              state.step = 'confirm_form';
+              responseMessage = 'Talebiniz hazırlandı. Lütfen bilgilerinizi onaylayın.';
+            } catch (e) {
+              responseMessage = 'Talebiniz hazırlanırken bir hata oluştu.';
+            }
           }
         } else {
           responseMessage = geminiRes.text || 'Size nasıl yardımcı olabilirim?';
@@ -760,7 +781,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           if (loc.city) {
             state.collected_data.city = loc.city;
           } else if (loc.district) {
-            state.collected_data.city = 'İstanbul';
+            state.collected_data.city = 'Adana';
           }
           if (loc.district) {
             state.collected_data.district = loc.district;
@@ -966,8 +987,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
                 ...state.collected_data,
                 details: state.collected_data.details || 'Detay girilmedi.',
                 name: state.collected_data.name || 'Misafir Kullanıcı',
-                city: state.collected_data.city || 'İstanbul',
-                district: state.collected_data.district || 'Kadıköy',
+                city: state.collected_data.city || 'Adana',
+                district: state.collected_data.district || 'Seyhan',
                 sendToFavoritesOnly: sendToFavoritesOnly,
               },
               status: 'pending',
@@ -979,8 +1000,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
 
           // Trigger matches & distribution (failsafe direct synchronous distribution)
           try {
-            const requestDistrict = state.collected_data.district || 'Kadıköy';
-            const requestCity = state.collected_data.city || 'İstanbul';
+            const requestDistrict = state.collected_data.district || 'Seyhan';
+            const requestCity = state.collected_data.city || 'Adana';
 
             // Find all active, approved providers supporting this category in the database
             const providers = await this.prisma.serviceProvider.findMany({
@@ -1171,10 +1192,11 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
    * Parses locations (districts) from Turkish messages
    */
   private parseLocation(message: string): { district: string | null; city: string | null } {
-    const text = message.toLowerCase();
+    const text = message.toLocaleLowerCase('tr-TR').normalize('NFC');
     for (const [city, districts] of Object.entries(this.CITY_DISTRICTS)) {
       for (const d of districts) {
-        if (text.includes(d)) {
+        const normalizedD = d.toLocaleLowerCase('tr-TR').normalize('NFC');
+        if (text.includes(normalizedD)) {
           return {
             district: this.DISTRICT_CAPITALIZATION[d] || d,
             city: city
