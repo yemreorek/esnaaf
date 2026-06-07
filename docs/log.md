@@ -2,6 +2,11 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-07 build | partner.esnaaf.com Firebase Domain Yönlendirme Düzeltmesi
+
+- **Firebase Hosting Yönlendirme Düzeltmesi:** `partner.esnaaf.com` özel alan adı, Firebase Hosting üzerinde yanlışlıkla `www.partner.esnaaf.com` adresine kalıcı yönlendirme (301 redirect) olarak tanımlanmıştı. Bu durum, `www.partner.esnaaf.com` DNS/Firebase tarafında tanımlı olmadığı için sitenin açılamamasına sebep oluyordu. Google Firebase Hosting API (`projects.sites.customDomains`) üzerinden `redirectTarget` parametresi boşaltılarak yönlendirme kaldırıldı.
+- **CDN Önbellek Temizliği:** Yönlendirme düzeltmesinin ardından, küresel edge caching (CDN) sunucularındaki eski 404/yönlendirme kayıtlarını sıfırlamak amacıyla `firebase deploy --only hosting` komutu tetiklenerek yeni sürüm yayına alındı. `https://partner.esnaaf.com` ve `https://partner.esnaaf.com/admin` sayfaları `200 OK` yanıtı ile tamamen aktif hale getirildi.
+
 ## 2026-06-05 build | Hizmet Veren Başvuru Sihirbazı Vektörel İkon Düzeltmeleri & Gemini 404 Model Hatası Çözümü
 
 - **Lucide-React İkon Entegrasyonu (`app-musteri`):** Hizmet veren başvuru sihirbazında ([hizmetveren-basvuru/page.tsx](file:///c:/Users/HaTicEmRe/OneDrive/Masaüstü/esnaaf/app-musteri/app/hizmetveren-basvuru/page.tsx)) Material Symbols fontunun yüklenememesinden kaynaklanan ikonların metin olarak (business, person, corporate_fare) görünmesi sorunu çözüldü. Tüm ikonlar bağımsız vektörel SVG Lucide React bileşenleri ile güncellendi.

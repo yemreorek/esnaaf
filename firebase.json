@@ -1,19 +1,40 @@
 {
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "run": {
-          "serviceId": "esnaaf-musteri",
-          "region": "europe-west3"
+  "hosting": [
+    {
+      "site": "esnaaf-prod-orek",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "run": {
+            "serviceId": "esnaaf-musteri",
+            "region": "europe-west3"
+          }
         }
-      }
-    ]
-  }
+      ]
+    },
+    {
+      "site": "esnaaf-partner",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "run": {
+            "serviceId": "esnaaf-hizmetveren",
+            "region": "europe-west3"
+          }
+        }
+      ]
+    }
+  ]
 }

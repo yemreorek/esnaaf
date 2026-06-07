@@ -273,7 +273,7 @@ export default function Home() {
       // Check role - if service_provider (hizmet veren), redirect them to their provider dashboard
       if (data.user && data.user.role === "service_provider") {
         triggerNotification("Hizmet Veren paneline yönlendiriliyorsunuz...");
-        let providerBaseUrl = "https://esnaaf-hizmetveren-339090537138.europe-west3.run.app";
+        let providerBaseUrl = "https://partner.esnaaf.com";
         if (typeof window !== "undefined") {
           const hostname = window.location.hostname;
           if (hostname === "localhost" || hostname === "127.0.0.1") {
