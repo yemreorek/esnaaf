@@ -1,8 +1,11 @@
+// Sentry instrument — only loads if @sentry/nestjs is installed
+try { require('./instrument'); } catch (e) { /* Sentry not installed, skipping */ }
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+// Sentry is loaded dynamically to avoid build errors when not installed
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +33,16 @@ async function bootstrap() {
 
   // 5. Global HttpException Filter
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 6. Sentry Global Error Filter (unhandled exceptions)
+  if (process.env.SENTRY_DSN) {
+    try {
+      const SentryModule = require('@sentry/nestjs');
+      app.useGlobalFilters(new SentryModule.SentryGlobalFilter());
+    } catch (e) {
+      console.warn('Sentry paketi yüklü değil, error tracking devre dışı.');
+    }
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

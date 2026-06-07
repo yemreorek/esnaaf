@@ -3790,6 +3790,7 @@ ${callTaskNotes}`;
                         ))}
                       </div>
                     </div>
+                  )}
                   {/* Doğrulama Belgeleri */}
                   <div className="space-y-3 bg-slate-50 border border-slate-100 p-5 rounded-2xl">
                     <span className="text-slate-400 block text-[9px] uppercase font-bold mb-2">Doğrulama Belgeleri</span>

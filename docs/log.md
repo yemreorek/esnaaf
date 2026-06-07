@@ -2,6 +2,20 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-07 fix | Canlı Ortam Sağlık Kontrolü & 9 İyileştirme
+
+- **Canlı Ortam Testi:** Backend API (`/api/health`), kategori listeleme, anonim chat oturumu, Gemini AI mesaj işleme, OTP gönderimi ve 4 korumalı endpoint'in JWT güvenliği canlı ortamda uçtan uca test edildi. **9/9 test PASS.** Frontend siteleri (`esnaaf.com`, `www.esnaaf.com`, `partner.esnaaf.com`, `partner.esnaaf.com/admin`) tümü 200 OK yanıtı döndürdü. SSL sertifikası geçerli (89 gün kaldı).
+- **Sentry Error Tracking (Opsiyonel):** `@sentry/nestjs` ve `@sentry/profiling-node` paketleri `package.json`'a eklendi. `instrument.ts` dosyası oluşturuldu. `main.ts`'e dinamik `require()` ile koşullu Sentry entegrasyonu yapıldı — paket yüklü değilken build hata vermez, `SENTRY_DSN` tanımlıysa çalışma zamanında aktif olur. Production'da %20 trace, %10 profiling örneklemesi.
+- **OTP Rate Limiting:** `auth.controller.ts` içindeki `@Post('otp/send')` endpoint'ine `@Throttle({ default: { limit: 3, ttl: 60000 } })` dekoratörü eklenerek dakikada 3 OTP isteği limiti uygulandı (global 100'den bağımsız).
+- **CORS Production Origin:** `.env.example` içindeki `FRONTEND_URL` `https://esnaaf.com,https://www.esnaaf.com,https://partner.esnaaf.com` olarak güncellendi.
+- **CDN Cache Headers:** Her iki frontend (`app-musteri/next.config.ts`, `app-hizmetveren/next.config.ts`) için `headers()` fonksiyonu eklendi — statik dosyalar (svg, jpg, png, woff vb.) ve `/_next/static/` dizini 1 yıl (`max-age=31536000, immutable`) cache'leniyor.
+- **X-Powered-By Gizleme:** Her iki Next.js app'te `poweredByHeader: false` ayarı eklenerek framework bilgisi HTTP header'larından kaldırıldı.
+- **Cloud Run min-instances:** `deploy-gcp.yml` CI/CD pipeline'ındaki tüm `gcloud run deploy` komutlarına `--min-instances=1` eklenerek cold start sorunu çözüldü. Backend'e ek olarak `--concurrency=80 --cpu=1 --memory=512Mi` parametreleri eklendi.
+- **Health Check Scriptleri:** `scripts/health-check.sh` (Linux/crontab) ve `scripts/health-check.ps1` (Windows/Task Scheduler) monitoring scriptleri oluşturuldu. Slack webhook entegrasyonu opsiyonel.
+- **Backup Rehberi:** `docs/gelistirme/backup-rehberi.md` dosyası oluşturuldu — Cloud SQL otomatik yedekleme, Redis RDB snapshot ve geri yükleme komutları dokümante edildi.
+- **JSX Parse Hatası Düzeltmesi:** `app-hizmetveren/app/admin/page.tsx` satır 3792'deki eksik `)}` kapanış parantezi eklenerek referans resimleri koşullu bloğu düzeltildi.
+- **Derleme Doğrulaması:** Backend (`nest build`), müşteri (`next build`) ve hizmetveren (`next build`) projeleri sıfır hata ile başarıyla derlendi.
+
 ## 2026-06-07 build | Canlı Dış Servis Entegrasyonları ve Altyapı Hazırlıkları
 
 - **AWS ECS Secrets ve Konfigürasyon Yapılandırması:** Esnaaf backend servisinin canlı yayına (production) geçiş hazırlıkları kapsamında, dış servis entegrasyonları için gerekli tüm hassas parametreler ve API anahtarları AWS ECS Task Definition (`ecs-task-def.json`) dosyasına entegre edildi.

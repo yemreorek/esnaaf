@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Body, Headers, UseGuards, Req, HttpStatus, HttpCode } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -13,6 +14,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('otp/send')
   @HttpCode(HttpStatus.OK)
   async sendOtp(@Body() dto: SendOtpDto) {

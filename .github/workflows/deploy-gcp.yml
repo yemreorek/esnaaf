@@ -48,6 +48,10 @@ jobs:
             --session-affinity
             --timeout=3600
             --port=3000
+            --min-instances=1
+            --concurrency=80
+            --cpu=1
+            --memory=512Mi
 
   deploy-musteri-frontend:
     name: Build & Deploy Customer Web App
@@ -86,6 +90,7 @@ jobs:
           flags: |
             --allow-unauthenticated
             --port=3000
+            --min-instances=1
 
   deploy-hizmetveren-frontend:
     name: Build & Deploy Provider Web App
@@ -124,3 +129,4 @@ jobs:
           flags: |
             --allow-unauthenticated
             --port=3000
+            --min-instances=1
