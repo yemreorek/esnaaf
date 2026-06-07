@@ -42,8 +42,60 @@
           "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/jwt_access_secret"
         },
         {
+          "name": "JWT_REFRESH_SECRET",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/jwt_refresh_secret"
+        },
+        {
+          "name": "ENCRYPTION_KEY",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/encryption_key"
+        },
+        {
+          "name": "ENCRYPTION_IV",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/encryption_iv"
+        },
+        {
+          "name": "WS_SECRET",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/ws_secret"
+        },
+        {
           "name": "GEMINI_API_KEY",
           "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/gemini_api_key"
+        },
+        {
+          "name": "NETGSM_USERCODE",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/netgsm_usercode"
+        },
+        {
+          "name": "NETGSM_PASSWORD",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/netgsm_password"
+        },
+        {
+          "name": "NETGSM_MSGHEADER",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/netgsm_msgheader"
+        },
+        {
+          "name": "FCM_PROJECT_ID",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/fcm_project_id"
+        },
+        {
+          "name": "FCM_CLIENT_EMAIL",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/fcm_client_email"
+        },
+        {
+          "name": "FCM_PRIVATE_KEY",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/fcm_private_key"
+        },
+        {
+          "name": "IYZICO_API_KEY",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/iyzico_api_key"
+        },
+        {
+          "name": "IYZICO_SECRET_KEY",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/iyzico_secret_key"
+        },
+        {
+          "name": "IYZICO_BASE_URL",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/iyzico_base_url"
         }
       ],
       "healthCheck": {

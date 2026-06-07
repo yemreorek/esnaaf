@@ -32,6 +32,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 21** | **Gemini Active Agent** | Resmi Google Gen AI SDK (`@google/genai`) entegrasyonu, otonom 'detectCategory', 'sendOTP' ve 'createServiceRequest' araç çağırma (Function Calling) akışı, dinamik syncStep algoritması, üstel geri çekilme (exponential backoff) hata toleransı, coğrafi kısıtlayıcı kilitler ve parametre bozulmalarını önleyen akıllı filtreleme mimarisi | **✅ Tamamlandı** |
 | **Adım 22** | **GCP & Canlı Dağıtım** | Google Cloud Platform (GCP) Canlı Ortam Kurulumu, Cloud Run API/Frontend Servisleri, Memorystore Redis VPC Egress, Firebase Hosting Özel Alan Adı (esnaaf.com) Entegrasyonu ve Otomatik GitHub Actions CI/CD Dağıtım Altyapısı | **✅ Tamamlandı** |
 | **Adım 23** | **Altyapı & Caching** | Veritabanı indeks optimizasyonları, Redis `getOrSet`/`invalidatePattern` cache helper entegrasyonu, Kategori ve Profil caching/invalidation, AWS ECS healthcheck ve deploy pipeline | **✅ Tamamlandı** |
+| **Adım 24** | **Canlı Entegrasyonlar** | Canlı iyzico, Netgsm SMS, Firebase FCM ve Gemini API çevre değişkenleri ve AWS ECS task secrets hazırlıkları | **✅ Tamamlandı** |
 
 ---
 
@@ -719,4 +720,25 @@ Yüksek trafik ve ölçeklenme ihtiyaçları doğrultusunda veritabanı indeksle
 
 ### 5. E2E Test Doğrulaması
 *   Yazılan `test-caching-e2e.ts` entegrasyon testi ile caching get/set, default TTL ve güncelleme anında cache invalidation süreçleri koşturuldu ve **100% başarıyla** tamamlandı.
+
+## 🛠️ Adım 24 Geliştirme Detayları (Canlı Dış Servis Entegrasyonları & Altyapı Hazırlıkları)
+
+Esnaaf platformunun canlı (production) ortama geçiş hazırlıkları kapsamında dış servis entegrasyonları için gerekli çevre değişkeni altyapısı ve AWS ECS secrets konfigürasyonları yapılmıştır:
+
+### 1. Canlı iyzico Entegrasyonu Hazırlığı
+*   `IyzicoService` (`iyzico.service.ts`) üzerinde üretim ortamı (`NODE_ENV === 'production'`) ve `IYZICO_API_KEY !== 'mock-api-key'` koşulları denetlendi. Bu koşullar sağlandığında sistem otomatik olarak canlı API'lere istek atmaktadır.
+*   ECS Task Definition dosyasına `IYZICO_API_KEY`, `IYZICO_SECRET_KEY` ve `IYZICO_BASE_URL` parametreleri SSM Parameter Store üzerinden enjekte edilecek şekilde eklenmiştir.
+
+### 2. Canlı Netgsm SMS Entegrasyonu Hazırlığı
+*   `AuthService.sendSms` metodu, `NODE_ENV === 'production'` ve Netgsm kullanıcı kodu/şifresi tanımlı olduğunda doğrudan Netgsm HTTP API üzerinden gerçek SMS gönderimi yapacak şekilde yapılandırılmıştır.
+*   ECS Task Definition dosyasına `NETGSM_USERCODE`, `NETGSM_PASSWORD` ve `NETGSM_MSGHEADER` parametreleri SSM Parameter Store gizli değişkenleri olarak tanımlanmıştır.
+
+### 3. Canlı Firebase FCM Entegrasyonu Hazırlığı
+*   `BildirimService` (`bildirim.service.ts`) üzerindeki Firebase Admin SDK entegrasyonu, `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL` ve `FCM_PRIVATE_KEY` parametreleri mevcut olduğunda canlı push notification gönderecek şekilde hazırlanmıştır.
+*   Firebase özel anahtarındaki (`FCM_PRIVATE_KEY`) kaçış karakterlerinin (`\n`) doğru işlenmesi için dinamik regex parse mantığı doğrulanmıştır.
+*   Task Definition dosyasına Firebase parametrelerinin tamamı eklenmiştir.
+
+### 4. Gemini API & Genel Altyapı Hazırlıkları
+*   Gemini Active Agent entegrasyonu için gerekli `GEMINI_API_KEY` değişkeni ile birlikte cryptographic ve oturum güvenliği için `JWT_REFRESH_SECRET`, `ENCRYPTION_KEY`, `ENCRYPTION_IV` ve `WS_SECRET` gibi tüm kritik secrets bileşenleri ECS Task Definition (`ecs-task-def.json`) dosyasına işlenmiştir.
+
 

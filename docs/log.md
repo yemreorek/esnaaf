@@ -2,6 +2,12 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-07 build | Canlı Dış Servis Entegrasyonları ve Altyapı Hazırlıkları
+
+- **AWS ECS Secrets ve Konfigürasyon Yapılandırması:** Esnaaf backend servisinin canlı yayına (production) geçiş hazırlıkları kapsamında, dış servis entegrasyonları için gerekli tüm hassas parametreler ve API anahtarları AWS ECS Task Definition (`ecs-task-def.json`) dosyasına entegre edildi.
+- **Dış Servis Secrets Eşlemesi:** `IYZICO_API_KEY`, `IYZICO_SECRET_KEY`, `IYZICO_BASE_URL` (iyzico ödeme), `NETGSM_USERCODE`, `NETGSM_PASSWORD`, `NETGSM_MSGHEADER` (Netgsm SMS), `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY` (Firebase FCM push) ve genel kriptografik secrets (`JWT_REFRESH_SECRET`, `ENCRYPTION_KEY`, `ENCRYPTION_IV`, `WS_SECRET`) parametreleri AWS SSM Parameter Store (`arn:aws:ssm:.../esnaaf/prod/`) üzerinden okunacak şekilde eşlendi.
+- **Graceful Fallback & Build Doğrulaması:** Kod tabanının eksik anahtarlar durumunda otomatik olarak simüle/mock loglama moduna dönen güvenli fallback yapısı teyit edildi. TypeScript derleme kontrolü (`tsc --noEmit`) ve NestJS üretim derlemesi (`nest build`) sıfır hata ile tamamlandı.
+
 ## 2026-06-07 build | partner.esnaaf.com Firebase Domain Yönlendirme Düzeltmesi
 
 - **Firebase Hosting Yönlendirme Düzeltmesi:** `partner.esnaaf.com` özel alan adı, Firebase Hosting üzerinde yanlışlıkla `www.partner.esnaaf.com` adresine kalıcı yönlendirme (301 redirect) olarak tanımlanmıştı. Bu durum, `www.partner.esnaaf.com` DNS/Firebase tarafında tanımlı olmadığı için sitenin açılamamasına sebep oluyordu. Google Firebase Hosting API (`projects.sites.customDomains`) üzerinden `redirectTarget` parametresi boşaltılarak yönlendirme kaldırıldı.
