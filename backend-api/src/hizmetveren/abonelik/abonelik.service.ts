@@ -269,7 +269,15 @@ export class AbonelikService {
   async getSubscriptionDetails(providerUserId: string) {
     const provider = await this.prisma.serviceProvider.findUnique({
       where: { user_id: providerUserId },
-      include: { subscription: true },
+      include: {
+        subscription: {
+          include: {
+            payments: {
+              orderBy: { created_at: 'desc' }
+            }
+          }
+        }
+      },
     });
 
     if (!provider) {

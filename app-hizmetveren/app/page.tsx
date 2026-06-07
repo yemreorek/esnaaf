@@ -195,8 +195,20 @@ export default function ProviderDashboard() {
   const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar'>('firsatlar');
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
-  const [disputesList, setDisputesList] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [disputesList, setDisputesList] = useState<any[]>([]);
+
+  // Subscription management states
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [availablePackages, setAvailablePackages] = useState<any[]>([]);
+  const [campaignCodeInput, setCampaignCodeInput] = useState('');
+  const [validatedCampaign, setValidatedCampaign] = useState<any>(null);
+  const [campaignError, setCampaignError] = useState<string | null>(null);
+  const [campaignSuccess, setCampaignSuccess] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [checkoutFormHtml, setCheckoutFormHtml] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [submittingSubscription, setSubmittingSubscription] = useState(false);
 
   const groupedWonJobs = React.useMemo(() => {
     const groups: { [year: number]: { [month: number]: any[] } } = {};
@@ -623,6 +635,23 @@ export default function ProviderDashboard() {
           setDisputesList(data);
           addLog(`${data.length} adet uyuşmazlık yüklendi.`);
         }
+      } else if (tab === 'abonelik') {
+        const subRes = await fetch('/api/hizmetveren/abonelik', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        if (subRes.ok) {
+          const subData = await subRes.json();
+          setSubscriptionDetails(subData);
+          addLog('Abonelik ve kota bilgileri yüklendi.');
+        }
+
+        const pkgsRes = await fetch('/api/ortak/paketler', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        if (pkgsRes.ok) {
+          const pkgsData = await pkgsRes.json();
+          setAvailablePackages(pkgsData);
+        }
       }
     } catch (err: any) {
       addLog(`Hata (${tab}): ${err.message}`);
@@ -646,6 +675,95 @@ export default function ProviderDashboard() {
       console.error("Fetch chat messages failed:", err);
     } finally {
       setLoadingChatMessages(false);
+    }
+  };
+
+  const handleValidateCampaign = async () => {
+    if (!token || !campaignCodeInput.trim() || !selectedPackage) return;
+    setCampaignError(null);
+    setCampaignSuccess(null);
+    try {
+      const res = await fetch('/api/hizmetveren/kampanya/dogrula', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          code: campaignCodeInput.trim(),
+          packageType: selectedPackage.type,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setValidatedCampaign(data.campaign);
+        setCampaignSuccess(`Kampanya kodu uygulandı! İndirim: ${data.campaign.value} TL`);
+      } else {
+        setCampaignError(data.error?.message || 'Kampanya kodu geçersiz.');
+      }
+    } catch (err) {
+      setCampaignError('Bir ağ hatası oluştu.');
+    }
+  };
+
+  const handleStartSubscription = async (packageType: string) => {
+    if (!token) return;
+    setSubmittingSubscription(true);
+    try {
+      const payload: any = { packageType };
+      if (validatedCampaign) {
+        payload.campaignCode = validatedCampaign.code;
+      }
+      
+      const res = await fetch('/api/hizmetveren/abonelik/baslat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.status === 'trial') {
+          alert(data.message || 'Deneme süreniz başarıyla başlatıldı!');
+          setSelectedPackage(null);
+          setValidatedCampaign(null);
+          setCampaignCodeInput('');
+          fetchTabDependencies('abonelik', token);
+          loadDashboardData(token);
+        } else {
+          setCheckoutFormHtml(data.checkoutFormContent);
+        }
+      } else {
+        alert(data.error?.message || 'Abonelik başlatılamadı.');
+      }
+    } catch (err) {
+      alert('Abonelik başlatılırken bir hata oluştu.');
+    } finally {
+      setSubmittingSubscription(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!token) return;
+    const confirm = window.confirm('Aboneliğinizi iptal etmek istediğinize emin misiniz? Dönem sonuna kadar kullanımınız devam edecektir.');
+    if (!confirm) return;
+
+    try {
+      const res = await fetch('/api/hizmetveren/abonelik/iptal', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(data.message || 'Aboneliğiniz iptal edildi.');
+        fetchTabDependencies('abonelik', token);
+      } else {
+        alert(data.error?.message || 'İptal işlemi başarısız.');
+      }
+    } catch (err) {
+      alert('Abonelik iptal edilirken bir hata oluştu.');
     }
   };
 
@@ -1920,32 +2038,313 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'abonelik' && (
-            <div className="space-y-6 animate-scale-up text-left w-full">
+            <div className="space-y-8 animate-scale-up text-left w-full">
               <div>
                 <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
                   Abonelik & Limit Bilgisi
                 </h2>
                 <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
-                  Paketinizin detaylarını, aylık kullanım ve kalan kota bilgilerinizi inceleyin.
+                  Paketinizin detaylarını, aylık kullanım ve kalan kota bilgilerinizi inceleyin veya yeni bir paket satın alın.
                 </p>
               </div>
 
-              {/* Quota overview (Full Width) */}
-              <div className="bg-white border border-slate-150 shadow-sm p-6 rounded-[24px] max-w-2xl w-full">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Kota Limit Bilgileri</h3>
-                  <span className="bg-[#c8f252] text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider font-mono">
-                    {quota ? quota.packageName : 'Mert Yılmaz - VIP'}
-                  </span>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Teklif Kotası:</span>
-                    <span className="text-slate-800 font-black font-mono">
-                      {quota?.limit ? `${quota.used} / ${quota.limit} İş` : `${quota ? quota.used : 2} / Sınırsız (VIP)`}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left: Active Subscription Card */}
+                <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-[28px] p-6 shadow-lg text-white flex flex-col justify-between relative overflow-hidden h-[240px]">
+                  {/* Glowing blobs */}
+                  <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-[#c8f252]/10 blur-xl"></div>
+                  
+                  <div className="flex justify-between items-start z-10">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-left">Mevcut Abonelik Planı</span>
+                      <h3 className="text-2xl font-black tracking-tight text-[#c8f252] uppercase mt-1">
+                        {subscriptionDetails?.subscription?.package_type ? `${subscriptionDetails.subscription.package_type} Paket` : 'Paket Bulunmuyor'}
+                      </h3>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded border ${
+                      subscriptionDetails?.subscription?.status === 'active'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        : subscriptionDetails?.subscription?.status === 'trial' || subscriptionDetails?.subscription?.status === 'admin_trial'
+                        ? 'bg-[#c8f252]/10 border-[#c8f252]/20 text-[#c8f252]'
+                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    }`}>
+                      {subscriptionDetails?.subscription?.status || 'Abonelik Yok'}
                     </span>
                   </div>
+
+                  <div className="space-y-2.5 z-10">
+                    <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                      <span>Bu Ayki Kullanılan Kota:</span>
+                      <span className="text-white font-mono">{subscriptionDetails?.quota?.accepted_count || 0} / {subscriptionDetails?.quota?.monthly_limit || 'Sınırsız (VIP)'}</span>
+                    </div>
+                    {/* Progress Bar */}
+                    {subscriptionDetails?.quota?.monthly_limit && (
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#c8f252]"
+                          style={{ width: `${Math.min(100, ((subscriptionDetails.quota.accepted_count || 0) / subscriptionDetails.quota.monthly_limit) * 100)}%` }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-[10px] text-slate-400 font-bold z-10">
+                    <span>
+                      {subscriptionDetails?.subscription?.expires_at 
+                        ? `Yenilenme: ${new Date(subscriptionDetails.subscription.expires_at).toLocaleDateString('tr-TR')}` 
+                        : 'Son Kullanım Tarihi: Yok'}
+                    </span>
+                    {subscriptionDetails?.subscription?.status === 'active' && (
+                      <button 
+                        onClick={handleCancelSubscription}
+                        className="text-red-400 hover:text-red-300 font-black cursor-pointer bg-transparent border-none outline-none active:scale-95 transition-all"
+                      >
+                        İptal Et
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Package catalog list */}
+                <div className="lg:col-span-2 bg-white border border-slate-150 p-6 rounded-[28px] shadow-sm flex flex-col justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="font-extrabold text-slate-900 text-sm">Abonelik Paketleri</h3>
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                      Sisteme gelen iş tekliflerini görebilmek ve teklif verebilmek için paket limitlerinizi yükseltin.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                    {availablePackages.map((pkg: any) => {
+                      const isCurrent = subscriptionDetails?.subscription?.package_type === pkg.type;
+                      return (
+                        <div 
+                          key={pkg.type}
+                          onClick={() => {
+                            if (!isCurrent) {
+                              setSelectedPackage(pkg);
+                              setValidatedCampaign(null);
+                              setCampaignCodeInput('');
+                            }
+                          }}
+                          className={`border rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col justify-between gap-4 h-[180px] ${
+                            isCurrent
+                              ? 'bg-slate-50 border-slate-200 opacity-60 pointer-events-none'
+                              : selectedPackage?.type === pkg.type
+                              ? 'border-[#c8f252] bg-[#c8f252]/5 ring-2 ring-[#c8f252]/30 shadow-sm'
+                              : 'border-slate-150 hover:border-slate-300 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.01)]'
+                          }`}
+                        >
+                          <div>
+                            <span className="block text-[10px] text-slate-450 font-black uppercase tracking-wider">{pkg.name}</span>
+                            <span className="block text-2xl font-black text-slate-900 tracking-tight mt-2">₺{pkg.price.toLocaleString('tr-TR')}</span>
+                            <span className="block text-[9px] text-slate-400 font-bold mt-1">{pkg.quota ? `${pkg.quota} Teklif / Ay` : 'Sınırsız Teklif (VIP)'}</span>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            disabled={isCurrent}
+                            className={`w-full py-2 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all ${
+                              isCurrent
+                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                : selectedPackage?.type === pkg.type
+                                ? 'bg-[#c8f252] text-slate-955 font-black'
+                                : 'bg-slate-900 hover:bg-slate-800 text-white'
+                            }`}
+                          >
+                            {isCurrent ? 'Aktif' : selectedPackage?.type === pkg.type ? 'Seçildi' : 'Seç'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Package Purchase Form & Coupon Code Area */}
+              {selectedPackage && (
+                <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm max-w-3xl w-full flex flex-col md:flex-row justify-between gap-8 animate-scale-up">
+                  <div className="space-y-4 text-left flex-1">
+                    <h3 className="font-extrabold text-slate-900 text-sm">Seçilen Plan Detayları</h3>
+                    <div className="space-y-1.5 text-xs font-semibold text-slate-600 bg-slate-50 rounded-2xl p-4 border border-slate-100 shadow-sm">
+                      <div className="flex justify-between">
+                        <span>Paket:</span>
+                        <span className="font-extrabold text-slate-800">{selectedPackage.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Kota Sınırı:</span>
+                        <span className="font-extrabold text-slate-800">{selectedPackage.quota ? `${selectedPackage.quota} Teklif` : 'Sınırsız (VIP)'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Plan Fiyatı:</span>
+                        <span className="font-extrabold text-slate-800">₺{selectedPackage.price.toLocaleString('tr-TR')} / ay</span>
+                      </div>
+                      {validatedCampaign && (
+                        <div className="flex justify-between text-emerald-700">
+                          <span>Uygulanan İndirim:</span>
+                          <span className="font-black">
+                            - ₺{validatedCampaign.type === 'percent' 
+                              ? (selectedPackage.price * Number(validatedCampaign.value) / 100).toLocaleString('tr-TR')
+                              : Number(validatedCampaign.value).toLocaleString('tr-TR')}
+                          </span>
+                        </div>
+                      )}
+                      <div className="h-[1px] bg-slate-200 my-2"></div>
+                      <div className="flex justify-between text-sm font-black text-slate-900">
+                        <span>Ödenecek Toplam:</span>
+                        <span>
+                          ₺{validatedCampaign 
+                            ? Math.max(0, validatedCampaign.type === 'percent' 
+                                ? selectedPackage.price * (1 - Number(validatedCampaign.value) / 100)
+                                : selectedPackage.price - Number(validatedCampaign.value)).toLocaleString('tr-TR')
+                            : selectedPackage.price.toLocaleString('tr-TR')} / ay
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between gap-5">
+                    {/* Coupon / Campaign Code Input */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-extrabold text-slate-650">Kampanya veya Referans Kodu Girin</label>
+                      
+                      {campaignError && (
+                        <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-xl text-[10px] font-bold animate-scale-up">
+                          ✗ {campaignError}
+                        </div>
+                      )}
+
+                      {campaignSuccess && (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-2 rounded-xl text-[10px] font-bold animate-scale-up">
+                          ✓ {campaignSuccess}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Örn: REF-HV-CODE"
+                          value={campaignCodeInput}
+                          onChange={(e) => setCampaignCodeInput(e.target.value.toUpperCase())}
+                          className="bg-slate-50 border border-slate-250 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleValidateCampaign}
+                          className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
+                        >
+                          Uygula
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPackage(null);
+                          setValidatedCampaign(null);
+                          setCampaignCodeInput('');
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 px-5 rounded-xl cursor-pointer transition-all active:scale-95 flex-grow text-center"
+                      >
+                        Vazgeç
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleStartSubscription(selectedPackage.type)}
+                        disabled={submittingSubscription}
+                        className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-3 px-6 rounded-xl cursor-pointer transition-all active:scale-95 flex-grow text-center shadow-sm"
+                      >
+                        {submittingSubscription ? 'Hazırlanıyor...' : 'Ödemeyi Başlat'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Invoice & Payment History */}
+              <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm w-full">
+                <div className="mb-4">
+                  <h3 className="font-extrabold text-slate-900 text-sm">Fatura ve Ödeme Geçmişi</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Geçmiş dönemlerde gerçekleştirdiğiniz ödemelerin dökümü.</p>
+                </div>
+
+                <div className="overflow-x-auto w-full">
+                  {subscriptionDetails?.subscription?.payments && subscriptionDetails.subscription.payments.length > 0 ? (
+                    <table className="w-full text-xs font-semibold text-slate-755 border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] text-left">
+                          <th className="py-3 px-4">Ödeme Kimliği</th>
+                          <th className="py-3 px-4">Fatura Tarihi</th>
+                          <th className="py-3 px-4">Ödenen Tutar</th>
+                          <th className="py-3 px-4">Durum</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subscriptionDetails.subscription.payments.map((pmt: any) => (
+                          <tr key={pmt.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3.5 px-4 font-mono text-slate-550">{pmt.iyzico_payment_id || pmt.id.substring(0, 8).toUpperCase()}</td>
+                            <td className="py-3.5 px-4">{new Date(pmt.paid_at || pmt.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                            <td className="py-3.5 px-4 font-extrabold text-slate-900">₺{Number(pmt.amount).toLocaleString('tr-TR')}</td>
+                            <td className="py-3.5 px-4">
+                              <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
+                                pmt.status === 'success'
+                                  ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                                  : 'bg-red-50 border-red-100 text-red-700'
+                              }`}>
+                                {pmt.status === 'success' ? 'Başarılı' : 'Hatalı'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-8 text-slate-450 font-semibold">
+                      Henüz kayıtlı bir fatura geçmişiniz bulunmamaktadır.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* iyzico Sandbox Payment Simulation Modal */}
+          {checkoutFormHtml && (
+            <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-[32px] max-w-xl w-full p-6 shadow-2xl border border-slate-100 animate-scale-up text-center flex flex-col justify-between gap-5 relative">
+                <button 
+                  onClick={() => {
+                    setCheckoutFormHtml(null);
+                    setSelectedPackage(null);
+                    setValidatedCampaign(null);
+                    setCampaignCodeInput('');
+                    if (token) fetchTabDependencies('abonelik', token);
+                  }}
+                  className="text-slate-400 hover:text-slate-850 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer absolute right-4 top-4"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="space-y-1.5 pt-2 text-left">
+                  <h3 className="font-black text-slate-900 text-lg flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-slate-900" />
+                    <span>Esnaaf Güvenli Ödeme Arayüzü</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                    Aboneliğinizi tamamlamak için iyzico Sandbox ödeme simülasyonunu tamamlayın.
+                  </p>
+                </div>
+
+                {/* Render checkout form content securely */}
+                <div 
+                  className="bg-slate-50 rounded-2xl p-6 border border-slate-150 shadow-inner min-h-[160px] text-center flex items-center justify-center w-full"
+                  dangerouslySetInnerHTML={{ __html: checkoutFormHtml }}
+                />
+
+                <div className="text-[10px] text-slate-450 font-bold leading-relaxed border-t border-slate-100 pt-3 text-left w-full">
+                  ℹ Bu bir **iyzico Sandbox (Simülasyon)** sayfasıdır. Ödeme simülasyonu butonuna tıklayarak cüzdan/kart limitiniz etkilenmeden paket aktivasyonunu tetikleyebilirsiniz.
                 </div>
               </div>
             </div>
