@@ -101,4 +101,14 @@ export class HizmetverenController {
   async getReviews(@CurrentUser() user: any) {
     return this.hizmetverenService.getReviews(user.id);
   }
+
+  /**
+   * Hizmet verene ait uyuşmazlıklı işleri listeler
+   * GET /api/hizmetveren/uyusmazliklar
+   */
+  @Get('uyusmazliklar')
+  @HttpCode(HttpStatus.OK)
+  async getDisputes(@CurrentUser() user: any) {
+    return this.hizmetverenService.getDisputes(user.id);
+  }
 }

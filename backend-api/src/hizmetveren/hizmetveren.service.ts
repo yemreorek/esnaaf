@@ -477,4 +477,55 @@ export class HizmetverenService {
       categoryName: r.job.category.name,
     }));
   }
+
+  /**
+   * Hizmet verene ait uyuşmazlık (disputed) durumundaki işleri listeler
+   */
+  async getDisputes(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const disputes = await this.prisma.jobCompletion.findMany({
+      where: {
+        provider_id: provider.id,
+        status: 'disputed',
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+          },
+        },
+        offer: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return disputes.map((d) => {
+      const formData = d.job.form_data as any;
+      return {
+        id: d.id,
+        providerDeclaredAmount: d.provider_declared_amount ? Number(d.provider_declared_amount) : Number(d.offer.price),
+        seekerDeclaredAmount: d.seeker_declared_amount ? Number(d.seeker_declared_amount) : 0,
+        status: d.status,
+        disputeStatus: d.dispute_status,
+        alarmLevel: d.alarm_level,
+        amountDiff: d.amount_diff ? Number(d.amount_diff) : 0,
+        amountDiffPct: d.amount_diff_pct ? Number(d.amount_diff_pct) : 0,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+        job: {
+          id: d.job.id,
+          categoryName: d.job.category.name,
+          district: formData.district || 'Kadıköy',
+          details: formData.details || '',
+          name: formData.name || 'Müşteri',
+        },
+      };
+    });
+  }
 }

@@ -27,10 +27,59 @@ interface Job {
   created_at?: string;
 }
 
+const getCategorySlug = (categoryName: string): string => {
+  const name = categoryName.toLowerCase();
+  if (name.includes('temizlik') && name.includes('ofis')) return 'ofis-temizligi';
+  if (name.includes('temizlik') && name.includes('inşaat')) return 'insaat-sonrasi-temizlik';
+  if (name.includes('temizlik')) return 'ev-temizligi';
+  if (name.includes('boya')) return 'boya-badana';
+  if (name.includes('elektrik')) return 'elektrik-tesisati';
+  if (name.includes('su') && name.includes('tesisat')) return 'su-tesisati';
+  if (name.includes('doğalgaz')) return 'dogalgaz-tesisati';
+  if (name.includes('tadilat')) return 'ev-tadilat';
+  if (name.includes('nakliyat')) return 'nakliyat';
+  if (name.includes('halı') || name.includes('koltuk')) return 'hali-koltuk-yikama';
+  if (name.includes('fayans') || name.includes('parke')) return 'fayans-parke';
+  if (name.includes('ilaçlama')) return 'hasere-ilaclama';
+  if (name.includes('kombi') || name.includes('klima')) return 'kombi-klima';
+  if (name.includes('mantolama')) return 'mantolama-discephe';
+  if (name.includes('marangoz') || name.includes('mobilya')) return 'marangoz-mobilya';
+  if (name.includes('ders')) return 'ozel-ders';
+  if (name.includes('balkon') || name.includes('pvc')) return 'cam-balkon-pvc';
+  if (name.includes('dekorasyon') || name.includes('mimar')) return 'ic-mimar-dekorasyon';
+  if (name.includes('fotoğraf')) return 'fotografci';
+  if (name.includes('organizasyon')) return 'organizasyon-etkinlik';
+  return 'genel-hizmet';
+};
+
+const mapRawJobToJob = (rawJob: any): Job => {
+  if (rawJob.category && rawJob.form_data) {
+    return rawJob;
+  }
+  const categoryName = rawJob.categoryName || 'Genel Hizmet';
+  return {
+    id: rawJob.id,
+    category: {
+      name: categoryName,
+      slug: getCategorySlug(categoryName),
+    },
+    form_data: {
+      district: rawJob.district,
+      details: rawJob.details,
+      butce: rawJob.butce,
+      aciliyet: rawJob.aciliyet,
+      ...rawJob
+    },
+    viewerCount: rawJob.viewerCount,
+    created_at: rawJob.created_at,
+  };
+};
+
 export default function GelenIslerScreen() {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [providerId, setProviderId] = useState<string | null>(null);
   
   // Offer modal states
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -39,8 +88,7 @@ export default function GelenIslerScreen() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    fetchIncomingJobs();
-    setupWebSocket();
+    fetchProfileAndJobs();
 
     return () => {
       if (socketRef.current) {
@@ -49,13 +97,23 @@ export default function GelenIslerScreen() {
     };
   }, []);
 
-  const fetchIncomingJobs = async () => {
+  const fetchProfileAndJobs = async () => {
     setIsLoading(true);
     try {
+      // 1. Usta profilini çekip providerId'yi al
+      const profRes = await customFetch('/api/hizmetveren/profil');
+      let pId = null;
+      if (profRes.ok) {
+        const profData = await profRes.json();
+        pId = profData.id;
+        setProviderId(pId);
+      }
+
+      // 2. Gelen işleri çek
       const res = await customFetch('/api/hizmetveren/gelen-isler');
       if (res.ok) {
         const data = await res.json();
-        setJobs(data);
+        setJobs(data.map(mapRawJobToJob));
       } else {
         // Fallback mock jobs for development/preview of Phase 2categories
         setJobs([
@@ -79,6 +137,11 @@ export default function GelenIslerScreen() {
           }
         ]);
       }
+
+      // 3. Profil çekilebildiyse WebSocket bağlantısını başlat
+      if (pId) {
+        setupWebSocket(pId);
+      }
     } catch (err) {
       console.error('Fetch gelen isler error:', err);
     } finally {
@@ -86,10 +149,10 @@ export default function GelenIslerScreen() {
     }
   };
 
-  const setupWebSocket = () => {
-    console.log('[Socket.io Partner] Connecting to ws for provider jobs...');
+  const setupWebSocket = (pId: string) => {
+    console.log(`[Socket.io Partner] Connecting to ws for provider ${pId}...`);
     const socketUrl = getSocketUrl();
-    const socket = io(socketUrl, {
+    const socket = io(`${socketUrl}/chat`, {
       transports: ['websocket'],
     });
 
@@ -97,17 +160,19 @@ export default function GelenIslerScreen() {
 
     socket.on('connect', () => {
       console.log(`[Socket.io Partner] Socket connected. ID: ${socket.id}`);
-      // Join global provider feed or usta specific room
-      socket.emit('join_job', { jobId: 'global_provider_feed' });
+      socket.emit('join_provider', { providerId: pId });
     });
 
-    // Listen for new matching job offers
-    socket.on('new_request_distributed', (newJob: any) => {
+    socket.on('new_job', (newJob: any) => {
       console.log('[Socket.io Partner] Real-time job distributed:', newJob);
-      // Prepend new job to the list
-      setJobs((prev) => [newJob, ...prev]);
+      const mapped = mapRawJobToJob(newJob);
+      setJobs((prev) => {
+        if (prev.some((j) => j.id === mapped.id)) return prev;
+        return [mapped, ...prev];
+      });
     });
   };
+
 
   const handleOfferSubmit = async (price: number, description: string) => {
     if (!selectedJob) return;
@@ -152,7 +217,7 @@ export default function GelenIslerScreen() {
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Dağıtılan Aktif İşler</Text>
-        <TouchableOpacity onPress={fetchIncomingJobs} style={styles.refreshButton}>
+        <TouchableOpacity onPress={fetchProfileAndJobs} style={styles.refreshButton}>
           <Text style={styles.refreshText}>↻</Text>
         </TouchableOpacity>
       </View>

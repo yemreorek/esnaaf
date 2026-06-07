@@ -33,7 +33,8 @@ import {
   TrendingUp,
   Navigation,
   Phone,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -191,9 +192,10 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik'>('firsatlar');
+  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar'>('firsatlar');
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
+  const [disputesList, setDisputesList] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const groupedWonJobs = React.useMemo(() => {
@@ -611,6 +613,15 @@ export default function ProviderDashboard() {
         if (res.ok) {
           setReviews(data);
           addLog(`${data.length} adet yorum yüklendi.`);
+        }
+      } else if (tab === 'uyusmazliklar') {
+        const res = await fetch('/api/hizmetveren/uyusmazliklar', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setDisputesList(data);
+          addLog(`${data.length} adet uyuşmazlık yüklendi.`);
         }
       }
     } catch (err: any) {
@@ -1203,6 +1214,25 @@ export default function ProviderDashboard() {
           </button>
 
           <button
+            onClick={() => { setActiveTab('uyusmazliklar'); setMobileMenuOpen(false); }}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'uyusmazliklar' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <AlertTriangle className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-red-500" />
+            <span className="flex items-center justify-between w-full">
+              <span>Uyuşmazlıklar</span>
+              {disputesList.length > 0 && (
+                <span className="bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                  {disputesList.length}
+                </span>
+              )}
+            </span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab('abonelik'); setMobileMenuOpen(false); }}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
               activeTab === 'abonelik' 
@@ -1756,6 +1786,90 @@ export default function ProviderDashboard() {
                     <span className="text-3xl">🏆</span>
                     <h3 className="font-extrabold text-slate-950 text-base mt-3">Tamamlanan İş Yok</h3>
                     <p className="text-slate-400 text-xs mt-1">Tamamladığınız ve her iki tarafça onaylanan iş geçmişiniz burada listelenecektir.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'uyusmazliklar' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl flex items-center gap-2">
+                  <AlertTriangle className="w-8 h-8 text-red-500" />
+                  <span>Uyuşmazlık Çözüm Merkezi</span>
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Hizmet alan müşteriler ile beyan edilen ücretlerin uyuşmadığı, kalite incelemesinde olan işleriniz.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                {disputesList.length > 0 ? (
+                  disputesList.map((disp) => {
+                    const diffPct = disp.amountDiffPct || 0;
+                    const isRedAlarm = disp.alarmLevel === 'red' || diffPct > 30 || disp.seekerDeclaredAmount === 0;
+                    return (
+                      <div key={disp.id} className={`bg-white p-6 rounded-[24px] border ${isRedAlarm ? 'border-red-200 shadow-red-50/20' : 'border-amber-200 shadow-amber-50/20'} shadow-md transition-all flex flex-col justify-between gap-5 relative overflow-hidden`}>
+                        <div className={`absolute top-0 left-0 right-0 h-1.5 ${isRedAlarm ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start gap-4">
+                            <span className="bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                              {disp.job.categoryName}
+                            </span>
+                            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider border ${
+                              isRedAlarm 
+                                ? 'bg-red-50 border-red-100 text-red-655' 
+                                : 'bg-amber-50 border-amber-100 text-amber-600'
+                            }`}>
+                              {isRedAlarm ? 'Kritik Alarm (%30+ veya Red)' : 'Uyuşmazlık İnceleme'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs space-y-1.5 text-slate-600 font-semibold pt-2 border-t border-slate-50">
+                            <div><strong>Müşteri:</strong> {disp.job.name}</div>
+                            <div><strong>Konum:</strong> {disp.job.district}</div>
+                            <div><strong>Talep Açıklaması:</strong> {disp.job.details || 'Belirtilmedi'}</div>
+                          </div>
+
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2 mt-2">
+                            <div className="flex justify-between font-semibold">
+                              <span className="text-slate-500">Sizin Beyanınız:</span>
+                              <span className="text-slate-900 font-extrabold">₺{disp.providerDeclaredAmount?.toLocaleString("tr-TR")}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold border-b border-slate-200/50 pb-2">
+                              <span className="text-slate-500">Müşterinin İddiası:</span>
+                              <span className="text-red-655 font-extrabold">
+                                {disp.seekerDeclaredAmount === 0 ? 'Hizmet Almadım / Red' : `₺${disp.seekerDeclaredAmount?.toLocaleString("tr-TR")}`}
+                              </span>
+                            </div>
+                            <div className="flex justify-between font-bold pt-1 text-slate-800">
+                              <span>Sapma / Fiyat Farkı:</span>
+                              <span className={`${isRedAlarm ? 'text-red-655' : 'text-amber-600'} font-black`}>
+                                ₺{disp.amountDiff?.toLocaleString("tr-TR")} ({diffPct.toFixed(1)}%)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-slate-50 pt-3.5 space-y-2">
+                          <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                            💡 <strong>Çözüm Süreci:</strong> Kalite personeli ekibimiz uyuşmazlığı incelemeye almıştır. En kısa sürede iki tarafla da kayıtlı numaralar üzerinden iletişime geçilecektir.
+                          </p>
+                          <div className="flex justify-between items-center text-[9px] text-slate-400 font-mono font-bold pt-1">
+                            <span>Kayıt: #{disp.id.substring(0, 8)}</span>
+                            <span>{new Date(disp.created_at).toLocaleDateString("tr-TR")}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full shadow-sm">
+                    <span className="text-3xl">🛡️</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Uyuşmazlıklı İş Yok</h3>
+                    <p className="text-slate-400 text-xs mt-1">Müşteriyle fiyat uyuşmazlığı yaşadığınız herhangi bir aktif inceleme kaydı bulunmamaktadır.</p>
                   </div>
                 )}
               </div>

@@ -97,7 +97,7 @@ export default function ChatScreen() {
 
     console.log(`[Socket.io Mobile] Connecting to gateway for Job: ${jobId}`);
     const socketUrl = getSocketUrl();
-    const socket = io(socketUrl, {
+    const socket = io(`${socketUrl}/chat`, {
       transports: ['websocket'],
     });
 

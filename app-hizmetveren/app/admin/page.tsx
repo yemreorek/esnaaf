@@ -374,6 +374,7 @@ export default function AdminPortal() {
   const [newStaffEmail, setNewStaffEmail] = useState('');
   const [newStaffPhone, setNewStaffPhone] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<'quality_staff' | 'ops_staff' | 'finance_staff' | 'marketing_staff' | 'sales_staff'>('quality_staff');
+  const [selectedStaffRoleFilter, setSelectedStaffRoleFilter] = useState<string>('all');
   const [submittingStaff, setSubmittingStaff] = useState(false);
 
   const [showAddCampaignModal, setShowAddCampaignModal] = useState(false);
@@ -2959,40 +2960,141 @@ export default function AdminPortal() {
                   </button>
                 </div>
 
+                {/* 📊 Department Breakdown Metric Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {/* Card 1: Kalite */}
+                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
+                    <span className="text-xl">🛡️</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kalite & Güvence</h4>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">SLA, Yorum ve Uyuşmazlık Yönetimi</p>
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'quality_staff' && s.is_active).length} Personel</strong>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Operasyon */}
+                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
+                    <span className="text-xl">⚙️</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Operasyon & Onay</h4>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Usta Belge Onay ve Denetim</p>
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'ops_staff' && s.is_active).length} Personel</strong>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Finans */}
+                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
+                    <span className="text-xl">💵</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Finans & Fatura</h4>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Ödeme, Hakediş ve MRR Takibi</p>
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'finance_staff' && s.is_active).length} Personel</strong>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Satış */}
+                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
+                    <span className="text-xl">🚀</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Satış & Destek</h4>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Usta Onboarding ve Kota Alarmları</p>
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'sales_staff' && s.is_active).length} Personel</strong>
+                    </div>
+                  </div>
+
+                  {/* Card 5: Pazarlama */}
+                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left col-span-2 md:col-span-1">
+                    <span className="text-xl">🎁</span>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kampanya & Pazarlama</h4>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Kupon Motoru ve Referans Döngüsü</p>
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'marketing_staff' && s.is_active).length} Personel</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🔘 Pill-style Department Filter Tabs */}
+                <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-3">
+                  {[
+                    { id: 'all', label: 'Tüm Departmanlar', count: staffList.length },
+                    { id: 'quality_staff', label: 'Kalite & Güvence', count: staffList.filter(s => s.role === 'quality_staff').length },
+                    { id: 'ops_staff', label: 'Operasyon & Onay', count: staffList.filter(s => s.role === 'ops_staff').length },
+                    { id: 'finance_staff', label: 'Finans & Fatura', count: staffList.filter(s => s.role === 'finance_staff').length },
+                    { id: 'sales_staff', label: 'Satış & Onboarding', count: staffList.filter(s => s.role === 'sales_staff').length },
+                    { id: 'marketing_staff', label: 'Pazarlama & Kupon', count: staffList.filter(s => s.role === 'marketing_staff').length }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSelectedStaffRoleFilter(tab.id)}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1.5 ${
+                        selectedStaffRoleFilter === tab.id
+                          ? 'bg-[#c8f252] border-[#c8f252]/20 text-slate-950 font-extrabold shadow-sm'
+                          : 'bg-slate-50 border-slate-150 text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                        selectedStaffRoleFilter === tab.id
+                          ? 'bg-slate-950 text-[#c8f252] font-black'
+                          : 'bg-slate-200 text-slate-600 font-bold'
+                      }`}>{tab.count}</span>
+                    </button>
+                  ))}
+                </div>
+
                 <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
                         <tr>
                           <th className="px-6 py-4">Ad Soyad</th>
-                          <th className="px-6 py-4">E-Posta</th>
-                          <th className="px-6 py-4">Telefon</th>
+                          <th className="px-6 py-4">E-Posta / Tel</th>
                           <th className="px-6 py-4">Departman / Rol</th>
+                          <th className="px-6 py-4">Üstlenilen Sorumluluklar</th>
+                          <th className="px-6 py-4">Yetki Seviyesi</th>
                           <th className="px-6 py-4">KVKK</th>
                           <th className="px-6 py-4">Durum</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {staffList.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="text-center py-12 text-slate-400 text-sm italic">
-                              Sistemde kayıtlı personel bulunamadı.
-                            </td>
-                          </tr>
-                        ) : (
-                          staffList.map((st) => (
+                        {(() => {
+                          const filtered = staffList.filter(st => {
+                            if (selectedStaffRoleFilter === 'all') return true;
+                            return st.role === selectedStaffRoleFilter;
+                          });
+
+                          if (filtered.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan={7} className="text-center py-12 text-slate-400 text-sm italic">
+                                  Bu departmanda kayıtlı personel bulunamadı.
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          return filtered.map((st) => (
                             <tr key={st.id} className="hover:bg-slate-50/60 transition-colors">
-                              <td className="px-6 py-4 font-bold text-slate-800">
-                                {st.name || 'Ad Belirtilmemiş'}
-                              </td>
-                              <td className="px-6 py-4 text-xs font-mono text-slate-500">
-                                {st.email}
-                              </td>
-                              <td className="px-6 py-4 text-xs font-mono text-slate-500">
-                                {st.phone_decrypted || st.phone_masked}
+                              <td className="px-6 py-4">
+                                <div className="font-bold text-slate-800">{st.name || 'Ad Belirtilmemiş'}</div>
+                                <div className="text-[10px] text-slate-400 mt-0.5 font-semibold">Sistem ID: #{st.id.substring(0, 8)}</div>
                               </td>
                               <td className="px-6 py-4">
-                                <span className="bg-slate-50 border border-slate-150 text-slate-650 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                <div className="text-xs font-semibold text-slate-700">{st.email}</div>
+                                <div className="text-[10px] font-mono text-slate-450 mt-0.5">{st.phone_decrypted || st.phone_masked}</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
+                                  st.role === 'quality_staff'
+                                    ? 'bg-red-50 border-red-100 text-red-655'
+                                    : st.role === 'ops_staff'
+                                      ? 'bg-blue-50 border-blue-100 text-blue-600'
+                                      : st.role === 'finance_staff'
+                                        ? 'bg-emerald-50 border-emerald-100 text-emerald-600'
+                                        : st.role === 'sales_staff'
+                                          ? 'bg-[#c8f252]/10 border-[#c8f252]/30 text-[#4c630a]'
+                                          : 'bg-purple-50 border-purple-100 text-purple-600'
+                                }`}>
                                   {st.role === 'quality_staff' 
                                     ? 'Kalite Personeli' 
                                     : st.role === 'finance_staff' 
@@ -3001,11 +3103,61 @@ export default function AdminPortal() {
                                         ? 'Satış Personeli' 
                                         : st.role === 'ops_staff' 
                                           ? 'Operasyon' 
-                                          : st.role}
+                                          : st.role === 'marketing_staff'
+                                            ? 'Pazarlama'
+                                            : st.role}
                                 </span>
                               </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-wrap gap-1 max-w-[280px]">
+                                  {st.role === 'quality_staff' && (
+                                    <>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">SLA Çağrıları</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">İtiraz Çözme</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Yorum Onay</span>
+                                    </>
+                                  )}
+                                  {st.role === 'ops_staff' && (
+                                    <>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Usta Onaylama</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Evrak Denetim</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Sistem Günlükleri</span>
+                                    </>
+                                  )}
+                                  {st.role === 'finance_staff' && (
+                                    <>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Ödeme Onayı</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">İade / Hakediş</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Fatura Raporu</span>
+                                    </>
+                                  )}
+                                  {st.role === 'sales_staff' && (
+                                    <>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Onboarding</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Kota Alarmları</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Paket Tanımı</span>
+                                    </>
+                                  )}
+                                  {st.role === 'marketing_staff' && (
+                                    <>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Kupon Yönetimi</span>
+                                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Referans Kampanya</span>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-xs font-bold text-slate-700">
+                                {st.role === 'quality_staff' && 'Okuma + Kalite Operasyon'}
+                                {st.role === 'ops_staff' && 'Yazma + Sistem Onayları'}
+                                {st.role === 'finance_staff' && 'Okuma + Finansal Onay'}
+                                {st.role === 'sales_staff' && 'Yazma + Paket Yönetimi'}
+                                {st.role === 'marketing_staff' && 'Yazma + Kampanya Ayarı'}
+                                {!['quality_staff', 'ops_staff', 'finance_staff', 'sales_staff', 'marketing_staff'].includes(st.role) && 'Tam Yetkili (Süper)'}
+                              </td>
                               <td className="px-6 py-4 text-xs">
-                                {st.kvkk_consent ? '✅ Onaylı' : '❌ Onaysız'}
+                                <span className={`font-bold ${st.kvkk_consent ? 'text-green-600' : 'text-slate-400'}`}>
+                                  {st.kvkk_consent ? '✅ Onaylı' : '❌ Onaysız'}
+                                </span>
                               </td>
                               <td className="px-6 py-4">
                                 <span className={`flex items-center gap-1 text-xs font-bold ${
@@ -3016,8 +3168,8 @@ export default function AdminPortal() {
                                 </span>
                               </td>
                             </tr>
-                          ))
-                        )}
+                          ));
+                        })()}
                       </tbody>
                     </table>
                   </div>
