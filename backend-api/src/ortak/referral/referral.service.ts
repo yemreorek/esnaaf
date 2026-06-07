@@ -7,6 +7,51 @@ export class ReferralService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * Kullanıcının kendi referans kodunu, cüzdan bakiyesini,
+   * kod girip girmediğini ve yaptığı tüm davetlerin listesini çeker.
+   */
+  async getReferralData(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        referrals_made: {
+          include: {
+            referee: {
+              select: {
+                name: true,
+                phone_masked: true,
+              },
+            },
+          },
+        },
+        referrals_received: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Kullanıcı bulunamadı.');
+    }
+
+    const code = await this.getOrCreateReferralCode(userId);
+
+    return {
+      code,
+      balance: Number(user.balance),
+      isReferralApplied: user.referrals_received.length > 0,
+      appliedReferralCode: user.referrals_received[0]?.code || null,
+      referralsMade: user.referrals_made.map((ref) => ({
+        id: ref.id,
+        code: ref.code,
+        rewarded: ref.rewarded,
+        rewardedAt: ref.rewarded_at,
+        createdAt: ref.created_at,
+        refereeName: ref.referee?.name || 'Yeni Kullanıcı',
+        refereePhoneMasked: ref.referee?.phone_masked || '05** *** ** **',
+      })),
+    };
+  }
+
+  /**
    * Deterministik olarak kullanıcının tekil referans kodunu üretir.
    * Format: [İSMİN_İLK_4_HARFİ][UUID_İLK_4_KARAKTERİ] (Örn: EMRE9096)
    */

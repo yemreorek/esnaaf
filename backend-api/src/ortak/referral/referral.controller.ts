@@ -13,10 +13,10 @@ export class ReferralController {
    */
   @Get('kod-al')
   async getMyReferralCode(@CurrentUser() user: any) {
-    const code = await this.referralService.getOrCreateReferralCode(user.id);
+    const data = await this.referralService.getReferralData(user.id);
     return {
       success: true,
-      code,
+      ...data,
     };
   }
 

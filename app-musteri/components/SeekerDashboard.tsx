@@ -34,7 +34,10 @@ import {
   Award,
   Settings,
   HelpCircle,
-  Activity
+  Activity,
+  Wallet,
+  Copy,
+  Check
 } from "lucide-react";
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -217,7 +220,7 @@ const MOCK_PAST_REQUESTS_MOCKUP = [
 
 export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashboardProps) {
   // Navigation tabs matching sidebar
-  const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile">("tekliflerim");
+  const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile" | "cuzdan">("tekliflerim");
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
   const [compareJobId, setCompareJobId] = useState<string>("");
@@ -254,6 +257,62 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   // UI state for grid / list view
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  // Referral and wallet states
+  const [referralData, setReferralData] = useState<any>(null);
+  const [referralCodeInput, setReferralCodeInput] = useState("");
+  const [submittingReferral, setSubmittingReferral] = useState(false);
+  const [referralMessage, setReferralMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const fetchReferralData = async () => {
+    setReferralLoading(true);
+    try {
+      const res = await customFetch("/api/ortak/referral/kod-al");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setReferralData(data);
+        }
+      }
+    } catch (err) {
+      console.error("Fetch referral data failed:", err);
+    } finally {
+      setReferralLoading(false);
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSubmitReferralCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!referralCodeInput.trim()) return;
+    setSubmittingReferral(true);
+    setReferralMessage(null);
+    try {
+      const res = await customFetch("/api/ortak/referral/kod-gir", {
+        method: "POST",
+        body: JSON.stringify({ code: referralCodeInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReferralMessage({ type: "success", text: data.message || "Referans kodu başarıyla uygulandı!" });
+        setReferralCodeInput("");
+        fetchReferralData(); // Refresh balance and applied status
+      } else {
+        setReferralMessage({ type: "error", text: data.error?.message || "Referans kodu uygulanamadı." });
+      }
+    } catch (err) {
+      setReferralMessage({ type: "error", text: "Bir ağ hatası oluştu." });
+    } finally {
+      setSubmittingReferral(false);
+    }
+  };
+
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -267,6 +326,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     }
     fetchRequests();
   }, []);
+
+  // Fetch referral data on tab change
+  useEffect(() => {
+    if (activeTab === "cuzdan") {
+      fetchReferralData();
+    }
+  }, [activeTab]);
 
   // Set selected request on initialJobId change
   useEffect(() => {
@@ -779,6 +845,18 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           </button>
 
           <button
+            onClick={() => { setActiveTab("cuzdan"); setSelectedRequest(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-xs cursor-pointer transition-all ${
+              activeTab === "cuzdan"
+                ? "bg-[#c8f252] text-slate-900 shadow-sm font-black"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <Wallet className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Cüzdan & Referans</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab("profile"); setSelectedRequest(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-xs cursor-pointer transition-all ${
               activeTab === "profile"
@@ -829,7 +907,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
               <span>Hizmet Alan Paneli</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#88b000]"></span>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                {activeTab === "tekliflerim" ? "Teklif Kontrol Paneli" : activeTab === "canlobi" ? "Canlı Lobi" : activeTab === "karsilastirma" ? "Karşılaştırma" : activeTab === "mesajlar" ? "Mesajlar" : activeTab === "puanlama" ? "İş Teyit" : "Hesap"}
+                {activeTab === "tekliflerim" ? "Teklif Kontrol Paneli" : activeTab === "canlobi" ? "Canlı Lobi" : activeTab === "karsilastirma" ? "Karşılaştırma" : activeTab === "mesajlar" ? "Mesajlar" : activeTab === "puanlama" ? "İş Teyit" : activeTab === "cuzdan" ? "Cüzdan & Referans" : "Hesap"}
               </span>
             </h2>
           </div>
@@ -2290,6 +2368,196 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                         Bilgileri Güncelle
                       </button>
                     </form>
+                  </div>
+                )}
+
+                {/* VIEW 7: WALLET & REFERRAL */}
+                {activeTab === "cuzdan" && (
+                  <div className="space-y-8 animate-scale-up text-left">
+                    <header>
+                      <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
+                        Cüzdan ve Referans Sistemi
+                      </h2>
+                      <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                        Mevcut bakiyenizi görüntüleyin, arkadaşlarınızı davet edin veya referans kodu girerek ödül kazanın.
+                      </p>
+                    </header>
+
+                    {referralLoading ? (
+                      <div className="w-full flex items-center justify-center py-20">
+                        <div className="w-8 h-8 rounded-full border-4 border-slate-150 border-t-[#c8f252] animate-spin"></div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Left: Premium Wallet Card */}
+                          <div className="lg:col-span-1 bg-slate-900 rounded-[28px] p-6 shadow-lg border border-slate-800 text-white flex flex-col justify-between relative overflow-hidden h-[220px]">
+                            {/* Decorative card glows */}
+                            <div className="absolute top-[-40px] right-[-40px] w-24 h-24 rounded-full bg-[#c8f252]/20 blur-xl"></div>
+                            <div className="absolute bottom-[-30px] left-[-30px] w-20 h-20 rounded-full bg-slate-800 blur-lg"></div>
+
+                            <div className="flex items-center justify-between z-10">
+                              <span className="text-[10px] font-bold text-[#c8f252] tracking-wider uppercase bg-[#c8f252]/10 px-2.5 py-1 rounded-lg border border-[#c8f252]/20">
+                                Esnaaf Bakiye Kartı
+                              </span>
+                              <Wallet className="w-5 h-5 text-slate-400" />
+                            </div>
+
+                            <div className="space-y-1.5 z-10 mt-6 text-left">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Toplam Kullanılabilir Kredi</span>
+                              <div className="text-3xl font-black tracking-tight flex items-baseline gap-1 text-[#c8f252]">
+                                ₺{referralData ? referralData.balance.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) : "0.00"}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-bold z-10">
+                              <span>Kullanıcı: {user?.name || "Esnaaf Üyesi"}</span>
+                              <span>Aktif</span>
+                            </div>
+                          </div>
+
+                          {/* Right: Referral code & Invite program info */}
+                          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col justify-between gap-6">
+                            <div className="space-y-3 text-left">
+                              <h4 className="font-extrabold text-slate-800 text-sm">Arkadaşını Davet Et & Kazan! 🎁</h4>
+                              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                Esnaaf'a davet ettiğin her arkadaşın ilk hizmet talebini tamamladığında, cüzdanına **100 TL** bakiye yüklenir! 
+                                Üstelik davet ettiğin arkadaşın da kayıt olup ilk talebini oluştururken **100 TL** değerinde indirim/kredi elde eder.
+                              </p>
+                            </div>
+
+                            {/* Referral Code Display */}
+                            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                              <div className="text-center sm:text-left">
+                                <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider">Senin Referans Kodun</span>
+                                <span className="text-sm font-black text-slate-850 tracking-wide uppercase select-all">
+                                  {referralData?.code || "YÜKLENİYOR..."}
+                                </span>
+                              </div>
+                              
+                              <button
+                                onClick={() => referralData?.code && handleCopyCode(referralData.code)}
+                                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
+                              >
+                                {copied ? (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 text-[#c8f252]" />
+                                    <span>Kopyalandı!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span>Kodu Kopyala</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Left: Apply referral code */}
+                          <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-5 text-left">
+                            <h4 className="font-extrabold text-slate-850 text-sm">Davet Kodu Gir</h4>
+                            <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                              Sizi Esnaaf'a davet eden arkadaşınızın kodunu aşağıya girerek anında hesabınızı ödüllendirebilirsiniz. 
+                              Her üye yalnızca tek bir davet kodu uygulayabilir.
+                            </p>
+
+                            {referralMessage && (
+                              <div className={`px-4 py-3 rounded-xl text-xs font-bold animate-scale-up border ${
+                                referralMessage.type === "success" 
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+                                  : "bg-red-50 border-red-200 text-red-800"
+                              }`}>
+                                {referralMessage.type === "success" ? "✓ " : "✗ "}
+                                {referralMessage.text}
+                              </div>
+                            )}
+
+                            {referralData?.isReferralApplied ? (
+                              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs shrink-0">
+                                  ✓
+                                </div>
+                                <div>
+                                  <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider">Uygulanmış Davet Kodu</span>
+                                  <span className="text-xs font-black text-slate-700 uppercase">{referralData.appliedReferralCode}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <form onSubmit={handleSubmitReferralCode} className="flex gap-2">
+                                <input
+                                  type="text"
+                                  required
+                                  placeholder="Örn: EMRE9096"
+                                  value={referralCodeInput}
+                                  onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase())}
+                                  className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={submittingReferral}
+                                  className="bg-slate-900 hover:bg-slate-855 text-white disabled:bg-slate-400 text-xs font-black px-6 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
+                                >
+                                  {submittingReferral ? "Uygulanıyor..." : "Uygula"}
+                                </button>
+                              </form>
+                            )}
+                          </div>
+
+                          {/* Right: Referrals History */}
+                          <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-4 text-left">
+                            <h4 className="font-extrabold text-slate-850 text-sm">Davet Ettiklerim</h4>
+                            <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                              Paylaştığınız kod ile kayıt olan arkadaşlarınız ve kazandırma durumları.
+                            </p>
+
+                            <div className="overflow-y-auto max-h-[220px] scrollbar-none space-y-3">
+                              {referralData && referralData.referralsMade.length > 0 ? (
+                                referralData.referralsMade.map((invite: any) => (
+                                  <div 
+                                    key={invite.id} 
+                                    className="bg-slate-50/50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4 transition-all hover:bg-slate-50"
+                                  >
+                                    <div className="space-y-0.5 text-left">
+                                      <span className="block text-xs font-extrabold text-slate-800">{invite.refereeName}</span>
+                                      <span className="block text-[10px] text-slate-400 font-bold">{invite.refereePhoneMasked}</span>
+                                    </div>
+
+                                    <div className="text-right">
+                                      {invite.rewarded ? (
+                                        <>
+                                          <span className="inline-block bg-emerald-50 text-emerald-700 text-[9px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
+                                            +100 ₺ Kazanıldı
+                                          </span>
+                                          <span className="block text-[8px] text-slate-400 font-bold mt-0.5">
+                                            {new Date(invite.rewardedAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span className="inline-block bg-amber-50 text-amber-700 text-[9px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-amber-100">
+                                            İlk İş Bekleniyor
+                                          </span>
+                                          <span className="block text-[8px] text-slate-400 font-bold mt-0.5">
+                                            Davet: {new Date(invite.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-center py-8 text-slate-400 text-xs font-semibold">
+                                  Henüz kimseyi davet etmediniz. Kodu kopyalayarak arkadaşlarınızla paylaşın!
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
             </>
