@@ -6,6 +6,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateDocumentsDto } from './dto/update-documents.dto';
 import { decryptPhone } from '../common/utils/phone.util';
 import { BildirimService } from '../ortak/bildirimler/bildirim.service';
+import { RedisService } from '../common/redis/redis.service';
 
 @Injectable()
 export class HizmetverenService {
@@ -15,6 +16,7 @@ export class HizmetverenService {
     private prisma: PrismaService,
     private chatGateway: ChatGateway,
     private bildirimService: BildirimService,
+    private redis: RedisService,
   ) {}
 
   /**
@@ -293,39 +295,42 @@ export class HizmetverenService {
    * Hizmet verenin profil detaylarını döner
    */
   async getProfile(providerUserId: string) {
-    const provider = await this.prisma.serviceProvider.findUnique({
-      where: { user_id: providerUserId },
-      include: { user: true },
-    });
+    const cacheKey = `provider:profile:${providerUserId}`;
+    return this.redis.getOrSet(cacheKey, async () => {
+      const provider = await this.prisma.serviceProvider.findUnique({
+        where: { user_id: providerUserId },
+        include: { user: true },
+      });
 
-    if (!provider) {
-      throw new NotFoundException('Hizmet veren profili bulunamadı.');
-    }
-
-    let onboardingData: any = {};
-    try {
-      if (provider.description && provider.description.startsWith('{')) {
-        onboardingData = JSON.parse(provider.description);
+      if (!provider) {
+        throw new NotFoundException('Hizmet veren profili bulunamadı.');
       }
-    } catch (e) {
-      // ignore
-    }
 
-    const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
+      let onboardingData: any = {};
+      try {
+        if (provider.description && provider.description.startsWith('{')) {
+          onboardingData = JSON.parse(provider.description);
+        }
+      } catch (e) {
+        // ignore
+      }
 
-    return {
-      id: provider.id,
-      name: provider.user.name || 'Usta',
-      phone_masked: provider.user.phone_masked,
-      city: provider.city || 'Adana',
-      serviceDistricts: provider.service_districts || [],
-      isApproved: provider.is_approved,
-      identityDocument: onboardingData.identityDocument || '',
-      taxPlateDocument: onboardingData.taxPlateDocument || '',
-      companyType: onboardingData.companyType || '',
-      companyName: onboardingData.companyName || '',
-      healthScore,
-    };
+      const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
+
+      return {
+        id: provider.id,
+        name: provider.user.name || 'Usta',
+        phone_masked: provider.user.phone_masked,
+        city: provider.city || 'Adana',
+        serviceDistricts: provider.service_districts || [],
+        isApproved: provider.is_approved,
+        identityDocument: onboardingData.identityDocument || '',
+        taxPlateDocument: onboardingData.taxPlateDocument || '',
+        companyType: onboardingData.companyType || '',
+        companyName: onboardingData.companyName || '',
+        healthScore,
+      };
+    }, 600); // Cache for 10 minutes
   }
 
   /**
@@ -363,6 +368,8 @@ export class HizmetverenService {
       },
     });
 
+    await this.redis.del(`provider:profile:${providerUserId}`);
+
     return {
       success: true,
       message: 'Belgeleriniz başarıyla güncellendi.',
@@ -390,6 +397,8 @@ export class HizmetverenService {
         service_districts: dto.serviceDistricts,
       },
     });
+
+    await this.redis.del(`provider:profile:${providerUserId}`);
 
     return {
       success: true,

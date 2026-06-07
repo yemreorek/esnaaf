@@ -354,9 +354,11 @@ export class AuthService {
   }
 
   async getCategories() {
-    return this.prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { name: 'asc' },
-    });
+    return this.redis.getOrSet('categories:active', () => {
+      return this.prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { name: 'asc' },
+      });
+    }, 3600); // Cache for 1 hour
   }
 }

@@ -6,6 +6,7 @@ import { BILDIRIM_SABLONLARI, formatMessage } from './bildirim-sablonlari';
 import { NpsRespondDto } from './dto/bildirim.dto';
 import { NotifChannel, NpsGroup, NotifStatus } from '@prisma/client';
 import * as admin from 'firebase-admin';
+import { RedisService } from '../../common/redis/redis.service';
 
 @Injectable()
 export class BildirimService implements OnModuleInit {
@@ -16,6 +17,7 @@ export class BildirimService implements OnModuleInit {
     private prisma: PrismaService,
     @InjectQueue('nps-survey') private npsSurveyQueue: Bull.Queue,
     @InjectQueue('dispute-alert') private disputeAlertQueue: Bull.Queue,
+    private redis: RedisService,
   ) {}
 
   onModuleInit() {
@@ -184,6 +186,7 @@ export class BildirimService implements OnModuleInit {
       where: { id: dto.jobCompletionId },
       include: {
         job: true,
+        provider: true,
       },
     });
 
@@ -215,6 +218,9 @@ export class BildirimService implements OnModuleInit {
     });
 
     this.logger.log(`NPS Response saved: Seeker ${seekerId}, Provider ${jobCompletion.provider_id}, Score: ${score} (${group})`);
+
+    // Invalidate provider profile cache as their health score changed
+    await this.redis.del(`provider:profile:${jobCompletion.provider.user_id}`);
 
     // 0-3 Detractor
     if (group === NpsGroup.detractor) {

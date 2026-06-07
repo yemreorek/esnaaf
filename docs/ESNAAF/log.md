@@ -10,6 +10,15 @@ Kronolojik sırayla wiki üzerinde yapılan tüm değişikliklerin kaydı.
 
 ---
 
+## 2026-06-07 build | Adım 23 tamamlandı - Altyapı Optimizasyonu & Caching
+
+- **Veritabanı İndeks Optimizasyonu**: `JobCompletion`, `CallTask`, `PhoneRevealLog` ve `ServiceProvider` tablolarında sık sorgulanan, filtrelenen ve sıralanan alanlar için indeks tanımları (`schema.prisma`) yapıldı. Yerel veritabanında `prisma db push` ile indeksler eşitlendi. Canlı geçiş için `20260607000000_optimize_indexes/migration.sql` SQL migration dosyası oluşturuldu.
+- **Redis Caching Helper Entegrasyonu**: `RedisService` sınıfına genel amaçlı cache get/set sarmalayıcısı (`getOrSet`) ve regex tabanlı toplu cache silici (`invalidatePattern`) metotları eklendi.
+- **Kategori & Profil Caching**: `AuthService.getCategories` aktif kategorileri 1 saatlik cache ile, `HizmetverenService.getProfile` (ağır sağlık skoru sorguları dahil) ise 10 dakikalık cache ile Redis'e bağlandı.
+- **Akıllı Cache Invalidation**: Usta profil/evrak güncellemelerinde (`updateProfile`/`updateDocuments`), NPS anket yanıtı girişinde (`recordNpsResponse`), ve yönetici onay/ban durumlarında (`approveProvider`/`rejectProvider`/`banUser`) ilgili usta profil cache'leri otomatik temizlenecek şekilde invalidation kurgulandı.
+- **AWS ECS Fargate & Pipeline Hazırlıkları**: `ecs-task-def.json` dosyası, AWS Parameter Store / Secrets Manager enjeksiyonları (`secrets` bloğu) ve HTTP sağlık izleme kontrolleri (`healthCheck` bloğu) ile üretim standartlarına getirildi. `deploy-aws.yml` workflow pipeline'ı entegre edildi.
+- **E2E Entegrasyon Doğrulaması**: Tüm caching ve invalidation mekanizmalarını test eden `test-caching-e2e.ts` E2E testi yazıldı ve yerel ortamda %100 başarıyla koşturularak doğrulandı.
+
 ## 2026-05-26 build | Adım 20 tamamlandı
 
 - **Production Dockerization Mimarisi**: Minimal boyut ve maksimum güvenlik için multi-stage `Dockerfile` (Builder -> Runner) kurgulandı. Root yetkileri bulunmayan default `node` kullanıcısı ile çalışması (`USER node`) tescil edildi. Kök dizinde PostgreSQL 15, Redis 6 ve backend API servislerinin orkestrasyonu için `docker-compose.yml` yerel yapılandırması tamamlandı.

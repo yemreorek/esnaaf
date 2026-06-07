@@ -28,11 +28,39 @@
           "value": "3000"
         }
       ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/database_url"
+        },
+        {
+          "name": "REDIS_URL",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/redis_url"
+        },
+        {
+          "name": "JWT_ACCESS_SECRET",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/jwt_access_secret"
+        },
+        {
+          "name": "GEMINI_API_KEY",
+          "valueFrom": "arn:aws:ssm:<AWS_DEFAULT_REGION>:<AWS_ACCOUNT_ID>:parameter/esnaaf/prod/gemini_api_key"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "node -e \"const http = require('http'); http.get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));\""
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      },
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/esnaaf-backend",
-          "awslogs-region": "eu-central-1",
+          "awslogs-region": "<AWS_DEFAULT_REGION>",
           "awslogs-stream-prefix": "ecs"
         }
       }

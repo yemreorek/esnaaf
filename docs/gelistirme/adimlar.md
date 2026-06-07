@@ -31,6 +31,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 20** | **Docker & ECS Deployment** | Production multi-stage Dockerfile, local docker-compose.yml orkestrasyonu, AWS ECS Task Definition, deploy CI/CD pipeline ve DB/Redis /api/health kontrol sistemi | **✅ Tamamlandı** |
 | **Adım 21** | **Gemini Active Agent** | Resmi Google Gen AI SDK (`@google/genai`) entegrasyonu, otonom 'detectCategory', 'sendOTP' ve 'createServiceRequest' araç çağırma (Function Calling) akışı, dinamik syncStep algoritması, üstel geri çekilme (exponential backoff) hata toleransı, coğrafi kısıtlayıcı kilitler ve parametre bozulmalarını önleyen akıllı filtreleme mimarisi | **✅ Tamamlandı** |
 | **Adım 22** | **GCP & Canlı Dağıtım** | Google Cloud Platform (GCP) Canlı Ortam Kurulumu, Cloud Run API/Frontend Servisleri, Memorystore Redis VPC Egress, Firebase Hosting Özel Alan Adı (esnaaf.com) Entegrasyonu ve Otomatik GitHub Actions CI/CD Dağıtım Altyapısı | **✅ Tamamlandı** |
+| **Adım 23** | **Altyapı & Caching** | Veritabanı indeks optimizasyonları, Redis `getOrSet`/`invalidatePattern` cache helper entegrasyonu, Kategori ve Profil caching/invalidation, AWS ECS healthcheck ve deploy pipeline | **✅ Tamamlandı** |
 
 ---
 
@@ -691,4 +692,31 @@ Esnaaf platformunun Faz 3 hedefleri doğrultusunda canlıya geçiş, özel alan 
 
 ### 4. Otomatik CI/CD Dağıtım Hattı
 *   `.github/workflows/deploy-gcp.yml` boru hattı güncellenerek, ana depoya (main branch) push yapıldığında Google Cloud Platform üzerinde otomatik imaj derleme, GCP Artifact Registry tescili ve Cloud Run servislerinin güncel imajlarla otomatik dağıtılması sağlandı.
+
+---
+
+## 🛠️ Adım 23 Geliştirme Detayları (Altyapı Optimizasyonu & Caching)
+
+Yüksek trafik ve ölçeklenme ihtiyaçları doğrultusunda veritabanı indeksleri optimize edilmiş, Redis caching katmanı güçlendirilmiş ve AWS ECS Fargate deploy hazırlıkları tamamlanmıştır:
+
+### 1. Veritabanı İndeks Optimizasyonu
+*   **Optimizasyon Yapılan Tablolar**: Sık sorgulanan ve filtrelenen `JobCompletion`, `CallTask` (FIFO kuyruğu), `PhoneRevealLog` ve `ServiceProvider` tablolarında kritik alanlar için indeks tanımları (`schema.prisma` şemasına) eklendi.
+*   **Yerel DB Senkronizasyonu**: `prisma db push` komutu ile indeksler veritabanına uygulandı ve Prisma Client yeniden üretildi.
+*   **Migration Dosyası**: Production geçişleri için `20260607000000_optimize_indexes` adında manuel SQL migration dosyası oluşturuldu.
+
+### 2. Redis Caching Entegrasyonu
+*   **Redis Helper**: `RedisService` sınıfına generic `getOrSet<T>` (sarmalayıcı cache metodu) ve regex tabanlı toplu silme yapabilen `invalidatePattern` metotları kazandırıldı.
+*   **Kategori Cache**: `AuthService.getCategories` aktif kategorileri 1 saat (`3600s`) süreyle Redis'e bağlandı.
+*   **Profil & Sağlık Skoru Cache**: `HizmetverenService.getProfile` (hesaplama maliyeti yüksek olan `calculateProviderHealthScore` dahil) 10 dakika (`600s`) süreyle cache'lendi.
+
+### 3. Akıllı Cache Invalidation
+*   Usta profil/evrak güncellemelerinde (`updateProfile`, `updateDocuments`), NPS anket yanıtı alındığında (`recordNpsResponse`) ve yönetici ban/onay/ret durumlarında (`banUser`, `approveProvider`, `rejectProvider`, `resolveDispute`) usta profil cache'lerinin otomatik temizlenmesi sağlandı.
+
+### 4. AWS ECS Fargate & Pipeline Hazırlıkları
+*   **Konteyner Sağlık Kontrolü**: `ecs-task-def.json` dosyasına, `/api/health` rotasını node http modülüyle sorgulayan container `healthCheck` bloğu eklendi.
+*   **Secrets Manager**: DB url, Redis url ve Gemini API key gibi hassas verilerin Fargate konteynerlerine parameter store referansıyla enjekte edilmesi için `secrets` tanımları eklendi.
+*   **CI/CD Pipeline**: Ana repoya push yapıldığında AWS ECS'e imaj derleyip pushlayacak ve servisi güncelleyecek `.github/workflows/deploy-aws.yml` pipeline workflow'u oluşturuldu.
+
+### 5. E2E Test Doğrulaması
+*   Yazılan `test-caching-e2e.ts` entegrasyon testi ile caching get/set, default TTL ve güncelleme anında cache invalidation süreçleri koşturuldu ve **100% başarıyla** tamamlandı.
 

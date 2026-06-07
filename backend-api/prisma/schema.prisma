@@ -127,6 +127,8 @@ model ServiceProvider {
   favorited_by      FavoriteProvider[]     @relation("ProviderFavoritedBy")
 
   @@map("service_providers")
+  @@index([city])
+  @@index([is_approved])
 }
 
 model Category {
@@ -210,6 +212,8 @@ model PhoneRevealLog {
   revealed_at      DateTime       @default(now())
 
   @@map("phone_reveal_logs")
+  @@index([job_id])
+  @@index([requester_id])
 }
 
 model TempSession {
@@ -272,6 +276,10 @@ model JobCompletion {
   nps_responses            NpsResponse[]
 
   @@map("job_completions")
+  @@index([job_id])
+  @@index([provider_id])
+  @@index([seeker_id])
+  @@index([status])
 }
 
 model Staff {
@@ -531,6 +539,10 @@ model CallTask {
   created_at         DateTime        @default(now())
 
   @@map("call_tasks")
+  @@index([status, priority, created_at])
+  @@index([assigned_to])
+  @@index([job_completion_id])
+  @@index([due_at])
 }
 
 enum PriorityLevel {
