@@ -28,6 +28,49 @@ interface ChatScreenProps {
   onJobCompleted?: (jobId: string) => void;
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  daireTipi: 'Daire Tipi',
+  siflik: 'Temizlik Sıklığı',
+  sıklık: 'Temizlik Sıklığı',
+  tarih: 'Tarih',
+  metrekare: 'Metrekare / Alan',
+  tur: 'Hizmet Türü',
+  renkTip: 'Renk / Boya Tipi',
+  destinationDistrict: 'Varış Konumu',
+  katAsansor: 'Kat & Asansör',
+  sorunTuru: 'Sorun Türü',
+  isTuru: 'İş / Sorun Türü',
+  aciliyet: 'Aciliyet',
+  kapsam: 'Kapsam',
+  butce: 'Bütçe Aralığı',
+  adet: 'Adet / Sayı',
+  durum: 'Genel Durum / Lekeler',
+  islemTuru: 'İşlem Türü',
+  hasereTuru: 'Haşere Türü',
+  binaTipi: 'Bina / Mülk Tipi',
+  cihazTuru: 'Cihaz Türü',
+  dersTuru: 'Ders Branşı',
+  sinifSeviyesi: 'Sınıf Seviyesi',
+  camTipi: 'Cam Tipi',
+  kombiDurumu: 'Kombi Durumu',
+  etkinlikTuru: 'Etkinlik Türü',
+  davetliSayisi: 'Davetli Sayısı',
+  malzemeDurumu: 'Malzeme Durumu',
+  esyaDurumu: 'Eşya Durumu',
+  malzemeDahil: 'Malzeme Temini',
+  paketlemeHizmeti: 'Paketleme Hizmeti',
+  evcilHayvan: 'Evcil Hayvan',
+  markaModel: 'Marka / Model',
+  katSayisi: 'Bina Kat Sayısı',
+  mobilyaTuru: 'Mobilya Türü',
+  dersYeri: 'Ders Yeri',
+  odaSayisi: 'Oda Sayısı',
+  projeGerekli: 'Proje Çizimi',
+  tarzTercihi: 'Tarz Tercihi',
+  albumTalebi: 'Albüm Talebi',
+  cateringDahil: 'Catering Durumu'
+};
+
 const initializedSessions = new Set<string>();
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -716,40 +759,26 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         <>
                           <div><strong className="text-slate-900">Çıkış Konumu:</strong> {msg.collected_data.district}, {msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}</div>
                           <div><strong className="text-slate-900">Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, {msg.collected_data.destinationCity || msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.destinationDistrict)}</div>
-                          <div><strong className="text-slate-900">Tarih:</strong> {msg.collected_data.tarih}</div>
-                          <div><strong className="text-slate-900">Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
-                          <div><strong className="text-slate-900">Kat & Asansör:</strong> {msg.collected_data.katAsansor}</div>
+                          {Object.entries(msg.collected_data).map(([key, val]) => {
+                            if (['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly'].includes(key)) return null;
+                            if (!val) return null;
+                            const label = FIELD_LABELS[key] || key;
+                            return (
+                              <div key={key}><strong className="text-slate-900">{label}:</strong> {String(val)}</div>
+                            );
+                          })}
                         </>
                       ) : (
                         <>
                           <div><strong className="text-slate-900">Konum:</strong> {msg.collected_data.district || 'Belirtilmedi'}{msg.collected_data.district ? `, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : ''}</div>
-                          {msg.collected_data.categorySlug === 'ev-temizligi' && (
-                            <>
-                              <div><strong className="text-slate-900">Daire Tipi:</strong> {msg.collected_data.daireTipi}</div>
-                              <div><strong className="text-slate-900">Temizlik Sıklığı:</strong> {msg.collected_data.siflik || msg.collected_data.sıklık}</div>
-                              <div><strong className="text-slate-900">Tarih:</strong> {msg.collected_data.tarih}</div>
-                            </>
-                          )}
-                          {msg.collected_data.categorySlug === 'boya-badana' && (
-                            <>
-                              <div><strong className="text-slate-900">Metrekare:</strong> {msg.collected_data.metrekare}</div>
-                              <div><strong className="text-slate-900">Uygulama Alanı:</strong> {msg.collected_data.tur}</div>
-                              <div><strong className="text-slate-900">Renk / Boya Tipi:</strong> {msg.collected_data.renkTip}</div>
-                            </>
-                          )}
-                          {(msg.collected_data.categorySlug === 'su-tesisati' || msg.collected_data.categorySlug === 'elektrik-tesisati') && (
-                            <>
-                              <div><strong className="text-slate-900">İş / Sorun Türü:</strong> {msg.collected_data.sorunTuru || msg.collected_data.isTuru}</div>
-                              <div><strong className="text-slate-900">Aciliyet:</strong> {msg.collected_data.aciliyet}</div>
-                            </>
-                          )}
-                          {msg.collected_data.categorySlug === 'ev-tadilat' && (
-                            <>
-                              <div><strong className="text-slate-900">Tadilat Kapsamı:</strong> {msg.collected_data.kapsam}</div>
-                              <div><strong className="text-slate-900">Metrekare:</strong> {msg.collected_data.metrekare}</div>
-                              <div><strong className="text-slate-900">Bütçe Aralığı:</strong> {msg.collected_data.butce}</div>
-                            </>
-                          )}
+                          {Object.entries(msg.collected_data).map(([key, val]) => {
+                            if (['name', 'phone', 'city', 'district', 'categorySlug', 'details', 'sendToFavoritesOnly'].includes(key)) return null;
+                            if (!val) return null;
+                            const label = FIELD_LABELS[key] || key;
+                            return (
+                              <div key={key}><strong className="text-slate-900">{label}:</strong> {String(val)}</div>
+                            );
+                          })}
                         </>
                       )}
                       <div><strong className="text-slate-900">Açıklama:</strong> {msg.collected_data.details || "Standart Hizmet"}</div>
