@@ -141,7 +141,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [providerId, setProviderId] = useState<string | null>(null);
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [sendToFavoritesOnlyChecked, setSendToFavoritesOnlyChecked] = useState(false);
-  const [kvkkChecked, setKvkkChecked] = useState(false);
+  const [kvkkChecked, setKvkkChecked] = useState(true);
 
   // Lock body scroll when chat is open (prevents background scrolling on mobile)
   useEffect(() => {
@@ -826,22 +826,6 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                       )}
                       <div><strong className="text-slate-900">Açıklama:</strong> {msg.collected_data.details || "Standart Hizmet"}</div>
                     </div>
-                    <div className="flex items-center gap-2.5 py-1 px-0.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
-                      <input
-                        type="checkbox"
-                        id="sendToFavoritesOnly"
-                        checked={sendToFavoritesOnlyChecked}
-                        onChange={(e) => {
-                          setSendToFavoritesOnlyChecked(e.target.checked);
-                          msg.collected_data.sendToFavoritesOnly = e.target.checked;
-                        }}
-                        className="w-4 h-4 accent-[#c8f252] cursor-pointer rounded"
-                      />
-                      <label htmlFor="sendToFavoritesOnly" className="cursor-pointer font-bold select-none flex items-center gap-1 text-slate-800">
-                        ❤️ Sadece Favori Ustalarıma Gönder (Eski Memnuniyet Öncelikli)
-                      </label>
-                    </div>
-
                     <div className="flex items-start gap-2.5 py-1 px-0.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
                       <input
                         type="checkbox"
