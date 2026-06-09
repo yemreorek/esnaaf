@@ -1147,7 +1147,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                         {/* Footer Bid amount & Actions */}
                                         <div className="border-t border-slate-100/80 pt-4 flex items-center justify-between gap-4">
                                           <div className="text-left">
-                                            <span className="text-lg font-black text-slate-900 tracking-tight">₺{offer.price.toLocaleString("tr-TR")}</span>
+                                            <span className="text-lg font-black text-slate-900 tracking-tight">₺{Number(offer.price).toLocaleString("tr-TR")}</span>
                                             <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
                                           </div>
 
@@ -1839,7 +1839,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </div>
                                     </div>
                                     <span className="text-base md:text-lg font-black text-slate-900 tracking-tight">
-                                      {offer.price} ₺
+                                      {Number(offer.price).toLocaleString("tr-TR")} ₺
                                     </span>
                                   </div>
 
@@ -1986,7 +1986,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       &ldquo;{lowestPriceOffer.description || lowestPriceOffer.message || "Açıklama belirtilmedi."}&rdquo;
                                     </p>
                                     <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
-                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{lowestPriceOffer.price.toLocaleString("tr-TR")}</span></div>
+                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{Number(lowestPriceOffer.price).toLocaleString("tr-TR")}</span></div>
                                       <div className="flex justify-between"><span>Ortalama Puan:</span><span className="font-extrabold text-slate-900">⭐ {Number((lowestPriceOffer.provider as any)?.avg_rating || 4.5).toFixed(1)}</span></div>
                                       <div className="flex justify-between"><span>Talep Kodu:</span><span className="font-mono text-slate-900 font-bold">#TR-{activeCompareJob.id.substring(0, 5).toUpperCase()}</span></div>
                                     </div>
@@ -2021,7 +2021,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       &ldquo;{highestRatingOffer.description || highestRatingOffer.message || "Açıklama belirtilmedi."}&rdquo;
                                     </p>
                                     <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
-                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{highestRatingOffer.price.toLocaleString("tr-TR")}</span></div>
+                                      <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{Number(highestRatingOffer.price).toLocaleString("tr-TR")}</span></div>
                                       <div className="flex justify-between"><span>Ortalama Puan:</span><span className="font-black text-[#4c630a] text-sm">⭐ {Number((highestRatingOffer.provider as any)?.avg_rating || 4.5).toFixed(1)}</span></div>
                                       <div className="flex justify-between"><span>Talep Kodu:</span><span className="font-mono text-slate-900 font-bold">#TR-{activeCompareJob.id.substring(0, 5).toUpperCase()}</span></div>
                                     </div>

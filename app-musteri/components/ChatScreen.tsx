@@ -277,7 +277,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         {
           id: `completion-decl-${Date.now()}`,
           role: "assistant",
-          content: `🔔 Hizmet vereniniz ${data.providerName} işin tamamlandığını beyan etti. Beyan Edilen Ücret: ${data.price} ₺.\n\nLütfen aşağıdaki panelden ödediğiniz tutarı teyit edin.`,
+          content: `🔔 Hizmet vereniniz ${data.providerName} işin tamamlandığını beyan etti. Beyan Edilen Ücret: ${Number(data.price).toLocaleString("tr-TR")} ₺.\n\nLütfen aşağıdaki panelden ödediğiniz tutarı teyit edin.`,
         },
       ]);
     });
@@ -423,7 +423,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const handleAcceptOffer = async (offer: any) => {
     if (!offer?.id) return;
     const confirmed = window.confirm(
-      `${offer.provider?.name || 'Usta'} teklifini ${offer.price} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`
+      `${offer.provider?.name || 'Usta'} teklifini ${Number(offer.price).toLocaleString("tr-TR")} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`
     );
     if (!confirmed) return;
 
@@ -729,7 +729,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-black text-slate-900 tracking-tight">
-                      {msg.offerData.price} ₺
+                      {Number(msg.offerData.price).toLocaleString("tr-TR")} ₺
                     </span>
                   </div>
                 </div>
