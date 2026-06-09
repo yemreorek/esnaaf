@@ -20,11 +20,56 @@ async function safeJsonParse(response: Response, defaultError = "Sunucu hatası 
   }
 }
 
+function TypewriterText({ text, speed = 12, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+  const [displayedText, setDisplayedText] = useState("");
+  const elementRef = useRef<HTMLParagraphElement>(null);
+  const textRef = useRef(text);
+  textRef.current = text;
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText("");
+    
+    const intervalId = setInterval(() => {
+      setDisplayedText((prev) => {
+        const fullText = textRef.current;
+        if (index >= fullText.length) {
+          clearInterval(intervalId);
+          if (onComplete) {
+            requestAnimationFrame(() => onComplete());
+          }
+          return prev;
+        }
+        
+        const nextChar = fullText.charAt(index);
+        index++;
+        
+        // Auto scroll parent scroll container to bottom
+        const container = elementRef.current?.closest('.overflow-y-auto');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+
+        return prev + nextChar;
+      });
+    }, speed);
+
+    return () => clearInterval(intervalId);
+  }, [speed, onComplete]);
+
+  return (
+    <p ref={elementRef} className="whitespace-pre-line">
+      {displayedText}
+    </p>
+  );
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant" | "system" | "offer";
   content: string;
   collected_data?: any;
+  isStreaming?: boolean;
   offerData?: {
     id: string | number;
     price: number;
@@ -116,7 +161,6 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isTypingAnimationActive, setIsTypingAnimationActive] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>("greeting");
   const [jobId, setJobId] = useState<string | null>(null);
   
@@ -162,16 +206,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     if (!container) return;
     // Use rAF to ensure DOM has painted the new message before scrolling
     requestAnimationFrame(() => {
-      const threshold = 150; // pixels
-      const isCloseToBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= threshold;
-      if (isCloseToBottom || messages.length === 0) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: isTypingAnimationActive ? 'auto' : 'smooth',
-        });
-      }
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
     });
-  }, [messages, isLoading, isTypingAnimationActive]);
+  }, [messages, isLoading]);
 
   // Main chat initialization on mount
   useEffect(() => {
@@ -195,6 +235,15 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         setMessages([]);
         if (initialMessage && initialMessage.trim() !== "") {
           await sendMessage(initialMessage);
+        } else {
+          setMessages([
+            {
+              id: `assistant-welcome`,
+              role: "assistant",
+              content: startData.message || "Size bugün hangi konuda yardımcı olabilirim? (Örn: Ev temizliği, boya badana, tesisat veya elektrik işi...)",
+              isStreaming: true,
+            }
+          ]);
         }
       } catch (err) {
         console.error("Chat initialization failed:", err);
@@ -363,55 +412,36 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
       const data = await safeJsonParse(response, "Mesaj iletilemedi.");
 
-      // Store JWT tokens if session has migrated (OTP verified) immediately
-      if (data.sessionMigrated && data.accessToken) {
-        localStorage.setItem("esnaaf_token", data.accessToken);
-        localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
-        localStorage.setItem("esnaaf_user", JSON.stringify(data.user || null));
-        console.log("[ChatScreen] Auto-logged in service seeker:", data.user);
+      // Simulated typing delay for "humanized" feel (2 seconds optimum)
+      const duration = Date.now() - startTime;
+      const minDelay = 2000;
+      if (duration < minDelay) {
+        await new Promise((resolve) => setTimeout(resolve, minDelay - duration));
       }
+      
+      // Update local state machine step
+      setCurrentStep(data.step);
 
-      // Hide loading bouncing dots before typing starts
-      setIsLoading(false);
-      setIsTypingAnimationActive(true);
-
-      // Append assistant's response bubble with empty content first
+      // Append assistant's response bubble
       const assistantMsgId = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         {
           id: assistantMsgId,
           role: "assistant",
-          content: "",
+          content: data.responseMessage,
           collected_data: data.collected_data,
+          isStreaming: true,
         },
       ]);
 
-      // Dynamic streaming/typing effect (fluent speed)
-      let currentText = "";
-      const textToType = data.responseMessage;
-      let charIndex = 0;
-
-      await new Promise<void>((resolve) => {
-        const intervalId = setInterval(() => {
-          if (charIndex < textToType.length) {
-            currentText += textToType[charIndex];
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === assistantMsgId ? { ...msg, content: currentText } : msg
-              )
-            );
-            charIndex++;
-          } else {
-            clearInterval(intervalId);
-            resolve();
-          }
-        }, 12);
-      });
-
-      // Update local state machine step and typing state after typing finishes
-      setCurrentStep(data.step);
-      setIsTypingAnimationActive(false);
+      // Store JWT tokens if session has migrated (OTP verified)
+      if (data.sessionMigrated && data.accessToken) {
+        localStorage.setItem("esnaaf_token", data.accessToken);
+        localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
+        localStorage.setItem("esnaaf_user", JSON.stringify(data.user || null));
+        console.log("[ChatScreen] Auto-logged in service seeker:", data.user);
+      }
 
       // Detect if job has been created (contains jobId / completed step)
       if (data.step === "completed" || data.responseMessage.includes("Talebiniz #")) {
@@ -806,7 +836,18 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                 }`}
               >
                 {/* Parse newline characters for clean spacing */}
-                <p className="whitespace-pre-line">{msg.content}</p>
+                {msg.role === "assistant" && msg.isStreaming ? (
+                  <TypewriterText 
+                    text={msg.content} 
+                    onComplete={() => {
+                      setMessages((prev) =>
+                        prev.map((m) => (m.id === msg.id ? { ...m, isStreaming: false } : m))
+                      );
+                    }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-line">{msg.content}</p>
+                )}
 
                 {/* SUMMARY CARD IN THE SOHBET FLOW */}
                 {msg.collected_data && currentStep === "confirm_form" && msg.id === [...messages].reverse().find(m => m.collected_data)?.id && (
@@ -1187,12 +1228,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               }
             }}
             placeholder="Mesajınızı buraya yazın..."
-            disabled={isLoading || isTypingAnimationActive || currentStep === "confirm_form" || currentStep === "completed"}
+            disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
             className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400"
           />
           <button
             onClick={handleSend}
-            disabled={!inputVal.trim() || isLoading || isTypingAnimationActive || currentStep === "confirm_form" || currentStep === "completed"}
+            disabled={!inputVal.trim() || isLoading || currentStep === "confirm_form" || currentStep === "completed"}
             className="bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-950 disabled:text-slate-400 w-10 h-10 rounded-[12px] flex items-center justify-center cursor-pointer shadow-sm hover:scale-102 active:scale-97 transition-all duration-150 shrink-0 border border-transparent"
           >
             <svg
