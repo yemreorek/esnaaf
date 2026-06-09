@@ -912,7 +912,7 @@ export default function ProviderDashboard() {
     e.preventDefault();
     if (!token || !completingJob) return;
 
-    const priceNum = Number(declarePrice);
+    const priceNum = Number(declarePrice.replace(/\D/g, ''));
     if (!priceNum || priceNum < 1) {
       alert("Lütfen geçerli bir beyan ücreti giriniz.");
       return;
@@ -977,7 +977,7 @@ export default function ProviderDashboard() {
     e.preventDefault();
     if (!token || !activeJob) return;
 
-    const priceNum = Number(offerPrice);
+    const priceNum = Number(offerPrice.replace(/\D/g, ''));
     if (!priceNum || priceNum < 1) {
       alert('Lütfen geçerli bir teklif fiyatı giriniz.');
       return;
@@ -1977,7 +1977,7 @@ export default function ProviderDashboard() {
                                       <button
                                         onClick={() => {
                                           setCompletingJob(wj);
-                                          setDeclarePrice(String(wj.price));
+                                          setDeclarePrice(wj.price ? Number(wj.price).toLocaleString('tr-TR') : '');
                                         }}
                                         className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
                                       >
@@ -2710,11 +2710,14 @@ export default function ProviderDashboard() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={offerPrice}
-                    onChange={(e) => setOfferPrice(e.target.value)}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '');
+                      setOfferPrice(clean ? Number(clean).toLocaleString('tr-TR') : '');
+                    }}
                     placeholder="Örn: 850"
                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-1 focus:ring-[#4c630a]/10 rounded-xl py-3.5 px-4 pl-10 text-xs font-black text-slate-900 focus:outline-none transition-all shadow-inner"
                   />
@@ -2866,11 +2869,14 @@ export default function ProviderDashboard() {
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={declarePrice}
-                    onChange={(e) => setDeclarePrice(e.target.value)}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '');
+                      setDeclarePrice(clean ? Number(clean).toLocaleString('tr-TR') : '');
+                    }}
                     placeholder="Örn: 850"
                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-1 focus:ring-[#4c630a]/10 rounded-xl py-3.5 px-4 pl-10 text-xs font-black text-slate-900 focus:outline-none transition-all shadow-inner"
                   />
