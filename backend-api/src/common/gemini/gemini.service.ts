@@ -4,13 +4,13 @@ import { GoogleGenAI, Type } from '@google/genai';
 @Injectable()
 export class GeminiService {
   private ai: GoogleGenAI | null = null;
-  private modelName = 'gemini-3.5-flash';
+  private modelName = 'gemini-2.5-flash';
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
       this.ai = new GoogleGenAI({ apiKey });
-      this.modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+      this.modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
       console.log(`[GeminiService] Initialized with model: ${this.modelName}`);
     } else {
       console.warn('[GeminiService] GEMINI_API_KEY is not defined. Active Agent will run in Mock Fallback mode.');
@@ -113,11 +113,11 @@ export class GeminiService {
 
     let modelToUse = options?.modelName || this.modelName;
 
-    // Map legacy models to actual available models in API
-    if (modelToUse === 'gemini-1.5-flash' || modelToUse === 'gemini-2.5-flash') {
-      modelToUse = 'gemini-3.5-flash';
-    } else if (modelToUse === 'gemini-1.5-pro' || modelToUse === 'gemini-2.5-pro' || modelToUse === 'gemini-3.1-pro') {
-      modelToUse = 'gemini-3.5-pro';
+    // Map legacy or invalid models to actual available models in API
+    if (modelToUse === 'gemini-1.5-flash' || modelToUse === 'gemini-3.5-flash') {
+      modelToUse = 'gemini-2.5-flash';
+    } else if (modelToUse === 'gemini-1.5-pro' || modelToUse === 'gemini-3.5-pro' || modelToUse === 'gemini-3.1-pro') {
+      modelToUse = 'gemini-2.5-pro';
     }
 
     // Map history to Gemini API format
@@ -163,17 +163,9 @@ export class GeminiService {
           errMsg.includes('quota');
 
         if (isTransient && attempt < maxRetries) {
-          if (currentModel === 'gemini-3.5-flash') {
-            console.warn(`[GeminiService] Model gemini-3.5-flash is experiencing high demand (${status || errMsg}). Falling back to gemini-2.5-flash immediately for attempt ${attempt + 1}.`);
-            currentModel = 'gemini-2.5-flash';
-          } else if (currentModel === 'gemini-3.5-pro') {
-            console.warn(`[GeminiService] Model gemini-3.5-pro is experiencing high demand (${status || errMsg}). Falling back to gemini-2.5-pro immediately for attempt ${attempt + 1}.`);
-            currentModel = 'gemini-2.5-pro';
-          } else {
-            const delay = attempt * 1000; // 1s, 2s backoff
-            console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-          }
+          const delay = attempt * 1000; // 1s, 2s backoff
+          console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
 

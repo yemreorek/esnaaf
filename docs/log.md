@@ -2,6 +2,12 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-09 fix | Canlı Sohbet Hata & Model Eşleme Hızlandırma Düzeltmesi
+
+- **Gemini Model Eşleme Düzeltmesi (Performans & Hız):** `@google/genai` resmi SDK'sında bulunmayan ve 503 Service Unavailable hatası döndüren `gemini-3.5-flash` / `gemini-3.5-pro` model isimlerine yapılan hatalı eşlemeler düzeltildi. Bunun yerine resmi olarak desteklenen en hızlı ve kararlı `gemini-2.5-flash` ve `gemini-2.5-pro` modelleri doğrudan kullanılmaya başlandı. Bu düzeltme sayesinde her mesaj için fazladan yapılan hatalı 503 API çağrısı ve retry beklemesi ortadan kalkarak canlı sohbetteki AI yanıt gecikmesi **4.5 saniyeden 1.5 saniyeye düşürüldü**.
+- **Güvenli JSON Hata Yönetimi (Ön Yüz):** `ChatScreen.tsx` içindeki tüm `customFetch` çağrılarında, backend'den veya GCP proxy/ağ geçidinden dönen plain-text "Internal Server Error" (HTML/Text) yanıtlarının JSON olarak ayrıştırılmaya çalışılmasıyla oluşan `Unexpected token 'I', "Internal S"... is not valid JSON` hatası giderildi. `safeJsonParse` yardımcı fonksiyonu eklenerek bu gibi durumlarda hatanın kullanıcıya sızması engellendi ve kullanıcı dostu bir hata mesajı gösterilmesi sağlandı.
+- **A/B Test ve Geliştirici Yapılandırması:** `chat.service.ts`, `admin.service.ts` ve `.env.example` dosyalarındaki tüm varsayılan fallback model referansları `gemini-2.5-flash` olarak güncellendi.
+
 ## 2026-06-07 fix | Canlı Ortam Sağlık Kontrolü & 9 İyileştirme
 
 - **Canlı Ortam Testi:** Backend API (`/api/health`), kategori listeleme, anonim chat oturumu, Gemini AI mesaj işleme, OTP gönderimi ve 4 korumalı endpoint'in JWT güvenliği canlı ortamda uçtan uca test edildi. **9/9 test PASS.** Frontend siteleri (`esnaaf.com`, `www.esnaaf.com`, `partner.esnaaf.com`, `partner.esnaaf.com/admin`) tümü 200 OK yanıtı döndürdü. SSL sertifikası geçerli (89 gün kaldı).

@@ -113,14 +113,14 @@ export class ChatService {
     const sessionKey = userId ? `ai_session:${userId}:${uuid}` : `temp_session:${uuid}`;
 
     // 1. Fetch A/B Test parameters from Redis
-    const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-3.5-flash';
+    const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-2.5-flash';
     const tempStr = await this.redis.get('ab_test:temperature');
     const temperature = tempStr ? parseFloat(tempStr) : 0.7;
     const splitRatioStr = await this.redis.get('ab_test:split_ratio');
     const splitRatio = splitRatioStr ? parseFloat(splitRatioStr) : 0.5;
 
     let ab_variant: 'control' | 'variant' = 'control';
-    let ab_model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+    let ab_model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     let ab_temp = 0.7;
 
     if (Math.random() < splitRatio) {
@@ -208,14 +208,14 @@ export class ChatService {
 
     // Initialize A/B test parameters if missing (failsafe/migration for legacy sessions)
     if (!state.ab_variant) {
-      const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-3.5-flash';
+      const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-2.5-flash';
       const tempStr = await this.redis.get('ab_test:temperature');
       const temperature = tempStr ? parseFloat(tempStr) : 0.7;
       const splitRatioStr = await this.redis.get('ab_test:split_ratio');
       const splitRatio = splitRatioStr ? parseFloat(splitRatioStr) : 0.5;
 
       let ab_variant: 'control' | 'variant' = 'control';
-      let ab_model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+      let ab_model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
       let ab_temp = 0.7;
 
       if (Math.random() < splitRatio) {

@@ -1081,7 +1081,7 @@ export class AdminService {
     const controlAvgLatency = controlLatencyCount > 0 ? controlLatencyTotal / controlLatencyCount : 0;
     const variantAvgLatency = variantLatencyCount > 0 ? variantLatencyTotal / variantLatencyCount : 0;
 
-    const controlModelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+    const controlModelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
     return {
       chatModel,

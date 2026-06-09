@@ -5,6 +5,21 @@ import Image from "next/image";
 import { io, Socket } from "socket.io-client";
 import { customFetch, getSessionId } from "../lib/session";
 
+async function safeJsonParse(response: Response, defaultError = "Sunucu hatası oluştu."): Promise<any> {
+  try {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("[JSON Parse Error] Response is not valid JSON:", text, e);
+      throw new Error(defaultError);
+    }
+  } catch (err) {
+    console.error("[Response Text Read Error]:", err);
+    throw new Error(defaultError);
+  }
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant" | "system" | "offer";
@@ -168,7 +183,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         if (!startRes.ok) {
           throw new Error('Oturum başlatılamadı.');
         }
-        const startData = await startRes.json();
+        const startData = await safeJsonParse(startRes, 'Oturum başlatılamadı.');
         
         setMessages([]);
         if (initialMessage && initialMessage.trim() !== "") {
@@ -329,11 +344,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await safeJsonParse(response, "Mesaj iletilemedi.");
         throw new Error(errorData.error?.message || "Mesaj iletilemedi.");
       }
 
-      const data = await response.json();
+      const data = await safeJsonParse(response, "Mesaj iletilemedi.");
 
       // Simulated typing delay for "humanized" feel (2 seconds optimum)
       const duration = Date.now() - startTime;
@@ -412,11 +427,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await safeJsonParse(res, 'Teklif kabul edilemedi.');
         throw new Error(errorData.error?.message || 'Teklif kabul edilemedi.');
       }
 
-      const data = await res.json();
+      const data = await safeJsonParse(res, 'Teklif kabul edilemedi.');
       setProviderId(offer.provider?.id || null);
 
       setMessages((prev) => [
@@ -463,11 +478,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await safeJsonParse(res, "Teyit işlemi başarısız oldu.");
         throw new Error(errorData.error?.message || "Teyit işlemi başarısız oldu.");
       }
 
-      const resData = await res.json();
+      const resData = await safeJsonParse(res, "Teyit işlemi başarısız oldu.");
       console.log("[ChatScreen] Seeker confirmation success:", resData);
       
       // Reset forms and trigger completionState updates locally as fallback
@@ -496,11 +511,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await safeJsonParse(res, "Simülasyon başarısız oldu.");
         throw new Error(errorData.error?.message || "Simülasyon başarısız oldu.");
       }
 
-      const data = await res.json();
+      const data = await safeJsonParse(res, "Simülasyon başarısız oldu.");
       console.log("[ChatScreen] Simulator provider complete success:", data);
     } catch (err: any) {
       console.error("Simulation error:", err);
@@ -547,7 +562,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         if (!presignedRes.ok) {
           throw new Error("Yükleme adresi alınamadı.");
         }
-        const { uploadUrl, downloadUrl } = await presignedRes.json();
+        const { uploadUrl, downloadUrl } = await safeJsonParse(presignedRes, "Yükleme adresi alınamadı.");
 
         // 2. Upload photo directly via PUT request
         const uploadRes = await fetch(uploadUrl, {
@@ -577,7 +592,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       });
 
       if (!reviewRes.ok) {
-        const errorData = await reviewRes.json();
+        const errorData = await safeJsonParse(reviewRes, "Değerlendirme gönderilemedi.");
         throw new Error(errorData.error?.message || "Değerlendirme gönderilemedi.");
       }
 
@@ -606,7 +621,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       if (res.ok) {
         setIsAddedToFavorites(true);
       } else {
-        const err = await res.json();
+        const err = await safeJsonParse(res, "Usta favorilere eklenemedi.");
         alert(err.error?.message || "Usta favorilere eklenemedi.");
       }
     } catch (err: any) {
