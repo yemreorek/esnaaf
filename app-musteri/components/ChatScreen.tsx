@@ -135,9 +135,20 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     };
   }, []);
 
-  // Auto-scroll to bottom of the chat on new messages
+  // Auto-scroll to bottom — uses container scroll instead of scrollIntoView
+  // to prevent the jarring jump when keyboard is open on mobile
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = chatContainerRef.current;
+    if (!container) return;
+    // Use rAF to ensure DOM has painted the new message before scrolling
+    requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
+    });
   }, [messages, isLoading]);
 
   // Main chat initialization on mount
@@ -180,14 +191,17 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     };
   }, []);
 
-  // Automatically restore focus to textarea when loading completes (UX Focus Improvement)
+  // Restore focus to textarea ONLY on desktop — on mobile, auto-focus opens
+  // the keyboard which pushes content up and hides the AI's last message
   useEffect(() => {
     if (!isLoading && currentStep !== "confirm_form" && currentStep !== "completed") {
-      // Small timeout to ensure DOM element is enabled before focus
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (!isMobile) {
+        const timer = setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 50);
+        return () => clearTimeout(timer);
+      }
     }
   }, [isLoading, currentStep]);
 
@@ -667,7 +681,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       )}
 
       {/* Main scrolling viewport */}
-      <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 flex flex-col gap-4 md:gap-6 md:max-w-[720px] md:mx-auto w-full" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 flex flex-col gap-4 md:gap-6 md:max-w-[720px] md:mx-auto w-full" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
         {messages.map((msg) => {
           if (msg.role === "offer" && msg.offerData) {
             // RENDER WS LIVE OFFER BUBBLE
@@ -1107,6 +1121,20 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             rows={1}
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
+            onFocus={() => {
+              // When user taps the input and keyboard opens on mobile,
+              // wait for the keyboard animation to finish, then scroll
+              // to bottom so the AI's last message stays visible
+              setTimeout(() => {
+                const container = chatContainerRef.current;
+                if (container) {
+                  container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth',
+                  });
+                }
+              }, 350);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
