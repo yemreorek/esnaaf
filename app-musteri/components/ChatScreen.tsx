@@ -127,6 +127,14 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [sendToFavoritesOnlyChecked, setSendToFavoritesOnlyChecked] = useState(false);
 
+  // Lock body scroll when chat is open (prevents background scrolling on mobile)
+  useEffect(() => {
+    document.body.classList.add('chat-open');
+    return () => {
+      document.body.classList.remove('chat-open');
+    };
+  }, []);
+
   // Auto-scroll to bottom of the chat on new messages
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -594,10 +602,10 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#f8fafc] flex flex-col z-40 select-none overflow-hidden font-sans">
+    <div className="fixed inset-0 w-full bg-[#f8fafc] flex flex-col z-40 select-none overflow-hidden font-sans" style={{ height: '100dvh' }}>
       
       {/* Top Header bar with custom organic pin logo */}
-      <header className="w-full h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)] px-6 flex items-center justify-between z-50 shrink-0">
+      <header className="w-full h-14 md:h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)] px-4 md:px-6 flex items-center justify-between z-50 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="flex items-center gap-3">
           <Image
             src="/logo.png"
@@ -659,7 +667,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       )}
 
       {/* Main scrolling viewport */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6 md:max-w-[720px] md:mx-auto w-full">
+      <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 flex flex-col gap-4 md:gap-6 md:max-w-[720px] md:mx-auto w-full" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
         {messages.map((msg) => {
           if (msg.role === "offer" && msg.offerData) {
             // RENDER WS LIVE OFFER BUBBLE
@@ -1092,7 +1100,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       </div>
 
       {/* Bottom Fixed Chat Input Bar */}
-      <footer className="w-full border-t border-slate-100 bg-white p-4 shrink-0 z-50 shadow-sm">
+      <footer className="w-full border-t border-slate-100 bg-white px-3 md:px-4 pt-3 shrink-0 z-50 shadow-sm" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 8px), 12px)' }}>
         <div className="w-full md:max-w-[720px] md:mx-auto flex items-center gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
           <textarea
             ref={textareaRef}

@@ -11,6 +11,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Esnaaf — Güvenilir Esnaf ve Ustalar",
   description: "Aradığınız güvenilir esnaf ve ustaları yapay zeka destekli sohbetle kolayca bulun.",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +30,7 @@ export default function RootLayout({
       lang="tr"
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col" style={{ minHeight: '100dvh' }}>{children}</body>
     </html>
   );
 }
