@@ -141,6 +141,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [providerId, setProviderId] = useState<string | null>(null);
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [sendToFavoritesOnlyChecked, setSendToFavoritesOnlyChecked] = useState(false);
+  const [kvkkChecked, setKvkkChecked] = useState(false);
 
   // Lock body scroll when chat is open (prevents background scrolling on mobile)
   useEffect(() => {
@@ -314,6 +315,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   // Post message to the NestJS backend
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim()) return;
+
+    if (currentStep === "confirm_form" && (messageText.toLowerCase().includes("onayla") || messageText.toLowerCase() === "evet" || messageText.toLowerCase() === "doğru") && !kvkkChecked) {
+      alert("Lütfen devam etmeden önce KVKK Aydınlatma Metni'ni onaylayın.");
+      return;
+    }
 
     // Append user message local bubble
     const userMsgId = `user-${Date.now()}`;
@@ -833,6 +839,19 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                       />
                       <label htmlFor="sendToFavoritesOnly" className="cursor-pointer font-bold select-none flex items-center gap-1 text-slate-800">
                         ❤️ Sadece Favori Ustalarıma Gönder (Eski Memnuniyet Öncelikli)
+                      </label>
+                    </div>
+
+                    <div className="flex items-start gap-2.5 py-1 px-0.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
+                      <input
+                        type="checkbox"
+                        id="kvkkConsent"
+                        checked={kvkkChecked}
+                        onChange={(e) => setKvkkChecked(e.target.checked)}
+                        className="w-4 h-4 accent-[#c8f252] cursor-pointer rounded mt-0.5"
+                      />
+                      <label htmlFor="kvkkConsent" className="cursor-pointer select-none text-slate-700 leading-normal">
+                        <strong className="text-slate-950 font-bold">KVKK Aydınlatma Metni</strong>'ni okudum ve verilerimin işlenmesini kabul ediyorum.
                       </label>
                     </div>
 
