@@ -28,7 +28,8 @@ interface Message {
   offerData?: {
     id: string | number;
     price: number;
-    description: string;
+    description?: string;
+    message?: string;
     provider: {
       id: string;
       name: string;
@@ -252,7 +253,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           offerData: {
             id: offer.offerId,
             price: offer.price,
-            description: offer.description,
+            description: offer.description || offer.message,
+            message: offer.message || offer.description,
             provider: offer.provider,
           },
         },
@@ -733,7 +735,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                 </div>
                 
                 <p className="text-sm text-slate-600 leading-relaxed w-full italic px-2 font-medium">
-                  &ldquo;{msg.offerData.description}&rdquo;
+                  &ldquo;{msg.offerData.description || msg.offerData.message || "Açıklama belirtilmedi."}&rdquo;
                 </p>
 
                 <div className="flex items-center gap-2.5 w-full pt-2">

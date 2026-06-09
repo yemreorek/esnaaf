@@ -66,7 +66,8 @@ export function resolveCityFromDistrict(district?: string): string {
 interface Offer {
   id: string;
   price: number;
-  description: string;
+  description?: string;
+  message?: string;
   status: "pending" | "accepted" | "rejected" | "cancelled";
   provider: {
     id: string;
@@ -1138,7 +1139,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                               <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ 4.8 (85 Yorum)</span>
                                             </div>
                                             <p className="text-xs text-slate-650 leading-relaxed font-semibold">
-                                              {offer.description}
+                                              {offer.description || offer.message || "Açıklama belirtilmedi."}
                                             </p>
                                           </div>
                                         </div>
@@ -1278,7 +1279,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                           <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ {offer.rating} ({offer.reviewsCount} Yorum)</span>
                                         </div>
                                         <p className="text-xs text-slate-650 leading-relaxed font-semibold">
-                                          {offer.description}
+                                          {offer.description || "Açıklama belirtilmedi."}
                                         </p>
                                       </div>
                                     </div>
@@ -1843,7 +1844,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   </div>
 
                                   <p className="text-xs md:text-sm text-slate-600 font-semibold italic bg-white p-3 rounded-2xl border border-slate-100/80 leading-relaxed">
-                                    &ldquo;{offer.description}&rdquo;
+                                    &ldquo;{offer.description || offer.message || "Açıklama belirtilmedi."}&rdquo;
                                   </p>
 
                                   <div className="flex items-center gap-2.5 w-full pt-1">
@@ -1982,7 +1983,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </div>
                                     </div>
                                     <p className="text-xs text-slate-650 font-semibold italic border-t border-slate-50 pt-2.5 leading-relaxed">
-                                      &ldquo;{lowestPriceOffer.description}&rdquo;
+                                      &ldquo;{lowestPriceOffer.description || lowestPriceOffer.message || "Açıklama belirtilmedi."}&rdquo;
                                     </p>
                                     <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
                                       <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{lowestPriceOffer.price.toLocaleString("tr-TR")}</span></div>
@@ -2017,7 +2018,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </div>
                                     </div>
                                     <p className="text-xs text-slate-650 font-semibold italic border-t border-slate-50 pt-2.5 leading-relaxed">
-                                      &ldquo;{highestRatingOffer.description}&rdquo;
+                                      &ldquo;{highestRatingOffer.description || highestRatingOffer.message || "Açıklama belirtilmedi."}&rdquo;
                                     </p>
                                     <div className="text-xs space-y-2 text-slate-600 font-semibold border-t border-slate-50 pt-3">
                                       <div className="flex justify-between"><span>Teklif Fiyatı:</span><span className="font-black text-slate-900 text-sm">₺{highestRatingOffer.price.toLocaleString("tr-TR")}</span></div>
