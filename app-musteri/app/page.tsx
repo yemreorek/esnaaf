@@ -708,7 +708,7 @@ export default function Home() {
               <img 
                 alt="Esnaaf Logo" 
                 className="w-auto object-contain select-none" 
-                style={{ height: '80px' }}
+                style={{ height: '120px' }}
                 src="/logo.png" 
               />
             </div>
