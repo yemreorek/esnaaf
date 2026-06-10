@@ -315,6 +315,18 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   };
 
   const socketRef = useRef<Socket | null>(null);
+  const selectedRequestRef = useRef<RequestItem | null>(selectedRequest);
+  const activeChatRef = useRef<{ jobId: string; offerId: string; providerName: string; providerId: string } | null>(activeChat);
+
+  // Sync refs with state to prevent stale closures in websocket listeners without reconnecting
+  useEffect(() => {
+    selectedRequestRef.current = selectedRequest;
+  }, [selectedRequest]);
+
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fetch initial profile
@@ -394,20 +406,20 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     }
   };
 
-  // Connect to Socket.io globally and join all relevant rooms
+  // Connect to Socket.io globally on mount and listen to events
   useEffect(() => {
     const authUser = getAuthUser();
     if (!authUser) return;
 
     console.log("[Dashboard WS] Connecting global socket");
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3005/chat", {
+    const socket = io(`${process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3005"}/chat`, {
       transports: ["websocket"],
     });
     socketRef.current = socket;
 
     socket.on("connect", () => {
       console.log(`[Dashboard WS] Connected globally: ${socket.id}`);
-      // Join all seeker's requests rooms
+      // Join rooms for whatever requests we currently have
       requests.forEach(req => {
         socket.emit("join_job", { jobId: req.id });
       });
@@ -433,9 +445,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       setRequests((prev) =>
         prev.map((req) => {
           if (req.id === offer.jobId) {
+            // Avoid duplicate offers in state
+            const exists = (req.offers || []).some(o => o.id === offer.offerId);
+            if (exists) return req;
+            
             const updatedOffers = [...(req.offers || []), newOfferObj];
             const updatedReq = { ...req, offers: updatedOffers };
-            if (selectedRequest?.id === offer.jobId) {
+            if (selectedRequestRef.current?.id === offer.jobId) {
               setSelectedRequest(updatedReq);
             }
             return updatedReq;
@@ -448,7 +464,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     // Provider job completion declaration (Step 6)
     socket.on("job_completed_by_provider", (data: any) => {
       console.log("[Dashboard WS] Job completed by provider:", data);
-      if (selectedRequest?.id === data.jobId) {
+      if (selectedRequestRef.current?.id === data.jobId) {
         setProviderName(data.providerName);
         setProviderDeclaredAmount(data.price);
         if (data.providerId) {
@@ -461,14 +477,14 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     // Finalized completion status (Step 6)
     socket.on("job_completion_finalized", (data: any) => {
       console.log("[Dashboard WS] Job completion finalized:", data);
-      if (selectedRequest?.id === data.jobId) {
+      if (selectedRequestRef.current?.id === data.jobId) {
         setCompletionState(data.status);
       }
       setRequests((prev) =>
         prev.map((req) => {
           if (req.id === data.jobId) {
             const updatedReq = { ...req, status: (data.status === "completed" ? "completed" : req.status) as any };
-            if (selectedRequest?.id === data.jobId) {
+            if (selectedRequestRef.current?.id === data.jobId) {
               setSelectedRequest(updatedReq);
             }
             return updatedReq;
@@ -482,7 +498,8 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       console.log("[Dashboard WS] New message received:", msg);
       setChatMessages((prev) => {
         if (prev.some(m => m.id === msg.id)) return prev;
-        if (activeChat && msg.jobId === activeChat.jobId && msg.offerId === activeChat.offerId) {
+        const currentActiveChat = activeChatRef.current;
+        if (currentActiveChat && msg.jobId === currentActiveChat.jobId && msg.offerId === currentActiveChat.offerId) {
           return [...prev, {
             id: msg.id,
             job_id: msg.jobId,
@@ -500,9 +517,22 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     });
 
     return () => {
+      console.log("[Dashboard WS] Disconnecting global socket");
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [requests.map(r => r.id).join(","), selectedRequest?.id, activeChat?.jobId]);
+  }, []); // Connect once on mount
+
+  // Join rooms whenever requests are updated (loaded from API)
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (socket && requests.length > 0) {
+      console.log("[Dashboard WS] Emitting join_job for requests:", requests.map(r => r.id));
+      requests.forEach(req => {
+        socket.emit("join_job", { jobId: req.id });
+      });
+    }
+  }, [requests]);
 
   useEffect(() => {
     if (!activeChat) return;

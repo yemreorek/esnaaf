@@ -2,6 +2,13 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-10 fix | Müşteri Paneli Canlı Teklif Düşmeme Sorunu Düzeltmesi
+
+- **Müşteri Paneli Canlı Teklif Akışı (WebSocket):** Müşteri paneli ("Tekliflerim" sekmesi) açıkken, ustaların verdiği yeni tekliflerin sayfayı yenilemeden veya çıkış yapıp girmeden anlık olarak ekrana düşmemesi sorunu çözüldü. 
+  - **Namespace ve URL Düzeltmesi:** `SeekerDashboard.tsx` içinde WebSocket sunucusuna bağlanırken `.env.local` dosyasındaki `NEXT_PUBLIC_WS_URL` (örn: `http://localhost:3005`) tanımlı olduğunda `/chat` namespace'inin URL sonuna eklenmemesi (ve varsayılan `/` namespace'ine bağlanması) hatası giderilerek, socket.io adresi `${process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3005"}/chat` şeklinde düzeltildi.
+  - **Sürekli Reconnect Önleme (Refs & Lifecycle):** Müşteri detay sekmelerinde gezindikçe veya mesaj attıkça socket bağlantısının sürekli kapatılıp yeniden açılmasına (disconnect/reconnect) neden olan useEffect dependency dizisi sadeleştirilerek bağlantının ömrü boyunca açık kalması sağlandı. `selectedRequest` ve `activeChat` state'leri için React Ref'leri (`selectedRequestRef`, `activeChatRef`) kullanılarak stale closure (eski referans) hatası engellendi.
+  - **Oda Katılım Ayrışması:** WebSocket bağlantısının kurulması ile odalara katılma (`join_job`) mantığı birbirinden ayrıldı. Sunucuyla bağlantı bir kez kurulduktan sonra, talepler listesi her yüklendiğinde veya güncellendiğinde açık olan soket üzerinden odalara katılım event'leri asenkron olarak gönderildi.
+
 ## 2026-06-09 fix | Canlı Sohbet Hata & Model Eşleme Hızlandırma Düzeltmesi
 
 - **Canlı Chat Akan Yazı (Typewriter) Efekti:** Canlı sohbette AI asistanın (Gemini) verdiği cevapların aniden kutuda belirmesi yerine, tıpkı ChatGPT ve Gemini arayüzlerindeki gibi karakter karakter akarak (typewriter animation) gelmesi sağlandı. Bu amaçla `TypewriterText` adında yeni bir bileşen kodlandı, mesaj nesnelerine `isStreaming` özelliği eklendi ve akan yazı sırasında sohbet ekranının otomatik olarak en alta kaydırılması (auto scroll to bottom) sağlandı. Oturum başlangıcındaki selamlama mesajı ve turn-by-turn diyalogların tamamı bu akan yazı efektiyle zenginleştirildi.
