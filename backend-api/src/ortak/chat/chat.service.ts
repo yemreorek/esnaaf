@@ -419,7 +419,7 @@ export class ChatService {
                 category_id: category.id,
                 form_data: {
                   ...state.collected_data,
-                  details: state.collected_data.details || 'Detay girilmedi.',
+                  details: this.generateRequestSummary(state.collected_data),
                   name: state.collected_data.name || 'Misafir Kullanıcı',
                   city: state.collected_data.city || 'Adana',
                   district: state.collected_data.district || 'Seyhan',
@@ -482,7 +482,7 @@ export class ChatService {
                     id: job.id,
                     categoryName: category.name,
                     district: requestDistrict,
-                    details: state.collected_data.details || '',
+                    details: this.generateRequestSummary(state.collected_data),
                     viewerCount: 1,
                     created_at: job.created_at,
                     isFavoriteCustomer: false
@@ -701,6 +701,8 @@ Müşterinin talebine göre 'detectCategory' fonksiyonunu çağırırken YALNIZC
       - İstanbul, Ankara ve İzmir birer **İL** (Şehir); Beşiktaş, Kadıköy, Çankaya, Bornova, Konak, Şişli gibi yerler ise bu illerin **İLÇELERİDİR** (District).
       - Beşiktaş, Kadıköy, Çankaya vb. yerler zaten kendi başlarına birer **İLÇEDİR**. Müşteri konumu Beşiktaş veya Kadıköy olarak belirttiğinde, kesinlikle "Beşiktaş'ın hangi ilçesinde oturuyorsunuz?" veya "Kadıköy ilçesinin hangi ilçesinde..." gibi yanlış ve hatalı ifadeler kullanma!
       - Eğer müşterinin ilçesi zaten seçilmişse (Örn: Beşiktaş) ve ek detay sormak istersen, bunu "Beşiktaş'ın hangi semtinde/mahallesinde oturuyorsunuz?" veya "Beşiktaş'ta nerede oturuyorsunuz?" şeklinde doğru coğrafi terimlerle sor.
+   6. **Açıklama ve Detay Kuralları (ÖNEMLİ)**:
+      - 'createServiceRequest' fonksiyonunu çağırırken 'formData.details' alanına, müşterinin sohbette kendi belirttiği asıl ihtiyacını, arızasını veya özel taleplerini kısa ve öz bir şekilde (kendin uydurmadan, müşterinin verdiği bilgilerin dışına çıkmadan) özetleyerek eklemelisin. Bu alan boş kalmamalıdır.
 
 Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. Giriş veya geçiş cümlelerinde "harika", "çok iyi", "süper" gibi övgü veya gereksiz ünlem kelimeleri kullanma. Doğrudan müşterinin problemini çözmeye yönelik sorular sor ve talebi hızlıca tamamlamaya odaklan.
 `;
@@ -1019,7 +1021,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               category_id: category.id,
               form_data: {
                 ...state.collected_data,
-                details: state.collected_data.details || 'Detay girilmedi.',
+                details: this.generateRequestSummary(state.collected_data),
                 name: state.collected_data.name || 'Misafir Kullanıcı',
                 city: state.collected_data.city || 'Adana',
                 district: state.collected_data.district || 'Seyhan',
@@ -1082,7 +1084,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
                   id: job.id,
                   categoryName: category.name,
                   district: requestDistrict,
-                  details: state.collected_data.details || '',
+                  details: this.generateRequestSummary(state.collected_data),
                   viewerCount: 1,
                   created_at: job.created_at,
                   isFavoriteCustomer: false
@@ -1750,5 +1752,70 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
     const summaryText = summaryParts.join(', ') || 'Standart Hizmet';
 
     return `\n\n| Bilgi | Detay |\n| :--- | :--- |\n| **HİZMET TÜRÜ** | ${categoryName} |\n| **İSİM - SOYİSİM** | ${name} |\n| **TELEFON** | ${phone} |\n| **HİZMET ÖZETİ** | ${summaryText} |`;
+  }
+
+  private generateRequestSummary(formData: any): string {
+    if (!formData) return 'Detay belirtilmedi.';
+    
+    const lines: string[] = [];
+    
+    // Turkish translations for form keys
+    const labels: { [key: string]: string } = {
+      city: "Şehir",
+      district: "İlçe",
+      destinationDistrict: "Varış İlçesi",
+      daireTipi: "Daire Tipi",
+      metrekare: "Metrekare/Alan",
+      aciliyet: "Aciliyet",
+      siflik: "Frekans",
+      sıklık: "Frekans",
+      tur: "Hizmet Türü",
+      butce: "Tahmini Bütçe",
+      sorunTuru: "Sorun Türü",
+      isTuru: "İş Türü",
+      kapsam: "İş Kapsamı",
+      adet: "Adet",
+      durum: "Mevcut Durum",
+      islemTuru: "İşlem Türü",
+      hasereTuru: "Haşere Türü",
+      binaTipi: "Bina Tipi",
+      cihazTuru: "Cihaz Türü",
+      dersTuru: "Ders/Branş",
+      sinifSeviyesi: "Sınıf Seviyesi",
+      tarih: "İstenen Tarih",
+      evcilHayvan: "Evcil Hayvan Var mı?",
+      odaSayisi: "Oda Sayısı",
+      banyoSayisi: "Banyo Sayısı",
+      boyaRengi: "Boya Rengi",
+      uygulamaAlani: "Uygulama Alanı",
+      esyaDurumu: "Eşya Durumu",
+      davetliSayisi: "Davetli Sayısı",
+      organizasyonTuru: "Organizasyon Türü",
+      mimariHizmetTuru: "Mimari Hizmet Türü",
+      pvcPencereAdet: "PVC Pencere Adeti",
+      balkonTuru: "Balkon Türü",
+      gazTesisatTuru: "Doğalgaz Tesisat Türü"
+    };
+
+    const keys = Object.keys(formData);
+    keys.forEach(key => {
+      // Skip operational or duplicate keys
+      if (["phone", "name", "categorySlug", "details", "sendToFavoritesOnly", "devOtpCode", "city"].includes(key)) {
+        return;
+      }
+      const label = labels[key] || key;
+      const value = formData[key];
+      if (value !== undefined && value !== null && value !== "") {
+        lines.push(`• ${label}: ${value}`);
+      }
+    });
+
+    // Append raw details text at the bottom if provided
+    if (formData.details && formData.details !== 'Detay girilmedi.' && formData.details.trim() !== '') {
+      lines.push(`\n📝 Müşteri Açıklaması:`);
+      lines.push(`"${formData.details}"`);
+    }
+
+    return lines.length > 0 ? lines.join('\n') : 'Detay belirtilmedi.';
   }
 }

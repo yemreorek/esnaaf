@@ -1692,7 +1692,7 @@ export default function ProviderDashboard() {
                               <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
                             </div>
 
-                            <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold">
+                            <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold whitespace-pre-line">
                               &ldquo;{job.details}&rdquo;
                             </p>
                           </div>
@@ -1764,7 +1764,7 @@ export default function ProviderDashboard() {
                           <span>{opp.name} • {opp.district}</span>
                         </div>
 
-                        <p className="text-xs text-slate-650 font-semibold italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed text-left">
+                        <p className="text-xs text-slate-650 font-semibold italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed text-left whitespace-pre-line">
                           &ldquo;{opp.details}&rdquo;
                         </p>
                       </div>
@@ -1834,7 +1834,7 @@ export default function ProviderDashboard() {
                         </p>
                         <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
                           <div><strong>Müşteri Konumu:</strong> {off.job.district}</div>
-                          <div><strong>Talep Açıklaması:</strong> {off.job.details}</div>
+                          <div><strong>Talep Açıklaması:</strong> <span className="whitespace-pre-line">{off.job.details}</span></div>
                         </div>
                       </div>
                       <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
@@ -1957,7 +1957,7 @@ export default function ProviderDashboard() {
                                           })}
                                         </span>
                                       </div>
-                                      <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed">
+                                      <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed whitespace-pre-line">
                                         &ldquo;{wj.job.details}&rdquo;
                                       </p>
                                     </div>
@@ -2025,7 +2025,7 @@ export default function ProviderDashboard() {
                         <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
                           <div><strong>Müşteri:</strong> {cj.job.name}</div>
                           <div><strong>Konum:</strong> {cj.job.district}</div>
-                          <div><strong>Açıklama:</strong> {cj.job.details}</div>
+                          <div><strong>Açıklama:</strong> <span className="whitespace-pre-line">{cj.job.details}</span></div>
                         </div>
                       </div>
                       <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
@@ -2085,7 +2085,7 @@ export default function ProviderDashboard() {
                           <div className="text-xs space-y-1.5 text-slate-600 font-semibold pt-2 border-t border-slate-50">
                             <div><strong>Müşteri:</strong> {disp.job.name}</div>
                             <div><strong>Konum:</strong> {disp.job.district}</div>
-                            <div><strong>Talep Açıklaması:</strong> {disp.job.details || 'Belirtilmedi'}</div>
+                            <div><strong>Talep Açıklaması:</strong> <span className="whitespace-pre-line">{disp.job.details || 'Belirtilmedi'}</span></div>
                           </div>
 
                           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2 mt-2">
@@ -2698,7 +2698,7 @@ export default function ProviderDashboard() {
                   {activeJob.district}
                 </span>
               </div>
-              <p className="text-xs text-slate-650 font-semibold leading-relaxed italic">
+              <p className="text-xs text-slate-650 font-semibold leading-relaxed italic whitespace-pre-line">
                 &ldquo;{activeJob.details}&rdquo;
               </p>
             </div>

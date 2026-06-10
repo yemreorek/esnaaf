@@ -2,6 +2,14 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-10 fix | Hizmet Veren Paneli "Gelen İşler" Detay Özeti Düzeltmesi
+
+- **Gelen İş Detaylarının Maddeler Halinde Listelenmesi (Backend & Frontend):** Hizmet verilecek alanla ilgili toplanan form verilerinin usta gelen işler panelindeki iş kartlarında "Detay girilmedi." olarak görünmesi sorunu çözüldü.
+  - **Zengin Talep Özeti Helper Metodu (generateRequestSummary):** `chat.service.ts` dosyasının sonuna `generateRequestSummary` helper metodu eklendi. Bu metot, Gemini sohbette müşteriden kategoriye özel topladığı tüm teknik parametreleri (`daireTipi`, `metrekare`, `aciliyet`, `sorunTuru`, `sinifSeviyesi`, `tarih` vb.) Türkçe etiketleriyle maddeler halinde bir listeye dönüştürür. Müşterinin ek olarak girdiği serbest açıklama detayını da listenin altına ekler.
+  - **Veritabanı ve WS Dağıtım Güncellemesi:** Talep oluşturulduğunda (`ServiceRequest.create`) `form_data.details` alanına ve usta WebSocket dağıtım payload'una (`emitNewJobToProvider`) bu zengin detay metni otomatik atandı.
+  - **Yapay Zeka Prompt/Instruction Güncellemesi:** Gemini asistan promptuna (`systemInstruction`) 6. kural eklenerek, `createServiceRequest` araç çağrısında müşterinin yazdığı ana problemi veya ihtiyacı `formData.details` parametresine eksiksiz ve uydurmadan özetlemesi talimatı eklendi.
+  - **Usta Arayüzü Satır Atlama Desteği (pre-line):** `app-hizmetveren/app/page.tsx` arayüzündeki tüm `details` render edilen p tagleri ve container'lar `whitespace-pre-line` Tailwind sınıfıyla güncellendi. Böylece alt alta olan bullet listelerin usta panelinde okunabilir bir hiyerarşide listelenmesi sağlandı.
+
 ## 2026-06-10 fix | Müşteri Paneli Canlı Teklif Düşmeme Sorunu Düzeltmesi
 
 - **Müşteri Paneli Canlı Teklif Akışı (WebSocket):** Müşteri paneli ("Tekliflerim" sekmesi) açıkken, ustaların verdiği yeni tekliflerin sayfayı yenilemeden veya çıkış yapıp girmeden anlık olarak ekrana düşmemesi sorunu çözüldü. 
