@@ -126,6 +126,23 @@ async function run() {
     process.exit(1);
   }
 
+  // --- TURN 2.5: Customer provides additional details (None) ---
+  console.log('\n--- TURN 2.5: Customer declines providing extra details ---');
+  const resTurn25 = (await chatService.handleMessage(
+    null,
+    sessionId,
+    'Yok',
+  )) as any;
+  console.log('Turn 2.5 Response:', JSON.stringify(resTurn25));
+
+  if (resTurn25.step === 'ask_name') {
+    console.log('✅ Success: Successfully shifted to ask_name after details step!');
+  } else {
+    console.error('❌ Error: Expected ask_name step but got:', resTurn25.step);
+    await app.close();
+    process.exit(1);
+  }
+
   // --- TURN 3: Customer provides name & phone -> triggering OTP ---
   console.log('\n--- TURN 3: Customer provides Name and Phone ---');
   mockTurn = 3;

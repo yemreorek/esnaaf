@@ -112,7 +112,8 @@ async function run() {
     { input: 'Beşiktaş', expectedStep: 'collecting_details' },
     { input: '120 metrekare', expectedStep: 'collecting_details' },
     { input: 'iç mekan boyası', expectedStep: 'collecting_details' },
-    { input: 'Saten beyaz boya', expectedStep: 'ask_name' },
+    { input: 'Saten beyaz boya', expectedStep: 'ask_details' },
+    { input: 'Yok', expectedStep: 'ask_name' },
     { input: 'Ali Müşteri', expectedStep: 'ask_phone' },
     { input: '05321234561', expectedStep: 'otp_verification' },
     { input: 'OTP_CODE', expectedStep: 'confirm_form' },
@@ -127,7 +128,8 @@ async function run() {
     { input: 'Ataşehir', expectedStep: 'collecting_details' },
     { input: '2+1 daire', expectedStep: 'collecting_details' },
     { input: '5. kat asansörsüz', expectedStep: 'collecting_details' },
-    { input: '1 Haziran', expectedStep: 'ask_name' },
+    { input: '1 Haziran', expectedStep: 'ask_details' },
+    { input: 'Yok', expectedStep: 'ask_name' },
     { input: 'Ahmet Taşımacı', expectedStep: 'ask_phone' },
     { input: '05331234562', expectedStep: 'otp_verification' },
     { input: 'OTP_CODE', expectedStep: 'confirm_form' },
@@ -137,7 +139,8 @@ async function run() {
   // --- SCENARIO 3: Su Tesisatı (Smart Multi-parameter Parsing) ---
   const suSess = `su-test-${Date.now()}`;
   await simulateChat('Su Tesisatı Smart Parsing Flow', suSess, [
-    { input: 'Şişli\'de kombi tesisatında acil su sızıntısı var musluk arızası', expectedStep: 'ask_name' }, // parsed all in one
+    { input: 'Şişli\'de kombi tesisatında acil su sızıntısı var musluk arızası', expectedStep: 'ask_details' }, // parsed all in one
+    { input: 'Yok', expectedStep: 'ask_name' },
     { input: 'Ayşe Tesisatçı', expectedStep: 'ask_phone' },
     { input: '05341234563', expectedStep: 'otp_verification' },
     { input: 'OTP_CODE', expectedStep: 'confirm_form' },
@@ -150,7 +153,8 @@ async function run() {
     { input: 'elektrik tesisatı işi var', expectedStep: 'collecting_details' },
     { input: 'Bakırköy', expectedStep: 'collecting_details' },
     { input: 'yeni priz ve sigorta onarımı', expectedStep: 'collecting_details' },
-    { input: 'acil hemen', expectedStep: 'ask_name' },
+    { input: 'acil hemen', expectedStep: 'ask_details' },
+    { input: 'Yok', expectedStep: 'ask_name' },
     { input: 'Mehmet Elektrik', expectedStep: 'ask_phone' },
     { input: '05351234564', expectedStep: 'otp_verification' },
     { input: 'OTP_CODE', expectedStep: 'confirm_form' },
@@ -164,7 +168,8 @@ async function run() {
     { input: 'Üsküdar', expectedStep: 'collecting_details' },
     { input: 'banyo yenileme fayans dahil', expectedStep: 'collecting_details' },
     { input: '15 metrekare', expectedStep: 'collecting_details' },
-    { input: 'bütçe 50-100 bin arası', expectedStep: 'ask_name' },
+    { input: 'bütçe 50-100 bin arası', expectedStep: 'ask_details' },
+    { input: 'Yok', expectedStep: 'ask_name' },
     { input: 'Fatma Tadilat', expectedStep: 'ask_phone' },
     { input: '05361234565', expectedStep: 'otp_verification' },
     { input: 'OTP_CODE', expectedStep: 'confirm_form' },
