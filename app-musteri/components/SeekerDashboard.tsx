@@ -317,6 +317,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const socketRef = useRef<Socket | null>(null);
   const selectedRequestRef = useRef<RequestItem | null>(selectedRequest);
   const activeChatRef = useRef<{ jobId: string; offerId: string; providerName: string; providerId: string } | null>(activeChat);
+  const requestsRef = useRef<RequestItem[]>(requests);
 
   // Sync refs with state to prevent stale closures in websocket listeners without reconnecting
   useEffect(() => {
@@ -326,6 +327,10 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   useEffect(() => {
     activeChatRef.current = activeChat;
   }, [activeChat]);
+
+  useEffect(() => {
+    requestsRef.current = requests;
+  }, [requests]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -420,7 +425,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     socket.on("connect", () => {
       console.log(`[Dashboard WS] Connected globally: ${socket.id}`);
       // Join rooms for whatever requests we currently have
-      requests.forEach(req => {
+      requestsRef.current.forEach(req => {
         socket.emit("join_job", { jobId: req.id });
       });
     });

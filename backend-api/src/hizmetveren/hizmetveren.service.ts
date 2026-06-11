@@ -438,7 +438,10 @@ export class HizmetverenService {
     }
 
     const offers = await this.prisma.offer.findMany({
-      where: { provider_id: provider.id },
+      where: { 
+        provider_id: provider.id,
+        status: { not: 'accepted' },
+      },
       include: {
         job: {
           include: {

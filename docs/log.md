@@ -2,6 +2,22 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-11 fix | Canlı Tekliflerin Anlık Düşmeme Race Condition Düzeltmesi & Çakışma Düzeltmeleri
+
+- **Hizmet Veren Paneli "Gelen İşler (Fırsatlar)" Müşteri Kartı Tasarımı İyileştirmesi (Frontend):** Usta gelen işler kartlarındaki isim ve adres satırının çok sönük kalması sorunu giderildi ve gerçek kişi algısını güçlendirecek şekilde yeniden tasarlandı.
+  - **Profil Snippet Kartı Tasarımı:** İlgili satır, hafif gölgeli ve gri arka planlı (`bg-slate-50/60 border border-slate-100/80`) ayrı bir profil alanına dönüştürüldü. Sol tarafına müşterinin isminin ilk harfini içeren neon lime renk şemalı dairesel bir kullanıcı avatarı eklenirken, sağ tarafına isim kalınlaştırılmış ve konum detayları Lucide `MapPin` ikonu ile yerleştirilmiştir. Hem veritabanından gelen gerçek işler hem de mockup kartlar bu tasarımla eşitlenmiştir.
+
+- **Canlı Sohbet Deterministik Açık Uçlu Detay Sorma Geçişi (Backend - ChatService):** Kategoriye ait teknik parametreler girildikten sonra sorulan ek detay/not sorusunun ("Harika, teknik detayları kaydettim...") Gemini'nin bazen tool çağırması veya yönlendirmeyi atlaması nedeniyle sorulmaması sorunu çözüldü.
+  - **Deterministik Araya Girme (B1 sonu):** `chat.service.ts` dosyasında, kullanıcıdan gelen parametreler ayrıştırıldıktan hemen sonra eğer tüm zorunlu teknik sorular tamamlanmışsa ve henüz detay sorulmamışsa, Gemini'ye istek atılmadan doğrudan ve deterministik olarak ilgili detay sorusu (`ask_details` adımı) dönülecek şekilde akış kesildi.
+  - **detectCategory Desteği:** Kullanıcı ilk mesajında kategoriyi ve tüm detayları aynı anda girdiğinde `detectCategory` tool call handler'ından da doğrudan `ask_details` adımına yönlendirilmesi sağlandı.
+
+- **Müşteri Paneli Canlı Tekliflerin Anlık Yansımama Sorunu (Frontend - SeekerDashboard):** Chat bitiminde müşterinin panele yönlendirilmesi sırasında, API'den taleplerin çekilmesi (`fetchRequests`) ile WebSocket bağlantısının kurulması (`io`) arasındaki yarış durumu (race condition) çözüldü.
+  - **Stale Closure ve Race Condition Giderilmesi:** `SeekerDashboard.tsx` içinde `requests` listesi için bir React Ref (`requestsRef`) tanımlandı ve her `requests` değişiminde güncellendi.
+  - Soket ilk bağlandığında tetiklenen `connect` event listener'ı, artık stale `requests` state'i yerine `requestsRef.current` üzerinden güncel talep listesini okuyup `join_job` yayını yapmaktadır. Bu sayede ilk bağlantıda WebSocket odalarına katılım kesinleşerek yeni usta tekliflerinin anında (sayfa yenilemeye gerek kalmadan) ekrana düşmesi sağlandı.
+- **Teklif Verilenler Listesinden Kabul Edilenlerin Filtrelenmesi (Backend):** Müşteri (hizmet alan) ustanın teklifini kabul ettiğinde, bu teklifin usta panelindeki "Teklif Verilenler" sekmesinde kalmaya devam etmesi sorunu çözüldü.
+  - **getOffers Sorgu Güncellemesi:** `hizmetveren.service.ts` dosyasındaki `getOffers` metodunda yapılan Prisma `offer.findMany` sorgusuna `status: { not: 'accepted' }` filtresi eklendi.
+  - Bu sayede kabul edilen teklifler sadece "Kazanılan İşler" sekmesinde listelenecek, "Teklif Verilenler" sekmesinde yinelenmeyecektir.
+
 ## 2026-06-10 fix | Hizmet Veren Paneli "Gelen İşler" Detay Özeti Düzeltmesi
 
 - **Gelen İş Detaylarının Maddeler Halinde Listelenmesi (Backend & Frontend):** Hizmet verilecek alanla ilgili toplanan form verilerinin usta gelen işler panelindeki iş kartlarında "Detay girilmedi." olarak görünmesi sorunu çözüldü.

@@ -1685,11 +1685,17 @@ export default function ProviderDashboard() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
-                              <svg className="w-4 h-4 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                              </svg>
-                              <span>{job.name || "Misafir Seeker"} • {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}</span>
+                            <div className="flex items-center gap-3 bg-slate-50/60 border border-slate-100/80 rounded-2xl p-3">
+                              <div className="w-8 h-8 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-[#4c630a] font-extrabold text-xs shrink-0 select-none">
+                                {(job.name || "Misafir Seeker").charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex flex-col text-left">
+                                <span className="font-extrabold text-xs text-slate-800 leading-snug">{job.name || "Misafir Seeker"}</span>
+                                <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}
+                                </span>
+                              </div>
                             </div>
 
                             <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold whitespace-pre-line">
@@ -1757,11 +1763,17 @@ export default function ProviderDashboard() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold text-left">
-                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                          </svg>
-                          <span>{opp.name} • {opp.district}</span>
+                        <div className="flex items-center gap-3 bg-slate-50/60 border border-slate-100/80 rounded-2xl p-3">
+                          <div className="w-8 h-8 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-[#4c630a] font-extrabold text-xs shrink-0 select-none">
+                            {(opp.name || "Misafir Seeker").charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col text-left">
+                            <span className="font-extrabold text-xs text-slate-800 leading-snug">{opp.name}</span>
+                            <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              {opp.district}
+                            </span>
+                          </div>
                         </div>
 
                         <p className="text-xs text-slate-650 font-semibold italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed text-left whitespace-pre-line">

@@ -9,7 +9,7 @@ import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phon
 import { GeminiService } from '../../common/gemini/gemini.service';
 
 interface SessionState {
-  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
+  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   collected_data: {
     categorySlug?: string;
@@ -18,6 +18,7 @@ interface SessionState {
     name?: string;
     phone?: string;
     details?: string;
+    hasAskedDetails?: boolean;
     [key: string]: any;
   };
   token_count: number;
@@ -166,6 +167,11 @@ export class ChatService {
       return;
     }
 
+    if (!state.collected_data.hasAskedDetails) {
+      state.step = 'ask_details';
+      return;
+    }
+
     if (!state.collected_data.name) {
       state.step = 'ask_name';
       return;
@@ -246,6 +252,29 @@ export class ChatService {
       if (this.geminiService.isAvailable()) {
         
         // A. Transactional Steps (Secure, deterministic verification/creation)
+        if (state.step === 'ask_details') {
+          const detailMsg = message.trim();
+          const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
+          
+          if (!isNo) {
+            state.collected_data.details = detailMsg;
+          } else {
+            state.collected_data.details = 'Detay belirtilmedi.';
+          }
+          state.collected_data.hasAskedDetails = true;
+          state.step = 'ask_name';
+          
+          responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return {
+            step: 'ask_name',
+            responseMessage,
+            collected_data: state.collected_data,
+          };
+        }
+
         if (state.step === 'ask_name') {
           // If the message contains a phone number, let Gemini handle it so it can call sendOTP tool with both name and phone
           const hasPhonePattern = /(?:\+?90|\b0)?\s*5\d{2}\s*\d{3}\s*\d{2}\s*\d{2}\b/.test(message);
@@ -607,6 +636,20 @@ export class ChatService {
           }
         }
 
+        // Deterministic transition to ask_details if all technical questions are answered
+        if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
+          state.step = 'ask_details';
+          responseMessage = 'Harika, teknik detayları kaydettim. Son olarak, ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa doğrudan talebinizi ilgili ustalara iletmeye devam edebiliriz.)';
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return {
+            step: 'ask_details',
+            responseMessage,
+            collected_data: state.collected_data,
+          };
+        }
+
         // B2. Invoke Gemini model
         let assistantDirective = "";
 
@@ -625,6 +668,14 @@ export class ChatService {
 - Müşteriden şu eksik bilgiyi almalısın: **${nextQ.question}** (Parametre anahtarı: '${nextQ.key}').
 - Lütfen müşteriye bu soruyu tatlı ve doğal bir dille yönelt. Müşteri zaten bu bilgiyi vermişse ama sistem henüz kaydetmemişse, soruyu farklı bir şekilde teyit et veya doğrudan kaydetmesini sağla.
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
+`;
+          } else if (!state.collected_data.hasAskedDetails) {
+            assistantDirective = `
+### 🚨 ŞU ANKİ GÖREVİN:
+- Kategoriye ait tüm teknik sorular başarıyla tamamlandı.
+- Şimdi müşteriye tam olarak şu soruyu sormalısın:
+"Harika, teknik detayları kaydettim. Son olarak, ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa doğrudan talebinizi ilgili ustalara iletmeye devam edebiliriz.)"
+- Bu aşamada asla isim veya telefon sorma! Yalnızca bu açık uçlu detay sorusunu sor.
 `;
           } else if (!state.collected_data.name) {
             assistantDirective = `
@@ -743,6 +794,9 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             const nextQ = this.getNextQuestion(state);
             if (nextQ) {
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
+            } else if (!state.collected_data.hasAskedDetails) {
+              state.step = 'ask_details';
+              responseMessage = 'Harika, teknik detayları kaydettim. Son olarak, ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa doğrudan talebinizi ilgili ustalara iletmeye devam edebiliriz.)';
             } else {
               state.step = 'ask_name';
               responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
@@ -844,8 +898,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           if (nextQ) {
             responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
           } else {
-            state.step = 'ask_name';
-            responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
+            state.step = 'ask_details';
+            responseMessage = 'Harika, teknik detayları kaydettim. Son olarak, ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa doğrudan talebinizi ilgili ustalara iletmeye devam edebiliriz.)';
           }
         } else {
           state.step = 'category_detection';
@@ -884,9 +938,22 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
         if (nextMissingQ) {
           responseMessage = nextMissingQ.question;
         } else {
-          state.step = 'ask_name';
-          responseMessage = 'Talebinizle ilgili tüm detayları başarıyla kaydettim! Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
+          state.step = 'ask_details';
+          responseMessage = 'Harika, teknik detayları kaydettim. Son olarak, ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa doğrudan talebinizi ilgili ustalara iletmeye devam edebiliriz.)';
         }
+
+      } else if (state.step === 'ask_details') {
+        const detailMsg = message.trim();
+        const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
+        
+        if (!isNo) {
+          state.collected_data.details = detailMsg;
+        } else {
+          state.collected_data.details = 'Detay belirtilmedi.';
+        }
+        state.collected_data.hasAskedDetails = true;
+        state.step = 'ask_name';
+        responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
 
       } else if (state.step === 'ask_name') {
         const name = message.trim();
