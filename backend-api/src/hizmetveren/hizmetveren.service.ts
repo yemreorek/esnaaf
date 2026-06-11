@@ -295,7 +295,7 @@ export class HizmetverenService {
    * Hizmet verenin profil detaylarını döner
    */
   async getProfile(providerUserId: string) {
-    const cacheKey = `provider:profile:${providerUserId}`;
+    const cacheKey = `provider:profile:v2:${providerUserId}`;
     return this.redis.getOrSet(cacheKey, async () => {
       const provider = await this.prisma.serviceProvider.findUnique({
         where: { user_id: providerUserId },
@@ -319,6 +319,7 @@ export class HizmetverenService {
 
       return {
         id: provider.id,
+        userId: provider.user_id,
         name: provider.user.name || 'Usta',
         phone_masked: provider.user.phone_masked,
         city: provider.city || 'Adana',
@@ -368,7 +369,7 @@ export class HizmetverenService {
       },
     });
 
-    await this.redis.del(`provider:profile:${providerUserId}`);
+    await this.redis.del(`provider:profile:v2:${providerUserId}`);
 
     return {
       success: true,
@@ -398,7 +399,7 @@ export class HizmetverenService {
       },
     });
 
-    await this.redis.del(`provider:profile:${providerUserId}`);
+    await this.redis.del(`provider:profile:v2:${providerUserId}`);
 
     return {
       success: true,

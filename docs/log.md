@@ -2,7 +2,15 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-11 fix | Usta Paneli Canlı Sohbet Mesaj Hizalama Düzeltmesi
+
+- **Sohbet Balonlarının Karşılıklı Hizalanması (Frontend & Backend):** Usta panelindeki canlı sohbet modalında ("pelin ile Sohbet"), hem müşteriden gelen hem de ustanın kendisinin attığı mesajların hepsinin yanlışlıkla sağ tarafta (ve aynı siyah/antrasit renk şemasıyla) hizalanması hatası çözüldü.
+  - **isMe Koşulunun Güncellenmesi:** Önceden `isMe` koşulu `activeChat.seekerUserId` (ki bu alan activeChat state'inde tanımsızdı) üzerinden denetleniyordu ve bu durum tüm mesajların `isMe = true` olarak değerlendirilmesine yol açıyordu. Yeni yapıda, giriş yapan ustanın `userId` değeri `profile.userId` veya fallback olarak JWT erişim jetonu (access token) çözümlenerek (`window.atob(token.split('.')[1]).sub`) elde edilir. Mesajlar, `msg.sender_id === myUserId` kontrolüyle karşılaştırılıp doğru tarafa (giden mesajlar sağa, gelen mesajlar sola) ve doğru renklere (gidenler antrasit/siyah, gelenler beyaz) yerleştirilir.
+  - **Profil Servisi userId Desteği (Backend):** `hizmetveren.service.ts` dosyasındaki `getProfile` metodunda dönülen nesneye `userId: provider.user_id` alanı eklendi.
+  - **Redis Profil Önbellek Yenilenmesi:** Önceki cached verilerde `userId` alanı eksik kalmasın diye profil Redis önbellek anahtarının sürümü `provider:profile:v2:` olarak güncellendi ve admin/hizmetveren servislerindeki tüm invalidation (`redis.del`) kodları bu yeni anahtarla senkronize edildi.
+
 ## 2026-06-11 fix | Canlı Tekliflerin Anlık Düşmeme Race Condition Düzeltmesi & Çakışma Düzeltmeleri
+
 
 - **Kazanılan İşler Listesinden Tamamlananların Filtrelenmesi (Backend):** Müşteri (hizmet alan) iş tamamlanma teyidi verdiğinde, bu işin usta panelindeki "Kazanılan İşler (Aktif)" sekmesinde kalmaya devam etmesi sorunu çözüldü.
   - **getWonJobs Sorgu Güncellemesi:** `hizmetveren.service.ts` dosyasındaki `getWonJobs` metodunda yapılan Prisma `acceptedOffer.findMany` sorgusuna `job: { status: { notIn: ['completed', 'cancelled'] } }` filtresi eklendi.

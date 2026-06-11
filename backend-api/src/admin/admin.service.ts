@@ -255,7 +255,7 @@ export class AdminService {
       data: { is_active: false },
     });
 
-    await this.redis.del(`provider:profile:${userId}`);
+    await this.redis.del(`provider:profile:v2:${userId}`);
 
     console.log(`[BAN LOG] User ${userId} has been banned. Reason: ${dto.reason}. Notes: ${dto.notes || 'N/A'}`);
 
@@ -408,7 +408,7 @@ export class AdminService {
       },
     });
 
-    await this.redis.del(`provider:profile:${provider.user_id}`);
+    await this.redis.del(`provider:profile:v2:${provider.user_id}`);
 
     console.log(`[HV-14 Notification] Provider approved: ${provider.user.name || 'N/A'} (Phone: ${decryptPhone(provider.user.phone)})`);
 
@@ -445,7 +445,7 @@ export class AdminService {
 
     console.log(`[HV-15 Notification] Provider rejected: ${provider.user.name || 'N/A'} (Reason: ${dto.reasonCode}). Notes: ${dto.notes || 'N/A'}`);
 
-    await this.redis.del(`provider:profile:${provider.user_id}`);
+    await this.redis.del(`provider:profile:v2:${provider.user_id}`);
 
     await this.logAudit(
       staffId,
@@ -524,7 +524,7 @@ export class AdminService {
       data: updateData,
     });
 
-    await this.redis.del(`provider:profile:${completion.provider.user_id}`);
+    await this.redis.del(`provider:profile:v2:${completion.provider.user_id}`);
 
     // Record Audit log
     await this.logAudit(
