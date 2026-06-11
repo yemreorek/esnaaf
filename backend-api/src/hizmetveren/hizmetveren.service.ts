@@ -484,7 +484,14 @@ export class HizmetverenService {
     }
 
     const acceptedOffers = await this.prisma.acceptedOffer.findMany({
-      where: { provider_id: provider.id },
+      where: { 
+        provider_id: provider.id,
+        job: {
+          status: {
+            notIn: ['completed', 'cancelled'],
+          },
+        },
+      },
       include: {
         job: {
           include: {

@@ -4,6 +4,10 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve alty
 
 ## 2026-06-11 fix | Canlı Tekliflerin Anlık Düşmeme Race Condition Düzeltmesi & Çakışma Düzeltmeleri
 
+- **Kazanılan İşler Listesinden Tamamlananların Filtrelenmesi (Backend):** Müşteri (hizmet alan) iş tamamlanma teyidi verdiğinde, bu işin usta panelindeki "Kazanılan İşler (Aktif)" sekmesinde kalmaya devam etmesi sorunu çözüldü.
+  - **getWonJobs Sorgu Güncellemesi:** `hizmetveren.service.ts` dosyasındaki `getWonJobs` metodunda yapılan Prisma `acceptedOffer.findMany` sorgusuna `job: { status: { notIn: ['completed', 'cancelled'] } }` filtresi eklendi.
+  - Bu sayede tamamlanan veya iptal edilen işler sadece ilgili sekmelerde görünecek, "Kazanılan İşler" sekmesinden otomatik olarak temizlenecektir.
+
 - **Hizmet Veren Paneli "Gelen İşler (Fırsatlar)" Müşteri Kartı Tasarımı İyileştirmesi (Frontend):** Usta gelen işler kartlarındaki isim ve adres satırının çok sönük kalması sorunu giderildi ve gerçek kişi algısını güçlendirecek şekilde yeniden tasarlandı.
   - **Profil Snippet Kartı Tasarımı:** İlgili satır, hafif gölgeli ve gri arka planlı (`bg-slate-50/60 border border-slate-100/80`) ayrı bir profil alanına dönüştürüldü. Sol tarafına müşterinin isminin ilk harfini içeren neon lime renk şemalı dairesel bir kullanıcı avatarı eklenirken, sağ tarafına isim kalınlaştırılmış ve konum detayları Lucide `MapPin` ikonu ile yerleştirilmiştir. Hem veritabanından gelen gerçek işler hem de mockup kartlar bu tasarımla eşitlenmiştir.
 
