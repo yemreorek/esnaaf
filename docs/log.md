@@ -2,7 +2,14 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-12 fix | Usta Gönderilen Mesaj Arayüz Hizalama Hatası Giderilmesi
+
+- **Usta Gönderilen Mesajın Sol Taraf Hizalanma Sorunu (Frontend):** Usta tarafından yeni yazılıp gönderilen mesajların, usta sohbet kutusunda (pelin ile Sohbet) gitgide biriken bir akışta, anlık olarak sol tarafta (sanki müşteriden gelmiş gibi) beyaz renk şemasıyla hizalanması ve müşteri mesajıyla bitişik/alt alta görünmesi hatası çözüldü.
+  - **Güvenli JWT Base64URL Çözümleme:** Tarayıcılarda varsayılan `window.atob` fonksiyonunun, JWT payload'larındaki base64url karakterlerini (tire `-` ve alt çizgi `_`) ve dolgu eksikliğini (`=`) çözememesi sebebiyle hata fırlatıp sessizce yakalandığı (`catch`), dolayısıyla `myUserId` değişkenini tanımsız (`undefined`) bıraktığı tespit edildi. JWT payload çözücü kuralı, base64 url karakterlerini doğru eşleyen ve eksik dolgu (padding) karaterlerini tamamlayan bir algoritmaya dönüştürüldü.
+  - **Çift Yönlü Key Desteği (sender_id / senderId):** HTTP API post yanıtlarında gelen nesne ile WebSocket üzerinden dinlenen nesne arasındaki key uyumsuzluklarına karşı (`sender_id` vs `senderId`) `const msgSenderId = msg.sender_id || msg.senderId;` yapısı entegre edilerek uyuşma denetimleri kusursuzlaştırıldı.
+
 ## 2026-06-11 fix | Usta Paneli Canlı Sohbet Mesaj Hizalama Düzeltmesi
+
 
 - **Sohbet Balonlarının Karşılıklı Hizalanması (Frontend & Backend):** Usta panelindeki canlı sohbet modalında ("pelin ile Sohbet"), hem müşteriden gelen hem de ustanın kendisinin attığı mesajların hepsinin yanlışlıkla sağ tarafta (ve aynı siyah/antrasit renk şemasıyla) hizalanması hatası çözüldü.
   - **isMe Koşulunun Güncellenmesi:** Önceden `isMe` koşulu `activeChat.seekerUserId` (ki bu alan activeChat state'inde tanımsızdı) üzerinden denetleniyordu ve bu durum tüm mesajların `isMe = true` olarak değerlendirilmesine yol açıyordu. Yeni yapıda, giriş yapan ustanın `userId` değeri `profile.userId` veya fallback olarak JWT erişim jetonu (access token) çözümlenerek (`window.atob(token.split('.')[1]).sub`) elde edilir. Mesajlar, `msg.sender_id === myUserId` kontrolüyle karşılaştırılıp doğru tarafa (giden mesajlar sağa, gelen mesajlar sola) ve doğru renklere (gidenler antrasit/siyah, gelenler beyaz) yerleştirilir.

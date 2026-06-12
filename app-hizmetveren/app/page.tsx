@@ -2816,10 +2816,17 @@ export default function ProviderDashboard() {
                   let myUserId = profile?.userId;
                   if (!myUserId && token) {
                     try {
-                      myUserId = JSON.parse(window.atob(token.split('.')[1])).sub;
-                    } catch (e) {}
+                      const base64Url = token.split('.')[1];
+                      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                      const pad = base64.length % 4;
+                      const paddedBase64 = pad ? base64 + '='.repeat(4 - pad) : base64;
+                      myUserId = JSON.parse(window.atob(paddedBase64)).sub;
+                    } catch (e) {
+                      console.error("JWT decode error:", e);
+                    }
                   }
-                  const isMe = msg.sender_id === myUserId;
+                  const msgSenderId = msg.sender_id || msg.senderId;
+                  const isMe = msgSenderId === myUserId;
                   return (
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
