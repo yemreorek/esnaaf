@@ -1915,7 +1915,17 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       <span>Profili Gör</span>
                                     </button>
                                     <button 
-                                      onClick={() => alert("Canlı mesajlaşma modülü çok yakında hizmetinizde!")}
+                                      onClick={() => {
+                                        if (selectedRequest) {
+                                          setActiveChat({
+                                            jobId: selectedRequest.id,
+                                            offerId: offer.id,
+                                            providerName: offer.provider.user.name,
+                                            providerId: offer.provider.id
+                                          });
+                                          setActiveTab("mesajlar");
+                                        }
+                                      }}
                                       className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
                                     >
                                       Mesaj Gönder
@@ -2104,7 +2114,8 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
                 {/* VIEW 4: MESAJLAŞMA VIEW */}
                 {activeTab === "mesajlar" && (() => {
-                  const acceptedRequests = requests.filter(r => r.offers?.some(o => o.status === 'accepted'));
+                  const hasAccepted = requests.some(r => r.offers?.some(o => o.status === 'accepted'));
+                  const hasActiveChat = !!activeChat;
 
                   return (
                     <div className="space-y-6 animate-scale-up text-left">
@@ -2113,12 +2124,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                         <p className="text-xs text-slate-400 font-semibold mt-1">Anlaştığınız esnaflarla gerçekleştirdiğiniz mesaj geçmişini yönetin.</p>
                       </div>
 
-                      {acceptedRequests.length === 0 ? (
+                      {!hasAccepted && !hasActiveChat ? (
                         <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
                           <div className="text-4xl mb-4">💬</div>
                           <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Henüz Aktif Sohbet Yok</h4>
                           <p className="text-slate-400 text-xs font-semibold leading-relaxed">
-                            Bir esnafın teklifini kabul ettiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
+                            Bir esnafın teklifini kabul ettiğinizde veya mesaj gönderdiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
                           </p>
                         </div>
                       ) : (
@@ -2126,35 +2137,63 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           {/* Left: Chats Sidebar */}
                           <div className="lg:col-span-4 bg-white border border-slate-100 rounded-[24px] p-4 flex flex-col gap-3.5 max-h-[600px] overflow-y-auto">
                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono border-b border-slate-50 pb-2 mb-1">Aktif Görüşmeler</h4>
-                            {acceptedRequests.map((req) => {
-                              const accOffer = req.offers.find(o => o.status === 'accepted');
-                              if (!accOffer) return null;
-                              const isActive = activeChat?.offerId === accOffer.id;
-                              return (
-                                <button
-                                  key={accOffer.id}
-                                  onClick={() => setActiveChat({
+                            {(() => {
+                              const chatItems: Array<{ jobId: string; offerId: string; providerName: string; providerId: string; categoryName: string }> = [];
+                              
+                              // Add accepted offers
+                              requests.forEach((req) => {
+                                const accOffer = req.offers?.find(o => o.status === 'accepted');
+                                if (accOffer) {
+                                  chatItems.push({
                                     jobId: req.id,
                                     offerId: accOffer.id,
                                     providerName: accOffer.provider.user.name,
-                                    providerId: accOffer.provider.id
-                                  })}
-                                  className={`w-full p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                                    isActive 
-                                      ? "bg-[#c8f252]/10 border-[#c8f252]/80 shadow-sm" 
-                                      : "bg-slate-50 border-slate-100 hover:bg-slate-100/60"
-                                  }`}
-                                >
-                                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-black shrink-0 text-sm">
-                                    {accOffer.provider.user.name.substring(0, 2).toUpperCase()}
-                                  </div>
-                                  <div className="overflow-hidden flex-1">
-                                    <span className="block text-xs font-extrabold text-slate-850 truncate">{accOffer.provider.user.name}</span>
-                                    <span className="block text-[10px] text-slate-400 font-bold truncate mt-0.5">{req.category?.name}</span>
-                                  </div>
-                                </button>
-                              );
-                            })}
+                                    providerId: accOffer.provider.id,
+                                    categoryName: req.category?.name || 'Genel Hizmet'
+                                  });
+                                }
+                              });
+
+                              // Add activeChat if not already present
+                              if (activeChat && !chatItems.some(item => item.offerId === activeChat.offerId)) {
+                                const req = requests.find(r => r.id === activeChat.jobId);
+                                chatItems.push({
+                                  jobId: activeChat.jobId,
+                                  offerId: activeChat.offerId,
+                                  providerName: activeChat.providerName,
+                                  providerId: activeChat.providerId,
+                                  categoryName: req?.category?.name || 'Genel Hizmet'
+                                });
+                              }
+
+                              return chatItems.map((item) => {
+                                const isActive = activeChat?.offerId === item.offerId;
+                                return (
+                                  <button
+                                    key={item.offerId}
+                                    onClick={() => setActiveChat({
+                                      jobId: item.jobId,
+                                      offerId: item.offerId,
+                                      providerName: item.providerName,
+                                      providerId: item.providerId
+                                    })}
+                                    className={`w-full p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                                      isActive 
+                                        ? "bg-[#c8f252]/10 border-[#c8f252]/80 shadow-sm" 
+                                        : "bg-slate-50 border-slate-100 hover:bg-slate-100/60"
+                                    }`}
+                                  >
+                                    <div className="w-10 h-10 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-black shrink-0 text-sm">
+                                      {item.providerName.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div className="overflow-hidden flex-1">
+                                      <span className="block text-xs font-extrabold text-slate-850 truncate">{item.providerName}</span>
+                                      <span className="block text-[10px] text-slate-400 font-bold truncate mt-0.5">{item.categoryName}</span>
+                                    </div>
+                                  </button>
+                                );
+                              });
+                            })()}
                           </div>
 
                           {/* Right: Message Window */}
