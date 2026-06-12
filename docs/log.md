@@ -7,6 +7,8 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve alty
 - **Usta Gönderilen Mesajın Sol Taraf Hizalanma Sorunu (Frontend):** Usta tarafından yeni yazılıp gönderilen mesajların, usta sohbet kutusunda (pelin ile Sohbet) gitgide biriken bir akışta, anlık olarak sol tarafta (sanki müşteriden gelmiş gibi) beyaz renk şemasıyla hizalanması ve müşteri mesajıyla bitişik/alt alta görünmesi hatası çözüldü.
   - **Güvenli JWT Base64URL Çözümleme:** Tarayıcılarda varsayılan `window.atob` fonksiyonunun, JWT payload'larındaki base64url karakterlerini (tire `-` ve alt çizgi `_`) ve dolgu eksikliğini (`=`) çözememesi sebebiyle hata fırlatıp sessizce yakalandığı (`catch`), dolayısıyla `myUserId` değişkenini tanımsız (`undefined`) bıraktığı tespit edildi. JWT payload çözücü kuralı, base64 url karakterlerini doğru eşleyen ve eksik dolgu (padding) karaterlerini tamamlayan bir algoritmaya dönüştürüldü.
   - **Çift Yönlü Key Desteği (sender_id / senderId):** HTTP API post yanıtlarında gelen nesne ile WebSocket üzerinden dinlenen nesne arasındaki key uyumsuzluklarına karşı (`sender_id` vs `senderId`) `const msgSenderId = msg.sender_id || msg.senderId;` yapısı entegre edilerek uyuşma denetimleri kusursuzlaştırıldı.
+  - **Tarayıcı Diagnostic Log Desteği:** Testlerin tarayıcı tarafında doğrulanması ve `msgSenderId` / `myUserId` değerlerinin canlı olarak izlenebilmesi amacıyla mesaj render haritalama döngüsüne konsol günlüğü (`console.log`) eklendi.
+
 
 ## 2026-06-11 fix | Usta Paneli Canlı Sohbet Mesaj Hizalama Düzeltmesi
 

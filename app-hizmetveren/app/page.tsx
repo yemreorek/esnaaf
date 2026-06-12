@@ -2827,6 +2827,13 @@ export default function ProviderDashboard() {
                   }
                   const msgSenderId = msg.sender_id || msg.senderId;
                   const isMe = msgSenderId === myUserId;
+                  console.log("Chat debug:", {
+                    msgId: msg.id,
+                    content: msg.content,
+                    msgSenderId,
+                    myUserId,
+                    isMe
+                  });
                   return (
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
