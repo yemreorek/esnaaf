@@ -266,6 +266,27 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const [referralLoading, setReferralLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Provider profile states
+  const [selectedProviderProfile, setSelectedProviderProfile] = useState<any>(null);
+  const [loadingProviderProfile, setLoadingProviderProfile] = useState<boolean>(false);
+
+  const fetchProviderProfile = async (providerId: string) => {
+    setLoadingProviderProfile(true);
+    try {
+      const res = await customFetch(`/api/musteri/teklifler/hizmetveren/${providerId}/profil`);
+      if (!res.ok) {
+        throw new Error("Usta profili yüklenemedi.");
+      }
+      const data = await res.json();
+      setSelectedProviderProfile(data);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Usta profili yüklenirken bir hata oluştu.");
+    } finally {
+      setLoadingProviderProfile(false);
+    }
+  };
+
   const fetchReferralData = async () => {
     setReferralLoading(true);
     try {
@@ -1884,10 +1905,14 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
                                   <div className="flex items-center gap-2.5 w-full pt-1">
                                     <button 
-                                      onClick={() => alert("Usta profili çok yakında görüntülenebilecek!")}
-                                      className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
+                                      onClick={() => fetchProviderProfile(offer.provider.id)}
+                                      disabled={loadingProviderProfile}
+                                      className="flex-1 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50 flex items-center justify-center gap-1.5"
                                     >
-                                      Profili Gör
+                                      {loadingProviderProfile ? (
+                                        <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
+                                      ) : null}
+                                      <span>Profili Gör</span>
                                     </button>
                                     <button 
                                       onClick={() => alert("Canlı mesajlaşma modülü çok yakında hizmetinizde!")}
@@ -2608,6 +2633,286 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         >
           <Plus className="w-6 h-6 stroke-[3]" />
         </button>
+
+        {/* PROVIDER PROFILE OVERLAY MODAL */}
+        {selectedProviderProfile && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 flex flex-col animate-scale-up text-left">
+              {/* Sticky Header */}
+              <div className="sticky top-0 bg-white/95 backdrop-blur-md px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
+                <button
+                  onClick={() => setSelectedProviderProfile(null)}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-500"
+                  title="Geri"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="font-extrabold text-slate-800 text-sm tracking-tight">Usta Profili</span>
+                <div className="w-10"></div> {/* Spacer to center title */}
+              </div>
+
+              {/* Profile Body */}
+              <div className="p-6 md:p-8 flex flex-col gap-8">
+                
+                {/* Basic Info Header Card */}
+                <div className="flex flex-col items-center text-center gap-4 bg-slate-50/50 p-6 rounded-[28px] border border-slate-100">
+                  <div className="w-20 h-20 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-black text-2xl select-none shadow-md">
+                    {selectedProviderProfile.name ? selectedProviderProfile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "US"}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center">
+                      {selectedProviderProfile.name}
+                      {selectedProviderProfile.is_approved && (
+                        <span className="text-[#c8f252] bg-slate-900 p-0.5 rounded-full" title="Onaylı Esnaf">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
+                    </h3>
+                    
+                    {/* Rating summary */}
+                    <div className="flex items-center gap-1.5 justify-center text-xs font-bold text-slate-500">
+                      <div className="flex items-center text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <svg
+                            key={i}
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-4.5 w-4.5 ${i < Math.round(selectedProviderProfile.avg_rating) ? "fill-current" : "text-slate-200"}`}
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="text-slate-800 font-extrabold">{Number(selectedProviderProfile.avg_rating).toFixed(1)}</span>
+                      <span>({selectedProviderProfile.reviews?.length || 0} onaylı yorum)</span>
+                    </div>
+                  </div>
+
+                  {/* Masked phone and action buttons */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-sm">
+                    <a 
+                      href={`tel:${selectedProviderProfile.phone_masked}`}
+                      onClick={(e) => {
+                        if (selectedProviderProfile.phone_masked.includes("*")) {
+                          e.preventDefault();
+                          alert("Telefon numarasını aramak için öncelikle ustanın teklifini kabul etmelisiniz.");
+                        }
+                      }}
+                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-[#c8f252] text-xs font-black py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-transparent shadow-sm"
+                    >
+                      <span>📞 Ara</span>
+                    </a>
+                    
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.origin);
+                        alert("Esnaaf tavsiye bağlantısı kopyalandı!");
+                      }}
+                      className="flex-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-slate-200"
+                    >
+                      <span>🔗 Tavsiye Et</span>
+                    </button>
+
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const res = await customFetch("/api/ortak/favoriler/ekle", {
+                            method: "POST",
+                            body: JSON.stringify({ providerId: selectedProviderProfile.id })
+                          });
+                          if (res.ok) {
+                            alert("Usta favorilerinize başarıyla eklendi.");
+                          } else {
+                            const err = await res.json();
+                            alert(err.error?.message || "Favorilere eklenirken bir hata oluştu.");
+                          }
+                        } catch (e) {
+                          alert("Favorilere eklenirken bir hata oluştu.");
+                        }
+                      }}
+                      className="flex-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-slate-200"
+                    >
+                      <span>❤️ Favorilere Ekle</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Customer reviews block (Müşteri Yorumları) */}
+                <div className="flex flex-col gap-5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Müşteri Yorumları</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50/30 p-5 rounded-2xl border border-slate-100">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <span className="text-4xl font-black text-slate-900 tracking-tight leading-none">
+                        {Number(selectedProviderProfile.avg_rating).toFixed(1)}
+                      </span>
+                      <div className="flex items-center text-amber-400 my-1.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 ${i < Math.round(selectedProviderProfile.avg_rating) ? "fill-current" : "text-slate-200"}`} viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">({selectedProviderProfile.reviews?.length || 0} onaylı yorum)</span>
+                    </div>
+
+                    <div className="md:col-span-2 flex flex-col gap-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                        <span>Memnuniyet Oranı</span>
+                        <span className="text-[#a4cd1f] font-extrabold">% {selectedProviderProfile.satisfaction_rate}</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#c8f252] rounded-full transition-all duration-500" 
+                          style={{ width: `${selectedProviderProfile.satisfaction_rate}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-semibold mt-1">
+                        Bu hizmet verenle çalışan {selectedProviderProfile.reviews?.length || 0} müşteriden{" "}
+                        {Math.round(((selectedProviderProfile.reviews?.length || 0) * selectedProviderProfile.satisfaction_rate) / 100)}{" "}
+                        tanesi memnun kaldı.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* List of Individual Reviews */}
+                  <div className="flex flex-col gap-3.5 max-h-[300px] overflow-y-auto pr-1">
+                    {selectedProviderProfile.reviews && selectedProviderProfile.reviews.length > 0 ? (
+                      selectedProviderProfile.reviews.map((review: any) => (
+                        <div key={review.id} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2 hover:border-slate-200 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-slate-800 text-xs">{review.reviewer_name}</span>
+                              <span className="text-[10px] text-slate-400 font-bold mt-0.5">{review.category_name}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {new Date(review.created_at).toLocaleDateString("tr-TR", { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-amber-400">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-slate-200"}`} viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          {review.comment && (
+                            <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100/50">
+                              &ldquo;{review.comment}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-slate-400 font-medium italic text-center py-4">Henüz yorum yapılmamış.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Photos (Fotoğraflar) */}
+                <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Fotoğraflar</h4>
+                  {selectedProviderProfile.description?.referencePhotos && selectedProviderProfile.description.referencePhotos.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {selectedProviderProfile.description.referencePhotos.map((photo: string, index: number) => (
+                        <div key={index} className="aspect-square rounded-2xl overflow-hidden border border-slate-150 bg-slate-50 relative group">
+                          <img src={photo} alt={`Referans ${index + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-medium italic">Henüz fotoğraf yok.</p>
+                  )}
+                </div>
+
+                {/* Activity (Aktivite) */}
+                <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Aktivite</h4>
+                  <div className="flex items-center gap-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                    <span className="w-9 h-9 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-sm">
+                      💼
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-extrabold text-slate-800 text-xs">{selectedProviderProfile.total_jobs} İş Tamamladı</span>
+                      <span className="text-[10px] text-slate-400 font-bold mt-0.5">Platform üzerindeki toplam tamamlanan iş</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verification (Doğrulandı) */}
+                <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Doğrulandı</h4>
+                  <div className="flex flex-col gap-2.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                      <span className="text-emerald-500">✓</span>
+                      <span>Telefon numarası</span>
+                    </div>
+                    {selectedProviderProfile.is_approved && (
+                      <>
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                          <span className="text-emerald-500">✓</span>
+                          <span>Kimlik belgesi doğrulanmış esnaf</span>
+                        </div>
+                        {selectedProviderProfile.description?.companyType === "corporate" && (
+                          <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                            <span className="text-emerald-500">✓</span>
+                            <span>Vergi levhası doğrulanmış kurum</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* About (Hakkında) */}
+                <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Hakkında</h4>
+                  <p className="text-xs md:text-sm text-slate-600 font-semibold leading-relaxed whitespace-pre-line">
+                    {selectedProviderProfile.description?.descriptionText || "Açıklama belirtilmedi."}
+                  </p>
+                </div>
+
+                {/* Service Areas (Hizmet Alanları) */}
+                <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Hizmet Alanları</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProviderProfile.categories && selectedProviderProfile.categories.length > 0 ? (
+                      selectedProviderProfile.categories.map((catName: string, index: number) => (
+                        <span key={index} className="px-3.5 py-1.5 bg-slate-900 text-[#c8f252] text-[10px] font-black rounded-full uppercase tracking-wider">
+                          {catName}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="px-3.5 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                        Genel Esnaf Hizmetleri
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Location (Konum) */}
+                <div className="flex flex-col gap-3.5">
+                  <h4 className="text-base font-black text-slate-950 tracking-tight">Konum</h4>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-black text-slate-800 tracking-tight">
+                      {selectedProviderProfile.city}
+                    </span>
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      Hizmet verilen ilçeler: {selectedProviderProfile.service_districts && selectedProviderProfile.service_districts.length > 0 ? selectedProviderProfile.service_districts.join(", ") : "Tüm il genelinde."}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 

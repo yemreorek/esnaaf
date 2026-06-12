@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards, HttpStatus, HttpCode, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, HttpStatus, HttpCode, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../../common/decorators';
@@ -9,6 +9,16 @@ import { TaleplerService } from './talepler.service';
 @Roles('service_seeker')
 export class TekliflerMusteriController {
   constructor(private readonly taleplerService: TaleplerService) {}
+
+  /**
+   * Hizmet verenin detaylı profilini getirir
+   * GET /api/musteri/teklifler/hizmetveren/:id/profil
+   */
+  @Get('hizmetveren/:id/profil')
+  @HttpCode(HttpStatus.OK)
+  async getProviderProfile(@Param('id') providerId: string) {
+    return this.taleplerService.getProviderProfile(providerId);
+  }
 
   /**
    * Müşteri bir usta teklifini kabul eder, telefonları açar

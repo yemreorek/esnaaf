@@ -434,4 +434,115 @@ export class TaleplerService {
       acceptedOfferId: result.id,
     };
   }
+
+  /**
+   * Hizmet verenin detaylı profil bilgilerini getirir (müşteriye özel görünüm)
+   */
+  async getProviderProfile(providerId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { id: providerId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            phone_masked: true,
+          },
+        },
+      },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren bulunamadı.');
+    }
+
+    let descriptionObj: any = {};
+    try {
+      if (provider.description && provider.description.startsWith('{')) {
+        descriptionObj = JSON.parse(provider.description);
+      } else {
+        descriptionObj = { descriptionText: provider.description || '' };
+      }
+    } catch (e) {
+      descriptionObj = { descriptionText: provider.description || '' };
+    }
+
+    // Kategorileri çek
+    const categories = await this.prisma.category.findMany({
+      where: {
+        id: {
+          in: provider.category_ids,
+        },
+      },
+      select: {
+        name: true,
+      },
+    });
+
+    // Onaylanmış yorumları çek
+    const reviews = await this.prisma.review.findMany({
+      where: {
+        provider_id: provider.id,
+        status: 'approved',
+      },
+      include: {
+        reviewer: {
+          select: {
+            name: true,
+          },
+        },
+        job: {
+          include: {
+            category: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
+    // Memnuniyet oranı hesapla (4 ve 5 yıldızlı yorumlar)
+    const satisfiedCount = reviews.filter((r) => r.rating >= 4).length;
+    const satisfactionRate = reviews.length > 0 ? Math.round((satisfiedCount / reviews.length) * 100) : 100;
+
+    // Yorum yapan ismini maskele
+    const maskReviewerName = (name: string) => {
+      if (!name) return 'Müşteri';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0];
+      return `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+    };
+
+    return {
+      id: provider.id,
+      name: provider.user.name || 'Usta',
+      phone_masked: provider.user.phone_masked,
+      city: provider.city || 'Adana',
+      service_districts: provider.service_districts || [],
+      total_jobs: provider.total_jobs,
+      avg_rating: provider.avg_rating ? Number(provider.avg_rating) : 5.0,
+      categories: categories.map((c) => c.name),
+      is_approved: provider.is_approved,
+      description: {
+        companyType: descriptionObj.companyType || 'bireysel',
+        companyName: descriptionObj.companyName || '',
+        descriptionText: descriptionObj.descriptionText || '',
+        profilePhoto: descriptionObj.profilePhoto || '',
+        referencePhotos: descriptionObj.referencePhotos || [],
+      },
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment || '',
+        created_at: r.created_at,
+        reviewer_name: maskReviewerName(r.reviewer.name || 'Müşteri'),
+        category_name: r.job?.category?.name || 'Genel Hizmet',
+      })),
+      satisfaction_rate: satisfactionRate,
+    };
+  }
 }
