@@ -1922,17 +1922,20 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
                 {/* VIEW 3: TEKLİF KARŞILAŞTIRMA VIEW */}
                 {activeTab === "karsilastirma" && (() => {
-                  const requestsWithOffers = requests.filter(r => r.offers && r.offers.length > 0 && (r.status === 'pending' || r.status === 'distributed'));
+                  const requestsWithOffers = requests.filter(r => r.offers && r.offers.length >= 2 && (r.status === 'pending' || r.status === 'distributed'));
                   const activeCompareJob = requestsWithOffers.find(r => r.id === compareJobId) || requestsWithOffers[0];
                   
                   let lowestPriceOffer = null;
                   let highestRatingOffer = null;
 
-                  if (activeCompareJob && activeCompareJob.offers?.length > 0) {
+                  if (activeCompareJob && activeCompareJob.offers?.length >= 2) {
+                    // 1. En Uygun Fiyatlı Teklif
                     const sortedByPrice = [...activeCompareJob.offers].sort((a, b) => Number(a.price) - Number(b.price));
                     lowestPriceOffer = sortedByPrice[0];
 
-                    const sortedByRating = [...activeCompareJob.offers].sort((a, b) => {
+                    // 2. Diğer teklifler içinden en yüksek puanlı olanı (Farklı usta olması garanti edilir)
+                    const otherOffers = activeCompareJob.offers.filter(o => o.id !== lowestPriceOffer.id);
+                    const sortedByRating = [...otherOffers].sort((a, b) => {
                       const rA = Number((a.provider as any).avg_rating || 0);
                       const rB = Number((b.provider as any).avg_rating || 0);
                       return rB - rA;
@@ -1952,7 +1955,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           <div className="text-4xl mb-4 font-sans">📊</div>
                           <h4 className="font-extrabold text-slate-800 text-sm mb-1.5 font-sans">Karşılaştırılacak Teklif Bulunmuyor</h4>
                           <p className="text-slate-400 text-xs font-semibold leading-relaxed">
-                            Teklif aldığınız aktif bir hizmet talebiniz olduğunda teklifleri burada yan yana analiz edebilirsiniz.
+                            En az 2 teklif aldığınız aktif bir hizmet talebiniz olduğunda teklifleri burada yan yana analiz edebilirsiniz.
                           </p>
                         </div>
                       ) : (
