@@ -1171,59 +1171,79 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   </div>
                                 ) : (
                                   <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}>
-                                    {req.offers.map((offer) => (
-                                      <div 
-                                        key={offer.id}
-                                        className="bg-white p-5 rounded-[24px] border border-slate-100/90 shadow-[0_4px_15px_rgba(15,23,42,0.015)] hover:shadow-[0_10px_25px_rgba(15,23,42,0.03)] hover:border-slate-200 transition-all duration-200 flex flex-col justify-between gap-4"
-                                      >
-                                        <div className="flex items-start gap-4">
-                                          {/* Provider avatar */}
-                                          <div className="relative shrink-0">
-                                            <img
-                                              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"
-                                              alt={offer.provider.user.name}
-                                              className="w-12 h-12 rounded-2xl object-cover border border-slate-250/50 shadow-sm"
-                                            />
-                                            <div className="absolute -bottom-1 -right-1 bg-white border border-[#c8f252] rounded-full p-0.5 shadow-sm flex items-center justify-center w-4 h-4 text-[#88b000] font-bold text-[8px]">
-                                              ✓
+                                    {req.offers.map((offer) => {
+                                      const hasAcceptedOffer = req.offers.some((o) => o.status === "accepted");
+                                      return (
+                                        <div 
+                                          key={offer.id}
+                                          className="bg-white p-5 rounded-[24px] border border-slate-100/90 shadow-[0_4px_15px_rgba(15,23,42,0.015)] hover:shadow-[0_10px_25px_rgba(15,23,42,0.03)] hover:border-slate-200 transition-all duration-200 flex flex-col justify-between gap-4"
+                                        >
+                                          <div className="flex items-start gap-4">
+                                            {/* Provider avatar */}
+                                            <div className="relative shrink-0">
+                                              <img
+                                                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"
+                                                alt={offer.provider.user.name}
+                                                className="w-12 h-12 rounded-2xl object-cover border border-slate-250/50 shadow-sm"
+                                              />
+                                              <div className="absolute -bottom-1 -right-1 bg-white border border-[#c8f252] rounded-full p-0.5 shadow-sm flex items-center justify-center w-4 h-4 text-[#88b000] font-bold text-[8px]">
+                                                ✓
+                                              </div>
+                                            </div>
+                                            
+                                            <div className="space-y-1.5 overflow-hidden text-left flex-1">
+                                              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                                <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.provider.user.name}</h4>
+                                                <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ 4.8 (85 Yorum)</span>
+                                              </div>
+                                              <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+                                                {offer.description || offer.message || "Açıklama belirtilmedi."}
+                                              </p>
                                             </div>
                                           </div>
-                                          
-                                          <div className="space-y-1.5 overflow-hidden text-left flex-1">
-                                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                                              <h4 className="font-extrabold text-sm text-slate-900 truncate">{offer.provider.user.name}</h4>
-                                              <span className="text-[10px] text-amber-500 font-bold shrink-0">⭐ 4.8 (85 Yorum)</span>
+
+                                          {/* Footer Bid amount & Actions */}
+                                          <div className="border-t border-slate-100/80 pt-4 flex items-center justify-between gap-4">
+                                            <div className="text-left">
+                                              <span className="text-lg font-black text-slate-900 tracking-tight">₺{Number(offer.price).toLocaleString("tr-TR")}</span>
+                                              <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
                                             </div>
-                                            <p className="text-xs text-slate-650 leading-relaxed font-semibold">
-                                              {offer.description || offer.message || "Açıklama belirtilmedi."}
-                                            </p>
+
+                                            <div className="flex items-center gap-2">
+                                              <button 
+                                                onClick={() => setSelectedRequest(req)}
+                                                className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
+                                              >
+                                                Teklifi İncele
+                                              </button>
+                                              {offer.status === "accepted" ? (
+                                                <button 
+                                                  disabled
+                                                  className="bg-emerald-50 text-emerald-700 border border-emerald-250/50 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-not-allowed shadow-sm flex items-center gap-1.5 select-none"
+                                                >
+                                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                  Kabul Edildi
+                                                </button>
+                                              ) : hasAcceptedOffer ? (
+                                                <button 
+                                                  disabled
+                                                  className="bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-not-allowed shadow-sm"
+                                                >
+                                                  Teklifi Onayla
+                                                </button>
+                                              ) : (
+                                                <button 
+                                                  onClick={() => handleAcceptOffer(offer)}
+                                                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95 border border-transparent"
+                                                >
+                                                  Teklifi Onayla
+                                                </button>
+                                              )}
+                                            </div>
                                           </div>
                                         </div>
-
-                                        {/* Footer Bid amount & Actions */}
-                                        <div className="border-t border-slate-100/80 pt-4 flex items-center justify-between gap-4">
-                                          <div className="text-left">
-                                            <span className="text-lg font-black text-slate-900 tracking-tight">₺{Number(offer.price).toLocaleString("tr-TR")}</span>
-                                            <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Teklif Tutarı</span>
-                                          </div>
-
-                                          <div className="flex items-center gap-2">
-                                            <button 
-                                              onClick={() => setSelectedRequest(req)}
-                                              className="bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all border border-slate-200 active:scale-95"
-                                            >
-                                              Teklifi İncele
-                                            </button>
-                                            <button 
-                                              onClick={() => handleAcceptOffer(offer)}
-                                              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95 border border-transparent"
-                                            >
-                                              Teklifi Onayla
-                                            </button>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
