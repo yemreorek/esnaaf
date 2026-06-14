@@ -623,8 +623,7 @@ export class ChatService {
         // Deterministic transition to ask_details if all technical questions are answered
         if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
           state.step = 'ask_details';
-          const catName = this.getCategoryName(state.collected_data.categorySlug || null);
-          responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.`;
+          responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
           await this.trackTokens(sessionKey, tokensUsed);
@@ -655,12 +654,12 @@ export class ChatService {
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
 `;
           } else if (!state.collected_data.hasAskedDetails) {
-            const catName = this.getCategoryName(state.collected_data.categorySlug || null);
+            const detailPrompt = this.generatePromptForCategory(state.collected_data.categorySlug || null);
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
 - Kategoriye ait tüm teknik sorular başarıyla tamamlandı.
 - Şimdi müşteriye tam olarak şu soruyu sormalısın:
-"${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır."
+"${detailPrompt}"
 - Bu aşamada asla isim veya telefon sorma! Yalnızca bu açık uçlu detay sorusunu sor.
 `;
           } else if (!state.collected_data.name) {
@@ -782,8 +781,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
             } else if (!state.collected_data.hasAskedDetails) {
               state.step = 'ask_details';
-              const catName = this.getCategoryName(categorySlug || null);
-              responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.`;
+              responseMessage = this.generatePromptForCategory(categorySlug || null);
             } else {
               state.step = 'ask_name';
               responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
@@ -888,8 +886,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
           } else {
             state.step = 'ask_details';
-            const catName = this.getCategoryName(detection.categorySlug);
-            responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.`;
+            responseMessage = this.generatePromptForCategory(detection.categorySlug);
           }
         } else {
           state.step = 'category_detection';
@@ -929,8 +926,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           responseMessage = nextMissingQ.question;
         } else {
           state.step = 'ask_details';
-          const catName = this.getCategoryName(state.collected_data.categorySlug || null);
-          responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.`;
+          responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
         }
 
       } else if (state.step === 'ask_details') {
@@ -1761,5 +1757,150 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
     }
 
     return lines.length > 0 ? lines.join('\n') : 'Detay belirtilmedi.';
+  }
+
+  private getChecklistForCategory(slug: string | null): string[] {
+    switch (slug) {
+      case 'ev-temizligi':
+        return [
+          'Ev kaç odalı ve kaç banyolu?',
+          'Temizlik sıklığı nedir (tek seferlik, haftalık vb.)?',
+          'Evde evcil hayvan var mı veya ütü, cam silme gibi ek istekleriniz var mı?'
+        ];
+      case 'boya-badana':
+        return [
+          'Boyanacak alan kaç oda/salon veya yaklaşık kaç metrekare?',
+          'Sadece boyama mı yoksa alçı, sıva, çatlak tamiratı işleri de var mı?',
+          'Boya malzemesini siz mi alacaksınız yoksa ustadan mı dahil olsun?'
+        ];
+      case 'su-tesisati':
+        return [
+          'Yaşadığınız sorun nedir (sızıntı, tıkanıklık, musluk/rezervuar değişimi vb.)?',
+          'Sorun banyo, mutfak veya tuvalet gibi hangi bölümde?',
+          'Kullanılacak malzemeler hazır mı yoksa usta mı temin etsin?'
+        ];
+      case 'elektrik-tesisati':
+        return [
+          'Yapılacak işlem nedir (priz/anahtar montajı, avize asma, internet kablosu, komple tesisat)?',
+          'Malzemeler hazır mı yoksa ustadan mı olsun?',
+          'Arıza tespiti mi yoksa yeni kurulum mu gerekiyor?'
+        ];
+      case 'ev-tadilat':
+        return [
+          'Tadilat yapılacak alanlar nerelerdir (mutfak, banyo, komple daire)?',
+          'Yapılacak işlerin kapsamı nedir (fayans, yıkım, alçıpan, mobilya, asma tavan vb.)?',
+          'Bütçeniz veya tercih ettiğiniz malzeme kalitesi nedir?'
+        ];
+      case 'nakliyat':
+        return [
+          'Ev veya ofis kaç odalı (1+1, 2+1, 3+1 vb.)?',
+          'Eşyalar nereden nereye taşınacak?',
+          'Binası kaçıncı katta ve asansör var mı?',
+          'Paketlemeyi kim yapacak (siz mi, usta mı)?'
+        ];
+      case 'hali-koltuk-yikama':
+        return [
+          'Yıkanacak ürünler nelerdir ve adetleri nedir (örn. 3\'lü koltuk, L koltuk, kaç m² halı)?',
+          'Ürünlerin kumaş tipi nedir veya belirgin leke/kir durumu var mı?',
+          'Yıkamanın yerinde mi yoksa fabrikada mı yapılmasını istersiniz?'
+        ];
+      case 'insaat-sonrasi-temizlik':
+        return [
+          'Temizlenecek alan kaç metrekare veya kaç odalı?',
+          'İnşaat/tadilat kalıntıları (boya, harç, toz) yoğunluğu nedir?',
+          'Malzeme ve temizlik ekipmanları ustadan mı dahil olsun?'
+        ];
+      case 'fayans-parke':
+        return [
+          'Döşeme yapılacak alan yaklaşık kaç metrekare?',
+          'Malzeme (fayans, parke, derz, şilte vb.) hazır mı yoksa ustadan mı olsun?',
+          'Zemin durumu nasıl (eski kaplamaların sökülmesi gerekiyor mu)?'
+        ];
+      case 'hasere-ilaclama':
+        return [
+          'Karşılaştığınız haşere türü nedir (böcek, karınca, hamam böceği, fare vb.)?',
+          'İlaçlama yapılacak alan kaç metrekare veya oda sayısı nedir?',
+          'Evcil hayvanınız var mı veya özel bir ilaçlama yöntemi tercih ediyor musunuz?'
+        ];
+      case 'kombi-klima':
+        return [
+          'Cihazın markası nedir ve yapılacak işlem nedir (bakım, arıza, montaj, demontaj)?',
+          'Cihazda belirgin bir arıza kodu veya şikayet var mı?',
+          'Petek temizliği de istiyor musunuz?'
+        ];
+      case 'mantolama-discephe':
+        return [
+          'Yapılacak alan bir bina mı, müstakil ev mi yoksa villa mı?',
+          'Yaklaşık dış cephe alanı (metrekare) veya bina kat sayısı nedir?',
+          'İskele kurulumu ve malzeme tedariği dahil olacak mı?'
+        ];
+      case 'marangoz-mobilya':
+        return [
+          'Yapılacak işlem nedir (gardırop kurulumu, kapı tamiri, mutfak dolabı, özel ölçü mobilya)?',
+          'Montaj yapılacak mobilyanın markası/modeli nedir veya malzemesi hazır mı?',
+          'Kırık, parça eksikliği veya menteşe değişimi gibi durumlar var mı?'
+        ];
+      case 'ozel-ders':
+        return [
+          'Hangi branşta veya konuda ders istiyorsunuz (matematik, İngilizce, piyano vb.)?',
+          'Öğrencinin sınıf seviyesi veya yaş grubu nedir?',
+          'Derslerin yüz yüze mi yoksa online mı yapılmasını tercih edersiniz?'
+        ];
+      case 'cam-balkon-pvc':
+        return [
+          'Yapılacak alanın yaklaşık ölçüleri (metre veya kanat sayısı) nedir?',
+          'Tercih ettiğiniz sistem hangisidir (katlanır cam, sürme cam, PVC pencere)?',
+          'Renk veya profil tipi tercihiniz var mı?'
+        ];
+      case 'ofis-temizligi':
+        return [
+          'Ofisiniz kaç metrekare ve yaklaşık çalışan sayısı nedir?',
+          'Temizlik sıklığı nedir (günlük, haftalık, tek seferlik)?',
+          'Temizlik malzemeleri ve ekipmanları ustadan mı dahil olsun?'
+        ];
+      case 'dogalgaz-tesisati':
+        return [
+          'Yapılacak işlem nedir (doğalgaz projesi, boru hattı döşeme, kombi montajı)?',
+          'Mevcut bir gaz açma belgesi/proje onayı gerekiyor mu?',
+          'Tesisat uzunluğu veya daire tipi nedir?'
+        ];
+      case 'ic-mimar-dekorasyon':
+        return [
+          'Tasarım yapılacak alan nerelerdir (tek oda, komple ev, ofis, kafe vb.)?',
+          'İstediğiniz hizmet kapsamı nedir (sadece 3D çizim, anahtar teslim uygulama)?',
+          'Tercih ettiğiniz dekorasyon tarzı nedir (modern, klasik, minimalist vb.)?'
+        ];
+      case 'fotografci':
+        return [
+          'Ne tür bir çekim istiyorsunuz (düğün, nişan, ürün çekimi, kişisel portre)?',
+          'Çekim süresi ve yeri (dış çekim, stüdyo, mekan) nedir?',
+          'Albüm basımı, video klip gibi ek hizmetler istiyor musunuz?'
+        ];
+      case 'organizasyon-etkinlik':
+        return [
+          'Ne tür bir etkinlik planlıyorsunuz (doğum günü, kına, nişan, kurumsal davet)?',
+          'Yaklaşık davetli sayısı ve etkinlik tarihi nedir?',
+          'İstediğiniz hizmetler nelerdir (süsleme, catering, ses-ışık, DJ vb.)?'
+        ];
+      default:
+        return [
+          'Hizmete dair detayları yazabilir misiniz?',
+          'Özel bir isteğiniz veya malzemeniz var mı?',
+          'Çalışmanın ne zaman tamamlanmasını istersiniz?'
+        ];
+    }
+  }
+
+  private generatePromptForCategory(slug: string | null): string {
+    const categoryName = this.getCategoryName(slug);
+    const checklist = this.getChecklistForCategory(slug);
+    
+    let text = `${categoryName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.\n\n`;
+    text += `*Fikir vermesi açısından şu detayları da açıklamanıza ekleyebilirsiniz:*\n`;
+    checklist.forEach((item, index) => {
+      text += `${index + 1}. ${item}\n`;
+    });
+    
+    return text.trim();
   }
 }
