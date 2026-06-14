@@ -74,12 +74,8 @@ export class ChatService {
    */
   private filterPii(text: string): string {
     let filtered = text;
-    // Scrub Turkish Phone Numbers
-    filtered = filtered.replace(/(?:\+?90|\b0)?\s*5\d{2}\s*\d{3}\s*\d{2}\s*\d{2}\b/g, '[TELEFON FILTERED]');
-    // Scrub TC Identity Numbers
+    // Sadece TC Kimlik Numaralarını sansürle (Gemini için gerekli değil ve hassas veri)
     filtered = filtered.replace(/\b[1-9]\d{10}\b/g, '[TC FILTERED]');
-    // Scrub explicit introductions
-    filtered = filtered.replace(/(?:adım|ismim|adım\s+soyadım)\s+([a-zA-ZçığöşüÇİĞÖŞÜ]+(?:\s+[a-zA-ZçığöşüÇİĞÖŞÜ]+)?)/gi, '[İSİM FILTERED]');
     return filtered;
   }
 
@@ -806,14 +802,16 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             const { phone, name, formData } = call.args as any;
             try {
               const normalized = normalizePhone(phone);
-              state.collected_data.phone = normalized;
-              state.collected_data.name = name;
               if (formData && typeof formData === 'object') {
                 state.collected_data = {
                   ...state.collected_data,
                   ...formData
                 };
               }
+
+              // Ensure phone and name are set to the correct/normalized values and not overwritten by raw values in formData
+              state.collected_data.phone = normalized;
+              state.collected_data.name = name;
 
               const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
               await this.redis.set(`otp:${normalized}`, JSON.stringify({ code: otpCode, attempts: 0 }), 'EX', 300);
@@ -831,15 +829,15 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           else if (call.name === 'createServiceRequest') {
             const { seekerName, phone, categorySlug, formData } = call.args as any;
             try {
-              if (seekerName) state.collected_data.name = seekerName;
-              if (phone) state.collected_data.phone = normalizePhone(phone);
-              if (categorySlug) state.collected_data.categorySlug = categorySlug;
               if (formData && typeof formData === 'object') {
                 state.collected_data = {
                   ...state.collected_data,
                   ...formData
                 };
               }
+              if (seekerName) state.collected_data.name = seekerName;
+              if (phone) state.collected_data.phone = normalizePhone(phone);
+              if (categorySlug) state.collected_data.categorySlug = categorySlug;
               state.step = 'confirm_form';
               responseMessage = 'Talebiniz hazırlandı. Lütfen bilgilerinizi onaylayın.';
             } catch (e) {
