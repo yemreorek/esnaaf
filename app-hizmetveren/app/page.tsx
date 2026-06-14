@@ -193,7 +193,9 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama'>('firsatlar');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama'>('dashboard');
+  const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
+  const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -310,7 +312,7 @@ export default function ProviderDashboard() {
   const [password, setPassword] = useState('');
 
   const isTabLocked = (tabName: typeof activeTab) => {
-    return profile && !profile.isApproved && tabName !== 'belge-dogrulama';
+    return profile && !profile.isApproved && tabName !== 'belge-dogrulama' && tabName !== 'dashboard';
   };
 
   const handleTabClick = (tabName: typeof activeTab) => {
@@ -321,6 +323,88 @@ export default function ProviderDashboard() {
     setActiveTab(tabName);
     setMobileMenuOpen(false);
   };
+
+  // Dashboard metrics calculation helper
+  const getDashboardMetrics = () => {
+    if (isDemoStats) {
+      if (timeRange === 'daily') {
+        return {
+          totalBids: 3,
+          wonJobs: 1,
+          lostJobs: 2,
+          completedJobs: 1,
+          earnings: 25000,
+          disputes: 0,
+          successRate: 33.3,
+          chartData: [5000, 12000, 25000, 18000, 20000, 25000]
+        };
+      } else if (timeRange === 'weekly') {
+        return {
+          totalBids: 18,
+          wonJobs: 8,
+          lostJobs: 10,
+          completedJobs: 6,
+          earnings: 180000,
+          disputes: 0,
+          successRate: 44.4,
+          chartData: [20000, 45000, 30000, 80000, 60000, 110000, 180000]
+        };
+      } else {
+        return {
+          totalBids: 70,
+          wonJobs: 30,
+          lostJobs: 40,
+          completedJobs: 20,
+          earnings: 600000,
+          disputes: 2,
+          successRate: 42.8,
+          chartData: [100000, 220000, 380000, 450000, 520000, 600000]
+        };
+      }
+    }
+
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const getFilterDate = () => {
+      if (timeRange === 'daily') return oneDayAgo;
+      if (timeRange === 'weekly') return oneWeekAgo;
+      return oneMonthAgo;
+    };
+    const filterDate = getFilterDate();
+
+    const filteredOffers = offersList.filter(o => new Date(o.created_at || o.accepted_at || now) >= filterDate);
+    const totalBids = filteredOffers.length;
+    const wonJobsCount = wonJobs.filter(wj => new Date(wj.accepted_at || wj.created_at || now) >= filterDate).length;
+    const lostJobs = filteredOffers.filter(o => o.status === 'rejected' || o.status === 'cancelled').length;
+    
+    const filteredCompletions = completedJobs.filter(cj => new Date(cj.completed_at || now) >= filterDate);
+    const completedCount = filteredCompletions.length;
+    const earnings = filteredCompletions.reduce((acc, cj) => acc + (cj.price || 0), 0);
+    
+    const disputes = disputesList.filter(d => new Date(d.created_at || now) >= filterDate).length;
+    const successRate = totalBids > 0 ? Number(((wonJobsCount / totalBids) * 100).toFixed(1)) : 0;
+
+    const chartData = filteredCompletions.map(cj => cj.price || 0);
+    if (chartData.length === 0) {
+      chartData.push(0);
+    }
+
+    return {
+      totalBids,
+      wonJobs: wonJobsCount,
+      lostJobs,
+      completedJobs: completedCount,
+      earnings,
+      disputes,
+      successRate,
+      chartData
+    };
+  };
+
+  const metrics = getDashboardMetrics();
 
   const [uploadingIdentity, setUploadingIdentity] = useState(false);
   const [uploadingTaxPlate, setUploadingTaxPlate] = useState(false);
@@ -1420,6 +1504,18 @@ export default function ProviderDashboard() {
         {/* Sidebar Menu items */}
         <div className="flex-1 flex flex-col gap-1 overflow-y-auto scrollbar-none pr-0.5">
           <button
+            onClick={() => handleTabClick('dashboard')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'dashboard' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <TrendingUp className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Performans & Özet</span>
+          </button>
+
+          <button
             onClick={() => handleTabClick('belge-dogrulama')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
               activeTab === 'belge-dogrulama' 
@@ -1637,6 +1733,291 @@ export default function ProviderDashboard() {
 
         <div className="p-6 md:p-8 space-y-8 z-10 flex-1 relative overflow-y-auto">
           {/* Switchable content based on activeTab */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-8 animate-scale-up text-left">
+              {/* Header Title & Controls */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
+                    Performans ve Genel Özet
+                  </h2>
+                  <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                    İş kazanma performansı, kazançlar ve genel istatistik raporu.
+                  </p>
+                </div>
+                
+                {/* Dashboard Controls: Segmented Selector & Demo Switch */}
+                <div className="flex flex-wrap items-center gap-3.5">
+                  {/* Segmented Time Selector */}
+                  <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/40">
+                    {(['daily', 'weekly', 'monthly'] as const).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => setTimeRange(r)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          timeRange === r
+                            ? 'bg-white text-slate-900 shadow-sm border border-slate-200/30'
+                            : 'text-slate-400 hover:text-slate-700'
+                        }`}
+                      >
+                        {r === 'daily' ? 'Günlük' : r === 'weekly' ? 'Haftalık' : 'Aylık'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Demo Mode Toggle Switch */}
+                  <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 px-3 py-2 rounded-xl">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={isDemoStats} 
+                        onChange={() => setIsDemoStats(!isDemoStats)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4c630a]"></div>
+                    </label>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wide">Demo Modu</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Metrics Grid Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* 1. Bids Sent */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold shrink-0">
+                    💼
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">İletilen Teklifler</p>
+                    <h3 className="text-2xl font-black text-slate-900">{metrics.totalBids} Adet</h3>
+                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5">
+                      <span>▲ 8.3%</span>
+                      <span className="text-slate-400 font-medium lowercase">geçen döneme göre</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Won Jobs */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold shrink-0">
+                    🤝
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kazanılan İşler</p>
+                    <h3 className="text-2xl font-black text-slate-900">{metrics.wonJobs} Adet</h3>
+                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5">
+                      <span>▲ 12.5%</span>
+                      <span className="text-slate-400 font-medium lowercase">geçen döneme göre</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Lost Jobs */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 text-xl font-bold shrink-0">
+                    ❌
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kaybedilen İşler</p>
+                    <h3 className="text-2xl font-black text-slate-900">{metrics.lostJobs} Adet</h3>
+                    <p className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">
+                      <span>▼ 4.2%</span>
+                      <span className="text-slate-400 font-medium lowercase">geçen döneme göre</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 4. Completed Jobs */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center text-[#4c630a] text-xl font-bold shrink-0">
+                    ✅
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Tamamlanan İşler</p>
+                    <h3 className="text-2xl font-black text-slate-900">{metrics.completedJobs} Adet</h3>
+                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5">
+                      <span>▲ 15.0%</span>
+                      <span className="text-slate-400 font-medium lowercase">geçen döneme göre</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 5. Total Earnings */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 text-xl font-bold shrink-0">
+                    💰
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Toplam Kazanç</p>
+                    <h3 className="text-2xl font-black text-slate-900">₺{metrics.earnings.toLocaleString("tr-TR")}</h3>
+                    <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5">
+                      <span>▲ 24.1%</span>
+                      <span className="text-slate-400 font-medium lowercase">geçen döneme göre</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 6. Disputes */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-655 text-xl font-bold shrink-0">
+                    ⚠️
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Uyuşmazlıklar</p>
+                    <h3 className="text-2xl font-black text-slate-900">{metrics.disputes} Adet</h3>
+                    <p className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">
+                      <span>0% değişim</span>
+                      <span className="text-slate-400 font-medium lowercase">stabil</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Analytics Section (Two Column Layout) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                {/* Left Side: Conversion Chart */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm flex flex-col justify-between items-center text-center gap-6 lg:col-span-1">
+                  <div className="w-full text-left">
+                    <h4 className="font-extrabold text-slate-900 text-sm">Teklif Başarı Oranı</h4>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Gönderilen tekliflerin kazanılma yüzdesi</p>
+                  </div>
+
+                  {/* Circular Progress Meter */}
+                  <div className="relative w-36 h-36 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="72"
+                        cy="72"
+                        r="60"
+                        className="stroke-slate-100"
+                        strokeWidth="12"
+                        fill="transparent"
+                      />
+                      <circle
+                        cx="72"
+                        cy="72"
+                        r="60"
+                        className="stroke-[#4c630a]"
+                        strokeWidth="12"
+                        fill="transparent"
+                        strokeDasharray={376.8}
+                        strokeDashoffset={376.8 - (376.8 * metrics.successRate) / 100}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute flex flex-col items-center">
+                      <span className="text-2xl font-black text-slate-900">%{metrics.successRate}</span>
+                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Dönüşüm</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl text-[10px] font-bold text-slate-650 w-full flex justify-between">
+                    <span>Teklif Başarısı:</span>
+                    <span className="text-[#4c630a] font-extrabold">Çok İyi seviye</span>
+                  </div>
+                </div>
+
+                {/* Right Side: Earnings trend */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm flex flex-col justify-between gap-6 lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm">Kazanç Trendi</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Dönem içi kazanılan toplam ücret dağılımı</p>
+                    </div>
+                    <span className="bg-[#4c630a]/10 border border-[#4c630a]/30 text-[#4c630a] text-[9px] font-mono font-bold px-2 py-0.5 rounded">
+                      {timeRange === 'daily' ? 'Son 24 Saat' : timeRange === 'weekly' ? 'Son 7 Gün' : 'Son 30 Gün'}
+                    </span>
+                  </div>
+
+                  {/* SVG Chart */}
+                  <div className="h-44 w-full relative flex items-end">
+                    <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
+                      <line x1="0" y1="30" x2="400" y2="30" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+                      <line x1="0" y1="75" x2="400" y2="75" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+                      <line x1="0" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+
+                      {(() => {
+                        const count = metrics.chartData.length;
+                        const maxVal = Math.max(...metrics.chartData, 1);
+                        
+                        const points = metrics.chartData.map((val, idx) => {
+                          const x = count > 1 ? (idx / (count - 1)) * 400 : 200;
+                          const y = 130 - (val / maxVal) * 110;
+                          return { x, y, val };
+                        });
+
+                        const linePath = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+                        const areaPath = points.length > 0
+                          ? `${linePath} L ${points[points.length - 1].x} 140 L ${points[0].x} 140 Z`
+                          : '';
+
+                        return (
+                          <>
+                            {areaPath && (
+                              <path
+                                d={areaPath}
+                                fill="url(#earningsGrad)"
+                                opacity="0.15"
+                              />
+                            )}
+                            {linePath && (
+                              <path
+                                d={linePath}
+                                fill="none"
+                                stroke="#4c630a"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            )}
+                            {points.map((p, idx) => (
+                              <g key={idx} className="group cursor-pointer">
+                                <circle
+                                  cx={p.x}
+                                  cy={p.y}
+                                  r="4"
+                                  fill="white"
+                                  stroke="#4c630a"
+                                  strokeWidth="2"
+                                />
+                                <circle
+                                  cx={p.x}
+                                  cy={p.y}
+                                  r="10"
+                                  fill="#4c630a"
+                                  opacity="0"
+                                  className="hover:opacity-10 transition-opacity"
+                                />
+                              </g>
+                            ))}
+                            <defs>
+                              <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#4c630a" />
+                                <stop offset="100%" stopColor="#ffffff" />
+                              </linearGradient>
+                            </defs>
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  </div>
+
+                  {/* Chart X axis labels */}
+                  <div className="flex justify-between text-[8px] font-bold text-slate-450 uppercase tracking-wider border-t border-slate-50 pt-2 font-mono">
+                    {timeRange === 'daily' ? (
+                      <><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></>
+                    ) : timeRange === 'weekly' ? (
+                      <><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></>
+                    ) : (
+                      <><span>1. Hafta</span><span>2. Hafta</span><span>3. Hafta</span><span>4. Hafta</span></>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'firsatlar' && (
             <>
               {/* Dashboard Title & Overview Banner */}
