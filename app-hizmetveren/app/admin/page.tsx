@@ -207,6 +207,56 @@ const decodeJwt = (token: string) => {
 
 export default function AdminPortal() {
   const [token, setToken] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showAlert = (title: string, message: string, type: "success" | "error" | "info" = "info") => {
+    setAlertModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+    });
+  };
+
+  const alert = (message: string) => {
+    const isSuccess = message.includes("başarıyla") || message.includes("Başarılı") || message.includes("kaydedildi") || message.includes("güncellendi") || message.includes("onaylandı");
+    const isError = message.includes("hata") || message.includes("başarısız") || message.includes("Geçersiz") || message.includes("Hata");
+    const type = isSuccess ? "success" : isError ? "error" : "info";
+    const title = isSuccess ? "Başarılı" : isError ? "Hata" : "Bilgi";
+    showAlert(title, message, type);
+  };
+
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs'>('dashboard');
   const [logMessages, setLogMessages] = useState<string[]>([]);
@@ -1084,29 +1134,31 @@ ${callTaskNotes}`;
   };
 
   const handleKvkkForceDelete = async (userId: string) => {
-    if (!confirm('DİKKAT: Bu kullanıcının tüm kişisel verileri (ad, telefon, e-posta) KVKK gereğince tamamen ve geri alınamaz biçimde silinecektir. Onaylıyor musunuz?')) {
-      return;
-    }
-    if (!token) return;
-
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/kvkk-delete`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        addLog(`Kullanıcı verileri KVKK kapsamında silindi: ID ${userId}`);
-        alert('Kullanıcı verileri başarıyla anonimleştirildi.');
-        setSelectedUser(null);
-        await loadUsers(token, userPage);
-        await loadStats(token);
-      } else {
-        alert(data.error?.message || 'KVKK silme işlemi başarısız.');
+    showConfirm(
+      'DİKKAT (KVKK Silme)',
+      'Bu kullanıcının tüm kişisel verileri (ad, telefon, e-posta) KVKK gereğince tamamen ve geri alınamaz biçimde silinecektir. Onaylıyor musunuz?',
+      async () => {
+        if (!token) return;
+        try {
+          const res = await fetch(`/api/admin/users/${userId}/kvkk-delete`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (res.ok) {
+            addLog(`Kullanıcı verileri KVKK kapsamında silindi: ID ${userId}`);
+            showAlert('Başarılı', 'Kullanıcı verileri başarıyla anonimleştirildi.', 'success');
+            setSelectedUser(null);
+            await loadUsers(token, userPage);
+            await loadStats(token);
+          } else {
+            showAlert('Hata', data.error?.message || 'KVKK silme işlemi başarısız.', 'error');
+          }
+        } catch (err: any) {
+          addLog(`KVKK silme hatası: ${err.message}`);
+        }
       }
-    } catch (err: any) {
-      addLog(`KVKK silme hatası: ${err.message}`);
-    }
+    );
   };
 
   const showUserDetail = async (userId: string) => {
@@ -4590,6 +4642,72 @@ ${callTaskNotes}`;
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold ${
+              alertModal.type === 'success' ? 'bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a]' :
+              alertModal.type === 'error' ? 'bg-red-50 border border-red-150 text-red-650' :
+              'bg-blue-50 border border-blue-150 text-blue-650'
+            }`}>
+              {alertModal.type === 'success' ? '✅' : alertModal.type === 'error' ? '❌' : 'ℹ️'}
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 text-sm">{alertModal.title}</h4>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                {alertModal.message}
+              </p>
+            </div>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
+                className="w-full bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+              >
+                Tamam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
+              ❓
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-slate-200"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                  confirmModal.onConfirm();
+                }}
+                className="flex-1 bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+              >
+                Onayla
+              </button>
+            </div>
           </div>
         </div>
       )}

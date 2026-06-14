@@ -197,7 +197,47 @@ export default function ProviderDashboard() {
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [disputesList, setDisputesList] = useState<any[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showAlert = (title: string, message: string, type: "success" | "error" | "info" = "info") => {
+    setAlertModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+    });
+  };
 
   // Subscription management states
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
@@ -240,6 +280,7 @@ export default function ProviderDashboard() {
   }, [wonJobs]);
   const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [disputesList, setDisputesList] = useState<any[]>([]);
 
   // Chat states
   const [activeChat, _setActiveChat] = useState<{ jobId: string; offerId: string; customerName: string } | null>(null);
@@ -274,7 +315,7 @@ export default function ProviderDashboard() {
 
   const handleTabClick = (tabName: typeof activeTab) => {
     if (isTabLocked(tabName)) {
-      alert("Lütfen öncelikle belgelerinizi yükleyin ve onay sürecinin tamamlanmasını bekleyin.");
+      showAlert("Belge Onayı Gerekli", "Lütfen öncelikle belgelerinizi yükleyin ve onay sürecinin tamamlanmasını bekleyin.", "info");
       return;
     }
     setActiveTab(tabName);
@@ -291,7 +332,7 @@ export default function ProviderDashboard() {
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      alert("Geçersiz dosya tipi. Yalnızca PNG, JPEG, WEBP ve PDF yükleyebilirsiniz.");
+      showAlert("Hata", "Geçersiz dosya tipi. Yalnızca PNG, JPEG, WEBP ve PDF yükleyebilirsiniz.", "error");
       return;
     }
 
@@ -583,7 +624,7 @@ export default function ProviderDashboard() {
       
     } catch (err: any) {
       addLog(`Hata: ${err.message}`);
-      alert(err.message);
+      showAlert("Hata", err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -830,7 +871,7 @@ export default function ProviderDashboard() {
       const data = await res.json();
       if (res.ok && data.success) {
         if (data.status === 'trial') {
-          alert(data.message || 'Deneme süreniz başarıyla başlatıldı!');
+          showAlert("Başarılı", data.message || 'Deneme süreniz başarıyla başlatıldı!', "success");
           setSelectedPackage(null);
           setValidatedCampaign(null);
           setCampaignCodeInput('');
@@ -840,10 +881,10 @@ export default function ProviderDashboard() {
           setCheckoutFormHtml(data.checkoutFormContent);
         }
       } else {
-        alert(data.error?.message || 'Abonelik başlatılamadı.');
+        showAlert("Hata", data.error?.message || 'Abonelik başlatılamadı.', "error");
       }
     } catch (err) {
-      alert('Abonelik başlatılırken bir hata oluştu.');
+      showAlert("Hata", 'Abonelik başlatılırken bir hata oluştu.', "error");
     } finally {
       setSubmittingSubscription(false);
     }
@@ -851,24 +892,27 @@ export default function ProviderDashboard() {
 
   const handleCancelSubscription = async () => {
     if (!token) return;
-    const confirm = window.confirm('Aboneliğinizi iptal etmek istediğinize emin misiniz? Dönem sonuna kadar kullanımınız devam edecektir.');
-    if (!confirm) return;
-
-    try {
-      const res = await fetch('/api/hizmetveren/abonelik/iptal', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert(data.message || 'Aboneliğiniz iptal edildi.');
-        fetchTabDependencies('abonelik', token);
-      } else {
-        alert(data.error?.message || 'İptal işlemi başarısız.');
+    showConfirm(
+      'Abonelik İptali',
+      'Aboneliğinizi iptal etmek istediğinize emin misiniz? Dönem sonuna kadar kullanımınız devam edecektir.',
+      async () => {
+        try {
+          const res = await fetch('/api/hizmetveren/abonelik/iptal', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showAlert('Başarılı', data.message || 'Aboneliğiniz iptal edildi.', 'success');
+            fetchTabDependencies('abonelik', token);
+          } else {
+            showAlert('Hata', data.error?.message || 'İptal işlemi başarısız.', 'error');
+          }
+        } catch (err) {
+          showAlert('Hata', 'Abonelik iptal edilirken bir hata oluştu.', 'error');
+        }
       }
-    } catch (err) {
-      alert('Abonelik iptal edilirken bir hata oluştu.');
-    }
+    );
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -901,7 +945,7 @@ export default function ProviderDashboard() {
         });
       } else {
         const err = await res.json();
-        alert(err.message || "Mesaj gönderilemedi.");
+        showAlert("Hata", err.message || "Mesaj gönderilemedi.", "error");
       }
     } catch (err) {
       console.error("Send message error:", err);
@@ -914,7 +958,7 @@ export default function ProviderDashboard() {
 
     const priceNum = Number(declarePrice.replace(/\D/g, ''));
     if (!priceNum || priceNum < 1) {
-      alert("Lütfen geçerli bir beyan ücreti giriniz.");
+      showAlert("Uyarı", "Lütfen geçerli bir beyan ücreti giriniz.", "info");
       return;
     }
 
@@ -934,17 +978,17 @@ export default function ProviderDashboard() {
       });
 
       if (res.ok) {
-        alert("İş tamamlanma beyanı başarıyla gönderildi!");
+        showAlert("Başarılı", "İş tamamlanma beyanı başarıyla gönderildi!", "success");
         setCompletingJob(null);
         setDeclarePrice('');
         setDeclareNote('');
         fetchTabDependencies(activeTab, token);
       } else {
         const data = await res.json();
-        alert(data.message || "Beyan gönderilemedi.");
+        showAlert("Hata", data.message || "Beyan gönderilemedi.", "error");
       }
     } catch (err: any) {
-      alert(err.message || "Bir hata oluştu.");
+      showAlert("Hata", err.message || "Bir hata oluştu.", "error");
     } finally {
       setSubmittingDeclaration(false);
     }
@@ -979,7 +1023,7 @@ export default function ProviderDashboard() {
 
     const priceNum = Number(offerPrice.replace(/\D/g, ''));
     if (!priceNum || priceNum < 1) {
-      alert('Lütfen geçerli bir teklif fiyatı giriniz.');
+      showAlert('Hata', 'Lütfen geçerli bir teklif fiyatı giriniz.', 'error');
       return;
     }
 
@@ -1006,7 +1050,7 @@ export default function ProviderDashboard() {
       }
 
       addLog(`Teklif başarıyla gönderildi! Teklif ID: ${data.offer?.id}`);
-      alert('Teklifiniz başarıyla müşteriye iletildi!');
+      showAlert('Başarılı', 'Teklifiniz başarıyla müşteriye iletildi!', 'success');
       
       setJobs((prev) => prev.filter((j) => j.id !== activeJob.id));
       setActiveJob(null);
@@ -1017,7 +1061,7 @@ export default function ProviderDashboard() {
 
     } catch (err: any) {
       addLog(`Teklif gönderme hatası: ${err.message}`);
-      alert(err.message);
+      showAlert('Hata', err.message, 'error');
     } finally {
       setSubmittingOffer(false);
     }
@@ -1503,7 +1547,7 @@ export default function ProviderDashboard() {
         {/* Sidebar bottom lime publish button */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
           <button
-            onClick={() => alert("Hizmet yayınlama özelliği yakında partnerlerimizin kullanımına sunulacaktır.")}
+            onClick={() => showAlert("Yakında", "Hizmet yayınlama özelliği yakında partnerlerimizin kullanımına sunulacaktır.", "info")}
             className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all text-center border border-transparent"
           >
             Hizmet Yayınla
@@ -1609,14 +1653,14 @@ export default function ProviderDashboard() {
                 {/* Filter & Sort buttons */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => alert("Filtreleme özellikleri yakında aktif olacaktır.")}
+                    onClick={() => showAlert("Yakında", "Filtreleme özellikleri yakında aktif olacaktır.", "info")}
                     className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
                   >
                     <Filter className="w-3.5 h-3.5 text-slate-500" />
                     <span>Filtrele</span>
                   </button>
                   <button
-                    onClick={() => alert("Sıralama parametreleri yakında eklenecektir.")}
+                    onClick={() => showAlert("Yakında", "Sıralama parametreleri yakında eklenecektir.", "info")}
                     className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
                   >
                     <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
@@ -1780,7 +1824,7 @@ export default function ProviderDashboard() {
                         <button
                           onClick={() => {
                             if (!token) {
-                              alert("Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!");
+                              showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!", "info");
                             } else {
                               setActiveJob({
                                 id: opp.id,
@@ -2962,6 +3006,72 @@ export default function ProviderDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold ${
+              alertModal.type === 'success' ? 'bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a]' :
+              alertModal.type === 'error' ? 'bg-red-50 border border-red-150 text-red-650' :
+              'bg-blue-50 border border-blue-150 text-blue-650'
+            }`}>
+              {alertModal.type === 'success' ? '✅' : alertModal.type === 'error' ? '❌' : 'ℹ️'}
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 text-sm">{alertModal.title}</h4>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                {alertModal.message}
+              </p>
+            </div>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
+                className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+              >
+                Tamam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
+              ❓
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-slate-200"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                  confirmModal.onConfirm();
+                }}
+                className="flex-1 bg-[#4c630a] hover:bg-[#3d5008] text-white text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+              >
+                Onayla
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -276,6 +276,35 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     });
   };
 
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showAlert = (title: string, message: string, type: "success" | "error" | "info" = "info") => {
+    setAlertModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+    });
+  };
+
+  const alert = (message: string) => {
+    const isSuccess = message.includes("başarıyla") || message.includes("Başarılı") || message.includes("kopyalandı") || message.includes("kaydedildi") || message.includes("güncellendi") || message.includes("onaylandı") || message.includes("kabul edildi") || message.includes("teyit edildi");
+    const isError = message.includes("hata") || message.includes("başarısız") || message.includes("Geçersiz") || message.includes("Hata") || message.includes("eklenemedi") || message.includes("güncellenemedi");
+    const type = isSuccess ? "success" : isError ? "error" : "info";
+    const title = isSuccess ? "Başarılı" : isError ? "Hata" : "Bilgi";
+    showAlert(title, message, type);
+  };
+
   // UI state for grid / list view
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -2857,9 +2886,39 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     setConfirmModal(prev => ({ ...prev, isOpen: false }));
                     confirmModal.onConfirm();
                   }}
-                  className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+                  className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
                 >
                   Onayla
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Alert Modal */}
+        {alertModal.isOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold ${
+                alertModal.type === 'success' ? 'bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a]' :
+                alertModal.type === 'error' ? 'bg-red-50 border border-red-150 text-red-650' :
+                'bg-blue-50 border border-blue-150 text-blue-650'
+              }`}>
+                {alertModal.type === 'success' ? '✅' : alertModal.type === 'error' ? '❌' : 'ℹ️'}
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-extrabold text-slate-900 text-sm">{alertModal.title}</h4>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                  {alertModal.message}
+                </p>
+              </div>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
+                  className="w-full bg-[#c8f252] text-slate-955 hover:bg-[#b5e639] text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+                >
+                  Tamam
                 </button>
               </div>
             </div>
