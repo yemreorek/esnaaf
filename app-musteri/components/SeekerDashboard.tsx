@@ -722,14 +722,15 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     );
   };
 
-  const handleConfirmCompletion = async (isConfirmed: boolean) => {
-    if (!selectedRequest) return;
+  const handleConfirmCompletion = async (isConfirmed: boolean, reqOverride?: any, amountOverride?: number) => {
+    const activeReq = reqOverride || selectedRequest;
+    if (!activeReq) return;
     try {
-      const payload: any = { jobId: selectedRequest.id };
+      const payload: any = { jobId: activeReq.id };
       
       if (isConfirmed) {
         payload.confirmed = true;
-        payload.declaredAmount = providerDeclaredAmount;
+        payload.declaredAmount = amountOverride !== undefined ? amountOverride : providerDeclaredAmount;
       } else {
         payload.confirmed = false;
         const parsedAmount = isServiceNotReceived ? 0 : Number(seekerDisputeAmount);
@@ -2272,7 +2273,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   onClick={async () => {
                                     setSelectedRequest(req);
                                     setProviderDeclaredAmount(Number(jc.provider_declared_amount || 0));
-                                    await handleConfirmCompletion(true);
+                                    await handleConfirmCompletion(true, req, Number(jc.provider_declared_amount || 0));
                                   }}
                                   className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-6 rounded-xl cursor-pointer transition-all active:scale-95"
                                 >
