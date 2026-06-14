@@ -529,18 +529,6 @@ export class ChatService {
             await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
             await this.trackTokens(sessionKey, tokensUsed);
 
-            setTimeout(() => {
-              const mockOffer = {
-                id: randomUUID(),
-                price: 850,
-                description: 'Detaylı genel ev temizliği hizmeti, tüm temizlik malzemeleri bana aittir.',
-                providerId: randomUUID(),
-                providerName: 'Ahmet Usta (Ev Temizliği Uzmanı)',
-                providerRating: 4.8,
-              };
-              this.chatGateway.emitNewOffer(job.id, mockOffer);
-            }, 4000);
-
             return {
               step: 'completed',
               responseMessage,
@@ -1166,18 +1154,6 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
 
           state.step = 'completed';
           responseMessage = `Tebrikler! Talebiniz başarıyla gönderildi. 15 dakika içinde burada veya hesabınızda taleplerinizi inceleyebilir, teklifleri değerlendirebilir veya onaylayabilirsiniz.`;
-          
-          setTimeout(() => {
-            const mockOffer = {
-              id: randomUUID(),
-              price: 850,
-              description: 'Detaylı genel ev temizliği hizmeti, tüm temizlik malzemeleri bana aittir.',
-              providerId: randomUUID(),
-              providerName: 'Ahmet Usta (Ev Temizliği Uzmanı)',
-              providerRating: 4.8,
-            };
-            this.chatGateway.emitNewOffer(job.id, mockOffer);
-          }, 4000);
 
         } else {
           responseMessage = 'Talebinizi onaylamak için lütfen "Onayla" yazın veya düzeltmek istediğiniz kısımları belirtin.';
