@@ -540,6 +540,39 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     // Provider job completion declaration (Step 6)
     socket.on("job_completed_by_provider", (data: any) => {
       console.log("[Dashboard WS] Job completed by provider:", data);
+      
+      // Update the requests list so that the "İş Teyit & Puanlama" tab updates in real-time
+      setRequests((prev) =>
+        prev.map((req) => {
+          if (req.id === data.jobId) {
+            const newCompletion = {
+              id: `comp-${Date.now()}`,
+              status: "pending_seeker",
+              provider_declared_amount: data.price,
+              provider: {
+                id: data.providerId,
+                user: {
+                  name: data.providerName
+                }
+              }
+            };
+            
+            const currentCompletions = req.job_completions || [];
+            const filteredCompletions = currentCompletions.filter(jc => jc.status !== "pending_seeker");
+            const updatedReq = {
+              ...req,
+              job_completions: [...filteredCompletions, newCompletion]
+            };
+            
+            if (selectedRequestRef.current?.id === data.jobId) {
+              setSelectedRequest(updatedReq);
+            }
+            return updatedReq;
+          }
+          return req;
+        })
+      );
+
       if (selectedRequestRef.current?.id === data.jobId) {
         setProviderName(data.providerName);
         setProviderDeclaredAmount(data.price);
