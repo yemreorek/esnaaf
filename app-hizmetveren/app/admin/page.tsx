@@ -1120,12 +1120,12 @@ ${callTaskNotes}`;
           const data = await res.json();
           if (res.ok) {
             addLog(`Kullanıcı verileri KVKK kapsamında silindi: ID ${userId}`);
-            showAlert('Başarılı', 'Kullanıcı verileri başarıyla anonimleştirildi.', 'success');
+            alert('Kullanıcı verileri başarıyla anonimleştirildi.');
             setSelectedUser(null);
             await loadUsers(token, userPage);
             await loadStats(token);
           } else {
-            showAlert('Hata', data.error?.message || 'KVKK silme işlemi başarısız.', 'error');
+            alert(data.error?.message || 'KVKK silme işlemi başarısız.');
           }
         } catch (err: any) {
           addLog(`KVKK silme hatası: ${err.message}`);

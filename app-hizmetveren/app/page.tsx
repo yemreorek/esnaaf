@@ -810,7 +810,32 @@ export default function ProviderDashboard() {
     if (!currentToken) return;
     setLoading(true);
     try {
-      if (tab === 'firsatlar') {
+      if (tab === 'dashboard') {
+        const [offersRes, wonRes, completedRes, disputesRes] = await Promise.all([
+          fetch('/api/hizmetveren/teklifler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+          fetch('/api/hizmetveren/kazanilan-isler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+          fetch('/api/hizmetveren/tamamlanan-isler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+          fetch('/api/hizmetveren/uyusmazliklar', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+        ]);
+
+        if (offersRes.ok) {
+          const offersData = await offersRes.json();
+          setOffersList(offersData);
+        }
+        if (wonRes.ok) {
+          const wonData = await wonRes.json();
+          setWonJobs(wonData);
+        }
+        if (completedRes.ok) {
+          const completedData = await completedRes.json();
+          setCompletedJobs(completedData);
+        }
+        if (disputesRes.ok) {
+          const disputesData = await disputesRes.json();
+          setDisputesList(disputesData);
+        }
+        addLog('Dashboard verileri başarıyla güncellendi.');
+      } else if (tab === 'firsatlar') {
         const res = await fetch('/api/hizmetveren/gelen-isler', {
           headers: { 'Authorization': `Bearer ${currentToken}` },
         });
@@ -1745,7 +1770,7 @@ export default function ProviderDashboard() {
                     İş kazanma performansı, kazançlar ve genel istatistik raporu.
                   </p>
                 </div>
-                
+
                 {/* Dashboard Controls: Segmented Selector & Demo Switch */}
                 <div className="flex flex-wrap items-center gap-3.5">
                   {/* Segmented Time Selector */}
@@ -1757,10 +1782,10 @@ export default function ProviderDashboard() {
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                           timeRange === r
                             ? 'bg-white text-slate-900 shadow-sm border border-slate-200/30'
-                            : 'text-slate-400 hover:text-slate-700'
+                            : 'text-slate-450 hover:text-slate-700'
                         }`}
                       >
-                        {r === 'daily' ? 'Günlük' : r === 'weekly' ? 'Haftalık' : 'Aylık'}
+                        {r === 'daily' ? 'Günlük (Son 24 Saat)' : r === 'weekly' ? 'Haftalık (Son 7 Gün)' : 'Aylık (Son 30 Gün)'}
                       </button>
                     ))}
                   </div>
@@ -1785,8 +1810,8 @@ export default function ProviderDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* 1. Bids Sent */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold shrink-0">
-                    💼
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-blue-600 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">İletilen Teklifler</p>
@@ -1800,8 +1825,8 @@ export default function ProviderDashboard() {
 
                 {/* 2. Won Jobs */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold shrink-0">
-                    🤝
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <Briefcase className="w-5 h-5 text-emerald-600 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kazanılan İşler</p>
@@ -1815,8 +1840,8 @@ export default function ProviderDashboard() {
 
                 {/* 3. Lost Jobs */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 text-xl font-bold shrink-0">
-                    ❌
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                    <X className="w-5 h-5 text-rose-500 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kaybedilen İşler</p>
@@ -1830,8 +1855,8 @@ export default function ProviderDashboard() {
 
                 {/* 4. Completed Jobs */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center text-[#4c630a] text-xl font-bold shrink-0">
-                    ✅
+                  <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center shrink-0">
+                    <CheckCircle className="w-5 h-5 text-[#4c630a] stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Tamamlanan İşler</p>
@@ -1845,8 +1870,8 @@ export default function ProviderDashboard() {
 
                 {/* 5. Total Earnings */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 text-xl font-bold shrink-0">
-                    💰
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                    <DollarSign className="w-5 h-5 text-amber-600 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Toplam Kazanç</p>
@@ -1860,8 +1885,8 @@ export default function ProviderDashboard() {
 
                 {/* 6. Disputes */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-655 text-xl font-bold shrink-0">
-                    ⚠️
+                  <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-red-500 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Uyuşmazlıklar</p>
