@@ -2,11 +2,15 @@ import { Controller, Post, Get, Put, Body, Param, UseGuards } from '@nestjs/comm
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Public, Roles, CurrentUser } from '../../common/decorators';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 @Controller()
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
+  @Roles('service_seeker')
   @Post('musteri/reviews')
   async createReview(
     @Body() dto: CreateReviewDto,
