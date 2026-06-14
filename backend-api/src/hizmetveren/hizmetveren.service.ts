@@ -500,6 +500,9 @@ export class HizmetverenService {
             phone_reveal_logs: {
               where: { requester_id: provider.user_id },
             },
+            job_completions: {
+              where: { provider_id: provider.id },
+            },
           },
         },
         seeker: true,
@@ -521,12 +524,16 @@ export class HizmetverenService {
         }
       }
 
+      const completion = ao.job.job_completions?.[0];
+      const isPendingSeeker = completion?.status === 'pending_seeker';
+
       return {
         id: ao.id,
         accepted_at: ao.accepted_at,
         price: Number(ao.offer.price),
         status: ao.offer.status,
         offerId: ao.offer.id,
+        isPendingSeeker,
         job: {
           id: ao.job.id,
           categoryName: ao.job.category.name,

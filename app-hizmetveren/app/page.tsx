@@ -1703,19 +1703,14 @@ export default function ProviderDashboard() {
                             </p>
                           </div>
 
-                          <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
-                            <div className="text-left">
-                              <span className="block text-[9px] text-slate-450 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
-                              <span className="text-base font-black text-slate-900 tracking-tight">{estBudget}</span>
-                            </div>
-
-                            <button
-                              onClick={() => setActiveJob(job)}
-                              className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-                            >
-                              Teklif Ver
-                            </button>
-                          </div>
+                           <div className="border-t border-slate-50 pt-4 flex items-center justify-end gap-4">
+                             <button
+                               onClick={() => setActiveJob(job)}
+                               className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
+                             >
+                               Teklif Ver
+                             </button>
+                           </div>
                         </div>
                       );
                     })
@@ -1781,12 +1776,7 @@ export default function ProviderDashboard() {
                         </p>
                       </div>
 
-                      <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
-                        <div className="text-left">
-                          <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tahmini Bütçe</span>
-                          <span className="text-sm md:text-base font-black text-slate-900 tracking-tight">{opp.budget}</span>
-                        </div>
-
+                      <div className="border-t border-slate-100 pt-4 flex items-center justify-end gap-4">
                         <button
                           onClick={() => {
                             if (!token) {
@@ -1979,22 +1969,37 @@ export default function ProviderDashboard() {
                                       <span className="text-[9px] block text-slate-400 font-bold uppercase tracking-wider">Anlaşılan Fiyat</span>
                                       <span className="text-slate-900 font-black text-base">₺{wj.price.toLocaleString("tr-TR")}</span>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 items-center flex-wrap">
                                       <button
                                         onClick={() => setActiveChat({ jobId: wj.job.id, offerId: wj.offerId, customerName: wj.job.name })}
                                         className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
                                       >
                                         Mesaj Gönder
                                       </button>
-                                      <button
-                                        onClick={() => {
-                                          setCompletingJob(wj);
-                                          setDeclarePrice(wj.price ? Number(wj.price).toLocaleString('tr-TR') : '');
-                                        }}
-                                        className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                                      >
-                                        İşi Tamamla
-                                      </button>
+                                      {wj.isPendingSeeker ? (
+                                        <>
+                                          <button
+                                            disabled
+                                            className="bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed font-black text-[11px] py-2.5 px-4.5 rounded-xl shadow-sm"
+                                          >
+                                            İşi Tamamla
+                                          </button>
+                                          <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-black px-2.5 py-1.5 rounded-xl uppercase tracking-wider flex items-center gap-1.5 select-none">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            Onay Bekliyor
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            setCompletingJob(wj);
+                                            setDeclarePrice(wj.price ? Number(wj.price).toLocaleString('tr-TR') : '');
+                                          }}
+                                          className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                        >
+                                          İşi Tamamla
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
