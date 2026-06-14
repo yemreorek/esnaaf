@@ -255,6 +255,27 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [mutualPhones, setMutualPhones] = useState<{ seekerPhone?: string; providerPhone?: string } | null>(null);
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
   // UI state for grid / list view
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -581,56 +602,62 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   };
 
   const handleCancelRequest = async (id: string) => {
-    const confirm = window.confirm("Talebinizi iptal etmek istediğinize emin misiniz? Bekleyen tüm teklifler de iptal edilecektir.");
-    if (!confirm) return;
-
-    try {
-      const res = await customFetch(`/api/musteri/talepler/${id}/iptal`, {
-        method: "PUT",
-      });
-      if (res.ok) {
-        alert("Talebiniz başarıyla iptal edildi.");
-        fetchRequests();
-        setSelectedRequest(null);
-      } else {
-        const err = await res.json();
-        alert(err.error?.message || "İptal işlemi başarısız.");
+    showConfirm(
+      "Talebi İptal Et",
+      "Talebinizi iptal etmek istediğinize emin misiniz?\nBekleyen tüm teklifler de iptal edilecektir.",
+      async () => {
+        try {
+          const res = await customFetch(`/api/musteri/talepler/${id}/iptal`, {
+            method: "PUT",
+          });
+          if (res.ok) {
+            alert("Talebiniz başarıyla iptal edildi.");
+            fetchRequests();
+            setSelectedRequest(null);
+          } else {
+            const err = await res.json();
+            alert(err.error?.message || "İptal işlemi başarısız.");
+          }
+        } catch (err) {
+          alert("Bir hata oluştu.");
+        }
       }
-    } catch (err) {
-      alert("Bir hata oluştu.");
-    }
+    );
   };
 
   const handleAcceptOffer = async (offer: Offer) => {
-    const confirm = window.confirm(`${offer.provider.user.name} teklifini kabul etmek istediğinize emin misiniz?\n\nKarşılıkli telefon numaralarınız görüntülenecektir.`);
-    if (!confirm) return;
+    showConfirm(
+      "Teklifi Kabul Et",
+      `${offer.provider.user.name} teklifini kabul etmek istediğinize emin misiniz?\n\nKarşılıklı telefon numaralarınız görüntülenecektir.`,
+      async () => {
+        try {
+          const res = await customFetch(`/api/musteri/teklifler/${offer.id}/kabul`, {
+            method: "POST",
+            body: JSON.stringify({ consent: true }),
+          });
 
-    try {
-      const res = await customFetch(`/api/musteri/teklifler/${offer.id}/kabul`, {
-        method: "POST",
-        body: JSON.stringify({ consent: true }),
-      });
+          if (res.ok) {
+            const data = await res.json();
+            setMutualPhones({
+              seekerPhone: data.seekerPhone,
+              providerPhone: data.providerPhone,
+            });
 
-      if (res.ok) {
-        const data = await res.json();
-        setMutualPhones({
-          seekerPhone: data.seekerPhone,
-          providerPhone: data.providerPhone,
-        });
+            // Set local provider details
+            setProviderId(offer.provider.id);
+            setProviderName(offer.provider.user.name);
 
-        // Set local provider details
-        setProviderId(offer.provider.id);
-        setProviderName(offer.provider.user.name);
-
-        alert("Teklif başarıyla kabul edildi!");
-        fetchRequests();
-      } else {
-        const err = await res.json();
-        alert(err.error?.message || "Teklif kabul edilemedi.");
+            alert("Teklif başarıyla kabul edildi!");
+            fetchRequests();
+          } else {
+            const err = await res.json();
+            alert(err.error?.message || "Teklif kabul edilemedi.");
+          }
+        } catch (err) {
+          alert("Bir hata oluştu.");
+        }
       }
-    } catch (err) {
-      alert("Bir hata oluştu.");
-    }
+    );
   };
 
   const handleConfirmCompletion = async (isConfirmed: boolean) => {
@@ -2798,6 +2825,42 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                   </div>
                 </div>
 
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Beautiful Custom Confirm Modal */}
+        {confirmModal.isOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+              <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
+                ℹ️
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                  {confirmModal.message}
+                </p>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-slate-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    confirmModal.onConfirm();
+                  }}
+                  className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+                >
+                  Onayla
+                </button>
               </div>
             </div>
           </div>

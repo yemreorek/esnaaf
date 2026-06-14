@@ -189,6 +189,27 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [sendToFavoritesOnlyChecked, setSendToFavoritesOnlyChecked] = useState(false);
   const [kvkkChecked, setKvkkChecked] = useState(true);
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
   // Lock body scroll when chat is open (prevents background scrolling on mobile)
   useEffect(() => {
     document.body.classList.add('chat-open');
@@ -477,40 +498,41 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
   const handleAcceptOffer = async (offer: any) => {
     if (!offer?.id) return;
-    const confirmed = window.confirm(
-      `${offer.provider?.name || 'Usta'} teklifini ${Number(offer.price).toLocaleString("tr-TR")} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`
-    );
-    if (!confirmed) return;
+    showConfirm(
+      "Teklifi Kabul Et",
+      `${offer.provider?.name || 'Usta'} teklifini ${Number(offer.price).toLocaleString("tr-TR")} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`,
+      async () => {
+        setIsLoading(true);
+        try {
+          const res = await customFetch(`/api/musteri/teklifler/${offer.id}/kabul`, {
+            method: 'POST',
+            body: JSON.stringify({ consent: true }),
+          });
 
-    setIsLoading(true);
-    try {
-      const res = await customFetch(`/api/musteri/teklifler/${offer.id}/kabul`, {
-        method: 'POST',
-        body: JSON.stringify({ consent: true }),
-      });
+          if (!res.ok) {
+            const errorData = await safeJsonParse(res, 'Teklif kabul edilemedi.');
+            throw new Error(errorData.error?.message || 'Teklif kabul edilemedi.');
+          }
 
-      if (!res.ok) {
-        const errorData = await safeJsonParse(res, 'Teklif kabul edilemedi.');
-        throw new Error(errorData.error?.message || 'Teklif kabul edilemedi.');
+          const data = await safeJsonParse(res, 'Teklif kabul edilemedi.');
+          setProviderId(offer.provider?.id || null);
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `accept-${Date.now()}`,
+              role: 'assistant',
+              content: `✅ Teklif başarıyla kabul edildi!\n\n📞 Usta Telefon: ${data.providerPhone || 'Açıldı'}\n📞 Sizin Telefonunuz: ${data.seekerPhone || 'Paylaşıldı'}\n\nArtık doğrudan iletişime geçebilirsiniz.`,
+            },
+          ]);
+        } catch (err: any) {
+          console.error('Offer accept error:', err);
+          alert(err.message || 'Teklif kabul sırasında bir hata oluştu.');
+        } finally {
+          setIsLoading(false);
+        }
       }
-
-      const data = await safeJsonParse(res, 'Teklif kabul edilemedi.');
-      setProviderId(offer.provider?.id || null);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `accept-${Date.now()}`,
-          role: 'assistant',
-          content: `✅ Teklif başarıyla kabul edildi!\n\n📞 Usta Telefon: ${data.providerPhone || 'Açıldı'}\n📞 Sizin Telefonunuz: ${data.seekerPhone || 'Paylaşıldı'}\n\nArtık doğrudan iletişime geçebilirsiniz.`,
-        },
-      ]);
-    } catch (err: any) {
-      console.error('Offer accept error:', err);
-      alert(err.message || 'Teklif kabul sırasında bir hata oluştu.');
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   // Seeker confirmation action for job completion (Adım 6)
@@ -1251,6 +1273,42 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             </svg>
           </button>
         </div>
+        {/* Beautiful Custom Confirm Modal */}
+        {confirmModal.isOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
+              <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
+                ℹ️
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
+                  {confirmModal.message}
+                </p>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-slate-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    confirmModal.onConfirm();
+                  }}
+                  className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm"
+                >
+                  Onayla
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </footer>
 
       <style jsx global>{`
