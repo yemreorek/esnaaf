@@ -623,7 +623,7 @@ export class ChatService {
         // Deterministic transition to ask_details if all technical questions are answered
         if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
           state.step = 'ask_details';
-          const catName = this.getCategoryName(state.collected_data.categorySlug);
+          const catName = this.getCategoryName(state.collected_data.categorySlug || null);
           responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
@@ -655,7 +655,7 @@ export class ChatService {
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
 `;
           } else if (!state.collected_data.hasAskedDetails) {
-            const catName = this.getCategoryName(state.collected_data.categorySlug);
+            const catName = this.getCategoryName(state.collected_data.categorySlug || null);
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
 - Kategoriye ait tüm teknik sorular başarıyla tamamlandı.
@@ -782,7 +782,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
             } else if (!state.collected_data.hasAskedDetails) {
               state.step = 'ask_details';
-              const catName = this.getCategoryName(categorySlug);
+              const catName = this.getCategoryName(categorySlug || null);
               responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
             } else {
               state.step = 'ask_name';
@@ -929,7 +929,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           responseMessage = nextMissingQ.question;
         } else {
           state.step = 'ask_details';
-          const catName = this.getCategoryName(state.collected_data.categorySlug);
+          const catName = this.getCategoryName(state.collected_data.categorySlug || null);
           responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
         }
 
