@@ -1925,8 +1925,8 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                   const requestsWithOffers = requests.filter(r => r.offers && r.offers.length >= 2 && (r.status === 'pending' || r.status === 'distributed'));
                   const activeCompareJob = requestsWithOffers.find(r => r.id === compareJobId) || requestsWithOffers[0];
                   
-                  let lowestPriceOffer = null;
-                  let highestRatingOffer = null;
+                  let lowestPriceOffer: any = null;
+                  let highestRatingOffer: any = null;
 
                   if (activeCompareJob && activeCompareJob.offers?.length >= 2) {
                     // 1. En Uygun Fiyatlı Teklif
@@ -1934,7 +1934,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     lowestPriceOffer = sortedByPrice[0];
 
                     // 2. Diğer teklifler içinden en yüksek puanlı olanı (Farklı usta olması garanti edilir)
-                    const otherOffers = activeCompareJob.offers.filter(o => o.id !== lowestPriceOffer.id);
+                    const otherOffers = activeCompareJob.offers.filter(o => o.id !== lowestPriceOffer?.id);
                     const sortedByRating = [...otherOffers].sort((a, b) => {
                       const rA = Number((a.provider as any).avg_rating || 0);
                       const rB = Number((b.provider as any).avg_rating || 0);
