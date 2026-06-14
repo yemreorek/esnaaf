@@ -1035,8 +1035,8 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer">
-              <Bell className="w-4.5 h-4.5 text-slate-500" />
+            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group">
+              <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
             </button>
 
@@ -1516,7 +1516,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                       {mutualPhones && (
                         <div className="w-full flex flex-col p-5 bg-[#c8f252]/10 border border-[#c8f252]/40 shadow-sm rounded-[24px] animate-scale-up gap-3.5">
                           <div className="flex items-center gap-3">
-                            <span className="text-xl">📞</span>
+                            <div className="w-8 h-8 rounded-full bg-[#c8f252]/20 flex items-center justify-center text-[#4c630a] shrink-0 border border-[#c8f252]/30">
+                              <svg className="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                              </svg>
+                            </div>
                             <div className="flex flex-col">
                               <span className="font-extrabold text-sm text-slate-900">Usta İletişim Bilgileri</span>
                               <span className="text-[10px] text-slate-600 font-bold">Telefon Numaraları Karşılıklı Açıldı</span>
@@ -1795,8 +1799,8 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                 >
                                   <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
-                                      <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-bold text-lg select-none">
-                                        🔔
+                                      <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-sm select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                        {offer.provider.user.name ? offer.provider.user.name.charAt(0) : "U"}
                                       </span>
                                       <div className="flex flex-col">
                                         <span className="font-extrabold text-xs md:text-sm text-slate-800">
@@ -2659,9 +2663,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           alert("Telefon numarasını aramak için öncelikle ustanın teklifini kabul etmelisiniz.");
                         }
                       }}
-                      className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-transparent shadow-sm"
+                      className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 text-xs font-black py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-transparent shadow-sm"
                     >
-                      <span>📞 Ara</span>
+                      <svg className="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      <span>Ara</span>
                     </a>
                     
                     <button 
@@ -2873,8 +2880,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         {confirmModal.isOpen && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
             <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
-              <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
-                ℹ️
+              <div className="w-12 h-12 rounded-full bg-[#c8f252]/20 border border-[#c8f252]/40 flex items-center justify-center mx-auto text-[#4c630a] shadow-inner">
+                <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
               </div>
               <div className="space-y-2">
                 <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>

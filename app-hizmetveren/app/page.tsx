@@ -1709,8 +1709,8 @@ export default function ProviderDashboard() {
               </select>
             </div>
 
-            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer">
-              <Bell className="w-4.5 h-4.5 text-slate-500" />
+            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group">
+              <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
             </button>
 
@@ -3395,12 +3395,29 @@ export default function ProviderDashboard() {
       {alertModal.isOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold ${
-              alertModal.type === 'success' ? 'bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a]' :
-              alertModal.type === 'error' ? 'bg-red-50 border border-red-150 text-red-650' :
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-inner ${
+              alertModal.type === 'success' ? 'bg-[#c8f252]/20 border border-[#c8f252]/40 text-[#4c630a]' :
+              alertModal.type === 'error' ? 'bg-rose-50 border border-rose-150 text-rose-650' :
               'bg-blue-50 border border-blue-150 text-blue-650'
             }`}>
-              {alertModal.type === 'success' ? '✅' : alertModal.type === 'error' ? '❌' : 'ℹ️'}
+              {alertModal.type === 'success' && (
+                <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+              {alertModal.type === 'error' && (
+                <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              )}
+              {alertModal.type === 'info' && (
+                <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              )}
             </div>
             <div className="space-y-2">
               <h4 className="font-extrabold text-slate-900 text-sm">{alertModal.title}</h4>
@@ -3425,8 +3442,12 @@ export default function ProviderDashboard() {
       {confirmModal.isOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
-            <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
-              ❓
+            <div className="w-12 h-12 rounded-full bg-[#c8f252]/20 border border-[#c8f252]/40 flex items-center justify-center mx-auto text-[#4c630a] shadow-inner">
+              <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
             </div>
             <div className="space-y-2">
               <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>

@@ -4625,10 +4625,15 @@ ${callTaskNotes}`;
       {confirmModal.isOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-sm w-full shadow-2xl animate-scale-up space-y-5 text-center">
-            <div className="w-12 h-12 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center mx-auto text-[#4c630a] text-xl font-bold">
-              ❓
+            <div className="w-12 h-12 rounded-full bg-[#c8f252]/20 border border-[#c8f252]/40 flex items-center justify-center mx-auto text-[#4c630a] shadow-inner">
+              <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
             </div>
             <div className="space-y-2">
+
               <h4 className="font-extrabold text-slate-900 text-sm">{confirmModal.title}</h4>
               <p className="text-slate-500 text-xs font-semibold leading-relaxed whitespace-pre-line text-center">
                 {confirmModal.message}
