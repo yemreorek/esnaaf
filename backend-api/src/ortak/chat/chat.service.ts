@@ -1464,135 +1464,33 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
   }
 
   private getQuestionsForCategory(slug: string): any[] {
-    const CATEGORY_QUESTIONS: Record<string, any[]> = {
-      'ev-temizligi': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Kadıköy, Şişli) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'daireTipi', question: 'Dairenizin tipi nedir? (Örn: 2+1, 3+1, stüdyo vb.)', parse: (msg) => this.parseDaireTipi(msg) },
-        { key: 'siflik', question: 'Temizlik sıklığı ne olacak? (Tek seferlik / Haftalık / Aylık)', parse: (msg) => this.parseSiflik(msg) },
-        { key: 'malzemeDurumu', question: 'Temizlik malzemeleri evde var mı yoksa usta mı getirsin? (Örn: Usta getirsin / Evde var)', parse: (msg) => this.parseMalzemeDurumu(msg) },
-        { key: 'tarih', question: 'Hizmet almak istediğiniz tarih ve saat nedir? (Örn: 28 Mayıs 10:00)', parse: (msg) => msg.trim() },
-      ],
-      'boya-badana': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Beşiktaş, Kadıköy) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'metrekare', question: 'Boyatılacak alanın yaklaşık metrekaresi (m²) nedir? (Örn: 120 m²)', parse: (msg) => this.parseMetrekare(msg) },
-        { key: 'tur', question: 'Boya uygulaması nereye yapılacak? (İç mekan / Dış cephe / Her ikisi)', parse: (msg) => this.parseBoyaTuru(msg) },
-        { key: 'malzemeDahil', question: 'Boyayı kim temin edecek? (Malzeme dahil / Sadece işçilik)', parse: (msg) => this.parseMalzemeDahil(msg) },
-        { key: 'esyaDurumu', question: 'Mekan şu anda eşyalı mı yoksa boş mu? (Örn: Eşyalı / Boş)', parse: (msg) => this.parseEsyaDurumu(msg) },
-        { key: 'renkTip', question: 'İstediğiniz renk veya boya tipi nedir? (Örn: Beyaz, saten boya)', parse: (msg) => msg.trim() },
-      ],
-      'nakliyat': [
-        { key: 'district', question: 'Eşyaların taşınacağı çıkış ilçesini (örn. Kadıköy) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'destinationDistrict', question: 'Eşyaların taşınacağı varış ilçesini (örn. Ataşehir) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'daireTipi', question: 'Taşınacak evinizin tipi nedir? (Örn: 2+1, 3+1, stüdyo vb.)', parse: (msg) => this.parseDaireTipi(msg) },
-        { key: 'katAsansor', question: 'Eşyaların alınacağı/taşınacağı katları ve asansör durumunu yazar mısınız? (Örn: 5. kat asansörsüz, varış 2. kat asansörlü)', parse: (msg) => msg.trim() },
-        { key: 'paketlemeHizmeti', question: 'Paketleme ve kolileme hizmeti istiyor musunuz? (Usta paketlesin / Eşyalar hazır paketli)', parse: (msg) => this.parsePaketlemeHizmeti(msg) },
-        { key: 'tarih', question: 'Taşınma işlemini yapmak istediğiniz tarih nedir? (Örn: 1 Haziran)', parse: (msg) => msg.trim() },
-      ],
-      'su-tesisati': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Şişli, Kadıköy) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'sorunTuru', question: 'Yaşadığınız tesisat sorunu nedir? (Sızıntı, tıkanıklık, musluk arızası vb.)', parse: (msg) => this.parseSorunTuru(msg) },
-        { key: 'malzemeDurumu', question: 'Malzemeyi kim temin edecek? (Usta getirsin / Ben alacağım / Sadece işçilik)', parse: (msg) => this.parseMalzemeDurumu(msg) },
-        { key: 'aciliyet', question: 'Talebinizin aciliyet durumu nedir? (Acil (bugün) / Normal (bu hafta) / Esnek)', parse: (msg) => this.parseAciliyet(msg) },
-      ],
-      'elektrik-tesisati': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Bakırköy, Şişli) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'isTuru', question: 'Yapılacak elektrik işinin türü nedir? (Arıza onarım, yeni tesisat, priz/anahtar, avize montajı vb.)', parse: (msg) => this.parseIsTuru(msg) },
-        { key: 'malzemeDurumu', question: 'Malzemeyi kim temin edecek? (Usta getirsin / Ben alacağım)', parse: (msg) => this.parseMalzemeDurumu(msg) },
-        { key: 'aciliyet', question: 'Talebinizin aciliyet durumu nedir? (Acil / Normal / Esnek)', parse: (msg) => this.parseAciliyet(msg) },
-      ],
-      'ev-tadilat': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Üsküdar, Kadıköy) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'kapsam', question: 'Yapılacak tadilatın kapsamı nedir? (Örn: Komple tadilat, banyo yenileme, mutfak vb.)', parse: (msg) => this.parseTadilatKapsam(msg) },
-        { key: 'metrekare', question: 'Tadilat alanının yaklaşık metrekaresi (m²) nedir? (Örn: 85 m²)', parse: (msg) => this.parseMetrekare(msg) },
-        { key: 'malzemeDurumu', question: 'Malzemeyi kim temin edecek? (Malzeme dahil / Sadece işçilik)', parse: (msg) => this.parseMalzemeDahil(msg) },
-        { key: 'butce', question: 'Tadilat için planladığınız bütçe aralığı nedir? (50.000–100.000 TL / 100.000–200.000 TL / 200.000 TL+)', parse: (msg) => this.parseButce(msg) },
-      ],
-      'hali-koltuk-yikama': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Çankaya, Karşıyaka, Kadıköy) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'tur', question: 'Yıkanacak eşyaların türü nedir? (Örn: Sadece koltuk / Sadece halı / Her ikisi)', parse: (msg) => this.parseBoyaTuru(msg) }, // reusing parseBoyaTuru or simple check
-        { key: 'adet', question: 'Yıkanacak halı/koltuk sayısı/adedi veya detayları nedir? (Örn: 3 halı, 1 koltuk takımı vb.)', parse: (msg) => this.parseAdet(msg) },
-        { key: 'durum', question: 'Eşyaların genel durumu veya lekeleri var mı? (Örn: Çok kirli, evcil hayvan lekesi var vb.)', parse: (msg) => this.parseDurum(msg) },
-      ],
-      'insaat-sonrasi-temizlik': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Yenimahalle, Konak, Şişli) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'daireTipi', question: 'Dairenizin tipi nedir? (Örn: 2+1, 3+1, stüdyo vb.)', parse: (msg) => this.parseDaireTipi(msg) },
-        { key: 'metrekare', question: 'Temizlenecek alanın yaklaşık metrekaresi (m²) nedir? (Örn: 100 m²)', parse: (msg) => this.parseMetrekare(msg) },
-        { key: 'esyaDurumu', question: 'Mekanda eşya bulunuyor mu? (Eşyalı / Boş)', parse: (msg) => this.parseEsyaDurumu(msg) },
-      ],
-      'fayans-parke': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi (örn. Keçiören, Çiğli, Beşiktaş) yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'islemTuru', question: 'Yapılacak işlem nedir? (Fayans/Seramik Döşeme, Parke Döşeme, Derz Yenileme vb.)', parse: (msg) => this.parseIslemTuru(msg) },
-        { key: 'metrekare', question: 'Döşeme yapılacak alanın yaklaşık metrekaresi (m²) nedir? (Örn: 45 m²)', parse: (msg) => this.parseMetrekare(msg) },
-        { key: 'malzemeDurumu', question: 'Malzemeyi (parke/seramik vb.) kim temin edecek? (Usta getirsin / Ben alacağım / Sadece işçilik)', parse: (msg) => this.parseMalzemeDahil(msg) },
-      ],
-      'hasere-ilaclama': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'hasereTuru', question: 'İlaçlama yapılacak haşere/böcek türü nedir? (Hamam Böceği, Pire, Tahtakurusu, Fare vb.)', parse: (msg) => this.parseHasereTuru(msg) },
-        { key: 'binaTipi', question: 'İlaçlanacak yerin tipi nedir? (Daire / Ev, Ofis / İşyeri, Bina Ortak Alanı vb.)', parse: (msg) => this.parseBinaTipi(msg) },
-        { key: 'evcilHayvan', question: 'Evde evcil hayvan bulunuyor mu? (Evet / Hayır)', parse: (msg) => this.parseEvcilHayvan(msg) },
-      ],
-      'kombi-klima': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'cihazTuru', question: 'Hangi cihaz için hizmet istiyorsunuz? (Kombi, Klima veya Kombi & Klima)', parse: (msg) => this.parseCihazTuru(msg) },
-        { key: 'islemTuru', question: 'Yapılacak işlem nedir? (Bakım & Petek Temizliği, Arıza Onarım, Montaj, Gaz Dolumu vb.)', parse: (msg) => this.parseIslemTuruKombi(msg) },
-        { key: 'markaModel', question: 'Cihazın markası ve modeli nedir? (Örn: Demirdöküm Nitromix, Arçelik Ekolojik Klima)', parse: (msg) => msg.trim() },
-      ],
-      'mantolama-discephe': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'binaTipi', question: 'Mantolama yapılacak binanın tipi nedir? (Müstakil Ev, Apartman / Bina Dış Cephe, Site Geneli vb.)', parse: (msg) => this.parseBinaTipiMantolama(msg) },
-        { key: 'katSayisi', question: 'Bina toplam kaç katlıdır?', parse: (msg) => msg.trim() },
-        { key: 'metrekare', question: 'Yaklaşık cephe alanı veya taban alanı metrekaresi (m²) nedir? (Örn: 250 m²)', parse: (msg) => this.parseMetrekare(msg) },
-      ],
-      'marangoz-mobilya': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'islemTuru', question: 'Yapılacak marangoz işlem türü nedir? (Dolap / Mobilya Montajı, Mobilya Tamiri, Kapı / Pencere Ayarı)', parse: (msg) => this.parseIslemTuruMarangoz(msg) },
-        { key: 'mobilyaTuru', question: 'İşlem yapılacak mobilyaların detayları nedir? (Örn: Gardırop montajı, mutfak tezgahı tamiri)', parse: (msg) => msg.trim() },
-      ],
-      'ozel-ders': [
-        { key: 'district', question: 'Dersin verileceği/alınacağı ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'dersTuru', question: 'Hangi alanda özel ders istiyorsunuz? (Matematik, İngilizce, Fizik, Kimya, İlkokul Takviye vb.)', parse: (msg) => this.parseDersTuru(msg) },
-        { key: 'sinifSeviyesi', question: 'Öğrencinin sınıf seviyesi nedir? (İlkokul, Ortaokul (LGS Hazırlık), Lise (YKS Hazırlık), Üniversite / Yetişkin)', parse: (msg) => this.parseSinifSeviyesi(msg) },
-        { key: 'dersYeri', question: 'Ders nerede yapılacak? (Öğrencinin evinde / Öğretmenin evinde / Online)', parse: (msg) => this.parseDersYeri(msg) },
-      ],
-      'cam-balkon-pvc': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'adet', question: 'Kaç adet cam/pencere için hizmet istiyorsunuz? (Örn: 5 adet, 2 pencere vb.)', parse: (msg) => this.parseAdet(msg) },
-        { key: 'islemTuru', question: 'Yapılacak işlem nedir? (Cam Balkon Kapama, PVC Pencere Yapımı, Tamir/Sineklik)', parse: (msg) => msg.trim() },
-        { key: 'camTipi', question: 'İstediğiniz cam tipi nedir? (Örn: Isıcam, Konfor cam, Çift cam vb.)', parse: (msg) => msg.trim() },
-      ],
-      'ofis-temizligi': [
-        { key: 'district', question: 'Hizmetin verileceği ofis ilçesini yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'metrekare', question: 'Ofis alanının yaklaşık metrekaresi (m²) nedir? (Örn: 150 m²)', parse: (msg) => this.parseMetrekare(msg) },
-        { key: 'siflik', question: 'Temizlik sıklığı ne olacak? (Tek seferlik / Haftalık / Aylık)', parse: (msg) => this.parseSiflik(msg) },
-        { key: 'odaSayisi', question: 'Ofisteki yaklaşık oda ve çalışma masası sayısı nedir?', parse: (msg) => msg.trim() },
-      ],
-      'dogalgaz-tesisati': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'daireTipi', question: 'Dairenizin tipi nedir? (Örn: 2+1, 3+1, stüdyo vb.)', parse: (msg) => this.parseDaireTipi(msg) },
-        { key: 'kombiDurumu', question: 'Kombi dahil bir kurulum mu istiyorsunuz yoksa sadece tesisat mı? (Örn: Kombi dahil / Sadece tesisat)', parse: (msg) => msg.trim() },
-        { key: 'projeGerekli', question: 'Doğalgaz projesi çizilecek mi? (Evet, onaylı proje dahil / Proje gerekli değil)', parse: (msg) => this.parseProjeGerekli(msg) },
-      ],
-      'ic-mimar-dekorasyon': [
-        { key: 'district', question: 'Hizmetin verileceği ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'kapsam', question: 'Tasarım veya dekorasyon yapılacak alanın kapsamı nedir? (Örn: Komple ev, sadece banyo, salon vb.)', parse: (msg) => this.parseTadilatKapsam(msg) },
-        { key: 'butce', question: 'Tasarım için planladığınız bütçe aralığı nedir? (50.000–100.000 TL / 100.000–200.000 TL / 200.000 TL+)', parse: (msg) => this.parseButce(msg) },
-        { key: 'tarzTercihi', question: 'İstediğiniz dekorasyon tarzı nedir? (Örn: Modern, Klasik, İskandinav, Retro)', parse: (msg) => msg.trim() },
-      ],
-      'fotografci': [
-        { key: 'district', question: 'Çekim yapılacak ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'etkinlikTuru', question: 'Çekim yapılacak etkinlik türü nedir? (Düğün, Nişan, Ürün Çekimi, Dış Çekim vb.)', parse: (msg) => msg.trim() },
-        { key: 'albumTalebi', question: 'Albüm veya basılı ürün istiyor musunuz? (Evet / Sadece dijital teslim)', parse: (msg) => this.parseAlbumTalebi(msg) },
-        { key: 'tarih', question: 'Çekim yapılmasını istediğiniz tarih nedir? (Örn: 15 Haziran)', parse: (msg) => msg.trim() },
-      ],
-      'organizasyon-etkinlik': [
-        { key: 'district', question: 'Etkinliğin yapılacağı ilçeyi yazar mısınız?', parse: (msg) => this.parseLocation(msg).district },
-        { key: 'etkinlikTuru', question: 'Ne tür bir organizasyon istiyorsunuz? (Düğün, Nişan, Doğum Günü, Kına vb.)', parse: (msg) => msg.trim() },
-        { key: 'davetliSayisi', question: 'Yaklaşık davetli sayısı nedir? (Örn: 50 kişi, 200 davetli vb.)', parse: (msg) => this.parseDavetliSayisi(msg) },
-        { key: 'cateringDahil', question: 'Yemek/catering hizmeti dahil olsun mu? (Evet / Hayır)', parse: (msg) => this.parseCateringDahil(msg) },
-        { key: 'tarih', question: 'Etkinliğin yapılacağı tarih nedir? (Örn: 20 Haziran)', parse: (msg) => msg.trim() },
-      ],
+    const districtQuestions: Record<string, string> = {
+      'ev-temizligi': 'Hizmetin verileceği ilçeyi (örn. Kadıköy, Şişli) yazar mısınız?',
+      'boya-badana': 'Hizmetin verileceği ilçeyi (örn. Beşiktaş, Kadıköy) yazar mısınız?',
+      'nakliyat': 'Eşyaların taşınacağı çıkış ilçesini (örn. Kadıköy) yazar mısınız?',
+      'su-tesisati': 'Hizmetin verileceği ilçeyi (örn. Şişli, Kadıköy) yazar mısınız?',
+      'elektrik-tesisati': 'Hizmetin verileceği ilçeyi (örn. Bakırköy, Şişli) yazar mısınız?',
+      'ev-tadilat': 'Hizmetin verileceği ilçeyi (örn. Üsküdar, Kadıköy) yazar mısınız?',
+      'hali-koltuk-yikama': 'Hizmetin verileceği ilçeyi (örn. Çankaya, Karşıyaka, Kadıköy) yazar mısınız?',
+      'insaat-sonrasi-temizlik': 'Hizmetin verileceği ilçeyi (örn. Yenimahalle, Konak, Şişli) yazar mısınız?',
+      'fayans-parke': 'Hizmetin verileceği ilçeyi (örn. Keçiören, Çiğli, Beşiktaş) yazar mısınız?',
+      'hasere-ilaclama': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'kombi-klima': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'mantolama-discephe': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'marangoz-mobilya': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'ozel-ders': 'Dersin verileceği/alınacağı ilçeyi yazar mısınız?',
+      'cam-balkon-pvc': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'ofis-temizligi': 'Hizmetin verileceği ofis ilçesini yazar mısınız?',
+      'dogalgaz-tesisati': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'ic-mimar-dekorasyon': 'Hizmetin verileceği ilçeyi yazar mısınız?',
+      'fotografci': 'Çekim yapılacak ilçeyi yazar mısınız?',
+      'organizasyon-etkinlik': 'Etkinliğin yapılacağı ilçeyi yazar mısınız?',
     };
-    return CATEGORY_QUESTIONS[slug] || CATEGORY_QUESTIONS['ev-temizligi'];
+
+    const qText = districtQuestions[slug] || 'Hizmetin verileceği ilçeyi (örn. Seyhan, Çukurova) yazar mısınız?';
+    return [
+      { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
+    ];
   }
 
   private getNextQuestion(state: SessionState): any | null {
