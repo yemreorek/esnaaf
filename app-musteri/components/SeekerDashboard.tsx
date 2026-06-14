@@ -847,7 +847,9 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
             <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Tekliflerim</span>
             {activeRequests.length > 0 && (
-              <span className="ml-auto w-5 h-5 rounded-full bg-slate-900 text-[#c8f252] text-[10px] flex items-center justify-center font-black">
+              <span className={`ml-auto w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-black ${
+                activeTab === "tekliflerim" ? "bg-white text-slate-950" : "bg-[#c8f252] text-slate-950"
+              }`}>
                 {activeRequests.length}
               </span>
             )}
@@ -1431,7 +1433,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     <div className="flex items-center gap-2">
                                       <div className="flex -space-x-1.5 overflow-hidden">
                                         {req.offers.slice(0, 3).map((off, oIdx) => (
-                                          <div key={off.id} className="w-5 h-5 rounded-full bg-slate-900 text-[#c8f252] border border-white flex items-center justify-center font-bold text-[8px] select-none">
+                                          <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-950 border border-white flex items-center justify-center font-bold text-[8px] select-none">
                                             {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
                                           </div>
                                         ))}
@@ -1902,7 +1904,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                 >
                                   <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
-                                      <span className="w-10 h-10 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-lg select-none">
+                                      <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-bold text-lg select-none">
                                         🔔
                                       </span>
                                       <div className="flex flex-col">
@@ -2223,7 +2225,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                 {/* Chat Header */}
                                 <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex justify-between items-center shrink-0">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-black text-xs">
+                                    <div className="w-9 h-9 rounded-xl bg-[#c8f252] text-slate-950 flex items-center justify-center font-black text-xs">
                                       {activeChat.providerName.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div className="text-left">
@@ -2717,7 +2719,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                 
                 {/* Basic Info Header Card */}
                 <div className="flex flex-col items-center text-center gap-4 bg-slate-50/50 p-6 rounded-[28px] border border-slate-100">
-                  <div className="w-20 h-20 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-black text-2xl select-none shadow-md">
+                  <div className="w-20 h-20 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-black text-2xl select-none shadow-md border border-[#c8f252]/20">
                     {selectedProviderProfile.name ? selectedProviderProfile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "US"}
                   </div>
                   
@@ -2725,7 +2727,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center">
                       {selectedProviderProfile.name}
                       {selectedProviderProfile.is_approved && (
-                        <span className="text-[#c8f252] bg-slate-900 p-0.5 rounded-full" title="Onaylı Esnaf">
+                        <span className="text-slate-950 bg-[#c8f252] p-0.5 rounded-full border border-[#c8f252]/30" title="Onaylı Esnaf">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
@@ -2763,7 +2765,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           alert("Telefon numarasını aramak için öncelikle ustanın teklifini kabul etmelisiniz.");
                         }
                       }}
-                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-[#c8f252] text-xs font-black py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-transparent shadow-sm"
+                      className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-transparent shadow-sm"
                     >
                       <span>📞 Ara</span>
                     </a>
@@ -2894,7 +2896,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                 <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
                   <h4 className="text-base font-black text-slate-950 tracking-tight">Aktivite</h4>
                   <div className="flex items-center gap-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                    <span className="w-9 h-9 rounded-xl bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-sm">
+                    <span className="w-9 h-9 rounded-xl bg-[#c8f252] text-slate-950 flex items-center justify-center font-bold text-sm">
                       💼
                     </span>
                     <div className="flex flex-col">
@@ -2943,7 +2945,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                   <div className="flex flex-wrap gap-2">
                     {selectedProviderProfile.categories && selectedProviderProfile.categories.length > 0 ? (
                       selectedProviderProfile.categories.map((catName: string, index: number) => (
-                        <span key={index} className="px-3.5 py-1.5 bg-slate-900 text-[#c8f252] text-[10px] font-black rounded-full uppercase tracking-wider">
+                        <span key={index} className="px-3.5 py-1.5 bg-[#c8f252] text-slate-950 text-[10px] font-black rounded-full uppercase tracking-wider border border-[#c8f252]/20">
                           {catName}
                         </span>
                       ))

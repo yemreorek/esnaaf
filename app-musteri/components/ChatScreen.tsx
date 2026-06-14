@@ -770,7 +770,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               >
                 <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-900 text-[#c8f252] flex items-center justify-center font-bold text-lg shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-bold text-lg shadow-sm">
                       🛠️
                     </div>
                     <div className="flex flex-col">

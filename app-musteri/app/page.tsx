@@ -444,7 +444,7 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={handleHizmetVerRedirect}
-                  className="bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5"
+                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5"
                 >
                   <span>Hizmet Ver</span>
                 </button>
@@ -483,7 +483,7 @@ export default function Home() {
                 
                 <button 
                   onClick={handleHizmetVerRedirect}
-                  className="bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1.5 hover:shadow-lg hover:shadow-[#c8f252]/10"
+                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1.5 hover:shadow-lg hover:shadow-[#c8f252]/10"
                 >
                   <span>Hizmet Ver</span>
                 </button>
@@ -532,7 +532,7 @@ export default function Home() {
               <button 
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
-                className="bg-[#4c630a] hover:bg-[#3d5008] text-white px-7 py-3 rounded-full font-button-text text-xs font-bold transition-all shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-[#4c630a]/10"
+                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-7 py-3 rounded-full font-button-text text-xs font-bold transition-all shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-[#4c630a]/10"
               >
                 Ara
               </button>
@@ -907,7 +907,7 @@ export default function Home() {
                         handleStartChat("Merhaba, hizmet almak istiyorum.");
                       }, 300);
                     }}
-                    className="w-1/2 bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
+                    className="w-1/2 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
                   >
                     Hizmet Ara
                   </button>
@@ -964,10 +964,10 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                  className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
                 >
                   {loginLoading ? (
-                    <div className="w-5 h-5 border-2 border-t-transparent border-[#c8f252] rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
                   ) : (
                     "Doğrulama Kodu Gönder"
                   )}
@@ -1027,10 +1027,10 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={loginLoading || loginOtp.length !== 6}
-                    className="w-2/3 bg-slate-900 hover:bg-slate-800 text-[#c8f252] border border-[#c8f252] font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                    className="w-2/3 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
                   >
                     {loginLoading ? (
-                      <div className="w-5 h-5 border-2 border-t-transparent border-[#c8f252] rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
                     ) : (
                       "Giriş Yap"
                     )}
