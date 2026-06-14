@@ -85,6 +85,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = `job_${jobId}`;
     this.server?.to(room).emit('new_offer', {
       type: 'new_offer',
+      jobId, // Add jobId to identify the request on client side
       offerId: offer.id,
       price: offer.price,
       description: offer.description,
