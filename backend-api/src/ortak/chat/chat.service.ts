@@ -623,7 +623,8 @@ export class ChatService {
         // Deterministic transition to ask_details if all technical questions are answered
         if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
           state.step = 'ask_details';
-          responseMessage = 'Harika! Talebiniz için ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa \'yok\' yazıp geçebilirsiniz.)';
+          const catName = this.getCategoryName(state.collected_data.categorySlug);
+          responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
           await this.trackTokens(sessionKey, tokensUsed);
@@ -654,11 +655,12 @@ export class ChatService {
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
 `;
           } else if (!state.collected_data.hasAskedDetails) {
+            const catName = this.getCategoryName(state.collected_data.categorySlug);
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
 - Kategoriye ait tüm teknik sorular başarıyla tamamlandı.
 - Şimdi müşteriye tam olarak şu soruyu sormalısın:
-"Harika! Talebiniz için ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa 'yok' yazıp geçebilirsiniz.)"
+"${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)"
 - Bu aşamada asla isim veya telefon sorma! Yalnızca bu açık uçlu detay sorusunu sor.
 `;
           } else if (!state.collected_data.name) {
@@ -780,7 +782,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
             } else if (!state.collected_data.hasAskedDetails) {
               state.step = 'ask_details';
-              responseMessage = 'Harika! Talebiniz için ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa \'yok\' yazıp geçebilirsiniz.)';
+              const catName = this.getCategoryName(categorySlug);
+              responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
             } else {
               state.step = 'ask_name';
               responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
@@ -885,7 +888,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
           } else {
             state.step = 'ask_details';
-            responseMessage = 'Harika! Talebiniz için ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa \'yok\' yazıp geçebilirsiniz.)';
+            const catName = this.getCategoryName(detection.categorySlug);
+            responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
           }
         } else {
           state.step = 'category_detection';
@@ -925,7 +929,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           responseMessage = nextMissingQ.question;
         } else {
           state.step = 'ask_details';
-          responseMessage = 'Harika! Talebiniz için ustalarımızın bilmesini istediğiniz ek bir detay veya özel bir notunuz var mı? (Yoksa \'yok\' yazıp geçebilirsiniz.)';
+          const catName = this.getCategoryName(state.collected_data.categorySlug);
+          responseMessage = `${catName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır. (Ek bir detay yoksa 'yok' yazıp geçebilirsiniz.)`;
         }
 
       } else if (state.step === 'ask_details') {
