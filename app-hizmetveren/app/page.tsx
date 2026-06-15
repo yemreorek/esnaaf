@@ -196,6 +196,7 @@ export default function ProviderDashboard() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama'>('dashboard');
   const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -336,7 +337,8 @@ export default function ProviderDashboard() {
           earnings: 25000,
           disputes: 0,
           successRate: 33.3,
-          chartData: [5000, 12000, 25000, 18000, 20000, 25000]
+          chartData: [5000, 12000, 25000, 18000, 20000, 25000],
+          filteredCompletions: [] as any[]
         };
       } else if (timeRange === 'weekly') {
         return {
@@ -347,7 +349,8 @@ export default function ProviderDashboard() {
           earnings: 180000,
           disputes: 0,
           successRate: 44.4,
-          chartData: [20000, 45000, 30000, 80000, 60000, 110000, 180000]
+          chartData: [20000, 45000, 30000, 80000, 60000, 110000, 180000],
+          filteredCompletions: [] as any[]
         };
       } else {
         return {
@@ -358,7 +361,8 @@ export default function ProviderDashboard() {
           earnings: 600000,
           disputes: 2,
           successRate: 42.8,
-          chartData: [100000, 220000, 380000, 450000, 520000, 600000]
+          chartData: [100000, 220000, 380000, 450000, 520000, 600000],
+          filteredCompletions: [] as any[]
         };
       }
     }
@@ -400,7 +404,8 @@ export default function ProviderDashboard() {
       earnings,
       disputes,
       successRate,
-      chartData
+      chartData,
+      filteredCompletions
     };
   };
 
@@ -1955,88 +1960,234 @@ export default function ProviderDashboard() {
                     </span>
                   </div>
 
-                  {/* SVG Chart */}
-                  <div className="h-44 w-full relative flex items-end">
-                    <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
-                      <line x1="0" y1="30" x2="400" y2="30" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="75" x2="400" y2="75" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
-                      <line x1="0" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+                  {/* Chart Container with Y-Axis Padding */}
+                  <div className="h-44 w-full relative flex items-end pl-14 pr-2">
+                    {/* Y-Axis HTML Labels */}
+                    {(() => {
+                      const maxVal = Math.max(...metrics.chartData, 1);
+                      const formatYLabel = (val: number) => {
+                        if (val >= 1000000) return `₺${(val / 1000000).toFixed(1)}M`;
+                        if (val >= 1000) return `₺${(val / 1000).toFixed(0)}B`;
+                        return `₺${val}`;
+                      };
+                      return (
+                        <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-[9px] font-bold text-slate-400 font-mono text-right pr-2">
+                          <span>{formatYLabel(maxVal)}</span>
+                          <span>{formatYLabel(maxVal / 2)}</span>
+                          <span>₺0</span>
+                        </div>
+                      );
+                    })()}
 
+                    {/* SVG Chart & Grid Lines */}
+                    <div className="flex-1 h-36 relative">
+                      <svg className="w-full h-full overflow-visible" viewBox="0 0 400 130" preserveAspectRatio="none">
+                        {/* Grid Lines */}
+                        <line x1="0" y1="10" x2="400" y2="10" stroke="#f8fafc" strokeWidth="1" />
+                        <line x1="0" y1="65" x2="400" y2="65" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
+                        <line x1="0" y1="120" x2="400" y2="120" stroke="#e2e8f0" strokeWidth="1.5" />
+
+                        {(() => {
+                          const count = metrics.chartData.length;
+                          const maxVal = Math.max(...metrics.chartData, 1);
+                          
+                          const points = metrics.chartData.map((val, idx) => {
+                            const x = count > 1 ? (idx / (count - 1)) * 400 : 200;
+                            // Map Y from 10 (top value) to 120 (zero value)
+                            const y = 120 - (val / maxVal) * 110;
+                            
+                            let label = '';
+                            if (isDemoStats) {
+                              if (timeRange === 'daily') {
+                                const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+                                label = hours[idx] || 'Saat';
+                              } else if (timeRange === 'weekly') {
+                                const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+                                label = days[idx] || 'Gün';
+                              } else {
+                                label = `${idx + 1}. Hafta`;
+                              }
+                            } else {
+                              const cj = metrics.filteredCompletions[idx];
+                              if (cj && cj.completed_at) {
+                                label = new Date(cj.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                              } else {
+                                label = 'İş';
+                              }
+                            }
+                            return { x, y, val, label };
+                          });
+
+                          // Calculate smooth bezier path
+                          let linePath = '';
+                          if (points.length > 0) {
+                            if (points.length === 1) {
+                              linePath = `M 0 ${points[0].y} L 400 ${points[0].y}`;
+                            } else {
+                              linePath = `M ${points[0].x} ${points[0].y}`;
+                              for (let i = 0; i < points.length - 1; i++) {
+                                const p_curr = points[i];
+                                const p_next = points[i + 1];
+                                const dx = (p_next.x - p_curr.x) * 0.32; // bezier tension
+                                linePath += ` C ${p_curr.x + dx} ${p_curr.y}, ${p_next.x - dx} ${p_next.y}, ${p_next.x} ${p_next.y}`;
+                              }
+                            }
+                          }
+
+                          const areaPath = points.length > 0
+                            ? `${linePath} L ${points[points.length - 1].x} 120 L ${points[0].x} 120 Z`
+                            : '';
+
+                          return (
+                            <>
+                              {/* Area Under Curve */}
+                              {areaPath && (
+                                <path
+                                  d={areaPath}
+                                  fill="url(#earningsGrad)"
+                                />
+                              )}
+
+                              {/* Main Curve Stroke */}
+                              {linePath && (
+                                <path
+                                  d={linePath}
+                                  fill="none"
+                                  stroke="#4c630a"
+                                  strokeWidth="3.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              )}
+
+                              <defs>
+                                <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#4c630a" stopOpacity="0.18" />
+                                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+                                </linearGradient>
+                              </defs>
+                            </>
+                          );
+                        })()}
+                      </svg>
+
+                      {/* HTML Perfect Circles & Hover Area overlays */}
                       {(() => {
                         const count = metrics.chartData.length;
                         const maxVal = Math.max(...metrics.chartData, 1);
                         
-                        const points = metrics.chartData.map((val, idx) => {
-                          const x = count > 1 ? (idx / (count - 1)) * 400 : 200;
-                          const y = 130 - (val / maxVal) * 110;
-                          return { x, y, val };
+                        return metrics.chartData.map((val, idx) => {
+                          const leftPct = count > 1 ? (idx / (count - 1)) * 100 : 50;
+                          const bottomPct = (val / maxVal) * 110; // y max height is 110px out of 130px
+                          const bottomVal = 10 + bottomPct; // offset by 10px
+                          
+                          let label = '';
+                          if (isDemoStats) {
+                            if (timeRange === 'daily') {
+                              const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+                              label = hours[idx] || 'Saat';
+                            } else if (timeRange === 'weekly') {
+                              const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+                              label = days[idx] || 'Gün';
+                            } else {
+                              label = `${idx + 1}. Hafta`;
+                            }
+                          } else {
+                            const cj = metrics.filteredCompletions[idx];
+                            if (cj && cj.completed_at) {
+                              label = new Date(cj.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                            } else {
+                              label = 'İş';
+                            }
+                          }
+
+                          return (
+                            <div
+                              key={idx}
+                              className="absolute group z-20"
+                              style={{
+                                  left: `${leftPct}%`,
+                                  bottom: `${bottomVal}px`,
+                                  transform: 'translate(-50%, 50%)'
+                              }}
+                            >
+                              {/* Dot Ring */}
+                              <div className="w-3.5 h-3.5 bg-white border-2 border-[#4c630a] rounded-full shadow-sm group-hover:scale-125 transition-transform duration-150 relative flex items-center justify-center">
+                                {/* Pulsing Core */}
+                                <div className="w-1.5 h-1.5 bg-[#4c630a] rounded-full" />
+                              </div>
+
+                              {/* Hotspot for easy hover */}
+                              <div 
+                                className="absolute w-8 h-8 -top-2 -left-2 rounded-full cursor-pointer z-30"
+                                onMouseEnter={() => setHoveredPoint({ x: leftPct, y: bottomVal, val, label })}
+                                onMouseLeave={() => setHoveredPoint(null)}
+                              />
+                            </div>
+                          );
                         });
-
-                        const linePath = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-                        const areaPath = points.length > 0
-                          ? `${linePath} L ${points[points.length - 1].x} 140 L ${points[0].x} 140 Z`
-                          : '';
-
-                        return (
-                          <>
-                            {areaPath && (
-                              <path
-                                d={areaPath}
-                                fill="url(#earningsGrad)"
-                                opacity="0.15"
-                              />
-                            )}
-                            {linePath && (
-                              <path
-                                d={linePath}
-                                fill="none"
-                                stroke="#4c630a"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            )}
-                            {points.map((p, idx) => (
-                              <g key={idx} className="group cursor-pointer">
-                                <circle
-                                  cx={p.x}
-                                  cy={p.y}
-                                  r="4"
-                                  fill="white"
-                                  stroke="#4c630a"
-                                  strokeWidth="2"
-                                />
-                                <circle
-                                  cx={p.x}
-                                  cy={p.y}
-                                  r="10"
-                                  fill="#4c630a"
-                                  opacity="0"
-                                  className="hover:opacity-10 transition-opacity"
-                                />
-                              </g>
-                            ))}
-                            <defs>
-                              <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#4c630a" />
-                                <stop offset="100%" stopColor="#ffffff" />
-                              </linearGradient>
-                            </defs>
-                          </>
-                        );
                       })()}
-                    </svg>
+
+                      {/* Interactive Tooltip Overlay */}
+                      {hoveredPoint && (
+                        <div 
+                          className="absolute bg-slate-900/95 text-white px-3 py-1.5 rounded-xl text-[10px] font-extrabold shadow-xl pointer-events-none z-30 transition-all duration-150 -translate-x-1/2 -translate-y-full border border-slate-800 backdrop-blur-sm"
+                          style={{ 
+                            left: `${hoveredPoint.x}%`, 
+                            bottom: `${hoveredPoint.y + 16}px` 
+                          }}
+                        >
+                          <div className="font-mono text-[#c8f252] text-xs">₺{hoveredPoint.val.toLocaleString('tr-TR')}</div>
+                          <div className="text-[8px] text-slate-400 font-semibold">{hoveredPoint.label}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Chart X axis labels */}
-                  <div className="flex justify-between text-[8px] font-bold text-slate-450 uppercase tracking-wider border-t border-slate-50 pt-2 font-mono">
-                    {timeRange === 'daily' ? (
-                      <><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></>
-                    ) : timeRange === 'weekly' ? (
-                      <><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></>
-                    ) : (
-                      <><span>1. Hafta</span><span>2. Hafta</span><span>3. Hafta</span><span>4. Hafta</span></>
-                    )}
+                  {/* Chart X axis HTML labels container */}
+                  <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-50 pt-2.5 font-mono pl-14 pr-2">
+                    {(() => {
+                      const count = metrics.chartData.length;
+                      return metrics.chartData.map((val, idx) => {
+                        let label = '';
+                        if (isDemoStats) {
+                          if (timeRange === 'daily') {
+                            const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+                            label = hours[idx] || 'Saat';
+                          } else if (timeRange === 'weekly') {
+                            const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+                            label = days[idx] || 'Gün';
+                          } else {
+                            label = `${idx + 1}. Hafta`;
+                          }
+                        } else {
+                          const cj = metrics.filteredCompletions[idx];
+                          if (cj && cj.completed_at) {
+                            label = new Date(cj.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                          } else {
+                            label = 'İş';
+                          }
+                        }
+
+                        // Filter for clean display on X axis
+                        const shouldRender = 
+                          count <= 7 || 
+                          idx === 0 || 
+                          idx === count - 1 || 
+                          (count <= 14 && idx % 2 === 0) ||
+                          idx % Math.ceil(count / 5) === 0;
+
+                        return (
+                          <span 
+                            key={idx} 
+                            className={shouldRender ? 'visible' : 'invisible'}
+                            style={{ width: `${100 / count}%`, textAlign: 'center' }}
+                          >
+                            {label}
+                          </span>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               </div>
