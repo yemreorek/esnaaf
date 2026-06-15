@@ -1891,11 +1891,40 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
     }
   }
 
+  private getProviderNounForCategory(slug: string | null): string {
+    switch (slug) {
+      case 'ozel-ders':
+        return 'öğretmenlerimizin';
+      case 'ic-mimar-dekorasyon':
+        return 'iç mimarlarımızın';
+      case 'fotografci':
+        return 'fotoğrafçılarımızın';
+      case 'organizasyon-etkinlik':
+        return 'organizatörlerimizin';
+      case 'ev-temizligi':
+      case 'ofis-temizligi':
+      case 'insaat-sonrasi-temizlik':
+      case 'hali-koltuk-yikama':
+        return 'temizlik profesyonellerimizin';
+      case 'hasere-ilaclama':
+        return 'ilaçlama uzmanlarımızın';
+      case 'nakliyat':
+        return 'nakliyecilerimizin';
+      case 'psikolog':
+        return 'psikologlarımızın';
+      case 'diyetisyen':
+        return 'diyetisyenlerimizin';
+      default:
+        return 'ustalarımızın';
+    }
+  }
+
   private generatePromptForCategory(slug: string | null): string {
     const categoryName = this.getCategoryName(slug);
     const checklist = this.getChecklistForCategory(slug);
+    const providerNoun = this.getProviderNounForCategory(slug);
     
-    let text = `${categoryName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ustalarımızın en doğru teklifi vermesini sağlayacaktır.\n\n`;
+    let text = `${categoryName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ${providerNoun} en doğru teklifi vermesini sağlayacaktır.\n\n`;
     text += `*Fikir vermesi açısından şu detayları da açıklamanıza ekleyebilirsiniz:*\n`;
     checklist.forEach((item, index) => {
       text += `${index + 1}. ${item}\n`;

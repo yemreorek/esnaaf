@@ -2,6 +2,21 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-15 style | Canlı Sohbet Kategoriye Özel Hizmet Veren Meslek Unvanı Dinamikleştirilmesi
+
+- **Kategoriye Özel Hizmet Veren İsimlendirmesi (`backend-api/src/ortak/chat/chat.service.ts`)**:
+  - Canlı sohbet üzerinden talep oluşturulurken, 2. adımda gelen ek detay/not rehberi sorusundaki `"ustalarımızın"` ibaresi kategoriye göre dinamikleştirildi.
+  - Yeni eklenen `getProviderNounForCategory` yardımcı yöntemiyle, seçilen hizmete uygun olarak meslek unvanları şu şekilde Türkçe çoğul ekleriyle birlikte eşlendi:
+    - `ozel-ders` -> `"öğretmenlerimizin"`
+    - `ic-mimar-dekorasyon` -> `"iç mimarlarımızın"`
+    - `fotografci` -> `"fotoğrafçılarımızın"`
+    - `organizasyon-etkinlik` -> `"organizatörlerimizin"`
+    - `ev-temizligi` / `ofis-temizligi` / `insaat-sonrasi-temizlik` / `hali-koltuk-yikama` -> `"temizlik profesyonellerimizin"`
+    - `hasere-ilaclama` -> `"ilaçlama uzmanlarımızın"`
+    - `nakliyat` -> `"nakliyecilerimizin"`
+    - Diğer teknik servis, usta ve el becerisi kategorilerinde ise standart `"ustalarımızın"` ifadesi korunarak dil bütünlüğü sağlandı.
+- `backend-api` projesi taşınabilir Node v22.12 ortamında `nest build` ile başarıyla derlenerek sıfır TypeScript ve derleme hatasıyla doğrulandı.
+
 ## 2026-06-15 style | Kazanç Trendi Grafiği Modernizasyonu & Milimetrik Hizalama
 
 - **Kazanç Trendi Grafiği UI Modernizasyonu (`app-hizmetveren/app/page.tsx`)**:
