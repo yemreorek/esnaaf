@@ -1964,17 +1964,17 @@ export default function ProviderDashboard() {
                   <div className="h-44 w-full relative flex items-end pl-14 pr-2">
                     {/* Y-Axis HTML Labels */}
                     {(() => {
-                      const maxVal = Math.max(...metrics.chartData, 1);
+                      const maxVal = Math.max(...metrics.chartData, 1000);
                       const formatYLabel = (val: number) => {
                         if (val >= 1000000) return `₺${(val / 1000000).toFixed(1)}M`;
                         if (val >= 1000) return `₺${(val / 1000).toFixed(0)}B`;
                         return `₺${val}`;
                       };
                       return (
-                        <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-[9px] font-bold text-slate-400 font-mono text-right pr-2">
-                          <span>{formatYLabel(maxVal)}</span>
-                          <span>{formatYLabel(maxVal / 2)}</span>
-                          <span>₺0</span>
+                        <div className="absolute left-0 bottom-0 h-36 w-12 text-[9px] font-bold text-slate-400 font-mono text-right pr-2 select-none pointer-events-none">
+                          <span className="absolute right-2" style={{ bottom: '92.3%', transform: 'translateY(50%)' }}>{formatYLabel(maxVal)}</span>
+                          <span className="absolute right-2" style={{ bottom: '50%', transform: 'translateY(50%)' }}>{formatYLabel(maxVal / 2)}</span>
+                          <span className="absolute right-2" style={{ bottom: '7.69%', transform: 'translateY(50%)' }}>₺0</span>
                         </div>
                       );
                     })()}
@@ -1983,13 +1983,13 @@ export default function ProviderDashboard() {
                     <div className="flex-1 h-36 relative">
                       <svg className="w-full h-full overflow-visible" viewBox="0 0 400 130" preserveAspectRatio="none">
                         {/* Grid Lines */}
-                        <line x1="0" y1="10" x2="400" y2="10" stroke="#f8fafc" strokeWidth="1" />
+                        <line x1="0" y1="10" x2="400" y2="10" stroke="#f1f5f9" strokeWidth="1" />
                         <line x1="0" y1="65" x2="400" y2="65" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4" />
                         <line x1="0" y1="120" x2="400" y2="120" stroke="#e2e8f0" strokeWidth="1.5" />
 
                         {(() => {
                           const count = metrics.chartData.length;
-                          const maxVal = Math.max(...metrics.chartData, 1);
+                          const maxVal = Math.max(...metrics.chartData, 1000);
                           
                           const points = metrics.chartData.map((val, idx) => {
                             const x = count > 1 ? (idx / (count - 1)) * 400 : 200;
@@ -2057,6 +2057,7 @@ export default function ProviderDashboard() {
                                   strokeWidth="3.5"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
+                                  filter="url(#chartShadow)"
                                 />
                               )}
 
@@ -2065,6 +2066,9 @@ export default function ProviderDashboard() {
                                   <stop offset="0%" stopColor="#4c630a" stopOpacity="0.18" />
                                   <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
                                 </linearGradient>
+                                <filter id="chartShadow" x="-5%" y="-5%" width="110%" height="110%">
+                                  <feDropShadow dx="0" dy="6" stdDeviation="4" floodColor="#4c630a" floodOpacity="0.12" />
+                                </filter>
                               </defs>
                             </>
                           );
@@ -2074,12 +2078,11 @@ export default function ProviderDashboard() {
                       {/* HTML Perfect Circles & Hover Area overlays */}
                       {(() => {
                         const count = metrics.chartData.length;
-                        const maxVal = Math.max(...metrics.chartData, 1);
+                        const maxVal = Math.max(...metrics.chartData, 1000);
                         
                         return metrics.chartData.map((val, idx) => {
                           const leftPct = count > 1 ? (idx / (count - 1)) * 100 : 50;
-                          const bottomPct = (val / maxVal) * 110; // y max height is 110px out of 130px
-                          const bottomVal = 10 + bottomPct; // offset by 10px
+                          const bottomPct = ((10 + (val / maxVal) * 110) / 130) * 100;
                           
                           let label = '';
                           if (isDemoStats) {
@@ -2107,20 +2110,21 @@ export default function ProviderDashboard() {
                               className="absolute group z-20"
                               style={{
                                   left: `${leftPct}%`,
-                                  bottom: `${bottomVal}px`,
+                                  bottom: `${bottomPct}%`,
                                   transform: 'translate(-50%, 50%)'
                               }}
                             >
                               {/* Dot Ring */}
-                              <div className="w-3.5 h-3.5 bg-white border-2 border-[#4c630a] rounded-full shadow-sm group-hover:scale-125 transition-transform duration-150 relative flex items-center justify-center">
-                                {/* Pulsing Core */}
-                                <div className="w-1.5 h-1.5 bg-[#4c630a] rounded-full" />
+                              <div className="w-4 h-4 bg-white border-2 border-[#4c630a] rounded-full shadow-[0_2px_6px_rgba(76,99,10,0.25)] group-hover:shadow-[0_2px_10px_rgba(76,99,10,0.4)] group-hover:scale-115 transition-all duration-150 relative flex items-center justify-center cursor-pointer">
+                                {/* Core */}
+                                <div className="w-1.5 h-1.5 bg-[#4c630a] rounded-full group-hover:bg-[#88b000] transition-colors" />
                               </div>
 
                               {/* Hotspot for easy hover */}
                               <div 
                                 className="absolute w-8 h-8 -top-2 -left-2 rounded-full cursor-pointer z-30"
-                                onMouseEnter={() => setHoveredPoint({ x: leftPct, y: bottomVal, val, label })}
+                                onMouseEnter={() => setHoveredPoint({ x: leftPct, y: bottomPct, val, label })}
+                                shift-key="true"
                                 onMouseLeave={() => setHoveredPoint(null)}
                               />
                             </div>
@@ -2134,7 +2138,7 @@ export default function ProviderDashboard() {
                           className="absolute bg-slate-900/95 text-white px-3 py-1.5 rounded-xl text-[10px] font-extrabold shadow-xl pointer-events-none z-30 transition-all duration-150 -translate-x-1/2 -translate-y-full border border-slate-800 backdrop-blur-sm"
                           style={{ 
                             left: `${hoveredPoint.x}%`, 
-                            bottom: `${hoveredPoint.y + 16}px` 
+                            bottom: `calc(${hoveredPoint.y}% + 16px)` 
                           }}
                         >
                           <div className="font-mono text-[#c8f252] text-xs">₺{hoveredPoint.val.toLocaleString('tr-TR')}</div>
@@ -2145,49 +2149,55 @@ export default function ProviderDashboard() {
                   </div>
 
                   {/* Chart X axis HTML labels container */}
-                  <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-50 pt-2.5 font-mono pl-14 pr-2">
-                    {(() => {
-                      const count = metrics.chartData.length;
-                      return metrics.chartData.map((val, idx) => {
-                        let label = '';
-                        if (isDemoStats) {
-                          if (timeRange === 'daily') {
-                            const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
-                            label = hours[idx] || 'Saat';
-                          } else if (timeRange === 'weekly') {
-                            const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-                            label = days[idx] || 'Gün';
+                  <div className="relative h-6 text-[8px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-50 pt-2 font-mono">
+                    <div className="absolute left-14 right-2 top-0 bottom-0">
+                      {(() => {
+                        const count = metrics.chartData.length;
+                        return metrics.chartData.map((val, idx) => {
+                          let label = '';
+                          if (isDemoStats) {
+                            if (timeRange === 'daily') {
+                              const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+                              label = hours[idx] || 'Saat';
+                            } else if (timeRange === 'weekly') {
+                              const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+                              label = days[idx] || 'Gün';
+                            } else {
+                              label = `${idx + 1}. Hafta`;
+                            }
                           } else {
-                            label = `${idx + 1}. Hafta`;
+                            const cj = metrics.filteredCompletions[idx];
+                            if (cj && cj.completed_at) {
+                              label = new Date(cj.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                            } else {
+                              label = 'İş';
+                            }
                           }
-                        } else {
-                          const cj = metrics.filteredCompletions[idx];
-                          if (cj && cj.completed_at) {
-                            label = new Date(cj.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
-                          } else {
-                            label = 'İş';
-                          }
-                        }
 
-                        // Filter for clean display on X axis
-                        const shouldRender = 
-                          count <= 7 || 
-                          idx === 0 || 
-                          idx === count - 1 || 
-                          (count <= 14 && idx % 2 === 0) ||
-                          idx % Math.ceil(count / 5) === 0;
+                          const leftPct = count > 1 ? (idx / (count - 1)) * 100 : 50;
 
-                        return (
-                          <span 
-                            key={idx} 
-                            className={shouldRender ? 'visible' : 'invisible'}
-                            style={{ width: `${100 / count}%`, textAlign: 'center' }}
-                          >
-                            {label}
-                          </span>
-                        );
-                      });
-                    })()}
+                          // Filter for clean display on X axis
+                          const shouldRender = 
+                            count <= 7 || 
+                            idx === 0 || 
+                            idx === count - 1 || 
+                            (count <= 14 && idx % 2 === 0) ||
+                            idx % Math.ceil(count / 5) === 0;
+
+                          if (!shouldRender) return null;
+
+                          return (
+                            <span 
+                              key={idx} 
+                              className="absolute"
+                              style={{ left: `${leftPct}%`, transform: 'translateX(-50%)' }}
+                            >
+                              {label}
+                            </span>
+                          );
+                        });
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>

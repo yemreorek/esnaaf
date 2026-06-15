@@ -2,6 +2,16 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-15 style | Kazanç Trendi Grafiği Modernizasyonu & Milimetrik Hizalama
+
+- **Kazanç Trendi Grafiği UI Modernizasyonu (`app-hizmetveren/app/page.tsx`)**:
+  - **Dikey Grid Hizalaması:** Y-ekseni fiyat etiketleri (₺0, ₺max/2, ₺max) absolute konumlandırma ile SVG'nin grid çizgileriyle (y=10, 65, 120) dikeyde %100 uyumlu (%92.3, %50.0, %7.69) olacak şekilde dikeyde mükemmel ortalandı (`translateY(50%)`).
+  - **HTML Dots Dikey Hizalaması:** SVG dikey esnemelerine bağlı kaymaları gidermek için dairesel grafik noktaları dikey yüzde (`bottomPct`) koordinatlarıyla SVG eğrisiyle milimetrik olarak kilitlendi. Hover tooltip'i de buna uygun olarak `calc(y% + 16px)` ile dairesel noktanın tam üzerinde konumlandırıldı.
+  - **Yatay Eksen Hizalaması (X-Axis):** X-ekseni zaman etiketleri flex grid yerine absolute yüzdesel `leftPct` ve `translateX(-50%)` ile tam dairesel grafik noktalarının hizasına ortalandı.
+  - **Grafik Çizgisi Gölge Filtresi:** SVG ana Bezier çizgisine drop-shadow filtresi (`feDropShadow`) tanımlanarak çizginin gridlerin üzerinde üç boyutlu, premium durması sağlandı.
+  - **Minimum Y-Axis Eşiği:** Grafik verisi bulunmadığında veya düşük olduğunda çizginin en tepede düzleşmesini önlemek için minimum `maxVal` değeri 1000 TL olarak sınırlandırıldı.
+- `app-hizmetveren` monoreposu taşınabilir Node v22.12 ortamında `npm run build` ile başarıyla derlenerek sıfır TypeScript ve derleme hatasıyla doğrulandı.
+
 ## 2026-06-12 fix | Usta Gönderilen Mesaj Arayüz Hizalama Hatası Giderilmesi
 
 - **Usta Gönderilen Mesajın Sol Taraf Hizalanma Sorunu (Frontend):** Usta tarafından yeni yazılıp gönderilen mesajların, usta sohbet kutusunda (pelin ile Sohbet) gitgide biriken bir akışta, anlık olarak sol tarafta (sanki müşteriden gelmiş gibi) beyaz renk şemasıyla hizalanması ve müşteri mesajıyla bitişik/alt alta görünmesi hatası çözüldü.
