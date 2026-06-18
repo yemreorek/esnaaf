@@ -21,6 +21,7 @@ import { ReviewModule } from './ortak/reviews/review.module';
 import { ReferralModule } from './ortak/referral/referral.module';
 import { FavoriteModule } from './ortak/favorites/favorite.module';
 import { UploadModule } from './ortak/upload/upload.module';
+import { SeoModule } from './ortak/seo/seo.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -99,6 +100,9 @@ import { AppService } from './app.service';
     FavoriteModule,
     // Upload Module
     UploadModule,
+
+    // Programmatic SEO Module
+    SeoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

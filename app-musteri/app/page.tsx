@@ -324,6 +324,32 @@ export default function Home() {
     }
   }, [notification]);
 
+  // Handle pSEO presets redirect funnel
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const presetStr = sessionStorage.getItem("esnaaf_seo_preset");
+      if (presetStr) {
+        try {
+          const preset = JSON.parse(presetStr);
+          sessionStorage.removeItem("esnaaf_seo_preset");
+          if (preset && preset.categoryName) {
+            let initialMsg = preset.categoryName;
+            if (preset.district) {
+              initialMsg = `${preset.district} bölgesinde ${preset.categoryName.toLowerCase()} hizmeti almak istiyorum.`;
+            } else if (preset.city) {
+              initialMsg = `${preset.city} genelinde ${preset.categoryName.toLowerCase()} hizmeti almak istiyorum.`;
+            } else {
+              initialMsg = `${preset.categoryName} hizmeti almak istiyorum.`;
+            }
+            handleStartChat(initialMsg);
+          }
+        } catch (e) {
+          console.error("Failed to parse esnaaf_seo_preset", e);
+        }
+      }
+    }
+  }, []);
+
   // Handle category chip selection
   const handleSelectCategory = (categoryName: string) => {
     setInputValue(categoryName);
