@@ -122,4 +122,14 @@ export class HizmetverenController {
   async getDisputes(@CurrentUser() user: any) {
     return this.hizmetverenService.getDisputes(user.id);
   }
+
+  /**
+   * Hizmet verenin alıcı olduğu okunmamış mesajları listeler
+   * GET /api/hizmetveren/okunmamis-mesajlar
+   */
+  @Get('okunmamis-mesajlar')
+  @HttpCode(HttpStatus.OK)
+  async getUnreadMessages(@CurrentUser() user: any) {
+    return this.hizmetverenService.getUnreadMessages(user.id);
+  }
 }

@@ -20,7 +20,11 @@ export class MesajlarService {
     const offer = await this.prisma.offer.findUnique({
       where: { id: dto.offerId },
       include: {
-        job: true,
+        job: {
+          include: {
+            category: true,
+          },
+        },
         provider: true,
       },
     });
@@ -69,6 +73,22 @@ export class MesajlarService {
       isRead: message.is_read,
       createdAt: message.created_at,
     });
+
+    // 6. Alıcı bir usta ise usta genel odasına (provider_${provider.id}) bildirim gönder
+    if (isSeeker) {
+      const providerRoom = `provider_${offer.provider.id}`;
+      const customerName = offer.job.form_data ? (offer.job.form_data as any).name || 'Müşteri' : 'Müşteri';
+      this.chatGateway.server?.to(providerRoom).emit('new_message_notification', {
+        id: message.id,
+        content: message.content,
+        createdAt: message.created_at,
+        jobId: message.job_id,
+        offerId: message.offer_id,
+        categoryName: offer.job.category.name,
+        customerName,
+      });
+      this.logger.log(`[Mesaj Bildirimi] Provider room ${providerRoom} içindeki ustaya yeni mesaj bildirimi iletildi.`);
+    }
 
     this.logger.log(`[Mesaj Gönderildi] Room ${room} içindeki sohbet odasına yeni mesaj iletildi.`);
 

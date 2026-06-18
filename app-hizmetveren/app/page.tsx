@@ -295,6 +295,8 @@ export default function ProviderDashboard() {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>("");
   const [loadingChatMessages, setLoadingChatMessages] = useState<boolean>(false);
+  const [unreadMessages, setUnreadMessages] = useState<any[]>([]);
+  const [unreadDropdownOpen, setUnreadDropdownOpen] = useState<boolean>(false);
 
   // Completion modal states
   const [completingJob, setCompletingJob] = useState<any | null>(null);
@@ -720,6 +722,44 @@ export default function ProviderDashboard() {
   };
 
 
+  // Fetch unread messages for the provider
+  const fetchUnreadMessages = async (currentToken?: string) => {
+    const activeToken = currentToken || token;
+    if (!activeToken) return;
+    try {
+      const res = await fetch('/api/hizmetveren/okunmamis-mesajlar', {
+        headers: { 'Authorization': `Bearer ${activeToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadMessages(data);
+      }
+    } catch (err) {
+      console.error('Fetch unread messages failed:', err);
+    }
+  };
+
+  // Mark message as read
+  const handleMarkMessageAsRead = async (messageId: string) => {
+    const activeToken = token;
+    if (!activeToken) return;
+    try {
+      const res = await fetch(`/api/ortak/mesajlar/${messageId}/okundu`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${activeToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        setUnreadMessages(prev => prev.filter(m => m.id !== messageId));
+      }
+    } catch (err) {
+      console.error('Mark message as read failed:', err);
+    }
+  };
+
+
   // Load dashboard data
   const loadDashboardData = async (accessToken: string) => {
     try {
@@ -753,6 +793,8 @@ export default function ProviderDashboard() {
         setJobs(jobsData);
         addLog(`${jobsData.length} adet yeni gelen iş listelendi.`);
       }
+
+      await fetchUnreadMessages(accessToken);
     } catch (err: any) {
       addLog(`Dashboard yükleme hatası: ${err.message}`);
     }
@@ -803,6 +845,22 @@ export default function ProviderDashboard() {
           }];
         }
         return prev;
+      });
+    });
+
+    socket.on('new_message_notification', (noti: any) => {
+      addLog(`🔔 [YENİ MESAJ BİLDİRİMİ] ${noti.customerName}: ${noti.content.substring(0, 20)}...`);
+      setUnreadMessages((prev) => {
+        if (prev.some(m => m.id === noti.id)) return prev;
+        return [noti, ...prev];
+      });
+      setOffersList((prev) => {
+        return prev.map(off => {
+          if (off.id === noti.offerId) {
+            return { ...off, hasMessages: true };
+          }
+          return off;
+        });
       });
     });
 
@@ -1739,14 +1797,74 @@ export default function ProviderDashboard() {
               </select>
             </div>
 
-            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group">
+            <button 
+              onClick={() => setUnreadDropdownOpen(!unreadDropdownOpen)}
+              className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group"
+            >
               <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+              {unreadMessages.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+              )}
             </button>
 
-            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl cursor-pointer">
-              <MessageSquare className="w-4.5 h-4.5 text-slate-500" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setUnreadDropdownOpen(!unreadDropdownOpen)}
+                className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl cursor-pointer relative"
+              >
+                <MessageSquare className="w-4.5 h-4.5 text-slate-500" />
+                {unreadMessages.length > 0 && (
+                  <span className="absolute top-1 right-1 bg-[#c8f252] text-slate-900 border border-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-sm">
+                    {unreadMessages.length}
+                  </span>
+                )}
+              </button>
+
+              {unreadDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-[100] p-4 animate-scale-up text-left">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                    <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest font-mono">Okunmamış Mesajlar</span>
+                    {unreadMessages.length > 0 && (
+                      <span className="bg-[#c8f252]/20 text-[#4c630a] text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                        {unreadMessages.length} Yeni
+                      </span>
+                    )}
+                  </div>
+                  
+                  {unreadMessages.length > 0 ? (
+                    <div className="space-y-2.5 max-h-64 overflow-y-auto pr-0.5">
+                      {unreadMessages.map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            handleMarkMessageAsRead(m.id);
+                            setActiveChat({
+                              jobId: m.jobId,
+                              offerId: m.offerId,
+                              customerName: m.customerName,
+                            });
+                            setUnreadDropdownOpen(false);
+                          }}
+                          className="w-full p-3 rounded-xl bg-slate-50 hover:bg-[#c8f252]/10 border border-slate-100 hover:border-[#c8f252]/30 text-left transition-all flex flex-col gap-1 group cursor-pointer"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-black text-slate-800 group-hover:text-[#4c630a] transition-colors">{m.customerName}</span>
+                            <span className="text-[9px] text-[#4c630a] bg-[#c8f252]/15 px-1.5 py-0.5 rounded font-black uppercase font-mono">{m.categoryName}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 font-semibold truncate">&ldquo;{m.content}&rdquo;</p>
+                          <span className="text-[9px] text-slate-400 font-bold block mt-1">{new Date(m.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-slate-400">
+                      <span className="text-2xl">💬</span>
+                      <p className="text-xs font-bold mt-2">Okunmamış mesajınız bulunmuyor.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
 
@@ -2451,10 +2569,23 @@ export default function ProviderDashboard() {
                         </div>
                       </div>
                       <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
-                        <span className="text-slate-900 font-black text-sm">₺{off.price.toLocaleString("tr-TR")}</span>
-                        <span className="text-[10px] text-slate-400 font-mono font-bold">
-                          {new Date(off.created_at).toLocaleDateString("tr-TR")}
-                        </span>
+                        <div className="flex flex-col text-left">
+                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">Teklif Fiyatı</span>
+                          <span className="text-slate-900 font-black text-sm mt-1">₺{off.price.toLocaleString("tr-TR")}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {off.hasMessages && (
+                            <button
+                              onClick={() => setActiveChat({ jobId: off.job.id, offerId: off.id, customerName: off.job.name })}
+                              className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[10px] md:text-xs py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                            >
+                              Mesaj Gönder
+                            </button>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono font-bold">
+                            {new Date(off.created_at).toLocaleDateString("tr-TR")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))

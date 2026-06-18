@@ -1256,22 +1256,13 @@ ${callTaskNotes}`;
       {/* 🚀 Admin Header */}
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100 h-20 flex justify-between items-center w-full px-6 shadow-sm shadow-slate-100/5">
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
-          <div className="flex items-center gap-3 w-48 h-10 relative">
+          <div className="flex items-center w-48 h-10 relative">
             <img 
               alt="Esnaaf Logo" 
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-auto select-none max-w-none" 
+              className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-auto select-none max-w-none" 
               style={{ height: '120px', objectFit: 'contain' }}
               src="/logo.png" 
             />
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-                Admin
-                <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md">
-                  Panel
-                </span>
-              </h1>
-              <p className="text-xs text-slate-400 font-semibold mt-0.5">Merkezi Denetim ve Güvenlik Yönetimi</p>
-            </div>
           </div>
 
           {/* Simulated Super Admin Login */}

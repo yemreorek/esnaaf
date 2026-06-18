@@ -2,6 +2,16 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-18 feat | Teklif Kabulü Öncesi Mesajlaşma ve Canlı Bildirim Entegrasyonu
+
+- **Backend Değişiklikleri (`backend-api/`):**
+  - `getOffers` metodu güncellenerek teklif kartlarının müşteriden gelen mesaj durumunu taşıması sağlandı (`hasMessages` alanı).
+  - `getUnreadMessages` metodu yazıldı ve `GET /api/hizmetveren/okunmamis-mesajlar` endpoint'ine bağlandı.
+  - `createMessage` metodu güncellenerek alıcı usta için `new_message_notification` WebSocket canlı bildirimi eklendi.
+- **Hizmet Veren Arayüzü (`app-hizmetveren/`):**
+  - Sağ üst köşeye Bell ve MessageSquare simgelerine bağlı okunmamış mesaj rozeti (`badge`) ve açılır dropdown eklendi. Dropdown üzerinden mesaja tıklayarak doğrudan sohbete geçme ve okundu işaretleme sağlandı.
+  - "Teklif Verilenler" sekmesinde `off.hasMessages` ise "Mesaj Gönder" butonu eklendi.
+
 ## 2026-06-15 style | Canlı Sohbet Kategoriye Özel Hizmet Veren Meslek Unvanı Dinamikleştirilmesi
 
 - **Kategoriye Özel Hizmet Veren İsimlendirmesi (`backend-api/src/ortak/chat/chat.service.ts`)**:

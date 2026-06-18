@@ -785,7 +785,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
       if (reviewRes.ok) {
         setRatingSubmitted(true);
-        alert("Değerlendirmeniz başarıyla gönderildi!");
+        setSelectedRating(0);
+        setSelectedRequest(null);
+        setCommentText("");
+        alert("Değerlendirmeniz başarıyla gönderildi! Yönetici onayından sonra ustanın profilinde yayınlanacaktır.");
+        fetchRequests();
       } else {
         const errorData = await reviewRes.json();
         alert(errorData.error?.message || "Gönderim başarısız.");
@@ -2294,6 +2298,9 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     <button
                                       key={star}
                                       onClick={() => {
+                                        if (selectedRequest?.id !== req.id) {
+                                          setCommentText("");
+                                        }
                                         setSelectedRequest(req);
                                         setSelectedRating(star);
                                       }}

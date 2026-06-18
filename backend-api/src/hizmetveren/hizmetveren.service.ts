@@ -449,6 +449,12 @@ export class HizmetverenService {
             category: true,
           },
         },
+        messages: {
+          where: {
+            sender_id: { not: providerUserId },
+          },
+          take: 1,
+        },
       },
       orderBy: { created_at: 'desc' },
     });
@@ -461,6 +467,7 @@ export class HizmetverenService {
         message: o.message,
         status: o.status,
         created_at: o.created_at,
+        hasMessages: o.messages.length > 0,
         job: {
           id: o.job.id,
           categoryName: o.job.category.name,
@@ -469,6 +476,46 @@ export class HizmetverenService {
           name: formData.name || 'Müşteri',
           status: o.job.status,
         },
+      };
+    });
+  }
+
+  /**
+   * Hizmet verenin alıcı olduğu okunmamış mesajları listeler
+   */
+  async getUnreadMessages(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const unreadMessages = await this.prisma.message.findMany({
+      where: {
+        receiver_id: providerUserId,
+        is_read: false,
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return unreadMessages.map((m) => {
+      const formData = m.job.form_data as any;
+      return {
+        id: m.id,
+        content: m.content,
+        createdAt: m.created_at,
+        jobId: m.job_id,
+        offerId: m.offer_id,
+        categoryName: m.job.category.name,
+        customerName: formData.name || 'Müşteri',
       };
     });
   }
