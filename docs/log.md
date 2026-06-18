@@ -2,6 +2,13 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-18 style | Tarayıcı Sekme Favicon İkonlarının Marka Pin Logosu ile Güncellenmesi
+
+- **Sekme İkonlarının Güncellenmesi (`app-musteri`, `app-hizmetveren`):**
+  - Next.js varsayılan Vercel logolu `favicon.ico` dosyaları kaldırılarak/güncellenerek yerlerine kullanıcının ilettiği kurumsal neon yeşil Esnaaf pin logosu yerleştirildi.
+  - Hem müşteri hem de hizmet veren/admin portalları için `app/icon.png` ve `app/favicon.ico` dosyaları bu kurumsal logo ile güncellendi.
+  - Projelerin üretim ortamı Next.js derlemeleri başarıyla doğrulanarak `icon.png` rotasının otomatik kilitlendiği teyit edildi.
+
 ## 2026-06-18 feat | Teklif Kabulü Öncesi Mesajlaşma ve Canlı Bildirim Entegrasyonu
 
 - **Backend Değişiklikleri (`backend-api/`):**
