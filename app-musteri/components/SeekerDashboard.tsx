@@ -1081,48 +1081,22 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                   </header>
 
                   {/* 📊 AKTİF TEKLİFLER SECTION */}
-                  <section className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-black text-slate-800 text-base">Aktif Teklifler</h3>
-                      <a href="#" onClick={() => alert("Tüm aktif teklifleriniz zaten listelenmiştir.")} className="text-slate-400 hover:text-slate-800 text-xs font-extrabold flex items-center gap-1">
-                        <span>Tümünü Gör</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </a>
-                    </div>
-
-                    {/* Filter bar exactly matching mockup style */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                      <div className="flex items-center gap-2">
-                        <button className="bg-slate-50 border border-slate-200 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2 px-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-sm">
-                          <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
-                          <span>SIRALA: En Düşük Fiyat</span>
-                          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                        </button>
-
-                        <button className="bg-slate-50 border border-slate-200 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2 px-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-sm">
-                          <Filter className="w-3.5 h-3.5 text-slate-500" />
-                          <span>FİLTRELE</span>
-                        </button>
-                      </div>
-
-                      {/* View mode toggle chips */}
-                      <div className="flex items-center gap-2.5 text-xs text-slate-400 font-bold">
-                        <span>GÖRÜNÜM:</span>
-                        <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/50">
-                          <button 
-                            onClick={() => setViewMode("grid")}
-                            className={`p-1.5 rounded-md cursor-pointer transition-all ${viewMode === "grid" ? "bg-[#c8f252] text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
-                          >
-                            <Grid className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => setViewMode("list")}
-                            className={`p-1.5 rounded-md cursor-pointer transition-all ${viewMode === "list" ? "bg-[#c8f252] text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
-                          >
-                            <List className="w-3.5 h-3.5" />
-                          </button>
+                  <section className="space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-3 text-left">
+                      <div className="flex items-center gap-3 text-left">
+                        <div className="w-1.5 h-8 bg-[#c8f252] rounded-full shrink-0"></div>
+                        <div className="space-y-0.5 text-left">
+                          <h3 className="font-black text-slate-900 tracking-tight text-xl md:text-2xl uppercase">
+                            Aktif Teklifler
+                          </h3>
+                          <p className="text-[10px] text-slate-400 font-extrabold tracking-wider">
+                            TALEP VE SÜREÇ YÖNETİMİ
+                          </p>
                         </div>
                       </div>
+                      <span className="self-start sm:self-auto text-[10px] bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30 font-black px-3 py-1 rounded-full uppercase tracking-wider font-mono shadow-sm">
+                        CANLI SÜREÇLER
+                      </span>
                     </div>
 
                     {/* ACTIVE OFFERS STREAM */}
@@ -1176,21 +1150,25 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   </div>
 
                                   {/* Quick Metadata Tags */}
-                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400 font-bold pt-1">
-                                    <span className="flex items-center gap-1">
-                                      📍 {req.form_data.district || "Bilinmiyor"}{req.form_data.district ? `, ${req.form_data.city || resolveCityFromDistrict(req.form_data.district)}` : ''}
+                                  <div className="flex flex-wrap items-center gap-2 pt-2 text-left">
+                                    {/* Konum Chip */}
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1 text-slate-650 text-[11px] font-bold transition-colors hover:bg-slate-100/50">
+                                      <MapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                      <span>{req.form_data.district || "Bilinmiyor"}{req.form_data.district ? `, ${req.form_data.city || resolveCityFromDistrict(req.form_data.district)}` : ''}</span>
                                     </span>
-                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                    <span className="flex items-center gap-1">
-                                      📅 {req.form_data.tarih || createdDate}
+
+                                    {/* Tarih Chip */}
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1 text-slate-650 text-[11px] font-bold transition-colors hover:bg-slate-100/50">
+                                      <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                      <span>{req.form_data.tarih || createdDate}</span>
                                     </span>
+
+                                    {/* Bütçe Chip */}
                                     {req.form_data.butce && (
-                                      <>
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                        <span className="flex items-center gap-1 text-slate-600">
-                                          💰 ₺{Number(req.form_data.butce).toLocaleString("tr-TR")}
-                                        </span>
-                                      </>
+                                      <span className="inline-flex items-center gap-1.5 bg-emerald-50/40 border border-emerald-100 rounded-lg px-2.5 py-1 text-emerald-800 text-[11px] font-black transition-colors hover:bg-emerald-50/80">
+                                        <Coins className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                        <span>₺{Number(req.form_data.butce).toLocaleString("tr-TR")}</span>
+                                      </span>
                                     )}
                                   </div>
                                 </div>
@@ -1251,17 +1229,23 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                 </div>
 
                                 {/* Quick Metadata Tags */}
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400 font-bold pt-1">
-                                  <span className="flex items-center gap-1">
-                                    📍 Adana, Seyhan
+                                <div className="flex flex-wrap items-center gap-2 pt-2 text-left">
+                                  {/* Konum Chip */}
+                                  <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1 text-slate-650 text-[11px] font-bold transition-colors hover:bg-slate-100/50">
+                                    <MapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                    <span>Adana, Seyhan</span>
                                   </span>
-                                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                  <span className="flex items-center gap-1">
-                                    📅 15 Haziran 2026
+
+                                  {/* Tarih Chip */}
+                                  <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1 text-slate-650 text-[11px] font-bold transition-colors hover:bg-slate-100/50">
+                                    <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                    <span>15 Haziran 2026</span>
                                   </span>
-                                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                  <span className="flex items-center gap-1 text-slate-600">
-                                    💰 ₺15.000
+
+                                  {/* Bütçe Chip */}
+                                  <span className="inline-flex items-center gap-1.5 bg-emerald-50/40 border border-emerald-100 rounded-lg px-2.5 py-1 text-emerald-800 text-[11px] font-black transition-colors hover:bg-emerald-50/80">
+                                    <Coins className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span>₺15.000</span>
                                   </span>
                                 </div>
                               </div>

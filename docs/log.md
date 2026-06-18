@@ -2,6 +2,16 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-18 style | Müşteri Paneli Teklif Kartları İkon Modernizasyonu & Aktif Teklifler Başlık Revizyonu
+
+- **Teklif Kartları Metadata İkon Modernizasyonu (`app-musteri/components/SeekerDashboard.tsx`):**
+  - Emojilerden kalma veya basit kalan `MapPin` (Konum) ve `Calendar` (Tarih) ikonları ile bütçe detayları, modern ve göze hoş gelen gri/soft renkli badge-pills (çip/rozet) düzenine geçirildi.
+  - Konum ikonu indigo rengiyle, tarih ikonu kehribar (amber) rengiyle ve bütçe ikonu zümrüt yeşiliyle (emerald) premium hissi verecek şekilde zenginleştirildi.
+- **Aktif Teklifler Başlığı ve Filtreleme Kaldırılması:**
+  - "Aktif Teklifler" başlığının soluna neon-lime renginde kurumsal dikey hizalama barı yerleştirildi, yazı boyutu büyütülüp kalınlaştırıldı (`font-black text-slate-900`) ve altına `TALEP VE SÜREÇ YÖNETİMİ` alt başlığı eklenerek görsel belirginliği artırıldı.
+  - Herhangi bir işlevi bulunmayan ve ekranı kalabalık gösteren sıralama, filtreleme ve görünüm değiştirme barı tamamen kaldırıldı.
+- Müşteri uygulaması Next.js production build ile derlenerek kodun sorunsuz çalıştığı doğrulandı.
+
 ## 2026-06-18 style | Tarayıcı Sekme Favicon İkonlarının Marka Pin Logosu ile Güncellenmesi
 
 - **Sekme İkonlarının Güncellenmesi (`app-musteri`, `app-hizmetveren`):**
