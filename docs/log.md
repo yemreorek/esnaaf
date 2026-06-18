@@ -2,6 +2,13 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-18 cache | Firebase CDN ve Cloud Run Cache-Control Güncellemesi
+
+- **Cache-Control Header Ayarlamaları (`app-musteri/next.config.ts`, `app-hizmetveren/next.config.ts`):**
+  - Next.js statik olarak derlenen sayfaların (özellikle ana sayfa `/` rotasının) Firebase Hosting / Google Frontend CDN tarafından 1 yıl boyunca önbelleğe alınmasını (`s-maxage=31536000`) engellemek amacıyla `next.config.ts` dosyalarındaki route header kuralları güncellendi.
+  - Dinamik/HTML sayfaları için `Cache-Control: public, max-age=0, must-revalidate` kuralları getirilerek, yeni container sürümleri canlıya çıktığında sitenin anında güncellenmesi sağlandı.
+  - Statik varlıklar (JS, CSS, görsel vb.) için tarayıcı ve CDN tarafında uzun vadeli önbellekleme (`max-age=31536000, immutable`) kuralları aynen korunarak performans korundu.
+
 ## 2026-06-18 style | Müşteri Paneli Teklif Kartları İkon Modernizasyonu & Aktif Teklifler Başlık Revizyonu
 
 - **Teklif Kartları Metadata İkon Modernizasyonu (`app-musteri/components/SeekerDashboard.tsx`):**
