@@ -595,12 +595,12 @@ export default function Home() {
               <button
                 key={idx}
                 onClick={() => handleSelectCategory(item.category === "Hizmet" ? "Hizmet" : item.category)}
-                className="flex flex-col items-center justify-center p-5 rounded-[24px] bg-white border border-slate-150/60 shadow-xs hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-sm"
+                className="flex flex-col items-center justify-center p-5 rounded-[24px] bg-[#c8f252]/10 border border-[#c8f252]/60 shadow-xs hover:border-slate-200 hover:bg-white transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-sm"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-900 text-white group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 shadow-xs transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-[#c8f252] text-slate-950 group-hover:bg-slate-900 group-hover:text-white flex items-center justify-center mb-3 shadow-xs transition-all duration-300">
                   <span className="material-symbols-outlined text-lg font-bold">{item.icon}</span>
                 </div>
-                <span className="font-bold text-xs text-slate-650 group-hover:text-slate-900 transition-colors tracking-tight text-center">
+                <span className="font-bold text-xs text-slate-900 group-hover:text-slate-650 transition-colors tracking-tight text-center">
                   {item.name}
                 </span>
               </button>
