@@ -439,7 +439,7 @@ export default function Home() {
               <img
                 alt="Esnaaf Logo"
                 className="h-14 w-auto cursor-pointer"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
+                src="/logo.png"
               />
             </a>
             <nav className="hidden md:flex gap-8">
@@ -936,7 +936,7 @@ export default function Home() {
             <img
               alt="Esnaaf Logo"
               className="h-14 w-auto"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
+              src="/logo.png"
             />
             <p className="text-sm font-body text-on-surface-variant leading-relaxed">
               Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
