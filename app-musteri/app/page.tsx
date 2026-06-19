@@ -557,13 +557,23 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Down Arrow Indicator */}
-          <div className="pt-8">
+          {/* Down Arrow Indicator & App Downloads */}
+          <div className="pt-8 flex flex-col items-center gap-6">
             <a href="#categories-section" className="w-11 h-11 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 flex items-center justify-center text-slate-650 hover:text-slate-900 shadow-sm transition-colors cursor-pointer animate-bounce">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
               </svg>
             </a>
+
+            {/* App Store & Google Play Download Badges */}
+            <div className="flex gap-4 items-center justify-center pt-2 select-none z-10">
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg rounded-xl overflow-hidden h-[42px] border border-slate-150">
+                <img src="/app-store.jpg" alt="App Store'dan İndirin" className="h-full w-auto object-contain" />
+              </a>
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg rounded-xl overflow-hidden h-[42px] border border-slate-150">
+                <img src="/google-play.jpg" alt="Google Play'den Alın" className="h-full w-auto object-contain" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
