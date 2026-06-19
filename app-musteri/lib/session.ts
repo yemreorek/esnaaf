@@ -1,8 +1,20 @@
 let activeSessionId: string | null = null;
 
+function safeUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Robust fallback UUID v4 generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export function startNewSession(): string {
   if (typeof window === 'undefined') return "";
-  const freshId = crypto.randomUUID();
+  const freshId = safeUUID();
   activeSessionId = freshId;
   localStorage.setItem('esnaaf_session_id', freshId);
   return freshId;
@@ -15,7 +27,7 @@ export function getSessionId(): string {
   }
   let sessionId = localStorage.getItem('esnaaf_session_id');
   if (!sessionId) {
-    sessionId = crypto.randomUUID();
+    sessionId = safeUUID();
     localStorage.setItem('esnaaf_session_id', sessionId);
   }
   activeSessionId = sessionId;
