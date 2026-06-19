@@ -976,11 +976,13 @@ export default function Home() {
       <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
           <div className="space-y-6">
-            <img
-              alt="Esnaaf Logo"
-              className="h-14 w-auto"
-              src="/logo.png"
-            />
+            <div className="h-16 w-[180px] overflow-hidden flex items-center justify-center relative -ml-[18px]">
+              <img
+                alt="Esnaaf Logo"
+                className="absolute h-[180px] w-auto max-w-none object-contain"
+                src="/logo.png"
+              />
+            </div>
             <p className="text-sm font-body text-on-surface-variant leading-relaxed">
               Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
             </p>
