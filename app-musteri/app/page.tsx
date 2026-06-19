@@ -421,32 +421,32 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-[#030712] text-slate-100 selection:bg-[#c8f252]/20 font-body antialiased overflow-x-hidden min-h-screen pb-16 md:pb-0 relative">
+    <div className="bg-background text-on-background selection:bg-primary/20 font-body antialiased overflow-x-hidden min-h-screen pb-16 md:pb-0 relative">
       
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-24 right-4 z-[99] bg-slate-900/90 text-white backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/10 flex items-center gap-3 animate-slide-up max-w-sm">
-          <span className="material-symbols-outlined text-[#c8f252]">verified</span>
-          <span className="font-semibold text-sm text-slate-200">{notification}</span>
+        <div className="fixed top-24 right-4 z-[99] bg-white/95 text-slate-900 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-150/80 flex items-center gap-3 animate-slide-up max-w-sm">
+          <span className="material-symbols-outlined text-[#719600]">verified</span>
+          <span className="font-semibold text-sm text-slate-700">{notification}</span>
         </div>
       )}
 
       {/* 🧭 Header (TopNavBar) */}
-      <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-[#030712]/60 border-b border-white/5 h-20 shadow-lg">
+      <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
           <div className="flex items-center gap-12">
             <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <img
                 alt="Esnaaf Logo"
-                className="h-12 w-auto cursor-pointer brightness-0 invert"
+                className="h-12 w-auto cursor-pointer"
                 src="/logo.png"
               />
             </a>
             <nav className="hidden md:flex gap-8">
-              <a className="text-slate-400 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
-              <a className="text-slate-400 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#trend-services">Hizmetler</a>
-              <a className="text-slate-400 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
-              <a className="text-slate-400 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#app-download">Uygulamamız</a>
+              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
+              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#trend-services">Hizmetler</a>
+              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
+              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#app-download">Uygulamamız</a>
             </nav>
           </div>
           
@@ -467,7 +467,7 @@ export default function Home() {
                     setActiveView("home");
                     triggerNotification("Çıkış yapıldı.");
                   }}
-                  className="text-white hover:text-[#c8f252] border border-white/10 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-white/[0.04]"
+                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
                 >
                   Çıkış
                 </button>
@@ -476,7 +476,7 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="text-white hover:text-[#c8f252] border border-white/10 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-white/[0.04]"
+                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
                 >
                   Giriş Yap
                 </button>
@@ -493,31 +493,31 @@ export default function Home() {
       </header>
 
       {/* 🚀 Hero Section */}
-      <section className="relative min-h-[95vh] flex flex-col justify-center items-center pt-24 pb-16 overflow-hidden bg-[#030712] text-white text-center tech-grid">
+      <section className="relative min-h-[95vh] flex flex-col justify-center items-center pt-24 pb-16 overflow-hidden bg-[#ffffff] text-slate-900 text-center tech-grid">
         {/* Glow ambient meshes */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full mesh-glow-green pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full mesh-glow-indigo pointer-events-none z-0 transform translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] rounded-full mesh-glow-purple pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full mesh-glow-green pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2 opacity-60"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full mesh-glow-indigo pointer-events-none z-0 transform translate-x-1/2 translate-y-1/2 opacity-40"></div>
+        <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] rounded-full mesh-glow-purple pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2 opacity-30"></div>
         
         <div className="relative z-10 max-w-5xl mx-auto px-4 w-full flex flex-col items-center space-y-6">
           {/* AI Subtitle Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/60 border border-white/[0.08] backdrop-blur-sm text-[10px] md:text-xs font-black tracking-widest text-slate-300 uppercase mb-2 animate-fade-in shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-[#c8f252] animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-550/10 border border-slate-200 backdrop-blur-sm text-[10px] md:text-xs font-black tracking-widest text-slate-600 uppercase mb-2 animate-fade-in shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-[#719600] animate-pulse"></span>
             Yapay Zeka Destekli Mahalle Esnaf Ağı
           </div>
 
           <div className="space-y-4">
-            <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-white tracking-tighter max-w-4xl mx-auto">
+            <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-slate-900 tracking-tighter max-w-4xl mx-auto">
               Aynı Mahalleyi Paylaştığın <br />
-              En İyi <span className="bg-gradient-to-r from-[#c8f252] to-[#b5e639] bg-clip-text text-transparent glow-text-lime">5 Esnaftan</span> Teklif Al
+              En İyi <span className="bg-gradient-to-r from-[#719600] to-[#88b500] bg-clip-text text-transparent">5 Esnaftan</span> Teklif Al
             </h1>
-            <p className="font-body text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="font-body text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
               İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi esnaf ve ustaları saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
             </p>
           </div>
 
           {/* AI Search Box */}
-          <div className="w-full max-w-2xl glass-input rounded-[24px] p-2 pl-5 shadow-2xl focus-within:ring-4 focus-within:ring-[#c8f252]/10 transition-all duration-300 mb-6">
+          <div className="w-full max-w-2xl glass-input rounded-[24px] p-2 pl-5 shadow-[0_15px_35px_rgba(0,0,0,0.04)] focus-within:ring-4 focus-within:ring-[#c8f252]/20 transition-all duration-300 mb-6">
             <div className="flex items-center gap-3">
               <svg className="w-5 h-5 text-slate-400 shrink-0 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -529,14 +529,14 @@ export default function Home() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSend();
                 }}
-                className="bg-transparent border-none outline-none w-full text-white font-semibold text-sm placeholder-slate-500 focus:ring-0 p-0"
+                className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-sm placeholder-slate-450 focus:ring-0 p-0"
                 placeholder="Hangi hizmete ihtiyacınız var? (Örn: Ev temizliği, boya badana...)"
                 type="text"
               />
               <button
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
-                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shrink-0 active:scale-95 disabled:opacity-40 cursor-pointer shadow-[0_0_20px_rgba(200,242,82,0.25)]"
+                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shrink-0 active:scale-95 disabled:opacity-40 cursor-pointer shadow-md"
               >
                 Ara & Başla
               </button>
@@ -544,13 +544,13 @@ export default function Home() {
           </div>
 
           {/* Popular services list */}
-          <div className="flex flex-wrap justify-center items-center gap-2.5 text-xs text-slate-400 font-semibold z-10 pt-2">
-            <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Popüler:</span>
+          <div className="flex flex-wrap justify-center items-center gap-2.5 text-xs text-slate-550 font-semibold z-10 pt-2">
+            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Popüler:</span>
             {["ev temizliği", "boya badana", "nakliyat", "su tesisatı"].map((pop, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectCategory(pop.charAt(0).toUpperCase() + pop.slice(1))}
-                className="px-3.5 py-1.5 rounded-full bg-slate-900/40 border border-white/[0.08] hover:border-[#c8f252] hover:bg-[#c8f252]/5 text-slate-300 hover:text-[#c8f252] transition-all cursor-pointer font-bold tracking-tight shadow-sm"
+                className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 text-slate-655 hover:text-[#719600] transition-all cursor-pointer font-bold tracking-tight shadow-xs"
               >
                 {pop}
               </button>
@@ -559,7 +559,7 @@ export default function Home() {
 
           {/* Down Arrow Indicator */}
           <div className="pt-8">
-            <a href="#categories-section" className="w-11 h-11 rounded-full bg-slate-900/60 border border-white/[0.08] hover:border-[#c8f252] hover:bg-[#c8f252]/5 flex items-center justify-center text-slate-300 hover:text-[#c8f252] shadow-lg transition-colors cursor-pointer animate-bounce">
+            <a href="#categories-section" className="w-11 h-11 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 flex items-center justify-center text-slate-650 hover:text-slate-900 shadow-sm transition-colors cursor-pointer animate-bounce">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
               </svg>
@@ -569,7 +569,7 @@ export default function Home() {
       </section>
 
       {/* 🧭 Categories Section */}
-      <section id="categories-section" className="py-16 bg-[#080c14] border-y border-white/[0.05] scroll-mt-24">
+      <section id="categories-section" className="py-16 bg-slate-50/40 border-y border-slate-100 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 w-full">
             {[
@@ -585,12 +585,12 @@ export default function Home() {
               <button
                 key={idx}
                 onClick={() => handleSelectCategory(item.category === "Hizmet" ? "Hizmet" : item.category)}
-                className="flex flex-col items-center justify-center p-5 rounded-[24px] bg-white/[0.02] border border-white/[0.06] hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
+                className="flex flex-col items-center justify-center p-5 rounded-[24px] bg-white border border-slate-150/60 shadow-xs hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-sm"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/[0.08] text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 shadow-sm transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-slate-900 text-white group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 shadow-xs transition-all duration-300">
                   <span className="material-symbols-outlined text-lg font-bold">{item.icon}</span>
                 </div>
-                <span className="font-bold text-xs text-slate-300 group-hover:text-white transition-colors tracking-tight text-center">
+                <span className="font-bold text-xs text-slate-650 group-hover:text-slate-900 transition-colors tracking-tight text-center">
                   {item.name}
                 </span>
               </button>
@@ -602,9 +602,9 @@ export default function Home() {
       {/* 📊 Haftanın Trend Hizmetleri Section */}
       <section id="trend-services" className="py-24 max-w-7xl mx-auto px-4 md:px-6">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-bold text-[#c8f252] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Popüler Listeler</span>
-          <h2 className="font-extrabold text-3xl md:text-4xl text-white tracking-tight">Haftanın Trend Hizmetleri</h2>
-          <p className="font-body text-slate-400 text-sm">Mahallenizde en çok aranan ve en hızlı teklif toplayan popüler hizmetler</p>
+          <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Popüler Listeler</span>
+          <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Haftanın Trend Hizmetleri</h2>
+          <p className="font-body text-slate-500 text-sm">Mahallenizde en çok aranan ve en hızlı teklif toplayan popüler hizmetler</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -618,7 +618,7 @@ export default function Home() {
             { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100 usta" },
             { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540 usta" },
           ].map((srv, idx) => (
-            <div key={idx} className="bg-white/[0.02] border border-white/[0.06] rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-[0_0_30px_rgba(200,242,82,0.08)] hover:border-[#c8f252]/30 hover:-translate-y-1 transition-all duration-300 group relative">
+            <div key={idx} className="bg-white border border-slate-150/60 rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:border-[#c8f252]/40 hover:-translate-y-1 transition-all duration-300 group relative">
               <div className="relative h-48 w-full overflow-hidden shrink-0">
                 <img
                   alt={srv.name}
@@ -627,12 +627,12 @@ export default function Home() {
                 />
                 
                 {/* Branded esnaaf marker pin badge */}
-                <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-1.5 shadow-md border border-white/10">
+                <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center p-1.5 shadow-md border border-white/50">
                   <img src="/logo-icon.png" alt="esnaaf" className="w-full h-full object-contain" />
                 </div>
 
                 {/* Location/Rating badge */}
-                <span className="absolute top-3 right-3 bg-slate-950/85 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md border border-white/10">
+                <span className="absolute top-3 right-3 bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md border border-white/5">
                   <span className="material-symbols-outlined text-[12px] font-extrabold text-[#c8f252]">star</span>
                   <span>{srv.rating}</span>
                   <span className="text-slate-400">({srv.count.split(" ")[0]})</span>
@@ -641,12 +641,12 @@ export default function Home() {
               
               <div className="p-6 flex flex-col justify-between flex-grow gap-4">
                 <div>
-                  <h3 className="font-black text-slate-200 text-base group-hover:text-[#c8f252] transition-colors tracking-tight">{srv.name}</h3>
+                  <h3 className="font-black text-slate-900 text-base group-hover:text-[#719600] transition-colors tracking-tight">{srv.name}</h3>
                   <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mt-1">{srv.count}</p>
                 </div>
                 <button
                   onClick={() => handleSelectCategory(srv.name)}
-                  className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-sm"
+                  className="w-full bg-slate-950 hover:bg-[#719600] text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-xs"
                 >
                   Teklif Al
                 </button>
@@ -657,58 +657,52 @@ export default function Home() {
       </section>
 
       {/* 3 Easy Steps Section */}
-      <section id="how-it-works" className="py-24 bg-[#080c14] border-t border-white/[0.05] overflow-hidden">
+      <section id="how-it-works" className="py-24 bg-slate-50/40 border-t border-slate-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative">
-          {/* Glowing background highlights inside section */}
-          <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] rounded-full mesh-glow-indigo pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2"></div>
-          
-          <div className="text-center mb-16 space-y-4 relative z-10">
-            <span className="text-xs font-bold text-[#c8f252] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Kolay Süreç</span>
-            <h2 className="font-extrabold text-3xl md:text-4xl text-white tracking-tight">3 Kolay Adımla Komşu Esnaftan Hizmet Al</h2>
-            <p className="font-body text-slate-400 text-sm">Zaman kaybetmeden, yorulmadan, komşu usta ve esnaflarla buluşun</p>
+          <div className="text-center mb-16 space-y-4">
+            <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Kolay Süreç</span>
+            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">3 Kolay Adımla Komşu Esnaftan Hizmet Al</h2>
+            <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu usta ve esnaflarla buluşun</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white/[0.02] border border-white/[0.06] p-6 rounded-3xl hover:border-[#c8f252]/25 transition-all duration-300 hover:-translate-y-1">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-950/60 border border-white/[0.04] relative flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#c8f252]/5 to-transparent pointer-events-none"></div>
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCt95JwkhE8yRw-lN5LVufHeysmo_Tx4g422kygjbcknm6iYM2kog6FNP9p10ilUdzet_-eEK_SmQDdAJ4gn7R4z7vOckZxEvP5fDhe73okFxbdqMqafgfFiwBq84_RWdHVsTKUPj6lHCy_i2OCuU-KzCgL5dlgPgAL2mQHnSy1z-BwbsNDJL0c53IiOCBJoqeiQFxWm1h3qLDsKL9RIYLwZgUVv0ffvyVMhOHpejkMcHbgGx2Vf1398QJOMtLE3M0mpzQPn6Tewi" alt="Adım 1" className="max-h-full max-w-full object-contain relative z-10" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCt95JwkhE8yRw-lN5LVufHeysmo_Tx4g422kygjbcknm6iYM2kog6FNP9p10ilUdzet_-eEK_SmQDdAJ4gn7R4z7vOckZxEvP5fDhe73okFxbdqMqafgfFiwBq84_RWdHVsTKUPj6lHCy_i2OCuU-KzCgL5dlgPgAL2mQHnSy1z-BwbsNDJL0c53IiOCBJoqeiQFxWm1h3qLDsKL9RIYLwZgUVv0ffvyVMhOHpejkMcHbgGx2Vf1398QJOMtLE3M0mpzQPn6Tewi" alt="Adım 1" className="max-h-full max-w-full object-contain" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#c8f252] uppercase tracking-wider block">Adım 1</span>
-                <h3 className="font-black text-white text-lg tracking-tight">İhtiyacını AI Asistanına Anlat</h3>
-                <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-semibold">
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 1</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight">İhtiyacını AI Asistanına Anlat</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Akıllı asistanımızla birkaç basit soruda ihtiyacını belirle, sistem arka planda çalışsın.
                 </p>
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white/[0.02] border border-white/[0.06] p-6 rounded-3xl hover:border-[#c8f252]/25 transition-all duration-300 hover:-translate-y-1">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-950/60 border border-white/[0.04] relative flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#c8f252]/5 to-transparent pointer-events-none"></div>
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvamRiNA9s2c-7R_M4F9BcxAWPUJLHbzE9o0YDOl8-g4r_XrZNxXGzMpr2AIxNg4xok-xwAz4fH7iHXQLgdfSr8ChKPzehv5XV7ogXSlf_LU6L2NpueS6GmecAa-0GEy3bSmsq6GM1r_rH87VOGMbWoS2CpBy5niUiiLGBKlCbkaSu1X5GrMh4uPT5-qVApMRhtU4x5GTz1cWfZK6loc4sGGiW4jmQu47GG5Fxnml_3U0SYOCTDRiyb51fzdbrUHABuUzNHCyhYyc" alt="Adım 2" className="max-h-full max-w-full object-contain relative z-10" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvamRiNA9s2c-7R_M4F9BcxAWPUJLHbzE9o0YDOl8-g4r_XrZNxXGzMpr2AIxNg4xok-xwAz4fH7iHXQLgdfSr8ChKPzehv5XV7ogXSlf_LU6L2NpueS6GmecAa-0GEy3bSmsq6GM1r_rH87VOGMbWoS2CpBy5niUiiLGBKlCbkaSu1X5GrMh4uPT5-qVApMRhtU4x5GTz1cWfZK6loc4sGGiW4jmQu47GG5Fxnml_3U0SYOCTDRiyb51fzdbrUHABuUzNHCyhYyc" alt="Adım 2" className="max-h-full max-w-full object-contain" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#c8f252] uppercase tracking-wider block">Adım 2</span>
-                <h3 className="font-black text-white text-lg tracking-tight">Teklifleri Topla</h3>
-                <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-semibold">
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 2</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight">Teklifleri Topla</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Mahallendeki onaylanmış usta ve esnaflardan gelen teklifleri ve fiyatları gör.
                 </p>
               </div>
             </div>
 
             {/* Step 3 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white/[0.02] border border-white/[0.06] p-6 rounded-3xl hover:border-[#c8f252]/25 transition-all duration-300 hover:-translate-y-1">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-950/60 border border-white/[0.04] relative flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#c8f252]/5 to-transparent pointer-events-none"></div>
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsDiQBcW0vdCtjUNBiLOoqy-em53AITIxtj9_DgZ84-iqVWZM2uIOgrqs4w5NCPgEbSZ0eiijGGSea493LmQNUFZae3zifPcaskbAS2Zq24mS1xd5vqXCZP_Cd0O5xNqqLenI9K1yT4e3QuBddL6sNTZDe4Z51sHyRuDq1J6wXjMAxUndCUpbG1LfSHPHQMDERGPtdBd1RQvUU3lUCALmRC0F5mwoe2BGwMFXmkWW8Ai5iZId15lE7t_JIftDQYBlPX8UFGd1G34J" alt="Adım 3" className="max-h-full max-w-full object-contain relative z-10" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsDiQBcW0vdCtjUNBiLOoqy-em53AITIxtj9_DgZ84-iqVWZM2uIOgrqs4w5NCPgEbSZ0eiijGGSea493LmQNUFZae3zifPcaskbAS2Zq24mS1xd5vqXCZP_Cd0O5xNqqLenI9K1yT4e3QuBddL6sNTZDe4Z51sHyRuDq1J6wXjMAxUndCUpbG1LfSHPHQMDERGPtdBd1RQvUU3lUCALmRC0F5mwoe2BGwMFXmkWW8Ai5iZId15lE7t_JIftDQYBlPX8UFGd1G34J" alt="Adım 3" className="max-h-full max-w-full object-contain" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#c8f252] uppercase tracking-wider block">Adım 3</span>
-                <h3 className="font-black text-white text-lg tracking-tight">Karşılaştır ve Seç</h3>
-                <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-semibold">
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 3</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight">Karşılaştır ve Seç</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Usta profillerini, referansları inceleyin; fiyatları karşılaştırıp en uygununu seçin.
                 </p>
               </div>
@@ -718,55 +712,54 @@ export default function Home() {
       </section>
 
       {/* Neden Biz Section */}
-      <section id="why-us" className="py-24 bg-[#030712] border-t border-white/[0.05]">
+      <section id="why-us" className="py-24 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <span className="text-xs font-bold text-[#c8f252] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Neden Esnaaf</span>
-            <h2 className="font-extrabold text-3xl md:text-4xl text-white tracking-tight">Uzağa Arama, Mahallendeki Esnaflara Hızlıca Ulaş</h2>
-            <p className="font-body text-slate-450 text-sm">Ev işlerini stresli bir yükten, mahalle esnafıyla keyifli bir işbirliğine dönüştürüyoruz.</p>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-slate-200/50">Neden Esnaaf</span>
+            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Uzağa Arama, Mahallendeki Esnaflara Hızlıca Ulaş</h2>
+            <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalle esnafıyla keyifli bir işbirliğine dönüştürüyoruz.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white/[0.02] border border-white/[0.06] p-8 rounded-3xl hover:border-[#c8f252]/30 hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1">
-              <div className="w-14 h-14 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-sm transition-all duration-300">
+            <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-150/55 hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1 hover:shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
                 <span className="material-symbols-outlined text-2xl font-bold">verified_user</span>
               </div>
-              <h3 className="font-black text-white text-lg mb-3 tracking-tight">Güvenli Hizmet</h3>
-              <p className="font-body text-xs text-slate-400 leading-relaxed font-semibold">Gerçek mahalle sakinlerinin yorumleriyle hizmet kalitesini görün, güvenle seçin.</p>
+              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight">Güvenli Hizmet</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Gerçek mahalle sakinlerinin yorumleriyle hizmet kalitesini görün, güvenle seçin.</p>
             </div>
             
-            <div className="bg-white/[0.02] border border-white/[0.06] p-8 rounded-3xl hover:border-[#c8f252]/30 hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1">
-              <div className="w-14 h-14 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-sm transition-all duration-300">
+            <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-150/55 hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1 hover:shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
                 <span className="material-symbols-outlined text-2xl font-bold">timer</span>
               </div>
-              <h3 className="font-black text-white text-lg mb-3 tracking-tight">Zaman Kazan</h3>
-              <p className="font-body text-xs text-slate-400 leading-relaxed font-semibold">Dükkan dükkan gezmeyin. 1 dakikada talebi gönderin, teklifler cebinize gelsin.</p>
+              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight">Zaman Kazan</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Dükkan dükkan gezmeyin. 1 dakikada talebi gönderin, teklifler cebinize gelsin.</p>
             </div>
             
-            <div className="bg-white/[0.02] border border-white/[0.06] p-8 rounded-3xl hover:border-[#c8f252]/30 hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1">
-              <div className="w-14 h-14 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-sm transition-all duration-300">
+            <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-150/55 hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1 hover:shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
                 <span className="material-symbols-outlined text-2xl font-bold">touch_app</span>
               </div>
-              <h3 className="font-black text-white text-lg mb-3 tracking-tight">Kolay Kullanım</h3>
-              <p className="font-body text-xs text-slate-400 leading-relaxed font-semibold">Pratik chat asistanımızla detayları birkaç soruda belirleyin, zamanınız size kalsın.</p>
+              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight">Kolay Kullanım</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Pratik chat asistanımızla detayları birkaç soruda belirleyin, zamanınız size kalsın.</p>
             </div>
             
-            <div className="bg-white/[0.02] border border-white/[0.06] p-8 rounded-3xl hover:border-[#c8f252]/30 hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1">
-              <div className="w-14 h-14 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-sm transition-all duration-300">
+            <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-150/55 hover:border-[#c8f252] hover:bg-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1 hover:shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
                 <span className="material-symbols-outlined text-2xl font-bold">security</span>
               </div>
-              <h3 className="font-black text-white text-lg mb-3 tracking-tight">Garantide Ol</h3>
-              <p className="font-body text-xs text-slate-400 leading-relaxed font-semibold">Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır.</p>
+              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight">Garantide Ol</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Provider Join CTA Section */}
-      <section className="py-24 bg-[#030712] border-t border-white/[0.05] px-4 md:px-6">
-        <div className="max-w-7xl mx-auto bg-white/[0.02] border border-white/[0.06] rounded-[2rem] overflow-hidden grid md:grid-cols-2 items-center shadow-[0_0_50px_rgba(200,242,82,0.02)]">
+      <section className="py-24 bg-white border-t border-slate-100 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto bg-slate-50 border border-slate-150/50 rounded-[2rem] overflow-hidden grid md:grid-cols-2 items-center">
           <div className="h-96 md:h-[450px] relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#030712]/60 z-10"></div>
             <img
               alt="Esnaaf Provider"
               className="w-full h-full object-cover"
@@ -774,14 +767,14 @@ export default function Home() {
             />
           </div>
           <div className="p-8 md:p-16 space-y-6">
-            <span className="text-xs font-extrabold text-[#c8f252] uppercase tracking-widest block">Komşu Esnaf Olarak Platformumuza Katıl</span>
-            <h2 className="font-bold text-3xl text-white leading-tight">Müşterilere Kolayca Ulaşın ve İşinizi Büyütün</h2>
-            <p className="font-body text-sm text-slate-400 leading-relaxed">
+            <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Komşu Esnaf Olarak Platformumuza Katıl</span>
+            <h2 className="font-bold text-3xl text-slate-900 leading-tight">Müşterilere Kolayca Ulaşın ve İşinizi Büyütün</h2>
+            <p className="font-body text-sm text-slate-500 leading-relaxed">
               İşinizi büyütmek, mahalledeki yeni iş fırsatlarına anında ulaşmak ve referans edinmek için hemen aramıza katılın.
             </p>
             <button
               onClick={handleHizmetVerRedirect}
-              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/10"
+              className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md"
             >
               Aramıza Katıl / İşe Başla
             </button>
@@ -790,12 +783,12 @@ export default function Home() {
       </section>
 
       {/* Category Link List 1 */}
-      <section className="py-16 bg-[#080c14] border-t border-white/[0.05] px-4 md:px-6">
+      <section className="py-16 bg-white border-t border-slate-100 px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
-          <h3 className="font-bold text-xl text-white">
-            Mahallendeki En Çok Tercih Edilen <span className="text-[#c8f252]">Esnaflar ve Hizmetler :</span>
+          <h3 className="font-bold text-xl text-slate-900">
+            Mahallendeki En Çok Tercih Edilen <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
           </h3>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-400 font-semibold">
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
             {[
               { name: "Ev Temizliği", slug: "ev-temizligi" },
               { name: "Boya Badana", slug: "boya-badana" },
@@ -813,7 +806,7 @@ export default function Home() {
               <Link
                 key={idx}
                 href={`/hizmet/${link.slug}`}
-                className="hover:text-[#c8f252] transition-colors hover:underline"
+                className="hover:text-slate-900 transition-colors hover:underline"
               >
                 {link.name}
               </Link>
@@ -823,8 +816,8 @@ export default function Home() {
       </section>
 
       {/* Cleaners Banner Section */}
-      <section className="py-12 bg-[#030712] px-4 md:px-6">
-        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-[#0b0f19] border border-white/[0.06] text-white grid md:grid-cols-12 items-center shadow-[0_0_50px_rgba(200,242,82,0.03)]">
+      <section className="py-12 bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-900 text-white grid md:grid-cols-12 items-center shadow-lg">
           <div className="md:col-span-7 p-8 md:p-16 space-y-6">
             <h2 className="font-bold text-3xl md:text-4xl text-white tracking-tight">
               Komşu Esnaflarla Hayatını Kolaylaştır
@@ -834,13 +827,12 @@ export default function Home() {
             </p>
             <button
               onClick={() => handleStartChat("Merhaba, hizmet almak istiyorum.")}
-              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/10"
+              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md"
             >
               Fiyat Hesapla / Başla
             </button>
           </div>
           <div className="md:col-span-5 h-80 md:h-[400px] relative">
-            <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#0b0f19]/70 z-10"></div>
             <img
               alt="Esnaaf Cleaners"
               className="w-full h-full object-cover"
@@ -851,12 +843,12 @@ export default function Home() {
       </section>
 
       {/* Category Link List 2 */}
-      <section className="py-16 bg-[#080c14] px-4 md:px-6">
+      <section className="py-16 bg-white px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
-          <h3 className="font-bold text-xl text-white">
-            En Çok Tercih Edilen İllerde <span className="text-[#c8f252]">Esnaflar ve Hizmetler :</span>
+          <h3 className="font-bold text-xl text-slate-900">
+            En Çok Tercih Edilen İllerde <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
           </h3>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-450 font-semibold">
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
             {[
               { name: "İstanbul Ev Temizliği", slug: "istanbul-ev-temizligi" },
               { name: "İstanbul Boya Badana", slug: "istanbul-boya-badana" },
@@ -872,7 +864,7 @@ export default function Home() {
               <Link
                 key={idx}
                 href={`/hizmet/${link.slug}`}
-                className="hover:text-[#c8f252] transition-colors hover:underline"
+                className="hover:text-slate-900 transition-colors hover:underline"
               >
                 {link.name}
               </Link>
@@ -882,29 +874,28 @@ export default function Home() {
       </section>
 
       {/* Guarantee Banner Section */}
-      <section className="py-12 bg-[#030712] px-4 md:px-6">
-        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-white/[0.02] border border-white/[0.06] grid md:grid-cols-12 items-center shadow-sm">
+      <section className="py-12 bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-50 border border-slate-150/50 grid md:grid-cols-12 items-center shadow-sm">
           <div className="md:col-span-6 h-80 md:h-[400px] relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#030712]/40 z-10"></div>
             <img
               alt="Esnaaf Guarantee"
               className="w-full h-full object-cover"
               src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
             />
           </div>
-          <div className="md:col-span-6 p-8 md:p-16 bg-[#c8f252]/5 h-full flex flex-col justify-center space-y-6">
+          <div className="md:col-span-6 p-8 md:p-16 bg-[#c8f252]/10 h-full flex flex-col justify-center space-y-6">
             <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 shadow-md">
               <span className="material-symbols-outlined text-2xl font-bold">verified</span>
             </div>
-            <h2 className="font-bold text-3xl text-white leading-tight">
+            <h2 className="font-bold text-3xl text-slate-900 leading-tight">
               Mahallede Komşu Esnaf Garantisi
             </h2>
-            <p className="font-body text-sm text-slate-400 leading-relaxed">
+            <p className="font-body text-sm text-slate-600 leading-relaxed">
               Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır. İletişimden iş teslimine, her anınız güvence altında.
             </p>
             <button
               onClick={() => handleStartChat("Merhaba, esnaf garantisi hakkında bilgi almak istiyorum.")}
-              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/10 self-start"
+              className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md self-start"
             >
               Detayları Öğren
             </button>
@@ -913,17 +904,17 @@ export default function Home() {
       </section>
 
       {/* 📱 Mobile App Download Banner */}
-      <section id="app-download" className="py-24 bg-[#080c14] relative overflow-hidden border-t border-white/[0.05]">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#c8f252]/5 rounded-full blur-3xl z-0"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#c8f252]/5 rounded-full blur-3xl z-0"></div>
+      <section id="app-download" className="py-24 bg-surface-container-low relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
         
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-8">
-              <h2 className="font-bold text-4xl md:text-5xl text-white leading-tight tracking-tight">
+              <h2 className="font-bold text-4xl md:text-5xl text-on-surface leading-tight tracking-tight">
                 Esnaaf uygulamasını hemen indir, mahallede işlerini bitir!
               </h2>
-              <p className="font-body text-lg text-slate-400 max-w-xl leading-relaxed">
+              <p className="font-body text-lg text-on-surface-variant max-w-xl leading-relaxed">
                 Esnaaf uygulamasını indir, ihtiyacın olan hizmete saniyeler içinde ulaş. Teklifleri anında gör, uzmanlarla kolayca mesajlaş.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -937,7 +928,7 @@ export default function Home() {
             </div>
             <div className="flex-1 flex justify-center md:justify-end">
               <div className="relative w-full max-w-md rotate-2 hover:rotate-0 transition-transform duration-500">
-                <div className="mt-8 rounded-2xl overflow-hidden shadow-2xl border border-white/[0.08] bg-slate-950 p-2">
+                <div className="mt-8 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant/30 bg-white p-2">
                   <img alt="Esnaaf App Interface" className="w-full h-auto rounded-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRABpQqqodNck5bA6D8cfyAw3v1fzULbILofVeKvHmb80398nyHGcehqh91codwKbasdYR8cPIRjc-F7YPrpY_4jRSXRMgZWS_HL8xIn8McdBTSYPzhK1hhKTpfyxueGWcaatP4ZvZZRPCIBoZFnarTyHYaaP4EWc2c5firTC3ANLVJTgaBmDug8_PmaO5cbEEtGaNIQMGsRk_74LklFA9mmoj13tf3S9M8EHQmHBJl0X9iMpHBvkNJotf0Q-NBEiSA3QlJ42Fw8sC" />
                 </div>
               </div>
@@ -947,59 +938,59 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#030712] border-t border-white/[0.05] py-24">
+      <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
           <div className="space-y-6">
             <img
               alt="Esnaaf Logo"
-              className="h-14 w-auto brightness-0 invert"
+              className="h-14 w-auto"
               src="/logo.png"
             />
-            <p className="text-sm font-body text-slate-400 leading-relaxed">
+            <p className="text-sm font-body text-on-surface-variant leading-relaxed">
               Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
             </p>
           </div>
           
           <div className="space-y-4">
-            <h4 className="font-bold text-xs text-white uppercase tracking-widest">HİZMETLER</h4>
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">HİZMETLER</h4>
             <ul className="space-y-2">
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Ev Boyama</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Temizlik</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Nakliye</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Tadilat</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Ev Boyama</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Temizlik</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Nakliye</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Tadilat</Link></li>
             </ul>
           </div>
           
           <div className="space-y-4">
-            <h4 className="font-bold text-xs text-white uppercase tracking-widest">KURUMSAL</h4>
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">KURUMSAL</h4>
             <ul className="space-y-2">
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Hakkımızda</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Kariyer</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Basın</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">İletişim</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Hakkımızda</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kariyer</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Basın</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">İletişim</Link></li>
             </ul>
           </div>
           
           <div className="space-y-4">
-            <h4 className="font-bold text-xs text-white uppercase tracking-widest">YARDIM</h4>
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">YARDIM</h4>
             <ul className="space-y-2">
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Gizlilik Politikası</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Kullanıcı Sözleşmesi</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Güvenlik</Link></li>
-              <li><Link href="/" className="text-slate-400 hover:text-[#c8f252] transition-colors text-xs font-semibold">Destek Merkezi</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Gizlilik Politikası</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kullanıcı Sözleşmesi</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Güvenlik</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Destek Merkezi</Link></li>
             </ul>
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mt-16 pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-          <p className="text-xs font-body text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mt-16 pt-8 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+          <p className="text-xs font-body text-on-surface-variant opacity-80">
             © {new Date().getFullYear()} Esnaaf Home Services. Tüm hakları saklıdır.
           </p>
           <div className="flex gap-4">
-            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-[#c8f252] hover:text-slate-950 transition-colors cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
               <span className="material-symbols-outlined text-sm">public</span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-[#c8f252] hover:text-slate-950 transition-colors cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
               <span className="material-symbols-outlined text-sm">mail</span>
             </div>
           </div>
@@ -1007,13 +998,13 @@ export default function Home() {
       </footer>
 
       {/* 📱 BottomNavBar (Mobile Only) */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 md:hidden bg-slate-950/80 backdrop-blur-xl border-t border-white/[0.06] shadow-[0_-4px_25px_rgba(0,0,0,0.4)] rounded-t-2xl pb-4">
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe pt-2 md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_25px_rgba(0,0,0,0.03)] rounded-t-2xl pb-4">
         <button 
           onClick={() => {
             setActiveTab("marketplace");
             setIsModalOpen(true);
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "marketplace" ? "text-[#c8f252] bg-[#c8f252]/10 font-bold" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "marketplace" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
           <span className="material-symbols-outlined text-xl mb-0.5">menu</span>
           <span className="font-label-sm text-[9px] font-bold">Kategoriler</span>
@@ -1025,7 +1016,7 @@ export default function Home() {
             if (searchInputRef.current) searchInputRef.current.focus();
             triggerNotification("Yeni bir eşleşme başlatmak için yukarıdaki arama alanını kullanabilirsiniz.");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "services" ? "text-[#c8f252] bg-[#c8f252]/10 font-bold" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "services" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
           <span className="material-symbols-outlined text-xl mb-0.5">bolt</span>
           <span className="font-label-sm text-[9px] font-bold">Eşleşmeler</span>
@@ -1036,7 +1027,7 @@ export default function Home() {
             setActiveTab("help");
             triggerNotification("Gelen kutunuz yakında burada aktif olacaktır!");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-[#c8f252] bg-[#c8f252]/10 font-bold" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
           <span className="material-symbols-outlined text-xl mb-0.5">mail</span>
           <span className="font-label-sm text-[9px] font-bold">Gelen Kutusu</span>
