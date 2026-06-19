@@ -438,7 +438,7 @@ export default function Home() {
             <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <img
                 alt="Esnaaf Logo"
-                className="h-12 w-auto cursor-pointer"
+                className="h-[72px] w-auto cursor-pointer object-contain"
                 src="/logo.png"
               />
             </a>
