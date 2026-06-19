@@ -2,6 +2,21 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-19 style | Ana Sayfa Tasarımının Wix Mockup ve Logolarıyla Yenilenmesi
+
+- **Ana Sayfa Görsel Yenilemesi (`app-musteri/app/page.tsx`):**
+  - Wix/Stitch mockup tasarımı (`https://orbitdijital.wixstudio.com/esnaaf`) referans alınarak anasayfa modern, şık ve premium bir tasarım diline uyarlandı.
+  - Kahraman (Hero) başlığı, açıklama metni ve yapay zeka arama kutusu yatay olarak ortalandı; altına bouncy kaydırma ok butonu entegre edildi.
+  - Kategoriler alanı mockup'taki gibi yeşil yuvarlak butonlar ve altındaki isim etiketleriyle dairesel olarak dizildi.
+  - Her trend hizmet kartına esnaaf'ın özel yeşil 'e' logo pini (logo-icon.png) ve puan/lokasyon bilgisi overlay olarak yerleştirildi.
+  - "3 Kolay Adımla" süreci yan yana 3 kolonlu modern bir yapıya kavuşturuldu.
+  - Mahallendeki ve illerdeki tercih edilen esnaflar link listeleri ikiye ayrıldı. Araya custom yapay zekayla üretilmiş `/esnaaf_cleaners.png` ve `/esnaaf_van_driver.png` görsellerini barındıran "Komşu Esnaflarla Hayatını Kolaylaştır" ve "Mahallede Komşu Esnaf Garantisi" banner'ları yerleştirildi.
+  - `activeView === "dashboard"` durumunda oluşan çift return derleme hatası giderilerek `SeekerDashboard` props'larıyla sağlıklı şekilde entegre edildi. next/link importu eklendi.
+- **Resmi Logo & İkon Güncellemeleri (`app-musteri/public/`):**
+  - Gönderilen resmi esnaaf logoları ve ikonları (`media__1781882872176.png`, `media__1781882872180.png`, `media__1781882872231.png`) sisteme dahil edildi.
+  - `logo.png` (resmi yazılı logo), `logo-icon.png` (yeşil zemin üzerine koyu 'e' pin ikonu) ve `logo-icon-dark.png` (koyu zemin üzerine yeşil 'e' pin ikonu) olarak kaydedilip sayfa üzerinde menü, footer ve kart pinlerinde doğru şekilde kullanıldı.
+- Müşteri uygulaması Next.js production build ile derlenerek kodun sorunsuz çalıştığı doğrulandı ve `main` branch'ine push edilerek GCP deployment tetiklendi.
+
 ## 2026-06-18 cache | Firebase CDN ve Cloud Run Cache-Control Güncellemesi
 
 - **Cache-Control Header Ayarlamaları (`app-musteri/next.config.ts`, `app-hizmetveren/next.config.ts`):**
