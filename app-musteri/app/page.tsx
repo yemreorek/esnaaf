@@ -609,16 +609,16 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[
-            { name: "Ev Temizliği", image: "/temizlik.png", rating: "4.8", count: "9.861 usta" },
-            { name: "Boya Badana", image: "/boya.png", rating: "4.9", count: "5.546 usta" },
-            { name: "Nakliyat", image: "/nakliyat.png", rating: "4.7", count: "2.976 usta" },
-            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120 usta" },
-            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245 usta" },
-            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890 usta" },
-            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100 usta" },
-            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540 usta" },
+            { name: "Ev Temizliği", image: "/temizlik.png", rating: "4.8", count: "9.861", commentCount: "8.875" },
+            { name: "Boya Badana", image: "/boya.png", rating: "4.9", count: "5.546", commentCount: "4.920" },
+            { name: "Nakliyat", image: "/nakliyat.png", rating: "4.7", count: "2.976", commentCount: "2.540" },
+            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
+            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
+            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
+            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
+            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
-            <div key={idx} className="bg-white border border-slate-150/60 rounded-3xl overflow-hidden flex flex-col justify-between hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:border-[#c8f252]/40 hover:-translate-y-1 transition-all duration-300 group relative">
+            <div key={idx} className="bg-white border border-slate-150/60 rounded-[32px] overflow-hidden flex flex-col justify-between hover:shadow-[0_12px_35px_rgba(0,0,0,0.05)] hover:border-[#c8f252]/40 hover:-translate-y-1 transition-all duration-300 group relative shadow-xs">
               <div className="relative h-48 w-full overflow-hidden shrink-0">
                 <img
                   alt={srv.name}
@@ -630,23 +630,44 @@ export default function Home() {
                 <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center p-1.5 shadow-md border border-white/50">
                   <img src="/logo-icon.png" alt="esnaaf" className="w-full h-full object-contain" />
                 </div>
-
-                {/* Location/Rating badge */}
-                <span className="absolute top-3 right-3 bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md border border-white/5">
-                  <span className="material-symbols-outlined text-[12px] font-extrabold text-[#c8f252]">star</span>
-                  <span>{srv.rating}</span>
-                  <span className="text-slate-400">({srv.count.split(" ")[0]})</span>
-                </span>
               </div>
               
-              <div className="p-6 flex flex-col justify-between flex-grow gap-4">
-                <div>
-                  <h3 className="font-black text-slate-900 text-base group-hover:text-[#719600] transition-colors tracking-tight">{srv.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mt-1">{srv.count}</p>
+              <div className="p-5 flex flex-col justify-between flex-grow gap-4.5">
+                <div className="space-y-2">
+                  <h3 className="font-extrabold text-[#719600] text-[15px] group-hover:opacity-90 transition-opacity tracking-tight">{srv.name}</h3>
+                  
+                  {/* Rating / Counts row */}
+                  <div className="flex justify-between items-center w-full">
+                    {/* Left: Professional Count */}
+                    <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px]">
+                      <span className="material-symbols-outlined text-[13px] shrink-0 text-slate-400">group</span>
+                      <span>{srv.count} Profesyonel</span>
+                    </div>
+
+                    {/* Right: Rating Box & Stars */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="bg-[#c8f252] text-slate-950 font-black text-[10px] px-1.5 py-1 rounded-md shadow-xs shrink-0">
+                        {srv.rating}
+                      </div>
+                      <div className="flex flex-col justify-center leading-none">
+                        <div className="flex items-center text-amber-500 select-none">
+                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                        </div>
+                        <span className="text-[8px] text-slate-400 font-bold mt-0.5 tracking-tight shrink-0 whitespace-nowrap">
+                          ({srv.commentCount} Onaylı Yorum)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
                 <button
                   onClick={() => handleSelectCategory(srv.name)}
-                  className="w-full bg-slate-950 hover:bg-[#719600] text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-xs"
+                  className="w-full bg-[#181d20] hover:bg-[#719600] text-white font-extrabold text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-sm"
                 >
                   Teklif Al
                 </button>
