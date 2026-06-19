@@ -628,7 +628,7 @@ export default function Home() {
             { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
             { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
-            <div key={idx} className="bg-white border border-slate-150/60 rounded-[32px] overflow-hidden flex flex-col justify-between hover:shadow-[0_12px_35px_rgba(0,0,0,0.05)] hover:border-[#c8f252]/40 hover:-translate-y-1 transition-all duration-300 group relative shadow-xs">
+            <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
               <div className="relative h-48 w-full overflow-hidden shrink-0">
                 <img
                   alt={srv.name}
