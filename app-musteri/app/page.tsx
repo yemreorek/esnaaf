@@ -619,14 +619,14 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[
-            { name: "Ev Temizliği", image: "/temizlik.png", rating: "4.8", count: "9.861", commentCount: "8.875" },
-            { name: "Boya Badana", image: "/boya.png", rating: "4.9", count: "5.546", commentCount: "4.920" },
-            { name: "Nakliyat", image: "/nakliyat.png", rating: "4.7", count: "2.976", commentCount: "2.540" },
-            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
-            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
-            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
-            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
-            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
+            { name: "Ev Temizliği", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "9.861", commentCount: "8.875" },
+            { name: "Boya Badana", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "5.546", commentCount: "4.920" },
+            { name: "Nakliyat", image: "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.976", commentCount: "2.540" },
+            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
+            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
+            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
+            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1647329797478-52c45b06856b?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
+            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
             <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
               <div className="relative h-48 w-full overflow-hidden shrink-0">
