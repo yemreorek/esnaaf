@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://esnaaf-backend-339090537138.europe-west3.run.app'}/api/:path*`,
       },
     ];
   },

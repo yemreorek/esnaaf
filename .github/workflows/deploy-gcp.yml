@@ -91,6 +91,7 @@ jobs:
             --allow-unauthenticated
             --port=3000
             --min-instances=1
+            --set-env-vars=NEXT_PUBLIC_API_URL="https://esnaaf-backend-339090537138.europe-west3.run.app",NEXT_PUBLIC_WS_URL="https://esnaaf-backend-339090537138.europe-west3.run.app"
 
   deploy-hizmetveren-frontend:
     name: Build & Deploy Provider Web App
@@ -130,3 +131,4 @@ jobs:
             --allow-unauthenticated
             --port=3000
             --min-instances=1
+            --set-env-vars=NEXT_PUBLIC_API_URL="https://esnaaf-backend-339090537138.europe-west3.run.app",NEXT_PUBLIC_WS_URL="https://esnaaf-backend-339090537138.europe-west3.run.app"
