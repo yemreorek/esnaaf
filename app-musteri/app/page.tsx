@@ -636,11 +636,11 @@ export default function Home() {
                   src={srv.image}
                 />
                 
-                {/* Branded esnaaf marker pin badge - doubled in size to w-24 h-24 */}
+                {/* Branded esnaaf marker pin badge - sized to w-18 h-18 and positioned at top-left corner */}
                 <img
                   src="/logo-icon.png"
                   alt="esnaaf"
-                  className="absolute top-3 left-3 w-24 h-24 object-contain select-none filter drop-shadow-md"
+                  className="absolute top-2 left-2 w-18 h-18 object-contain select-none filter drop-shadow-md"
                 />
               </div>
               
