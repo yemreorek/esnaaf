@@ -435,12 +435,14 @@ export default function Home() {
       <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
           <div className="flex items-center gap-12">
-            <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              <img
-                alt="Esnaaf Logo"
-                className="h-[72px] w-auto cursor-pointer object-contain"
-                src="/logo.png"
-              />
+            <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center">
+              <div className="h-16 w-[180px] overflow-hidden flex items-center justify-center relative cursor-pointer">
+                <img
+                  alt="Esnaaf Logo"
+                  className="absolute h-[180px] w-auto max-w-none object-contain"
+                  src="/logo.png"
+                />
+              </div>
             </a>
             <nav className="hidden md:flex gap-8">
               <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
