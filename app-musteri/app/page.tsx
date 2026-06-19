@@ -567,10 +567,10 @@ export default function Home() {
 
             {/* App Store & Google Play Download Badges */}
             <div className="flex gap-4 items-center justify-center pt-2 select-none z-10">
-              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg rounded-xl overflow-hidden h-[42px] border border-slate-150">
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[56px] rounded-2xl overflow-hidden">
                 <img src="/app-store.jpg" alt="App Store'dan İndirin" className="h-full w-auto object-contain" />
               </a>
-              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg rounded-xl overflow-hidden h-[42px] border border-slate-150">
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[56px] rounded-2xl overflow-hidden">
                 <img src="/google-play.jpg" alt="Google Play'den Alın" className="h-full w-auto object-contain" />
               </a>
             </div>
