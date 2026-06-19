@@ -636,10 +636,12 @@ export default function Home() {
                   src={srv.image}
                 />
                 
-                {/* Branded esnaaf marker pin badge */}
-                <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center p-1.5 shadow-md border border-white/50">
-                  <img src="/logo-icon.png" alt="esnaaf" className="w-full h-full object-contain" />
-                </div>
+                {/* Branded esnaaf marker pin badge - enlarged and without white circle */}
+                <img
+                  src="/logo-icon.png"
+                  alt="esnaaf"
+                  className="absolute top-3 left-3 w-12 h-12 object-contain select-none filter drop-shadow-md"
+                />
               </div>
               
               <div className="p-5 flex flex-col justify-between flex-grow gap-4.5">
