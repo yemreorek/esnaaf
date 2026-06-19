@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import ChatScreen from "../components/ChatScreen";
 import SeekerDashboard from "../components/SeekerDashboard";
 import { startNewSession, isLoggedIn, getAuthUser, logout } from "../lib/session";
@@ -394,97 +395,70 @@ export default function Home() {
     );
   }
 
+  // Check if logged in on mount
+  useEffect(() => {
+    if (isLoggedIn()) {
+      setIsClientLoggedIn(true);
+      setClientUser(getAuthUser());
+      setActiveView("dashboard");
+    }
+  }, []);
+
   // Render Seeker Dashboard if dashboard active
   if (activeView === "dashboard") {
     return (
       <SeekerDashboard
         initialJobId={selectedJobId}
         onLogout={() => {
+          logout();
+          setIsClientLoggedIn(false);
+          setClientUser(null);
           setActiveView("home");
-          setSelectedJobId(null);
+          triggerNotification("Çıkış yapıldı.");
         }}
       />
     );
   }
 
   return (
-    <div className="bg-[#f8fafc] text-slate-900 font-body-md antialiased overflow-x-hidden selection:bg-accent selection:text-slate-900 min-h-screen pb-16 md:pb-0 relative">
+    <div className="bg-background text-on-background selection:bg-primary/20 font-body antialiased overflow-x-hidden min-h-screen pb-16 md:pb-0 relative">
       
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-24 right-4 z-[99] bg-white/95 text-slate-900 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-slide-up max-w-sm">
-          <svg className="w-5 h-5 text-[#2ecc71] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span className="font-button-text text-sm text-slate-800">{notification}</span>
+        <div className="fixed top-24 right-4 z-[99] bg-white/95 text-slate-900 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-outline-variant/30 flex items-center gap-3 animate-slide-up max-w-sm">
+          <span className="material-symbols-outlined text-primary">verified</span>
+          <span className="font-semibold text-sm text-on-surface-variant">{notification}</span>
         </div>
       )}
 
-      {/* 🧭 Header & Floating Navigation Bar */}
-      <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-4 md:px-12 py-4 h-16">
-          
-          {/* Logo & Brand Name */}
-          <div className="flex items-center w-48 h-10 relative">
-            <a className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center" href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              <img 
-                alt="Esnaaf Logo" 
-                className="w-auto select-none max-w-none" 
-                style={{ height: '120px', objectFit: 'contain' }}
-                src="/logo.png" 
+      {/* 🧭 Header (TopNavBar) */}
+      <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 border-b border-outline-variant/50 h-20 shadow-sm">
+        <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
+          <div className="flex items-center gap-12">
+            <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              <img
+                alt="Esnaaf Logo"
+                className="h-14 w-auto cursor-pointer"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
               />
             </a>
+            <nav className="hidden md:flex gap-8">
+              <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#how-it-works">Nasıl Çalışır</a>
+              <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#trend-services">Hizmetler</a>
+              <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#why-us">Neden Esnaaf</a>
+              <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#app-download">Uygulamamız</a>
+            </nav>
           </div>
           
-          {/* Mockup Tabs - Marketplace, Services, Help */}
-          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-slate-100/50 border border-slate-200/50">
-            <button 
-              onClick={() => setActiveTab("marketplace")} 
-              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "marketplace" ? "bg-white text-slate-900 shadow-sm border-b-2 border-[#88b000]" : "text-slate-500 hover:text-slate-800"}`}
-            >
-              Pazaryeri
-            </button>
-            <button 
-              onClick={() => {
-                setActiveTab("services");
-                setIsModalOpen(true);
-              }} 
-              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "services" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            >
-              Hizmetler
-            </button>
-            <button 
-              onClick={() => {
-                setActiveTab("help");
-                triggerNotification("Yardım ve Destek merkezimiz çok yakında hizmetinizde!");
-              }} 
-              className={`font-button-text text-xs px-5 py-2 rounded-full transition-all cursor-pointer ${activeTab === "help" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            >
-              Yardım
-            </button>
-          </div>
-
-          {/* Action Icons on the Right (Giriş & Hizmet Ver) */}
-          <div>
+          <div className="flex items-center gap-3">
             {isClientLoggedIn ? (
               <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleHizmetVerRedirect}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5"
-                >
-                  <span>Hizmet Ver</span>
-                </button>
-                
                 <button
                   onClick={() => setActiveView("dashboard")}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5 border border-transparent scale-bounce"
+                  className="bg-primary text-on-primary px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer"
                 >
-                  <span>Panelime Git</span>
-                  <svg className="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                  </svg>
+                  Panelim
                 </button>
-
                 <button
                   onClick={() => {
                     logout();
@@ -493,282 +467,524 @@ export default function Home() {
                     setActiveView("home");
                     triggerNotification("Çıkış yapıldı.");
                   }}
-                  className="text-slate-500 hover:text-slate-850 hover:bg-slate-50 text-xs font-bold px-4 py-2 rounded-xl transition-all border border-slate-200 cursor-pointer"
+                  className="text-on-surface-variant hover:text-primary border border-outline-variant px-5 py-2 rounded-full font-bold text-sm transition-all cursor-pointer bg-white"
                 >
                   Çıkış
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold px-4.5 py-2.5 rounded-xl transition-all border border-slate-250 cursor-pointer"
+                  className="text-on-surface-variant hover:text-primary border border-outline-variant px-5 py-2 rounded-full font-bold text-sm transition-all cursor-pointer bg-white"
                 >
-                  Giriş
+                  Giriş Yap
                 </button>
-                
-                <button 
+                <button
                   onClick={handleHizmetVerRedirect}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black px-4.5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1.5 hover:shadow-lg hover:shadow-[#c8f252]/10"
+                  className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer"
                 >
-                  <span>Hizmet Ver</span>
+                  Hizmet Ver
                 </button>
               </div>
             )}
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* 🚀 Hero Section - "Hizmet Piş, Ağzıma Düş" */}
-      <main className="relative flex flex-col items-center justify-center pt-32 pb-20 px-4 md:px-12 hero-glow min-h-[70vh] border-b border-slate-100">
-        <div className="w-full max-w-4xl text-center z-10 space-y-6 mt-6 md:mt-0">
-          
-          <h1 className="font-headline-xl text-4xl md:text-[56px] text-slate-900 tracking-tight leading-[1.15] font-extrabold">
-            Aynı Mahalleyi Paylaştığın <br />
-            <span className="text-[#88b000] font-black tracking-tight relative inline-block mt-2">
-              Esnaf'tan Teklif Al
-            </span>
-          </h1>
-          
-          <p className="font-body-md text-slate-500 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed font-semibold">
-            Yıllardır aynı sokaktan geçtiğin, belki selamlaştığın ama henüz tanışmadığın esnafları keşfet.
-          </p>
-          
-          {/* AI Sparkle Search Bar */}
-          <div className="w-full max-w-2xl mx-auto mt-8 bg-white border border-slate-200/80 rounded-full p-2 pl-5 shadow-2xl shadow-slate-200/30 hover:shadow-slate-200/50 hover:border-slate-350 focus-within:border-[#88b000] focus-within:ring-4 focus-within:ring-[#88b000]/5 transition-all duration-300">
+      {/* 🚀 Hero Section */}
+      <section className="relative min-h-[92vh] flex flex-col justify-center items-center pt-24 pb-12 overflow-hidden bg-slate-950 text-white text-center">
+        {/* Background Image with overlay */}
+        <div className="absolute inset-0 z-0">
+          <div
+            className="w-full h-full bg-cover bg-center opacity-30 filter scale-105 blur-[1.5px]"
+            style={{ backgroundImage: `url("https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=1600&auto=format&fit=crop")` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/80 to-slate-950"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto px-4 w-full flex flex-col items-center space-y-8">
+          <div className="space-y-4">
+            <h1 className="font-bold text-3xl md:text-5xl lg:text-6xl leading-tight text-white tracking-tight">
+              Aynı Mahalleyi Paylaştığın En İyi <span className="text-[#c8f252]">5 Esnaftan</span> Teklif Al
+            </h1>
+            <p className="font-body text-base md:text-xl text-slate-200 max-w-2xl mx-auto leading-relaxed">
+              Yapay zeka asistanımız yardımıyla ihtiyacını belirt, mahalledeki uzmanlardan anında teklifleri topla.
+            </p>
+          </div>
+
+          {/* AI Search Box */}
+          <div className="w-full max-w-xl bg-white border border-outline-variant/60 rounded-full p-1.5 pl-6 shadow-2xl focus-within:ring-4 focus-within:ring-[#c8f252]/30 transition-all duration-300">
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              
-              <input 
+              <span className="material-symbols-outlined text-slate-400">search</span>
+              <input
                 ref={searchInputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSend();
-                  }
+                  if (e.key === "Enter") handleSend();
                 }}
-                className="bg-transparent border-none outline-none w-full text-slate-900 font-body-md placeholder-slate-400 focus:ring-0 text-xs md:text-sm py-1.5" 
-                placeholder="Hangi hizmete ihtiyacın var? (Örn: Ev Temizliği, Nakliyat)" 
+                className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold text-sm placeholder-slate-400 focus:ring-0 p-0"
+                placeholder="Hangi hizmete ihtiyacınız var? (Örn: Ev temizliği, boya badana...)"
                 type="text"
               />
-              
-              <button 
+              <button
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
-                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-7 py-3 rounded-full font-button-text text-xs font-bold transition-all shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-[#4c630a]/10"
+                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-6 py-3.5 rounded-full font-extrabold text-sm transition-all shrink-0 active:scale-95 disabled:opacity-40 cursor-pointer shadow-md"
               >
                 Ara
               </button>
             </div>
           </div>
-          
-          {/* Quick Selection Chips with Icons */}
-          <div className="flex flex-wrap justify-center gap-2 mt-6">
-            <button 
-              onClick={() => handleSelectCategory("Ev Temizliği")}
-              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
-            >
-              {renderCategoryIcon("🧹")} Temizlik
-            </button>
-            <button 
-              onClick={() => handleSelectCategory("Ev Tadilat")}
-              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
-            >
-              {renderCategoryIcon("🔨")} Tadilat
-            </button>
-            <button 
-              onClick={() => handleSelectCategory("Evden Eve Nakliyat")}
-              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
-            >
-              {renderCategoryIcon("📦")} Nakliyat
-            </button>
-            <button 
-              onClick={() => handleSelectCategory("Su Tesisatı")}
-              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
-            >
-              {renderCategoryIcon("🔧")} Tamir
-            </button>
-            <button 
-              onClick={() => handleSelectCategory("Özel Ders")}
-              className="px-4 py-2 rounded-full border border-slate-200/80 bg-white font-button-text text-xs text-slate-600 cursor-pointer hover:border-slate-400 hover:text-slate-900 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 scale-bounce"
-            >
-              {renderCategoryIcon("📚")} Özel Ders
-            </button>
-          </div>
-        </div>
-      </main>
 
-      {/* 📊 Haftanın Trend Hizmetleri Section */}
-      <section className="py-20 px-4 md:px-12 max-w-7xl mx-auto">
-        
-        {/* Section Header */}
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h2 className="font-headline-lg text-2xl md:text-3xl text-slate-900 font-bold tracking-tight">
-              Haftanın Trend Hizmetleri
-            </h2>
-            <p className="font-body-md text-slate-400 text-xs mt-1.5 font-semibold">
-              En çok tercih edilen hizmetleri keşfet
-            </p>
-          </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-button-text text-xs transition-colors cursor-pointer group font-bold"
-          >
-            <span>Tümünü Gör</span>
-            <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform stroke-current shrink-0" fill="none" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </button>
-        </div>
-        
-        {/* Horizontal Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-          
-          {/* Card 1: Evden Eve Nakliyat (Takes 6 cols in large screens) */}
-          <div className="md:col-span-6 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
-            <div className="relative h-60 w-full overflow-hidden shrink-0">
-              <img 
-                alt="Evden Eve Nakliyat" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                src="/nakliyat.png" 
-              />
-              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
-                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                </svg>
-                <span className="ml-1">4.9</span>
-              </span>
-            </div>
-            
-            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
-              <div>
-                <h3 className="font-headline-lg text-slate-900 text-base md:text-lg font-bold">Evden Eve Nakliyat</h3>
-                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">2.976 profesyonel • 172.197 onaylı yorum</p>
-              </div>
-              
-              <button 
-                onClick={() => handleSelectCategory("Evden Eve Nakliyat")}
-                className="w-full bg-accent hover:bg-accent-hover text-slate-950 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-transparent shadow-sm shadow-[#c8f252]/10 cursor-pointer text-center"
+          {/* Popular services list */}
+          <div className="text-xs text-slate-300 font-semibold flex items-center gap-2">
+            <span>popüler:</span>
+            {["ev temizliği", "boya badana", "nakliyat", "su tesisatı"].map((pop, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectCategory(pop.charAt(0).toUpperCase() + pop.slice(1))}
+                className="text-[#c8f252] hover:underline cursor-pointer"
               >
-                Teklif Al
+                {pop}
               </button>
-            </div>
+            ))}
           </div>
 
-          {/* Card 2: Ev Temizliği (Takes 3 cols in large screens) */}
-          <div className="md:col-span-3 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
-            <div className="relative h-60 w-full overflow-hidden shrink-0">
-              <img 
-                alt="Ev Temizliği" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                src="/temizlik.png" 
-              />
-              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
-                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                </svg>
-                <span className="ml-1">4.6</span>
-              </span>
-            </div>
-            
-            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
-              <div>
-                <h3 className="font-headline-lg text-slate-900 text-base font-bold">Ev Temizliği</h3>
-                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">9.861 profesyonel</p>
-              </div>
-              
-              <button 
-                onClick={() => handleSelectCategory("Ev Temizliği")}
-                className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] text-slate-800 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-slate-200/40 cursor-pointer text-center"
-              >
-                Rezervasyon
-              </button>
-            </div>
+          {/* Down Arrow Indicator */}
+          <div className="pt-4 animate-bounce">
+            <a href="#categories-section" className="w-12 h-12 rounded-full bg-[#c8f252] hover:bg-[#b5e639] flex items-center justify-center text-slate-950 shadow-lg transition-colors cursor-pointer">
+              <span className="material-symbols-outlined font-extrabold">arrow_downward</span>
+            </a>
           </div>
-
-          {/* Card 3: Boya Badana (Takes 3 cols in large screens) */}
-          <div className="md:col-span-3 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 group scale-bounce relative">
-            <div className="relative h-60 w-full overflow-hidden shrink-0">
-              <img 
-                alt="Boya Badana" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                src="/boya.png" 
-              />
-              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
-                <svg className="w-3 h-3 text-amber-500 fill-current shrink-0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                </svg>
-                <span className="ml-1">4.8</span>
-              </span>
-            </div>
-            
-            <div className="p-6 flex flex-col justify-between flex-grow gap-4">
-              <div>
-                <h3 className="font-headline-lg text-slate-900 text-base font-bold">Boya Badana</h3>
-                <p className="font-label-sm text-[11px] text-slate-400 font-bold mt-1">11.214 profesyonel</p>
-              </div>
-              
-              <button 
-                onClick={() => handleSelectCategory("Boya Badana")}
-                className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] text-slate-800 font-button-text text-xs py-3.5 rounded-2xl transition-all font-bold border border-slate-200/40 cursor-pointer text-center"
-              >
-                Teklif Al
-              </button>
-            </div>
-          </div>
-
         </div>
       </section>
 
-      {/* 💼 Footer Section */}
-      <footer className="bg-white border-t border-slate-100 py-12 px-4 md:px-12 mt-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 w-full">
-          
-          {/* Logo & Copyright */}
-          <div className="flex flex-col items-center md:items-start gap-3">
-            <div className="flex items-center">
-              <img 
-                alt="Esnaaf Logo" 
-                className="w-auto object-contain select-none" 
-                style={{ height: '120px' }}
-                src="/logo.png" 
-              />
+      {/* 🧭 Categories Section */}
+      <section id="categories-section" className="py-12 bg-white border-b border-slate-100 scroll-mt-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex justify-center items-center flex-wrap gap-6 md:gap-10">
+            {[
+              { name: "Ev Temizliği", icon: "cleaning_services", category: "Ev Temizliği" },
+              { name: "Boya Badana", icon: "format_paint", category: "Boya Badana" },
+              { name: "Nakliyat", icon: "local_shipping", category: "Nakliyat" },
+              { name: "Su Tesisatı", icon: "plumbing", category: "Su Tesisatı" },
+              { name: "Elektrik", icon: "electrical_services", category: "Elektrik Tesisatı" },
+              { name: "Ev Tadilat", icon: "construction", category: "Ev Tadilat" },
+              { name: "Kombi & Klima", icon: "ac_unit", category: "Kombi & Klima Bakımı" },
+              { name: "Diğer", icon: "more_horiz", category: "Hizmet" }
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectCategory(item.category === "Hizmet" ? "Hizmet" : item.category)}
+                className="flex flex-col items-center group cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 mb-3 shadow-md group-hover:scale-110 transition-all duration-205">
+                  <span className="material-symbols-outlined text-xl font-bold">{item.icon}</span>
+                </div>
+                <span className="font-semibold text-xs md:text-sm text-slate-700 group-hover:text-slate-950 transition-colors">
+                  {item.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 📊 Haftanın Trend Hizmetleri Section */}
+      <section id="trend-services" className="py-24 max-w-7xl mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <span className="text-xs font-bold text-primary bg-primary/10 px-3.5 py-1 rounded-full uppercase tracking-widest border border-primary/20">Popüler Listeler</span>
+          <h2 className="font-bold text-3xl text-on-surface mt-4 mb-3">Haftanın Trend Hizmetleri</h2>
+          <p className="font-body text-slate-500 text-sm">En çok aranan ve en hızlı teklif toplayan mahalle hizmetleri</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[
+            { name: "Ev Temizliği", image: "/temizlik.png", rating: "4.8", count: "9.861 usta" },
+            { name: "Boya Badana", image: "/boya.png", rating: "4.9", count: "5.546 usta" },
+            { name: "Nakliyat", image: "/nakliyat.png", rating: "4.7", count: "2.976 usta" },
+            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120 usta" },
+            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245 usta" },
+            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890 usta" },
+            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1621905252507-b354bc25edac?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100 usta" },
+            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540 usta" },
+          ].map((srv, idx) => (
+            <div key={idx} className="bg-white border border-outline-variant/30 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-350 group relative">
+              <div className="relative h-48 w-full overflow-hidden shrink-0">
+                <img
+                  alt={srv.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src={srv.image}
+                />
+                
+                {/* Branded esnaaf marker pin badge */}
+                <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center p-1 shadow-md border border-white/50">
+                  <img src="/logo-icon.png" alt="esnaaf" className="w-full h-full object-contain" />
+                </div>
+
+                {/* Location/Rating badge */}
+                <span className="absolute top-3 right-3 bg-[#c8f252] text-slate-950 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
+                  <span className="material-symbols-outlined text-[12px] font-extrabold text-slate-950">location_on</span>
+                  <span>{srv.rating} ({srv.count.split(" ")[0]})</span>
+                </span>
+              </div>
+              
+              <div className="p-5 flex flex-col justify-between flex-grow gap-4">
+                <div>
+                  <h3 className="font-bold text-on-surface text-base">{srv.name}</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-1">{srv.count}</p>
+                </div>
+                <button
+                  onClick={() => handleSelectCategory(srv.name)}
+                  className="w-full bg-slate-950 hover:bg-slate-855 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center"
+                >
+                  Teklif Al
+                </button>
+              </div>
             </div>
-            <p className="text-[11px] text-slate-400 font-semibold text-center md:text-left">
-              &copy; {new Date().getFullYear()} Esnaaf Pazaryeri. Premium Hizmet Mükemmelliği.
+          ))}
+        </div>
+      </section>
+
+      {/* 3 Easy Steps Section */}
+      <section id="how-it-works" className="py-24 bg-surface-container-lowest overflow-hidden border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1 rounded-full uppercase tracking-widest border border-[#c8f252]/20">Kolay Süreç</span>
+            <h2 className="font-bold text-3xl text-on-surface mt-4 mb-4">3 Kolay Adımla Komşu Esnaftan Hizmet Ara</h2>
+            <div className="w-24 h-1 bg-[#c8f252] mx-auto rounded-full"></div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl border border-slate-150/50 shadow-xs hover:shadow-md transition-shadow">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCt95JwkhE8yRw-lN5LVufHeysmo_Tx4g422kygjbcknm6iYM2kog6FNP9p10ilUdzet_-eEK_SmQDdAJ4gn7R4z7vOckZxEvP5fDhe73okFxbdqMqafgfFiwBq84_RWdHVsTKUPj6lHCy_i2OCuU-KzCgL5dlgPgAL2mQHnSy1z-BwbsNDJL0c53IiOCBJoqeiQFxWm1h3qLDsKL9RIYLwZgUVv0ffvyVMhOHpejkMcHbgGx2Vf1398QJOMtLE3M0mpzQPn6Tewi" alt="Adım 1" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Adım 1</span>
+                <h3 className="font-bold text-lg text-slate-900">İhtiyacını Birkaç Soruda Anlat</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                  Asistanımızla ihtiyacını saniyeler içinde belirt, usta ve esnaflarla eşleş.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl border border-slate-150/50 shadow-xs hover:shadow-md transition-shadow">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvamRiNA9s2c-7R_M4F9BcxAWPUJLHbzE9o0YDOl8-g4r_XrZNxXGzMpr2AIxNg4xok-xwAz4fH7iHXQLgdfSr8ChKPzehv5XV7ogXSlf_LU6L2NpueS6GmecAa-0GEy3bSmsq6GM1r_rH87VOGMbWoS2CpBy5niUiiLGBKlCbkaSu1X5GrMh4uPT5-qVApMRhtU4x5GTz1cWfZK6loc4sGGiW4jmQu47GG5Fxnml_3U0SYOCTDRiyb51fzdbrUHABuUzNHCyhYyc" alt="Adım 2" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Adım 2</span>
+                <h3 className="font-bold text-lg text-slate-900">Teklif Al</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                  Mahallendeki usta ve esnaflardan teklifleri topla, fiyatları gör.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl border border-slate-150/50 shadow-xs hover:shadow-md transition-shadow">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsDiQBcW0vdCtjUNBiLOoqy-em53AITIxtj9_DgZ84-iqVWZM2uIOgrqs4w5NCPgEbSZ0eiijGGSea493LmQNUFZae3zifPcaskbAS2Zq24mS1xd5vqXCZP_Cd0O5xNqqLenI9K1yT4e3QuBddL6sNTZDe4Z51sHyRuDq1J6wXjMAxUndCUpbG1LfSHPHQMDERGPtdBd1RQvUU3lUCALmRC0F5mwoe2BGwMFXmkWW8Ai5iZId15lE7t_JIftDQYBlPX8UFGd1G34J" alt="Adım 3" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Adım 3</span>
+                <h3 className="font-bold text-lg text-slate-900">Karşılaştır ve Seç</h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                  Usta yorumlarını incele, fiyat tekliflerini karşılaştır ve en uygununu seç.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Neden Biz Section */}
+      <section id="why-us" className="py-24 bg-background border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block mb-2">Neden Esnaaf</span>
+            <h2 className="font-bold text-3xl text-on-surface mb-4">Uzağa arama, Mahallendeki Esnaflara Hızlıca Ulaş</h2>
+            <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalle esnafıyla keyifli bir işbirliğine dönüştürüyoruz.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-150/40 shadow-xs hover:border-slate-350 transition-all group text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 mb-6 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-2xl font-bold">verified_user</span>
+              </div>
+              <h3 className="font-bold text-lg text-slate-900 mb-3">Güvenli Hizmet</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed">Gerçek mahalle sakinlerinin yorumleriyle hizmet kalitesini görün, güvenle seçin.</p>
+            </div>
+            
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-150/40 shadow-xs hover:border-slate-350 transition-all group text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 mb-6 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-2xl font-bold">timer</span>
+              </div>
+              <h3 className="font-bold text-lg text-slate-900 mb-3">Zaman Kazan</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed">Dükkan dükkan gezmeyin. 1 dakikada talebi gönderin, teklifler cebinize gelsin.</p>
+            </div>
+            
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-150/40 shadow-xs hover:border-slate-350 transition-all group text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 mb-6 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-2xl font-bold">touch_app</span>
+              </div>
+              <h3 className="font-bold text-lg text-slate-900 mb-3">Kolay Kullanım</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed">Pratik chat asistanımızla detayları birkaç soruda belirleyin.</p>
+            </div>
+            
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-150/40 shadow-xs hover:border-slate-350 transition-all group text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 mb-6 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-2xl font-bold">security</span>
+              </div>
+              <h3 className="font-bold text-lg text-slate-900 mb-3">Garantide Ol</h3>
+              <p className="font-body text-xs text-slate-500 leading-relaxed">Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Provider Join CTA Section */}
+      <section className="py-24 bg-white border-t border-slate-100 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto bg-slate-50 border border-slate-150/50 rounded-[2rem] overflow-hidden grid md:grid-cols-2 items-center">
+          <div className="h-96 md:h-[450px] relative">
+            <img
+              alt="Esnaaf Provider"
+              className="w-full h-full object-cover"
+              src="/esnaaf_van_driver.png"
+            />
+          </div>
+          <div className="p-8 md:p-16 space-y-6">
+            <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Komşu Esnaf Olarak Platformumuza Katıl</span>
+            <h2 className="font-bold text-3xl text-slate-900 leading-tight">Müşterilere Kolayca Ulaşın ve İşinizi Büyütün</h2>
+            <p className="font-body text-sm text-slate-500 leading-relaxed">
+              İşinizi büyütmek, mahalledeki yeni iş fırsatlarına anında ulaşmak ve referans edinmek için hemen aramıza katılın.
+            </p>
+            <button
+              onClick={handleHizmetVerRedirect}
+              className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md"
+            >
+              Aramıza Katıl / İşe Başla
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Link List 1 */}
+      <section className="py-16 bg-white border-t border-slate-100 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto text-center space-y-8">
+          <h3 className="font-bold text-xl text-slate-900">
+            Mahallendeki En Çok Tercih Edilen <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
+          </h3>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
+            {[
+              { name: "Ev Temizliği", slug: "ev-temizligi" },
+              { name: "Boya Badana", slug: "boya-badana" },
+              { name: "Evden Eve Nakliyat", slug: "nakliyat" },
+              { name: "Su Tesisatı", slug: "su-tesisati" },
+              { name: "Elektrik Tesisatı", slug: "elektrik-tesisati" },
+              { name: "Ev Tadilat", slug: "ev-tadilat" },
+              { name: "Halı & Koltuk Yıkama", slug: "hali-koltuk-yikama" },
+              { name: "Kombi & Klima Bakımı", slug: "kombi-klima" },
+              { name: "Mantolama & Dış Cephe", slug: "mantolama-discephe" },
+              { name: "Marangoz & Mobilya", slug: "marangoz-mobilya" },
+              { name: "Özel Ders", slug: "ozel-ders" },
+              { name: "Ofis Temizliği", slug: "ofis-temizligi" }
+            ].map((link, idx) => (
+              <Link
+                key={idx}
+                href={`/hizmet/${link.slug}`}
+                className="hover:text-slate-900 transition-colors hover:underline"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Cleaners Banner Section */}
+      <section className="py-12 bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-900 text-white grid md:grid-cols-12 items-center shadow-lg">
+          <div className="md:col-span-7 p-8 md:p-16 space-y-6">
+            <h2 className="font-bold text-3xl md:text-4xl text-white tracking-tight">
+              Komşu Esnaflarla Hayatını Kolaylaştır
+            </h2>
+            <p className="font-body text-slate-300 text-sm leading-relaxed max-w-xl">
+              Mahallendeki güvenilir usta ve esnafları bulmanın en konforlu yolu. Güvenli ödeme, kaliteli hizmet ve Esnaaf koruma garantisiyle hemen başlayın.
+            </p>
+            <button
+              onClick={() => handleStartChat("Merhaba, hizmet almak istiyorum.")}
+              className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md"
+            >
+              Fiyat Hesapla / Başla
+            </button>
+          </div>
+          <div className="md:col-span-5 h-80 md:h-[400px] relative">
+            <img
+              alt="Esnaaf Cleaners"
+              className="w-full h-full object-cover"
+              src="/esnaaf_cleaners.png"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Category Link List 2 */}
+      <section className="py-16 bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto text-center space-y-8">
+          <h3 className="font-bold text-xl text-slate-900">
+            En Çok Tercih Edilen İllerde <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
+          </h3>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
+            {[
+              { name: "İstanbul Ev Temizliği", slug: "istanbul-ev-temizligi" },
+              { name: "İstanbul Boya Badana", slug: "istanbul-boya-badana" },
+              { name: "Kadıköy Ev Temizliği", slug: "kadikoy-ev-temizligi" },
+              { name: "Şişli Ev Temizliği", slug: "sisli-ev-temizligi" },
+              { name: "Ankara Boya Badana", slug: "ankara-boya-badana" },
+              { name: "Ankara Nakliyat", slug: "ankara-nakliyat" },
+              { name: "İzmir Su Tesisatı", slug: "izmir-su-tesisati" },
+              { name: "İzmir Ev Temizliği", slug: "izmir-ev-temizligi" },
+              { name: "Adana Boya Badana", slug: "adana-boya-badana" },
+              { name: "Adana Elektrik Tesisatı", slug: "adana-elektrik-tesisati" }
+            ].map((link, idx) => (
+              <Link
+                key={idx}
+                href={`/hizmet/${link.slug}`}
+                className="hover:text-slate-900 transition-colors hover:underline"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Guarantee Banner Section */}
+      <section className="py-12 bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-50 border border-slate-150/50 grid md:grid-cols-12 items-center shadow-sm">
+          <div className="md:col-span-6 h-80 md:h-[400px] relative">
+            <img
+              alt="Esnaaf Guarantee"
+              className="w-full h-full object-cover"
+              src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
+            />
+          </div>
+          <div className="md:col-span-6 p-8 md:p-16 bg-[#c8f252]/10 h-full flex flex-col justify-center space-y-6">
+            <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 shadow-md">
+              <span className="material-symbols-outlined text-2xl font-bold">verified</span>
+            </div>
+            <h2 className="font-bold text-3xl text-slate-900 leading-tight">
+              Mahallede Komşu Esnaf Garantisi
+            </h2>
+            <p className="font-body text-sm text-slate-600 leading-relaxed">
+              Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır. İletişimden iş teslimine, her anınız güvence altında.
+            </p>
+            <button
+              onClick={() => handleStartChat("Merhaba, esnaf garantisi hakkında bilgi almak istiyorum.")}
+              className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md self-start"
+            >
+              Detayları Öğren
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 📱 Mobile App Download Banner */}
+      <section id="app-download" className="py-24 bg-surface-container-low relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 space-y-8">
+              <h2 className="font-bold text-4xl md:text-5xl text-on-surface leading-tight tracking-tight">
+                Esnaaf uygulamasını hemen indir, mahallede işlerini bitir!
+              </h2>
+              <p className="font-body text-lg text-on-surface-variant max-w-xl leading-relaxed">
+                Esnaaf uygulamasını indir, ihtiyacın olan hizmete saniyeler içinde ulaş. Teklifleri anında gör, uzmanlarla kolayca mesajlaş.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a className="hover:scale-105 transition-transform duration-300" href="#">
+                  <img alt="App Store" className="h-14" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGEn6eQKbNLCQu5stuWa-B3Ri9MXInTaXXGCxFXbfRA-A2Oby215RWE7hW6Ze_exTF70L6QRUKEvqOFACsNOZyrhhEmJH5ejzM18JJLOhUb3llsLXydwCpQzl24KNA4nzdnd60_uv20sTGw3vLIwFFR0pi4Dvh_0gI31-JTMabV8RAD1vjbvdfRqT8xJ5JaFPlZDKUErH00Cn3P-GKrlus1judOD2dA2HvGrdYAvrhOTuXIM6dfZBTKmgHNr2OPAsv8W5qeMFY6ILX" />
+                </a>
+                <a className="hover:scale-105 transition-transform duration-300" href="#">
+                  <img alt="Google Play" className="h-14" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAExiul5BxL4el99tC-ZNqup02LQLpRNITrykCVStLfemh8HSGlPLTSmZAMLf7TVi54ShM9ga9y7rMXpqy1tUOkyuJ2M3JnjzU5hJ12Z_sr123wZkjRjCAyaD1SeifJFCZSY_yoDFRxrZZhvOtsYChHpn62XiAc8bDO13fQVQvQruDwlLVWQIVrpnarjzSXGSCJ4jCm-jx9yK0F2yWo8FgoCRkSV16RKkhZIFyFc6Cbh99aYSpn4psmcTho3lednPmdA0_MEX1siFu" />
+                </a>
+              </div>
+            </div>
+            <div className="flex-1 flex justify-center md:justify-end">
+              <div className="relative w-full max-w-md rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="mt-8 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant/30 bg-white p-2">
+                  <img alt="Esnaaf App Interface" className="w-full h-auto rounded-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRABpQqqodNck5bA6D8cfyAw3v1fzULbILofVeKvHmb80398nyHGcehqh91codwKbasdYR8cPIRjc-F7YPrpY_4jRSXRMgZWS_HL8xIn8McdBTSYPzhK1hhKTpfyxueGWcaatP4ZvZZRPCIBoZFnarTyHYaaP4EWc2c5firTC3ANLVJTgaBmDug8_PmaO5cbEEtGaNIQMGsRk_74LklFA9mmoj13tf3S9M8EHQmHBJl0X9iMpHBvkNJotf0Q-NBEiSA3QlJ42Fw8sC" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
+          <div className="space-y-6">
+            <img
+              alt="Esnaaf Logo"
+              className="h-14 w-auto"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
+            />
+            <p className="text-sm font-body text-on-surface-variant leading-relaxed">
+              Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
             </p>
           </div>
           
-          {/* Footer Links */}
-          <div className="flex flex-wrap justify-center gap-6">
-            <button 
-              onClick={() => triggerNotification("Kullanım koşulları yakında güncellenecektir.")}
-              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
-            >
-              Kullanım Koşulları
-            </button>
-            <button 
-              onClick={() => triggerNotification("Gizlilik politikamız kişisel verilerin korunmasını garanti eder.")}
-              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
-            >
-              Gizlilik Politikası
-            </button>
-            <button 
-              onClick={() => triggerNotification("Hizmet veren kayıt portalı yakında yayında olcaktır!")}
-              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
-            >
-              Esnaf Olun
-            </button>
-            <button 
-              onClick={() => triggerNotification("Destek ekibimiz 7/24 hizmetinizde!")}
-              className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer transition-colors"
-            >
-              Destek Alın
-            </button>
+          <div className="space-y-4">
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">HİZMETLER</h4>
+            <ul className="space-y-2">
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Ev Boyama</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Temizlik</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Nakliye</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Tadilat</Link></li>
+            </ul>
+          </div>
+          
+          <div className="space-y-4">
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">KURUMSAL</h4>
+            <ul className="space-y-2">
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Hakkımızda</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kariyer</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Basın</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">İletişim</Link></li>
+            </ul>
+          </div>
+          
+          <div className="space-y-4">
+            <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">YARDIM</h4>
+            <ul className="space-y-2">
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Gizlilik Politikası</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kullanıcı Sözleşmesi</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Güvenlik</Link></li>
+              <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Destek Merkezi</Link></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mt-16 pt-8 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+          <p className="text-xs font-body text-on-surface-variant opacity-80">
+            © {new Date().getFullYear()} Esnaaf Home Services. Tüm hakları saklıdır.
+          </p>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
+              <span className="material-symbols-outlined text-sm">public</span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
+              <span className="material-symbols-outlined text-sm">mail</span>
+            </div>
           </div>
         </div>
       </footer>
@@ -780,11 +996,9 @@ export default function Home() {
             setActiveTab("marketplace");
             setIsModalOpen(true);
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "marketplace" ? "text-slate-900 bg-accent/20 font-bold animate-pulse" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "marketplace" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
-          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
+          <span className="material-symbols-outlined text-xl mb-0.5">menu</span>
           <span className="font-label-sm text-[9px] font-bold">Kategoriler</span>
         </button>
         
@@ -794,11 +1008,9 @@ export default function Home() {
             if (searchInputRef.current) searchInputRef.current.focus();
             triggerNotification("Yeni bir eşleşme başlatmak için yukarıdaki arama alanını kullanabilirsiniz.");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "services" ? "text-slate-900 bg-accent/20 font-bold" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "services" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
-          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
+          <span className="material-symbols-outlined text-xl mb-0.5">bolt</span>
           <span className="font-label-sm text-[9px] font-bold">Eşleşmeler</span>
         </button>
         
@@ -807,11 +1019,9 @@ export default function Home() {
             setActiveTab("help");
             triggerNotification("Gelen kutunuz yakında burada aktif olacaktır!");
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-slate-900 bg-accent/20 font-bold" : "text-slate-400"}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
         >
-          <svg className="w-5 h-5 mb-0.5 stroke-current" fill="none" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 002 2h4a2 2 0 002-2h2a2 2 0 012 2z"></path>
-          </svg>
+          <span className="material-symbols-outlined text-xl mb-0.5">mail</span>
           <span className="font-label-sm text-[9px] font-bold">Gelen Kutusu</span>
         </button>
       </nav>
@@ -829,16 +1039,14 @@ export default function Home() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div className="flex flex-col">
-                <h3 className="font-button-text text-sm md:text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
+                <h3 className="font-bold text-sm md:text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
                 <p className="text-[11px] text-slate-400 font-medium">Lütfen ihtiyaç duyduğunuz iş kolunu seçin</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-800 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
               >
-                <svg className="w-4.5 h-4.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+                <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
@@ -848,11 +1056,11 @@ export default function Home() {
                 <button
                   key={idx}
                   onClick={() => handleSelectCategory(cat.name)}
-                  className="flex items-center gap-3.5 p-3 border border-slate-100 rounded-2xl hover:border-accent hover:bg-accent/10 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-sm"
+                  className="flex items-center gap-3.5 p-3 border border-slate-100 rounded-2xl hover:border-primary hover:bg-primary-container/20 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-sm"
                 >
                   {renderCategoryIcon(cat.icon)}
                   <div className="flex flex-col min-w-0">
-                    <span className="font-button-text text-sm font-extrabold text-slate-800 truncate">
+                    <span className="font-bold text-sm text-slate-800 truncate">
                       {cat.name}
                     </span>
                   </div>
@@ -880,7 +1088,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Background decorative glow */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#c8f252]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
             
             {/* Close button */}
             <button
@@ -893,34 +1101,28 @@ export default function Home() {
               }}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-850 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
+              <span className="material-symbols-outlined text-xl">close</span>
             </button>
 
             {unregisteredUser ? (
               <div className="flex flex-col items-center text-center mt-2 space-y-6">
                 <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-100 shadow-sm animate-pulse">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                  <span className="material-symbols-outlined text-3xl">warning</span>
                 </div>
                 
                 <div className="space-y-2">
-                  <h3 className="font-headline-lg text-slate-900 text-lg font-bold tracking-tight">
+                  <h3 className="font-bold text-lg text-slate-900 tracking-tight">
                     Kayıt Bulunamadı
                   </h3>
-                  <p className="font-body-md text-xs text-slate-500 max-w-[280px] leading-relaxed">
+                  <p className="font-body text-xs text-slate-500 max-w-[280px] leading-relaxed">
                     Telefon numaranız sistemde kayıtlı değil. Yanlış veya eksik giriş yapmış olabilirsiniz.
                   </p>
                 </div>
 
                 <div className="flex gap-3 w-full pt-2">
                   <button
-                    onClick={() => {
-                      setUnregisteredUser(false);
-                    }}
-                    className="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center font-semibold"
+                    onClick={() => setUnregisteredUser(false)}
+                    className="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
                   >
                     Telefon Gir
                   </button>
@@ -933,7 +1135,7 @@ export default function Home() {
                         handleStartChat("Merhaba, hizmet almak istiyorum.");
                       }, 300);
                     }}
-                    className="w-1/2 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
+                    className="w-1/2 bg-primary text-on-primary font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
                   >
                     Hizmet Ara
                   </button>
@@ -948,122 +1150,119 @@ export default function Home() {
                     className="h-14 w-auto object-contain select-none mb-3" 
                     src="/logo.png" 
                   />
-              <h3 className="font-headline-lg text-slate-900 text-lg md:text-xl font-bold tracking-tight">
-                {otpSent ? "Doğrulama Kodunu Girin" : "Esnaaf'a Giriş Yap"}
-              </h3>
-              <p className="font-body-md text-xs text-slate-500 mt-1 max-w-[280px]">
-                {otpSent 
-                  ? `${loginPhone} numaralı telefona gelen 6 haneli kodu yazın.` 
-                  : "Mahallendeki güvenilir hizmet verenlere anında ulaşın."}
-              </p>
-            </div>
-
-            {loginError && (
-              <div className="bg-red-50 text-red-600 border border-red-150 rounded-2xl px-4 py-3 text-xs font-semibold flex items-start gap-2.5 mb-4">
-                <svg className="w-4 h-4 shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>{loginError}</span>
-              </div>
-            )}
-
-            {/* Form */}
-            {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Telefon Numarası
-                  </label>
-                  <div className="relative flex items-center bg-slate-50 border border-slate-200/80 rounded-2xl p-3 pl-4 focus-within:bg-white focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-slate-100 transition-all duration-300">
-                    <span className="text-slate-400 font-semibold text-sm shrink-0 mr-2 select-none">🇹🇷 +90</span>
-                    <input 
-                      type="tel"
-                      value={loginPhone}
-                      onChange={(e) => setLoginPhone(e.target.value)}
-                      placeholder="555 123 4567"
-                      className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold text-sm focus:ring-0 p-0"
-                      required
-                    />
-                  </div>
+                  <h3 className="font-bold text-lg md:text-xl text-slate-900 tracking-tight">
+                    {otpSent ? "Doğrulama Kodunu Girin" : "Esnaaf'a Giriş Yap"}
+                  </h3>
+                  <p className="font-body text-xs text-slate-500 mt-1 max-w-[280px]">
+                    {otpSent 
+                      ? `${loginPhone} numaralı telefona gelen 6 haneli kodu yazın.` 
+                      : "Mahallendeki güvenilir hizmet verenlere anında ulaşın."}
+                  </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loginLoading}
-                  className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
-                >
-                  {loginLoading ? (
-                    <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
-                  ) : (
-                    "Doğrulama Kodu Gönder"
-                  )}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Doğrulama Kodu (OTP)
-                  </label>
-                  <input 
-                    type="text"
-                    maxLength={6}
-                    value={loginOtp}
-                    onChange={(e) => setLoginOtp(e.target.value)}
-                    placeholder="123456"
-                    className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center tracking-widest text-lg font-bold text-slate-900 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all"
-                    required
-                  />
-                </div>
-
-                {devOtp && (
-                  <div 
-                    onClick={() => setLoginOtp(devOtp)}
-                    className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-150 rounded-2xl px-4 py-3 text-xs cursor-pointer transition-colors flex justify-between items-center group font-medium"
-                  >
-                    <span>Test Kodu: <strong className="font-extrabold">{devOtp}</strong></span>
-                    <span className="text-[10px] text-amber-600 group-hover:text-amber-700 font-bold underline">Kodu Doldur</span>
+                {loginError && (
+                  <div className="bg-red-50 text-red-600 border border-red-150 rounded-2xl px-4 py-3 text-xs font-semibold flex items-start gap-2.5 mb-4">
+                    <span className="material-symbols-outlined text-sm text-red-500 mt-0.5">error</span>
+                    <span>{loginError}</span>
                   </div>
                 )}
 
-                {/* Default fallback helper for developers */}
-                {!devOtp && (
-                  <div 
-                    onClick={() => setLoginOtp("123456")}
-                    className="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 rounded-2xl px-4 py-3 text-[11px] cursor-pointer transition-colors flex justify-between items-center group font-medium"
-                  >
-                    <span>Geliştirici Girişi için kod: <strong className="font-extrabold">123456</strong></span>
-                    <span className="text-[10px] text-slate-500 group-hover:text-slate-650 font-bold underline">Kodu Doldur</span>
-                  </div>
-                )}
+                {/* Form */}
+                {!otpSent ? (
+                  <form onSubmit={handleSendOtp} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Telefon Numarası
+                      </label>
+                      <div className="relative flex items-center bg-slate-50 border border-slate-200/80 rounded-2xl p-3 pl-4 focus-within:bg-white focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-slate-100 transition-all duration-300">
+                        <span className="text-slate-400 font-semibold text-sm shrink-0 mr-2 select-none">🇹🇷 +90</span>
+                        <input 
+                          type="tel"
+                          value={loginPhone}
+                          onChange={(e) => setLoginPhone(e.target.value)}
+                          placeholder="555 123 4567"
+                          className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold text-sm focus:ring-0 p-0"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOtpSent(false);
-                      setLoginOtp("");
-                      setLoginError("");
-                      setDevOtp(null);
-                    }}
-                    className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
-                  >
-                    Geri
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loginLoading || loginOtp.length !== 6}
-                    className="w-2/3 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-button-text text-sm py-4 rounded-2xl transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
-                  >
-                    {loginLoading ? (
-                      <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
-                    ) : (
-                      "Giriş Yap"
+                    <button
+                      type="submit"
+                      disabled={loginLoading}
+                      className="w-full bg-primary text-on-primary px-7 py-4 rounded-2xl text-sm transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                    >
+                      {loginLoading ? (
+                        <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
+                      ) : (
+                        "Doğrulama Kodu Gönder"
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-5">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Doğrulama Kodu (OTP)
+                      </label>
+                      <input 
+                        type="text"
+                        maxLength={6}
+                        value={loginOtp}
+                        onChange={(e) => setLoginOtp(e.target.value)}
+                        placeholder="123456"
+                        className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center tracking-widest text-lg font-bold text-slate-900 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all"
+                        required
+                      />
+                    </div>
+
+                    {devOtp && (
+                      <div 
+                        onClick={() => setLoginOtp(devOtp)}
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-150 rounded-2xl px-4 py-3 text-xs cursor-pointer transition-colors flex justify-between items-center group font-medium"
+                      >
+                        <span>Test Kodu: <strong className="font-extrabold">{devOtp}</strong></span>
+                        <span className="text-[10px] text-amber-600 group-hover:text-amber-700 font-bold underline">Kodu Doldur</span>
+                      </div>
                     )}
-                  </button>
-                </div>
-              </form>
-            )}
+
+                    {!devOtp && (
+                      <div 
+                        onClick={() => setLoginOtp("123456")}
+                        className="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 rounded-2xl px-4 py-3 text-[11px] cursor-pointer transition-colors flex justify-between items-center group font-medium"
+                      >
+                        <span>Geliştirici Girişi için kod: <strong className="font-extrabold">123456</strong></span>
+                        <span className="text-[10px] text-slate-500 group-hover:text-slate-650 font-bold underline">Kodu Doldur</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setLoginOtp("");
+                          setLoginError("");
+                          setDevOtp(null);
+                        }}
+                        className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-4 rounded-2xl transition-all cursor-pointer text-center"
+                      >
+                        Geri
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loginLoading || loginOtp.length !== 6}
+                        className="w-2/3 bg-primary text-on-primary px-7 py-4 rounded-2xl text-sm transition-all font-bold cursor-pointer flex justify-center items-center gap-2 disabled:opacity-50"
+                      >
+                        {loginLoading ? (
+                          <div className="w-5 h-5 border-2 border-t-transparent border-slate-950 rounded-full animate-spin" />
+                        ) : (
+                          "Giriş Yap"
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </>
             )}
           </div>
