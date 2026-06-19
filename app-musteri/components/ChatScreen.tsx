@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+
 import { io, Socket } from "socket.io-client";
 import { customFetch, getSessionId } from "../lib/session";
 
@@ -20,11 +20,11 @@ async function safeJsonParse(response: Response, defaultError = "Sunucu hatası 
   }
 }
 
-function TypewriterText({ text, speed = 12, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+function TypewriterText({ text = "", speed = 12, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
   const [displayedText, setDisplayedText] = useState("");
   const elementRef = useRef<HTMLParagraphElement>(null);
-  const textRef = useRef(text);
-  textRef.current = text;
+  const textRef = useRef(text || "");
+  textRef.current = text || "";
 
   useEffect(() => {
     let index = 0;
@@ -32,7 +32,7 @@ function TypewriterText({ text, speed = 12, onComplete }: { text: string; speed?
     
     const intervalId = setInterval(() => {
       setDisplayedText((prev) => {
-        const fullText = textRef.current;
+        const fullText = textRef.current || "";
         if (index >= fullText.length) {
           clearInterval(intervalId);
           if (onComplete) {
@@ -134,8 +134,8 @@ const FIELD_LABELS: Record<string, string> = {
 
 const initializedSessions = new Set<string>();
 
-export function resolveCityFromDistrict(district?: string): string {
-  if (!district) return 'İstanbul';
+export function resolveCityFromDistrict(district?: any): string {
+  if (!district || typeof district !== 'string') return 'İstanbul';
   const adanaDistricts = [
     'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'
   ];
@@ -723,13 +723,10 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       {/* Top Header bar with custom organic pin logo */}
       <header className="w-full h-14 md:h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)] px-4 md:px-6 flex items-center justify-between z-50 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="flex items-center gap-3">
-          <Image
+          <img
             src="/logo.png"
             alt="Esnaaf Logo"
-            width={120}
-            height={36}
-            priority
-            className="cursor-pointer"
+            className="h-9 w-auto cursor-pointer object-contain"
             onClick={onClose}
           />
           <span className="text-[10px] font-bold bg-[#c8f252] text-slate-900 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
