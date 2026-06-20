@@ -1,8 +1,16 @@
 # Esnaaf Geliştirme Günlüğü (log.md)
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
+## 2026-06-20 fix | Canlı Sohbet Remount Boş Ekran Hatası ve Oturum Yönetimi Güvenlik Düzeltmeleri
+
+- **ChatScreen Remount Boş Ekran Çözümü:**
+  - Canlı sohbet kapatılıp tekrar açıldığında chat ekranının bomboş/tepkisiz görünmesi hatası, React Strict Mode çift tetiklenmesini engellemek için kullanılan ancak SPA içi geçişlerde oturum ID'sini kalıcı olarak kilitleyen küresel `initializedSessions` Set yapısı tamamen kaldırılarak çözüldü. Artık chat modalı her açıldığında yeni bir oturum ID'si ile temiz bir şekilde açılıyor.
+- **Oturum Yönetimi & LocalStorage Hardening:**
+  - `app-musteri/lib/session.ts` altındaki `getSessionId()`, `isLoggedIn()` ve `getAuthUser()` fonksiyonları, localStorage üzerinde yanlışlıkla `"undefined"` veya `"null"` (string olarak) yazılmış eski oturum ve token değerlerini tespit edip otomatik olarak temizleyecek ve yeni bir UUID ile iyileştirecek şekilde sertleştirildi.
+  - Canlı sohbet başlangıcında (`initializeChat`) oluşabilecek herhangi bir sunucu veya ağ bağlantı hatası durumunda, sessizce konsola log yazıp kalmak yerine, müşteriye hata detayını gösteren kullanıcı dostu bir sohbet balonu gösterilmesi sağlandı.
 
 ## 2026-06-20 fix | Favicon İkonlarının Kırpılması ve Canlı API Proxy/Ortam Değişkeni Düzeltmeleri
+
 
 - **Favicon Kırpma & Ölçekleme:**
   - Tarayıcı sekmelerinde çok küçük görünen yeşil "e" ikonu (`logo-icon.png`, `icon.png`, `favicon.ico`) etrafındaki gereksiz saydam boşluklar (padding) `scratch/crop_icons.ps1` scripti kullanılarak kırpıldı. Görselin kapladığı alan optimize edilerek ikonun sekmede daha büyük ve görünür olması sağlandı.
