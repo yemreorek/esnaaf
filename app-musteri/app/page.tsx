@@ -1315,7 +1315,7 @@ export default function Home() {
       )}
 
       {/* Styled utilities injection for quick keyframes */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -1336,7 +1336,7 @@ export default function Home() {
         .animate-slide-up {
           animation: slideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-      `}</style>
+      `}} />
     </div>
   );
 }

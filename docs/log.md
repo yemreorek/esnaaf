@@ -2,6 +2,18 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-20 fix | Favicon İkonlarının Kırpılması ve Canlı API Proxy/Ortam Değişkeni Düzeltmeleri
+
+- **Favicon Kırpma & Ölçekleme:**
+  - Tarayıcı sekmelerinde çok küçük görünen yeşil "e" ikonu (`logo-icon.png`, `icon.png`, `favicon.ico`) etrafındaki gereksiz saydam boşluklar (padding) `scratch/crop_icons.ps1` scripti kullanılarak kırpıldı. Görselin kapladığı alan optimize edilerek ikonun sekmede daha büyük ve görünür olması sağlandı.
+  - Müşteri ve hizmet veren uygulamalarındaki ikonlar güncellenerek üretim derlemeleri test edildi.
+  - Footer ve header üzerindeki logo metinlerindeki boşluklar giderilip ölçeklemeleri artırıldı.
+- **Next.js Production API Proxy & Canlı Sohbet Düzeltmesi:**
+  - `app-musteri` ve `app-hizmetveren` üzerindeki `next.config.ts` rewrite kuralları güncellendi. Ortam değişkeni `process.env.NEXT_PUBLIC_API_URL` tanımlı olmadığında doğrudan canlı backend url fallback'ine (`https://esnaaf-backend-339090537138.europe-west3.run.app`) yönlendirilecek şekilde yapılandırıldı.
+  - Canlı sohbetin çalışmama sorunu olan server-side rewrite ve client-side WebSocket URL uyuşmazlıkları, Cloud Run üzerinde `NEXT_PUBLIC_API_URL` ve `NEXT_PUBLIC_WS_URL` env variable'larının GitHub Actions workflow'u (`.github/workflows/deploy-gcp.yml`) aracılığıyla enjekte edilmesiyle tamamen çözüldü.
+- **Hata ve Çökme Düzeltmeleri:**
+  - `ChatScreen` bileşeninde `next/image` kaynaklı çökme riskleri giderildi, daktilo efekti (typewriter) veri güvenliği artırıldı.
+
 ## 2026-06-19 style | Ana Sayfa Tasarımının Wix Mockup ve Logolarıyla Yenilenmesi
 
 - **Ana Sayfa Görsel Yenilemesi (`app-musteri/app/page.tsx`):**

@@ -1317,7 +1317,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
 
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes scaleUp {
           from { transform: scale(0.96); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
@@ -1325,7 +1325,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         .animate-scale-up {
           animation: scaleUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-      `}</style>
+      `}} />
     </div>
   );
 }

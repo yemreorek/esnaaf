@@ -2911,7 +2911,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
       </main>
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes scaleUp {
           from { transform: scale(0.97); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
@@ -2926,7 +2926,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-      `}</style>
+      `}} />
     </div>
   );
 }
