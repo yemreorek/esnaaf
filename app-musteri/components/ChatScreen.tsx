@@ -132,7 +132,6 @@ const FIELD_LABELS: Record<string, string> = {
   cateringDahil: 'Catering Durumu'
 };
 
-const initializedSessions = new Set<string>();
 
 export function resolveCityFromDistrict(district?: any): string {
   if (!district || typeof district !== 'string') return 'İstanbul';
@@ -243,8 +242,6 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
     const initializeChat = async () => {
       const sessionId = getSessionId();
-      if (initializedSessions.has(sessionId)) return;
-      initializedSessions.add(sessionId);
 
       setIsLoading(true);
       try {
@@ -268,8 +265,15 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             }
           ]);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Chat initialization failed:", err);
+        setMessages([
+          {
+            id: `init-error-${Date.now()}`,
+            role: "assistant",
+            content: `Sohbet başlatılamadı: ${err.message || "Bilinmeyen bir hata oluştu"}. Lütfen sayfayı yenileyip tekrar deneyin.`,
+          }
+        ]);
       } finally {
         setIsLoading(false);
       }

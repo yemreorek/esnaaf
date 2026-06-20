@@ -22,11 +22,11 @@ export function startNewSession(): string {
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return '';
-  if (activeSessionId) {
+  if (activeSessionId && activeSessionId !== 'undefined' && activeSessionId !== 'null') {
     return activeSessionId;
   }
   let sessionId = localStorage.getItem('esnaaf_session_id');
-  if (!sessionId) {
+  if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
     sessionId = safeUUID();
     localStorage.setItem('esnaaf_session_id', sessionId);
   }
@@ -36,7 +36,8 @@ export function getSessionId(): string {
 
 export function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('esnaaf_token');
+  const token = localStorage.getItem('esnaaf_token');
+  return !!token && token !== 'undefined' && token !== 'null';
 }
 
 export function logout(): void {
@@ -49,7 +50,7 @@ export function logout(): void {
 export function getAuthUser(): any | null {
   if (typeof window === 'undefined') return null;
   const userJson = localStorage.getItem('esnaaf_user');
-  if (!userJson) return null;
+  if (!userJson || userJson === 'undefined' || userJson === 'null') return null;
   try {
     return JSON.parse(userJson);
   } catch (err) {
