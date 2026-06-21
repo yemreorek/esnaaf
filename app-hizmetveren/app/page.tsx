@@ -386,7 +386,7 @@ export default function ProviderDashboard() {
     const filteredOffers = offersList.filter(o => new Date(o.created_at || o.accepted_at || now) >= filterDate);
     const totalBids = filteredOffers.length;
     const wonJobsCount = wonJobs.filter(wj => new Date(wj.accepted_at || wj.created_at || now) >= filterDate).length;
-    const lostJobs = filteredOffers.filter(o => o.status === 'rejected' || o.status === 'cancelled').length;
+    const lostJobs = lostAndCancelledJobs.filter(o => new Date(o.created_at || now) >= filterDate).length;
     
     const filteredCompletions = completedJobs.filter(cj => new Date(cj.completed_at || now) >= filterDate);
     const completedCount = filteredCompletions.length;
@@ -2038,7 +2038,7 @@ export default function ProviderDashboard() {
                     <X className="w-5 h-5 text-rose-500 stroke-[2.2]" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kaybedilen İşler</p>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">Kaybedilen ve İptal Edilenler</p>
                     <h3 className="text-2xl font-black text-slate-900">{metrics.lostJobs} Adet</h3>
                     <p className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">
                       <span>▼ 4.2%</span>
