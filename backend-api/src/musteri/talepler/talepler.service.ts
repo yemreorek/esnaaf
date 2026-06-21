@@ -86,11 +86,12 @@ export class TaleplerService {
    * Müşterinin kendi taleplerini listelemesi
    */
   async findAll(seekerUserId: string) {
-    return this.prisma.serviceRequest.findMany({
+    const requests = await this.prisma.serviceRequest.findMany({
       where: { seeker_id: seekerUserId },
       include: {
         category: true,
         reviews: true,
+        seeker: true,
         job_completions: {
           include: {
             provider: {
@@ -112,6 +113,20 @@ export class TaleplerService {
       },
       orderBy: { created_at: 'desc' },
     });
+
+    return requests.map(req => {
+      if (req.seeker) {
+        (req.seeker as any).phone_decrypted = decryptPhone(req.seeker.phone);
+      }
+      if (req.offers) {
+        req.offers.forEach(offer => {
+          if (offer.status === 'accepted' && offer.provider?.user) {
+            (offer.provider.user as any).phone_decrypted = decryptPhone(offer.provider.user.phone);
+          }
+        });
+      }
+      return req;
+    });
   }
 
   /**
@@ -123,6 +138,7 @@ export class TaleplerService {
       include: {
         category: true,
         reviews: true,
+        seeker: true,
         job_completions: {
           include: {
             provider: {
@@ -150,6 +166,17 @@ export class TaleplerService {
 
     if (job.seeker_id !== seekerUserId) {
       throw new ForbiddenException('Bu işlem için yetkiniz bulunmamaktadır.');
+    }
+
+    if (job.seeker) {
+      (job.seeker as any).phone_decrypted = decryptPhone(job.seeker.phone);
+    }
+    if (job.offers) {
+      job.offers.forEach(offer => {
+        if (offer.status === 'accepted' && offer.provider?.user) {
+          (offer.provider.user as any).phone_decrypted = decryptPhone(offer.provider.user.phone);
+        }
+      });
     }
 
     return job;

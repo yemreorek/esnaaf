@@ -74,6 +74,7 @@ interface Offer {
     user: {
       name: string;
       phone_masked: string;
+      phone_decrypted?: string;
     };
   };
 }
@@ -111,6 +112,11 @@ interface RequestItem {
     slug: string;
   };
   offers: Offer[];
+  seeker?: {
+    id: string;
+    name?: string;
+    phone_decrypted?: string;
+  };
   job_completions?: {
     id: string;
     status: string;
@@ -851,6 +857,9 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const activeRequests = requests.filter((r) => r.status === "pending" || r.status === "distributed");
   const pastRequests = requests.filter((r) => r.status === "completed" || r.status === "cancelled");
 
+  const acceptedOffers = selectedRequest?.offers?.filter(o => o.status === "accepted") || [];
+  const showCommunicationCard = acceptedOffers.length > 0 || !!mutualPhones;
+
   // Helper to render outline SVGs for past table or list categories
   const renderCategoryIcon = (type: string) => {
     const baseClass = "w-4 h-4 text-slate-700";
@@ -1501,7 +1510,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     <div className="lg:col-span-8 space-y-6">
                       
                       {/* Mutual Phone display if offer accepted */}
-                      {mutualPhones && (
+                      {showCommunicationCard && (
                         <div className="w-full flex flex-col p-5 bg-[#c8f252]/10 border border-[#c8f252]/40 shadow-sm rounded-[24px] animate-scale-up gap-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#c8f252]/20 flex items-center justify-center text-[#4c630a] shrink-0 border border-[#c8f252]/30">
@@ -1510,22 +1519,59 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               </svg>
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-extrabold text-sm text-slate-900">Usta İletişim Bilgileri</span>
+                              <span className="font-extrabold text-sm text-slate-900">Hizmet Veren İletişim Bilgileri</span>
                               <span className="text-[10px] text-slate-600 font-bold">Telefon Numaraları Karşılıklı Açıldı</span>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs font-bold bg-white p-4 rounded-xl shadow-inner border border-slate-100">
-                            <div>
-                              <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Usta Telefon</span>
-                              <span className="text-slate-900 text-sm font-extrabold mt-0.5 block">{mutualPhones.providerPhone}</span>
+                          <div className="flex flex-col gap-3.5 bg-white p-4 rounded-xl shadow-inner border border-slate-100 text-xs">
+                            <div className="pb-3 border-b border-slate-100/80">
+                              <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Sizin Telefonunuz</span>
+                              <span className="text-slate-900 text-sm font-extrabold mt-0.5 block">
+                                {selectedRequest.seeker?.phone_decrypted || mutualPhones?.seekerPhone || "Bilinmiyor"}
+                              </span>
                             </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Sizin Telefonunuz</span>
-                              <span className="text-slate-900 text-sm font-extrabold mt-0.5 block">{mutualPhones.seekerPhone}</span>
+                            
+                            <div className="space-y-2.5">
+                              <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Kabul Edilen Hizmet Verenler</span>
+                              {acceptedOffers.length > 0 ? (
+                                acceptedOffers.map((offer, idx) => {
+                                  const providerPhone = offer.provider?.user?.phone_decrypted || (idx === acceptedOffers.length - 1 ? mutualPhones?.providerPhone : null) || "Bilinmiyor";
+                                  return (
+                                    <div key={offer.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2.5 rounded-lg bg-slate-50 border border-slate-200/50 text-left">
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-black text-slate-800">
+                                          {offer.provider?.user?.name || "Hizmet Veren"}
+                                        </span>
+                                        <span className="text-[10px] text-slate-500 font-bold">
+                                          Kabul Fiyatı: {Number(offer.price).toLocaleString("tr-TR")} ₺
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-slate-900 text-sm font-extrabold block">
+                                          {providerPhone}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2.5 rounded-lg bg-slate-50 border border-slate-200/50 text-left">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-black text-slate-800">
+                                      {providerName || "Hizmet Veren"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-slate-900 text-sm font-extrabold block">
+                                      {mutualPhones?.providerPhone || "Bilinmiyor"}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <p className="text-[11px] text-slate-600 font-medium italic">
-                            * Ustanızla doğrudan iletişime geçip randevulaşabilirsiniz. İş tamamlandığında beyanları teyit etmeyi unutmayınız.
+                            * Hizmet verenlerle doğrudan iletişime geçip randevulaşabilirsiniz. İş tamamlandığında beyanları teyit etmeyi unutmayınız.
                           </p>
                         </div>
                       )}

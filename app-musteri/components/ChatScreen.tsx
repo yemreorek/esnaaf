@@ -513,7 +513,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     if (!offer?.id) return;
     showConfirm(
       "Teklifi Kabul Et",
-      `${offer.provider?.name || 'Usta'} teklifini ${Number(offer.price).toLocaleString("tr-TR")} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`,
+      `${offer.provider?.name || 'Hizmet Veren'} teklifini ${Number(offer.price).toLocaleString("tr-TR")} TL ile kabul etmek istediğinize emin misiniz?\n\nKabul ettiğinizde telefon numaralarınız karşılıklı olarak açılacaktır.`,
       async () => {
         setIsLoading(true);
         try {
@@ -535,7 +535,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             {
               id: `accept-${Date.now()}`,
               role: 'assistant',
-              content: `✅ Teklif başarıyla kabul edildi!\n\n📞 Usta Telefon: ${data.providerPhone || 'Açıldı'}\n📞 Sizin Telefonunuz: ${data.seekerPhone || 'Paylaşıldı'}\n\nArtık doğrudan iletişime geçebilirsiniz.`,
+              content: `✅ Teklif başarıyla kabul edildi!\n\n📞 Hizmet Veren Telefon: ${data.providerPhone || 'Açıldı'}\n📞 Sizin Telefonunuz: ${data.seekerPhone || 'Paylaşıldı'}\n\nArtık doğrudan iletişime geçebilirsiniz.`,
             },
           ]);
         } catch (err: any) {
@@ -1014,7 +1014,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             {!showDiscrepancyForm ? (
               <>
                 <p className="text-sm text-slate-600 leading-relaxed font-semibold">
-                  <strong>{providerName || "Usta"}</strong> işi bitirdiğini ve sizden <strong>{providerDeclaredAmount} ₺</strong> aldığını beyan etti.
+                  <strong>{providerName || "Hizmet Veren"}</strong> işi bitirdiğini ve sizden <strong>{providerDeclaredAmount} ₺</strong> aldığını beyan etti.
                   <br /><br />
                   Ödediğiniz bu tutar doğru mu?
                 </p>
