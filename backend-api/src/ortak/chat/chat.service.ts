@@ -390,7 +390,7 @@ export class ChatService {
               responseMessage,
               collected_data: state.collected_data,
               sessionMigrated: true,
-              user: { id: user.id, phone: user.phone, role: user.role },
+              user: { id: user.id, phone: user.phone_masked || user.phone, role: user.role, name: user.name, email: user.email },
             };
           } else {
             const newAttempts = attempts + 1;
@@ -1030,7 +1030,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             responseMessage,
             collected_data: state.collected_data,
             sessionMigrated: true,
-            user: { id: user.id, phone: user.phone, role: user.role },
+            user: { id: user.id, phone: user.phone_masked || user.phone, role: user.role, name: user.name, email: user.email },
           };
         } else {
           const newAttempts = attempts + 1;
