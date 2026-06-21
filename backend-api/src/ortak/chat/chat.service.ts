@@ -695,6 +695,14 @@ Eğer müşteri bu illerin/ilçelerin dışında bir konum belirtirse (Örn: "Bu
 - Konuşmayı o aşamada durdur. Müşteriye nazikçe, sistemimizin şimdilik sadece Adana, İstanbul, Ankara ve İzmir'in belirli ilçelerinde hizmet verdiğini belirt.
 - Kendisinden bu desteklenen ilçe ve illerden birini belirtmesini iste. Müşteri bu geçerli konumlardan birini verene kadar sonraki aşamalara (detay toplama, ad-soyad, telefon, OTP) KESİNLİKLE geçme!
 
+### ⚠️ ÇOK ÖNEMLİ - DESTEKLENMEYEN HİZMETLER VE KATEGORİ DIŞI TALEPLER ⚠️
+Esnaaf platformu YALNIZCA aşağıdaki listede belirtilen 20 kategoride hizmet sunmaktadır. 
+Eğer müşteri bu kategorilere girmeyen platform dışı bir hizmet talep ederse (Örn: "buzdolabı arızalı", "buzdolabı çalışmıyor", "çamaşır makinesi çalışmıyor", "beyaz eşya servisi", "araç kiralama", "kuaför", "yazılım geliştirme", "telefon tamiri" vb.):
+- KESİNLİKLE 'detectCategory' veya başka bir fonksiyon/tool çağırma!
+- Müşteriye bu hizmeti (örn: "Buzdolabı / Beyaz Eşya Servisi") şu an için sunamadığımızı kibarca açıkla.
+- Desteklediğimiz ana kategorileri (Ev Temizliği, Nakliyat, Boya Badana, Su/Elektrik Tesisatı, Kombi/Klima Bakımı, Marangozluk vb.) belirterek müşteriye bu konularda yardımcı olabileceğini söyle.
+- Müşteri bu 20 desteklenen kategoriden birine ait geçerli bir hizmet talebinde bulunana kadar sonraki aşamalara KESİNLİKLE geçme!
+
 ### 📊 ŞU ANA KADAR TOPLANAN BİLGİLER:
 ${JSON.stringify(state.collected_data, null, 2)}
 
