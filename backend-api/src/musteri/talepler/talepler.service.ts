@@ -226,6 +226,20 @@ export class TaleplerService {
       message: 'Müşteri talebini iptal etti.',
     });
 
+    // Dağıtılmış olan tüm hizmet verenlerin ekranlarında iş kartını temizlemek için bildirim yolla
+    try {
+      const responseTimes = await this.prisma.responseTime.findMany({
+        where: { job_id: jobId },
+        select: { provider_id: true },
+      });
+      const uniqueProviderIds = [...new Set(responseTimes.map(rt => rt.provider_id))];
+      uniqueProviderIds.forEach(pId => {
+        this.chatGateway.server?.to(`provider_${pId}`).emit('job_cancelled', { jobId });
+      });
+    } catch (err) {
+      this.logger.error(`WebSocket job_cancelled notification failed: ${err.message}`);
+    }
+
     return {
       success: true,
       message: 'Talebiniz ve bekleyen tüm teklifler iptal edildi.',
@@ -337,13 +351,16 @@ export class TaleplerService {
       throw new BadRequestException('Telefon numaralarının karşılıklı paylaşılması için onay (consent) vermelisiniz.');
     }
 
-    // 1. Teklifi ve bağlı talebi, ustayı ve müşteriyi çek
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
       include: {
         job: {
           include: {
-            accepted_offers: true,
+            accepted_offers: {
+              include: {
+                offer: true,
+              },
+            },
             seeker: true,
           },
         },
@@ -371,16 +388,19 @@ export class TaleplerService {
       throw new BadRequestException('Yalnızca bekleyen (pending) durumundaki teklifleri kabul edebilirsiniz.');
     }
 
-    // 2. Maksimum 3 kabul sınırı kontrolü
-    const existingAcceptedCount = offer.job.accepted_offers.length;
-    if (existingAcceptedCount >= 3) {
-      throw new BadRequestException('Bu talep için maksimum kabul limitine (3) ulaşılmıştır.');
-    }
-
-    const newAcceptedCount = existingAcceptedCount + 1;
+    // 2. Önceden kabul edilmiş aktif teklifleri filtrele
+    const activePreviousAcceptedOffers = offer.job.accepted_offers.filter(ao => ao.offer.status === 'accepted');
 
     // 3. Veritabanı transaction işlemleri
     const result = await this.prisma.$transaction(async (tx) => {
+      // Önceki aktif kabulleri iptal et
+      for (const prev of activePreviousAcceptedOffers) {
+        await tx.offer.update({
+          where: { id: prev.offer_id },
+          data: { status: 'cancelled' },
+        });
+      }
+
       // Kabul edilmiş teklif kaydı oluştur
       const accepted = await tx.acceptedOffer.create({
         data: {
@@ -401,19 +421,6 @@ export class TaleplerService {
           accepted_at: new Date(),
         },
       });
-
-      // Eğer 3. kabul yapıldıysa, kalan tüm 'pending' teklifleri 'rejected' yap
-      if (newAcceptedCount === 3) {
-        await tx.offer.updateMany({
-          where: {
-            job_id: offer.job_id,
-            status: 'pending',
-          },
-          data: {
-            status: 'rejected',
-          },
-        });
-      }
 
       // KVKK uyumluluğu için karşılıklı telefon açılma günlüğü yaz
       // Seeker -> Provider
@@ -437,17 +444,30 @@ export class TaleplerService {
       return accepted;
     });
 
-    // 4. WebSocket ile odaya durum değişikliğini ve kabulü bildir
+    // 4. WebSocket ile eski usta(lar)ı ve odayı bilgilendir
+    for (const prev of activePreviousAcceptedOffers) {
+      this.chatGateway.server?.to(`provider_${prev.provider_id}`).emit('offer_cancelled', {
+        jobId: offer.job_id,
+        offerId: prev.offer_id,
+      });
+    }
+
+    // Yeni ustaya anlık bildirim fırlat
+    this.chatGateway.server?.to(`provider_${offer.provider_id}`).emit('offer_accepted_notification', {
+      jobId: offer.job_id,
+      offerId: offer.id,
+    });
+
     const room = `job_${offer.job_id}`;
     this.chatGateway.server?.to(room).emit('offer_accepted', {
       jobId: offer.job_id,
       offerId: offer.id,
       providerId: offer.provider_id,
-      providerName: offer.provider.user.name || 'Usta',
-      acceptedCount: newAcceptedCount,
+      providerName: offer.provider.user.name || 'Hizmet Veren',
+      acceptedCount: 1,
     });
 
-    this.logger.log(`[Teklif Kabul Edildi] Müşteri ${offer.job.seeker.name || seekerUserId} tarafından Usta ${offer.provider.user.name} teklifi kabul edildi. (${newAcceptedCount}/3)`);
+    this.logger.log(`[Teklif Kabul Edildi] Müşteri ${offer.job.seeker.name || seekerUserId} tarafından Hizmet Veren ${offer.provider.user.name} teklifi kabul edildi.`);
 
     // 5. Telefon numaralarını AES-256'dan çözerek mutual reveal olarak teslim et
     const seekerRealPhone = decryptPhone(offer.job.seeker.phone);
@@ -459,7 +479,7 @@ export class TaleplerService {
       seekerPhone: seekerRealPhone,
       seekerName: offer.job.seeker.name || 'Müşteri',
       providerPhone: providerRealPhone,
-      providerName: offer.provider.user.name || 'Usta',
+      providerName: offer.provider.user.name || 'Hizmet Veren',
       acceptedOfferId: result.id,
     };
   }

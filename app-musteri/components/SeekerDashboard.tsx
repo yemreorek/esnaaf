@@ -668,9 +668,16 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   };
 
   const handleAcceptOffer = async (offer: Offer) => {
+    const alreadyAcceptedOffer = selectedRequest?.offers?.find(o => o.status === "accepted");
+
+    const confirmTitle = "Teklifi Kabul Et";
+    const confirmMessage = alreadyAcceptedOffer
+      ? `Daha önce ${alreadyAcceptedOffer.provider.user.name} firmasının kabul ettiğiniz teklifi iptal edilecek olup, ${offer.provider.user.name} firmasının teklifini kabul etmiş olacaksınız. Onaylıyor musunuz?`
+      : `${offer.provider.user.name} teklifini kabul etmek istediğinize emin misiniz?\n\nKarşılıklı telefon numaralarınız görüntülenecektir.`;
+
     showConfirm(
-      "Teklifi Kabul Et",
-      `${offer.provider.user.name} teklifini kabul etmek istediğinize emin misiniz?\n\nKarşılıklı telefon numaralarınız görüntülenecektir.`,
+      confirmTitle,
+      confirmMessage,
       async () => {
         try {
           const res = await customFetch(`/api/musteri/teklifler/${offer.id}/kabul`, {

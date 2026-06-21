@@ -441,7 +441,15 @@ export class HizmetverenService {
     const offers = await this.prisma.offer.findMany({
       where: { 
         provider_id: provider.id,
-        status: { not: 'accepted' },
+        status: 'pending',
+        job: {
+          status: { notIn: ['completed', 'cancelled'] },
+          offers: {
+            none: {
+              status: 'accepted',
+            },
+          },
+        },
       },
       include: {
         job: {
@@ -534,6 +542,9 @@ export class HizmetverenService {
     const acceptedOffers = await this.prisma.acceptedOffer.findMany({
       where: { 
         provider_id: provider.id,
+        offer: {
+          status: 'accepted',
+        },
         job: {
           status: {
             notIn: ['completed', 'cancelled'],
@@ -721,4 +732,108 @@ export class HizmetverenService {
       };
     });
   }
+
+  /**
+   * Hizmet verenin kaybettiği veya iptal edilen tekliflerini getirir
+   */
+  async getLostAndCancelledJobs(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const offers = await this.prisma.offer.findMany({
+      where: {
+        provider_id: provider.id,
+        OR: [
+          { status: 'rejected' },
+          { status: 'cancelled' },
+          {
+            status: 'pending',
+            job: {
+              OR: [
+                { status: 'completed' },
+                { status: 'cancelled' },
+                {
+                  offers: {
+                    some: {
+                      status: 'accepted',
+                      provider_id: { not: provider.id },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+            accepted_offers: {
+              where: { provider_id: provider.id },
+            },
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return offers.map((o) => {
+      const formData = o.job.form_data as any;
+      const wasAccepted = o.job.accepted_offers.length > 0;
+      
+      let displayStatus = 'lost';
+      let labelText = 'Teklifi Kaybettin';
+
+      if (o.status === 'cancelled') {
+        if (wasAccepted) {
+          displayStatus = 'cancelled_by_seeker';
+          labelText = 'İptal Edildi';
+        } else if (o.job.status === 'cancelled') {
+          displayStatus = 'job_cancelled';
+          labelText = 'İlan İptal Edildi';
+        } else {
+          displayStatus = 'cancelled_by_seeker';
+          labelText = 'İptal Edildi';
+        }
+      } else if (o.status === 'rejected') {
+        displayStatus = 'lost';
+        labelText = 'Teklifi Kaybettin';
+      } else if (o.status === 'pending') {
+        if (o.job.status === 'completed') {
+          displayStatus = 'lost';
+          labelText = 'Teklifi Kaybettin';
+        } else if (o.job.status === 'cancelled') {
+          displayStatus = 'job_cancelled';
+          labelText = 'İlan İptal Edildi';
+        } else {
+          displayStatus = 'lost';
+          labelText = 'Teklifi Kaybettin';
+        }
+      }
+
+      return {
+        id: o.id,
+        price: Number(o.price),
+        message: o.message,
+        status: o.status,
+        displayStatus,
+        labelText,
+        created_at: o.created_at,
+        job: {
+          id: o.job.id,
+          categoryName: o.job.category.name,
+          district: formData.district || 'Kadıköy',
+          details: formData.details || '',
+          name: formData.name || 'Müşteri',
+          status: o.job.status,
+        },
+      };
+    });
+  }
 }
+

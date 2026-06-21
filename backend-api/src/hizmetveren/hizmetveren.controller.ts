@@ -84,6 +84,16 @@ export class HizmetverenController {
   }
 
   /**
+   * Hizmet verenin kaybettiği ve iptal edilen işlerini listeler
+   * GET /api/hizmetveren/teklifler/kayip-iptal
+   */
+  @Get('teklifler/kayip-iptal')
+  @HttpCode(HttpStatus.OK)
+  async getLostAndCancelledJobs(@CurrentUser() user: any) {
+    return this.hizmetverenService.getLostAndCancelledJobs(user.id);
+  }
+
+  /**
    * Hizmet verenin kazandığı işleri listeler
    * GET /api/hizmetveren/kazanilan-isler
    */

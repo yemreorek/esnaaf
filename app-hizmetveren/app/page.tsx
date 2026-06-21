@@ -34,7 +34,8 @@ import {
   Navigation,
   Phone,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  XCircle
 } from 'lucide-react';
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -193,7 +194,8 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal'>('dashboard');
+  const [lostAndCancelledJobs, setLostAndCancelledJobs] = useState<any[]>([]);
   const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
@@ -864,6 +866,46 @@ export default function ProviderDashboard() {
       });
     });
 
+    socket.on('offer_cancelled', (data: { jobId: string; offerId: string }) => {
+      addLog(`❌ [TEKLİF İPTAL EDİLDİ] Hizmet alan başka bir teklifi kabul ettiği için bu iş iptal edildi. Job ID: ${data.jobId}`);
+      setWonJobs((prev) => prev.filter((w) => w.offerId !== data.offerId && w.job.id !== data.jobId));
+      if (token) {
+        fetchTabDependencies('kayip_iptal', token);
+      }
+      showAlert(
+        'İş İptal Edildi',
+        'Hizmet alan başka bir firmayı seçtiği için kazandığınız iş iptal edilmiştir.',
+        'error'
+      );
+    });
+
+    socket.on('offer_accepted_notification', (data: { jobId: string; offerId: string }) => {
+      addLog(`🎉 [TEKLİF KABUL EDİLDİ] Teklifiniz kabul edildi! Job ID: ${data.jobId}`);
+      if (token) {
+        fetchTabDependencies('kazanilanlar', token);
+        fetchTabDependencies('abonelik', token);
+      }
+      showAlert(
+        'Teklifiniz Kabul Edildi!',
+        'Bir hizmet alan teklifinizi kabul etti. Müşteri bilgileri "Kazanılan İşler" sekmesine eklendi.',
+        'success'
+      );
+    });
+
+    socket.on('job_cancelled', (data: { jobId: string }) => {
+      addLog(`ℹ️ [İLAN İPTAL EDİLDİ] Müşteri talebini tamamen iptal etti. Job ID: ${data.jobId}`);
+      setJobs((prev) => prev.filter((j) => j.id !== data.jobId));
+      setOffersList((prev) => prev.filter((o) => o.job.id !== data.jobId));
+      if (token) {
+        fetchTabDependencies('kayip_iptal', token);
+      }
+      showAlert(
+        'İlan İptal Edildi',
+        'Teklif verdiğiniz veya incelediğiniz bir ilan müşteri tarafından iptal edildi.',
+        'info'
+      );
+    });
+
     socket.on('disconnect', () => {
       addLog(`WebSocket bağlantısı kesildi.`);
     });
@@ -874,11 +916,12 @@ export default function ProviderDashboard() {
     setLoading(true);
     try {
       if (tab === 'dashboard') {
-        const [offersRes, wonRes, completedRes, disputesRes] = await Promise.all([
+        const [offersRes, wonRes, completedRes, disputesRes, lostRes] = await Promise.all([
           fetch('/api/hizmetveren/teklifler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
           fetch('/api/hizmetveren/kazanilan-isler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
           fetch('/api/hizmetveren/tamamlanan-isler', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
           fetch('/api/hizmetveren/uyusmazliklar', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+          fetch('/api/hizmetveren/teklifler/kayip-iptal', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
         ]);
 
         if (offersRes.ok) {
@@ -896,6 +939,10 @@ export default function ProviderDashboard() {
         if (disputesRes.ok) {
           const disputesData = await disputesRes.json();
           setDisputesList(disputesData);
+        }
+        if (lostRes.ok) {
+          const lostData = await lostRes.json();
+          setLostAndCancelledJobs(lostData);
         }
         addLog('Dashboard verileri başarıyla güncellendi.');
       } else if (tab === 'firsatlar') {
@@ -968,6 +1015,15 @@ export default function ProviderDashboard() {
         if (pkgsRes.ok) {
           const pkgsData = await pkgsRes.json();
           setAvailablePackages(pkgsData);
+        }
+      } else if (tab === 'kayip_iptal') {
+        const res = await fetch('/api/hizmetveren/teklifler/kayip-iptal', {
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setLostAndCancelledJobs(data);
+          addLog(`${data.length} adet kaybedilen ve iptal edilen iş yüklendi.`);
         }
       }
     } catch (err: any) {
@@ -1673,6 +1729,21 @@ export default function ProviderDashboard() {
             <CheckCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
             <span>Tamamlanan İşler</span>
             {isTabLocked('tamamlananlar') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
+          </button>
+
+          <button
+            onClick={() => handleTabClick('kayip_iptal')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              isTabLocked('kayip_iptal')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'kayip_iptal' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <XCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-red-500" />
+            <span>Kaybedilen ve İptal Edilenler</span>
+            {isTabLocked('kayip_iptal') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
@@ -2800,6 +2871,81 @@ export default function ProviderDashboard() {
                     <span className="text-3xl">🏆</span>
                     <h3 className="font-extrabold text-slate-950 text-base mt-3">Tamamlanan İş Yok</h3>
                     <p className="text-slate-400 text-xs mt-1">Tamamladığınız ve her iki tarafça onaylanan iş geçmişiniz burada listelenecektir.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'kayip_iptal' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl flex items-center gap-2">
+                  <XCircle className="w-8 h-8 text-slate-600" />
+                  <span>Kaybedilen ve İptal Edilenler</span>
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Kaybettiğiniz, müşteri tarafından iptal edilen veya başka usta tercih edildiği için iptal olan teklifleriniz.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                {lostAndCancelledJobs.length > 0 ? (
+                  lostAndCancelledJobs.map((item) => {
+                    let badgeClass = "bg-slate-50 text-slate-500 border border-slate-100";
+                    if (item.labelText === "İptal Edildi") {
+                      badgeClass = "bg-rose-50 text-rose-700 border border-rose-100";
+                    } else if (item.labelText === "İlan İptal Edildi") {
+                      badgeClass = "bg-amber-50 text-amber-700 border border-amber-100";
+                    }
+
+                    return (
+                      <div key={item.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 relative overflow-hidden">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start gap-4">
+                            <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                              {item.job?.categoryName || "Hizmet"}
+                            </span>
+                            <span className={`${badgeClass} text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider`}>
+                              {item.labelText}
+                            </span>
+                          </div>
+                          
+                          {item.labelText === "İptal Edildi" && (
+                            <div className="bg-rose-50/50 border border-rose-100/50 rounded-xl p-3 text-[11px] text-rose-800 font-medium">
+                              ⚠️ Hizmet alan taraf başka bir firma teklifini onayladı. Bu işteki hakkınız sonlandırılmıştır.
+                            </div>
+                          )}
+
+                          <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
+                            <div><strong>Müşteri:</strong> {item.job?.name || "Müşteri"}</div>
+                            <div><strong>Konum:</strong> {item.job?.district || "Belirtilmemiş"}</div>
+                            <div><strong>Açıklama:</strong> <span className="whitespace-pre-line">{item.job?.details || "Detay yok"}</span></div>
+                            {item.message && (
+                              <div className="bg-slate-50 p-2 rounded-lg mt-2 text-slate-500 text-[11px] font-medium italic">
+                                &ldquo;{item.message}&rdquo;
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
+                          <div>
+                            <span className="text-slate-400 text-[10px] block font-bold uppercase tracking-wider">Verdiğiniz Teklif</span>
+                            <span className="text-slate-900 font-black text-sm">₺{item.price.toLocaleString("tr-TR")}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-450 font-mono font-bold">
+                            {new Date(item.created_at).toLocaleDateString("tr-TR")}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <span className="text-3xl">🕊️</span>
+                    <h3 className="font-extrabold text-slate-950 text-base mt-3">Kaybedilen veya İptal Edilen İş Yok</h3>
+                    <p className="text-slate-400 text-xs mt-1">Bu alanda kaybettiğiniz teklifleriniz veya iptal edilen ilanlar gösterilecektir.</p>
                   </div>
                 )}
               </div>
