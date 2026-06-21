@@ -241,19 +241,25 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     hasInitialized.current = true;
 
     const initializeChat = async () => {
-      const sessionId = getSessionId();
-
-      setIsLoading(true);
+      console.log("[ChatScreen] initializeChat started. InitialMessage:", initialMessage);
       try {
+        const sessionId = getSessionId();
+        console.log("[ChatScreen] Session ID obtained:", sessionId);
+
+        setIsLoading(true);
         // 1. Initialize anonymous session
+        console.log("[ChatScreen] Fetching /api/ortak/chat/anonim/baslat...");
         const startRes = await customFetch("/api/ortak/chat/anonim/baslat", { method: "POST" });
+        console.log("[ChatScreen] Fetch /api/ortak/chat/anonim/baslat finished. Status:", startRes.status);
         if (!startRes.ok) {
           throw new Error('Oturum başlatılamadı.');
         }
         const startData = await safeJsonParse(startRes, 'Oturum başlatılamadı.');
+        console.log("[ChatScreen] Session initialized on server. Data:", startData);
         
         setMessages([]);
         if (initialMessage && initialMessage.trim() !== "") {
+          console.log("[ChatScreen] Sending initial message:", initialMessage);
           await sendMessage(initialMessage);
         } else {
           setMessages([
@@ -266,7 +272,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           ]);
         }
       } catch (err: any) {
-        console.error("Chat initialization failed:", err);
+        console.error("[ChatScreen] Chat initialization failed:", err);
         setMessages([
           {
             id: `init-error-${Date.now()}`,
@@ -276,6 +282,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         ]);
       } finally {
         setIsLoading(false);
+        console.log("[ChatScreen] initializeChat finished.");
       }
     };
 

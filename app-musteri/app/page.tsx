@@ -363,10 +363,17 @@ export default function Home() {
   };
 
   const handleStartChat = (messageText: string) => {
+    console.log("[handleStartChat] Starting chat with message:", messageText);
     if (!messageText.trim()) return;
-    startNewSession();
+    try {
+      const sessId = startNewSession();
+      console.log("[handleStartChat] New session started successfully, ID:", sessId);
+    } catch (e) {
+      console.error("[handleStartChat] startNewSession failed:", e);
+    }
     setChatInitialMessage(messageText);
     setActiveView("chat");
+    console.log("[handleStartChat] activeView set to chat");
   };
 
   const handleSend = () => {
@@ -377,6 +384,15 @@ export default function Home() {
   const triggerNotification = (message: string) => {
     setNotification(message);
   };
+
+  // Check if logged in on mount
+  useEffect(() => {
+    if (isLoggedIn()) {
+      setIsClientLoggedIn(true);
+      setClientUser(getAuthUser());
+      setActiveView("dashboard");
+    }
+  }, []);
 
   // Render full-screen ChatScreen if chat is active
   if (activeView === "chat") {
@@ -394,15 +410,6 @@ export default function Home() {
       />
     );
   }
-
-  // Check if logged in on mount
-  useEffect(() => {
-    if (isLoggedIn()) {
-      setIsClientLoggedIn(true);
-      setClientUser(getAuthUser());
-      setActiveView("dashboard");
-    }
-  }, []);
 
   // Render Seeker Dashboard if dashboard active
   if (activeView === "dashboard") {
