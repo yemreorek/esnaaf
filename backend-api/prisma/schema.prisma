@@ -497,9 +497,11 @@ model ResponseTime {
   notified_at               DateTime
   responded_at              DateTime?
   response_duration_minutes Int?
+  notified_sent             Boolean  @default(false)
 
   @@map("response_times")
   @@index([provider_id, notified_at(sort: Desc)])
+  @@index([notified_sent, notified_at])
 }
 //
 // model Team {

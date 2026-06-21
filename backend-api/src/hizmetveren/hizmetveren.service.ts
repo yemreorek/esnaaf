@@ -7,6 +7,7 @@ import { UpdateDocumentsDto } from './dto/update-documents.dto';
 import { decryptPhone } from '../common/utils/phone.util';
 import { BildirimService } from '../ortak/bildirimler/bildirim.service';
 import { RedisService } from '../common/redis/redis.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class HizmetverenService {
@@ -35,7 +36,12 @@ export class HizmetverenService {
 
     // 2. Bu ustaya dağıtılmış response_time kayıtlarını al
     const responseTimes = await this.prisma.responseTime.findMany({
-      where: { provider_id: provider.id },
+      where: { 
+        provider_id: provider.id,
+        notified_at: {
+          lte: new Date(),
+        },
+      },
       orderBy: { notified_at: 'desc' },
     });
 
@@ -63,6 +69,17 @@ export class HizmetverenService {
         continue;
       }
 
+      // 30 dk zaman sayacı ve 4 teklif sınırı kontrolü
+      const offersCount = await this.prisma.offer.count({
+        where: { job_id: job.id },
+      });
+
+      const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= Date.now();
+
+      if (offersCount >= 4 || isExpired) {
+        continue; // teklif dolduysa veya zaman aşımına uğradıysa gelen kutusundan kaldır
+      }
+
       // 3. Bu işin toplam kaç ustaya dağıtıldığını say (viewer sayısı)
       const viewerCount = await this.prisma.responseTime.count({
         where: { job_id: job.id },
@@ -80,6 +97,7 @@ export class HizmetverenService {
         viewerCount,
         butce: formData.butce || null,
         aciliyet: formData.aciliyet || null,
+        offersCount,
       });
     }
 
@@ -92,37 +110,77 @@ export class HizmetverenService {
   async getQuotaStatus(providerUserId: string) {
     const provider = await this.prisma.serviceProvider.findUnique({
       where: { user_id: providerUserId },
-      include: { user: true },
+      include: { user: true, subscription: true },
     });
 
     if (!provider) {
       throw new NotFoundException('Hizmet veren profili bulunamadı.');
     }
 
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    // Dynamic Capacity limits based on subscription package:
+    let capacityLimit = 3; // default basic fallback
+    let packageName = 'Basic (Düşük)';
 
-    // Bu ay kabul edilen işlerin sayısı
-    const used = await this.prisma.acceptedOffer.count({
+    if (provider.subscription && ['active', 'trial', 'admin_trial'].includes(provider.subscription.status)) {
+      const pType = provider.subscription.package_type;
+      if (pType === 'vip') {
+        capacityLimit = 7;
+        packageName = 'VIP (Yüksek)';
+      } else if (pType === 'standard' || pType === 'premium') {
+        capacityLimit = 5;
+        packageName = 'Standart (Orta)';
+      } else {
+        capacityLimit = 3;
+        packageName = 'Basic (Düşük)';
+      }
+    }
+
+    // Calculate active capacity:
+    const acceptedOffers = await this.prisma.acceptedOffer.findMany({
       where: {
         provider_id: provider.id,
-        accepted_at: {
-          gte: startOfMonth,
+        offer: {
+          status: 'accepted',
         },
+        job: {
+          status: {
+            notIn: ['completed', 'cancelled'],
+          },
+        },
+      },
+      include: {
+        offer: true,
       },
     });
 
-    const rating = provider.avg_rating ? Number(provider.avg_rating) : 4.0;
-    const packageLevel = this.getProviderPackage(rating);
+    const now = new Date();
+    const activeJobsCount = acceptedOffers.filter((ao) => {
+      // 1. If it has started (started_at is NOT null), it occupies slot.
+      if (ao.offer.started_at) {
+        return true;
+      }
+      // 2. If no appointment is set (immediate job), it occupies slot.
+      if (!ao.offer.appointment_at) {
+        return true;
+      }
+      // 3. If the appointment is less than 24 hours in the future, it occupies slot.
+      const appointmentTime = new Date(ao.offer.appointment_at).getTime();
+      const twentyFourHoursFromNow = now.getTime() + 24 * 60 * 60 * 1000;
+      if (appointmentTime <= twentyFourHoursFromNow) {
+        return true;
+      }
+      // Otherwise, it is a future appointment (> 24h away) and not started -> does not occupy slot.
+      return false;
+    }).length;
 
-    const limit = packageLevel.limit === Infinity ? null : packageLevel.limit;
-    const remaining = limit !== null ? Math.max(0, limit - used) : null;
+    const remaining = Math.max(0, capacityLimit - activeJobsCount);
 
     return {
       providerId: provider.id,
       providerName: provider.user.name || 'Usta',
-      packageName: packageLevel.type,
-      used,
-      limit,
+      packageName,
+      used: activeJobsCount,
+      limit: capacityLimit,
       remaining,
     };
   }
@@ -145,10 +203,10 @@ export class HizmetverenService {
       throw new ForbiddenException('Hizmet veren hesabınız henüz onaylanmamıştır.');
     }
 
-    // 2. Kota kontrolü
+    // 2. Kapasite (Kota) kontrolü
     const quota = await this.getQuotaStatus(providerUserId);
     if (quota.remaining !== null && quota.remaining <= 0) {
-      throw new BadRequestException('Aylık iş kabul kotanız dolmuştur. Yeni teklif veremezsiniz.');
+      throw new BadRequestException('Aktif iş kapasite limitiniz dolmuştur. Yeni teklif verebilmek için aktif işlerinizi tamamlamalı veya paketinizi yükseltmelisiniz.');
     }
 
     // 3. Talebin varlık ve durum kontrolü
@@ -163,6 +221,30 @@ export class HizmetverenService {
 
     if (job.status === 'completed' || job.status === 'cancelled') {
       throw new BadRequestException('Tamamlanmış veya iptal edilmiş bir talebe teklif veremezsiniz.');
+    }
+
+    // 3b. Zaman ve Teklif Sınırı Koruması (Rezervasyon dahil)
+    const offerCount = await this.prisma.offer.count({
+      where: { job_id: dto.jobId },
+    });
+
+    if (offerCount >= 4) {
+      throw new BadRequestException('Bu talep maksimum teklif sınırına (4 teklif) ulaşmış ve teklif girişine kapanmıştır.');
+    }
+
+    const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= Date.now();
+    if (isExpired) {
+      throw new BadRequestException('Bu talebin 30 dakikalık süresi dolmuş ve teklif girişine kapanmıştır.');
+    }
+
+    if (offerCount === 3) {
+      const isBasicPkg = quota.packageName.includes('Basic');
+      const totalJobs = provider.total_jobs || 0;
+      const isNewcomer = totalJobs < 5 || !provider.avg_rating;
+
+      if (!isBasicPkg && !isNewcomer) {
+        throw new BadRequestException('Bu talebe maksimum limit olan 3 genel teklif verilmiştir. Kalan son slot yeni başlayan veya Basic paket sahibi ustalarımız için ayrılmıştır.');
+      }
     }
 
     // 4. Bu ustaya dağıtılmış mı kontrolü
@@ -961,6 +1043,106 @@ export class HizmetverenService {
         },
       };
     });
+  }
+
+  /**
+   * Her dakika (veya test ortamında her 15 saniyede) tetiklenen gecikmeli usta bildirim işleme Cron'u
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async processDelayedNotifications() {
+    const now = new Date();
+    const pendingNotifications = await this.prisma.responseTime.findMany({
+      where: {
+        notified_sent: false,
+        notified_at: {
+          lte: now,
+        },
+      },
+    });
+
+    if (pendingNotifications.length === 0) return;
+
+    this.logger.log(`[DAĞITIM - CRON] ${pendingNotifications.length} adet planlı gecikmeli bildirim taranıyor...`);
+
+    for (const rt of pendingNotifications) {
+      try {
+        const job = await this.prisma.serviceRequest.findUnique({
+          where: { id: rt.job_id },
+          include: { category: true },
+        });
+
+        const provider = await this.prisma.serviceProvider.findUnique({
+          where: { id: rt.provider_id },
+          include: { user: true },
+        });
+
+        if (!job || !provider) {
+          // Bağlantısı kopuk kayıtları temizle
+          await this.prisma.responseTime.update({
+            where: { id: rt.id },
+            data: { notified_sent: true },
+          });
+          continue;
+        }
+
+        const formData = job.form_data as any;
+        const requestDistrict = formData.district || 'Kadıköy';
+
+        // Teklif limitleri ve zaman aşımı kontrolleri
+        const offerCount = await this.prisma.offer.count({
+          where: { job_id: rt.job_id },
+        });
+
+        const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= now.getTime();
+
+        if (offerCount >= 4 || isExpired || job.status === 'completed' || job.status === 'cancelled') {
+          // Teklife kapanmışsa sadece gönderildi işaretle, bildirim atma
+          await this.prisma.responseTime.update({
+            where: { id: rt.id },
+            data: { notified_sent: true },
+          });
+          continue;
+        }
+
+        const isFav = await this.prisma.favoriteProvider.findUnique({
+          where: {
+            seeker_id_provider_id: {
+              seeker_id: job.seeker_id,
+              provider_id: rt.provider_id,
+            },
+          },
+        });
+
+        // 1. WebSocket ile ustaya yeni iş fırsatını anlık bildir
+        this.chatGateway.emitNewJobToProvider(rt.provider_id, {
+          id: rt.job_id,
+          categoryName: job.category.name,
+          district: requestDistrict,
+          details: formData.details || '',
+          viewerCount: 5,
+          created_at: job.created_at,
+          isFavoriteCustomer: !!isFav,
+          offersCount: offerCount,
+        });
+
+        // 2. FCM / Mobil Bildirim gönder
+        try {
+          await this.bildirimService.sendNotification(provider.user_id, 'HV-01', { jobId: rt.job_id });
+        } catch (notifErr) {
+          this.logger.error(`Cron delayed notification send failed for provider ${provider.id}: ${notifErr.message}`);
+        }
+
+        // 3. Bildirim tamamlandı işaretle
+        await this.prisma.responseTime.update({
+          where: { id: rt.id },
+          data: { notified_sent: true },
+        });
+
+        this.logger.log(`[DAĞITIM - CRON] Gecikmeli bildirim başarıyla iletildi -> ${provider.user?.name || provider.id} | İş: ${job.id}`);
+      } catch (err) {
+        this.logger.error(`Error processing delayed notification ${rt.id}: ${err.message}`);
+      }
+    }
   }
 }
 

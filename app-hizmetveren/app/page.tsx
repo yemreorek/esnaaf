@@ -89,6 +89,203 @@ export function normalizePhone(rawPhone: string): string {
   return `+90${digits}`;
 }
 
+const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onExpire?: () => void }) => {
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isRed, setIsRed] = useState<boolean>(false);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const createdTime = new Date(createdAt).getTime();
+      const expiresTime = createdTime + 30 * 60 * 1000; // 30 mins
+      const now = Date.now();
+      const diff = expiresTime - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Süre Doldu');
+        setIsRed(true);
+        if (onExpire) onExpire();
+        return false;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+
+      if (minutes < 5) {
+        setIsRed(true);
+      }
+
+      const minStr = minutes.toString().padStart(2, '0');
+      const secStr = seconds.toString().padStart(2, '0');
+      setTimeLeft(`${minStr}:${secStr}`);
+      return true;
+    };
+
+    calculateTime();
+    const interval = setInterval(() => {
+      const active = calculateTime();
+      if (!active) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt, onExpire]);
+
+  return (
+    <span className={`inline-flex items-center gap-1 font-mono font-black text-xs ${isRed ? 'text-red-500 animate-pulse' : 'text-slate-650'}`}>
+      ⏳ {timeLeft}
+    </span>
+  );
+};
+
+const OpportunityCard = ({
+  job,
+  token,
+  renderMockupIcon,
+  setActiveJob,
+  showAlert,
+}: {
+  job: any;
+  token?: string | null;
+  renderMockupIcon: (type: string) => React.ReactNode;
+  setActiveJob: (job: any) => void;
+  showAlert?: (title: string, msg: string, type?: "success" | "error" | "info") => void;
+}) => {
+  const [isExpired, setIsExpired] = useState<boolean>(
+    new Date(job.created_at || Date.now()).getTime() + 30 * 60 * 1000 <= Date.now()
+  );
+
+  const badgeText = job.aciliyet || (
+    job.categoryName?.includes("Temizlik") ? "ACİL TALEP" :
+    job.categoryName?.includes("Nakliyat") ? "PLANLI İŞ" :
+    job.categoryName?.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
+  );
+  const badgeType = job.aciliyet ? (
+    job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
+    job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
+    job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
+  ) : (
+    job.categoryName?.includes("Temizlik") ? "urgent" :
+    job.categoryName?.includes("Nakliyat") ? "planned" :
+    job.categoryName?.includes("Tadilat") ? "high" : "standard"
+  );
+
+  const offersCount = job.offersCount || 0;
+  const isClosed = offersCount >= 4 || isExpired;
+
+  const renderOfferDots = (count: number) => {
+    const dots = [];
+    for (let i = 0; i < 4; i++) {
+      if (i < count) {
+        dots.push(
+          <span key={i} className="w-2.5 h-2.5 rounded-full bg-[#4c630a] inline-block shadow-[0_0_6px_rgba(76,99,10,0.3)] transition-all duration-305" title={`${count}/4 Teklif Verildi`} />
+        );
+      } else if (i === 3) {
+        dots.push(
+          <span key={i} className="w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-500/30 inline-block animate-pulse transition-all duration-305" title="4. Teklif: Yeni/Temel Paket Üyelerine Özel Slot!" />
+        );
+      } else {
+        dots.push(
+          <span key={i} className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-350 inline-block transition-all duration-305" title={`${count}/4 Teklif Verildi`} />
+        );
+      }
+    }
+    return (
+      <div className="flex items-center gap-1.5 bg-slate-50/80 px-2.5 py-1.5 rounded-full border border-slate-100/60 shrink-0">
+        <span className="text-[10px] text-slate-500 font-bold">Teklifler:</span>
+        <div className="flex gap-1.5">
+          {dots}
+        </div>
+        <span className="text-[10px] text-[#4c630a] font-mono font-black ml-0.5">{count}/4</span>
+      </div>
+    );
+  };
+
+  return (
+    <div 
+      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up text-left"
+    >
+      <div className="space-y-4">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex items-center gap-3">
+            {renderMockupIcon(
+              job.categoryName?.includes("Temizlik") ? "cleaning" :
+              job.categoryName?.includes("Nakliyat") ? "truck" :
+              job.categoryName?.includes("Tadilat") ? "tools" : "paint"
+            )}
+            <div className="flex flex-col text-left">
+              <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
+              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
+                badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
+                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
+                badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
+              }`}>
+                {badgeText}
+              </span>
+            </div>
+          </div>
+          
+          <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
+            <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
+            <div className="flex items-center gap-1 justify-end">
+              {job.created_at && (
+                <CountdownTimer createdAt={job.created_at} onExpire={() => setIsExpired(true)} />
+              )}
+              <span>•</span>
+              <span>{formatRelativeTime(job.created_at || new Date().toISOString())}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 bg-slate-50/60 border border-slate-100/80 rounded-2xl p-3">
+          <div className="w-8 h-8 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-[#4c630a] font-extrabold text-xs shrink-0 select-none">
+            {(job.name || "Misafir Seeker").charAt(0).toUpperCase()}
+          </div>
+          <div className="flex flex-col text-left">
+            <span className="font-extrabold text-xs text-slate-800 leading-snug">{job.name || "Misafir Seeker"}</span>
+            <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold whitespace-pre-line text-left">
+          &ldquo;{job.details}&rdquo;
+        </p>
+      </div>
+
+      <div className="border-t border-slate-50 pt-4 flex items-center justify-between gap-4">
+        {renderOfferDots(offersCount)}
+        
+        {isClosed ? (
+          <button
+            disabled
+            className="bg-slate-55 text-slate-400 font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-none cursor-not-allowed border border-slate-150"
+          >
+            {offersCount >= 4 ? "Teklife Kapandı (4/4)" : "Süre Doldu"}
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              if (!token) {
+                if (showAlert) {
+                  showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!", "info");
+                } else {
+                  alert("Lütfen önce giriş yapın!");
+                }
+              } else {
+                setActiveJob(job);
+              }
+            }}
+            className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
+          >
+            Teklif Ver
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 const MOCK_USTAS = [
   { name: 'Kemal Usta (Adana - Klima & Temizlik)', phone: '+905329999901', rating: 4.8 },
@@ -104,54 +301,54 @@ const MOCKUP_OPPORTUNITIES = [
   {
     id: "mockup-1",
     categoryName: "Ev Temizliği",
-    subBadge: "ACİL TALEP",
-    badgeType: "urgent",
+    aciliyet: "ACİL TALEP",
     district: "Kadıköy, İstanbul",
     name: "Ayşe K.",
     details: "3+1 dairemiz için detaylı genel temizlik yaptırmak istiyoruz. Özellikle camlar ve balkon temizliği bizi...",
     viewerCount: 7,
-    timeText: "2 saat önce",
-    budget: "1.200 TL – 1.500 TL",
-    iconType: "cleaning"
+    butce: "1.200 TL – 1.500 TL",
+    iconType: "cleaning",
+    created_at: new Date(Date.now() - 12 * 60 * 1000).toISOString(), // 12 mins ago
+    offersCount: 1
   },
   {
     id: "mockup-2",
     categoryName: "Nakliyat",
-    subBadge: "PLANLI İŞ",
-    badgeType: "planned",
+    aciliyet: "PLANLI İŞ",
     district: "Şişli, İstanbul",
     name: "Caner M.",
     details: "Parça eşya taşıma hizmeti aranıyor. 1 adet koltuk takımı ve yemek masası Şişli'den Beşiktaş'a...",
     viewerCount: 5,
-    timeText: "5 saat önce",
-    budget: "2.500 TL – 3.200 TL",
-    iconType: "truck"
+    butce: "2.500 TL – 3.200 TL",
+    iconType: "truck",
+    created_at: new Date(Date.now() - 22 * 60 * 1000).toISOString(), // 22 mins ago
+    offersCount: 2
   },
   {
     id: "mockup-3",
     categoryName: "Tadilat",
-    subBadge: "YÜKSEK ÖNCELİK",
-    badgeType: "high",
+    aciliyet: "YÜKSEK ÖNCELİK",
     district: "Çankaya, Ankara",
     name: "Selin T.",
     details: "Banyo fayans değişimi ve lavabo montajı. Malzemeler tarafımdan alınacaktır, sadece işçilik...",
     viewerCount: 12,
-    timeText: "Dün",
-    budget: "4.000 TL – 6.000 TL",
-    iconType: "tools"
+    butce: "4.000 TL – 6.000 TL",
+    iconType: "tools",
+    created_at: new Date(Date.now() - 8 * 60 * 1000).toISOString(), // 8 mins ago
+    offersCount: 3
   },
   {
     id: "mockup-4",
     categoryName: "Boya & Badana",
-    subBadge: "STANDART İŞ",
-    badgeType: "standard",
+    aciliyet: "STANDART İŞ",
     district: "Nilüfer, Bursa",
     name: "Hakan B.",
     details: "Ofis boyama işlemi. Toplam 120m2 net alan. Beyaz ve gri tonlarında boyanacak. Ofis boş...",
     viewerCount: 3,
-    timeText: "2 gün önce",
-    budget: "8.500 TL – 12.000 TL",
-    iconType: "paint"
+    butce: "8.500 TL – 12.000 TL",
+    iconType: "paint",
+    created_at: new Date(Date.now() - 35 * 60 * 1000).toISOString(), // 35 mins ago (expired!)
+    offersCount: 4
   }
 ];
 
@@ -2505,92 +2702,19 @@ export default function ProviderDashboard() {
                 {/* If logged in and has actual jobs in database, render them. Otherwise show mockup grid */}
                 {token ? (
                   jobs.length > 0 ? (
-                    jobs.map((job) => {
-                      const badgeText = job.aciliyet || (
-                        job.categoryName.includes("Temizlik") ? "ACİL TALEP" :
-                        job.categoryName.includes("Nakliyat") ? "PLANLI İŞ" :
-                        job.categoryName.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
-                      );
-                      const badgeType = job.aciliyet ? (
-                        job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
-                        job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
-                        job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
-                      ) : (
-                        job.categoryName.includes("Temizlik") ? "urgent" :
-                        job.categoryName.includes("Nakliyat") ? "planned" :
-                        job.categoryName.includes("Tadilat") ? "high" : "standard"
-                      );
-
-                      const estBudget = job.butce || (
-                        job.categoryName.includes("Temizlik") ? "1.200 TL – 1.500 TL" :
-                        job.categoryName.includes("Nakliyat") ? "2.500 TL – 3.200 TL" :
-                        job.categoryName.includes("Tadilat") ? "4.000 TL – 6.000 TL" :
-                        job.categoryName.includes("Boya") ? "8.500 TL – 12.000 TL" : "1.500 TL – 3.000 TL"
-                      );
-
-                      return (
-                        <div 
-                          key={job.id} 
-                          className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
-                        >
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-start gap-4">
-                              <div className="flex items-center gap-3">
-                                {renderMockupIcon(
-                                  job.categoryName.includes("Temizlik") ? "cleaning" :
-                                  job.categoryName.includes("Nakliyat") ? "truck" :
-                                  job.categoryName.includes("Tadilat") ? "tools" : "paint"
-                                )}
-                                <div className="flex flex-col text-left">
-                                  <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
-                                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
-                                    badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
-                                    badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
-                                    badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
-                                  }`}>
-                                    {badgeText}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-                                <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
-                                <span>{formatRelativeTime(job.created_at)}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 bg-slate-50/60 border border-slate-100/80 rounded-2xl p-3">
-                              <div className="w-8 h-8 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-[#4c630a] font-extrabold text-xs shrink-0 select-none">
-                                {(job.name || "Misafir Seeker").charAt(0).toUpperCase()}
-                              </div>
-                              <div className="flex flex-col text-left">
-                                <span className="font-extrabold text-xs text-slate-800 leading-snug">{job.name || "Misafir Seeker"}</span>
-                                <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
-                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}
-                                </span>
-                              </div>
-                            </div>
-
-                            <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold whitespace-pre-line">
-                              &ldquo;{job.details}&rdquo;
-                            </p>
-                          </div>
-
-                           <div className="border-t border-slate-50 pt-4 flex items-center justify-end gap-4">
-                             <button
-                               onClick={() => setActiveJob(job)}
-                               className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-                             >
-                               Teklif Ver
-                             </button>
-                           </div>
-                        </div>
-                      );
-                    })
+                    jobs.map((job) => (
+                      <OpportunityCard
+                        key={job.id}
+                        job={job}
+                        token={token}
+                        renderMockupIcon={renderMockupIcon}
+                        setActiveJob={setActiveJob}
+                        showAlert={showAlert}
+                      />
+                    ))
                   ) : (
                     /* Premium Empty State */
-                    <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 shadow-[0_4px_30px_rgba(15,23,42,0.015)] text-center space-y-5 animate-scale-up py-16 w-full">
+                    <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 shadow-[0_4px_30px_rgba(15,23,42,0.015)] text-center space-y-5 animate-scale-up py-16 w-full text-center">
                       <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
                         <Briefcase className="w-8 h-8 text-[#4c630a] stroke-[2.2]" />
                       </div>
@@ -2604,75 +2728,18 @@ export default function ProviderDashboard() {
                     </div>
                   )
                 ) : (
-                  // Preview State: Render exact screenshot cards
+                  // Preview State: Render exact screenshot cards with progress & countdown
                   MOCKUP_OPPORTUNITIES.map((opp) => (
-                    <div 
-                      key={opp.id} 
-                      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-200 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex items-center gap-3">
-                            {renderMockupIcon(opp.iconType)}
-                            <div className="flex flex-col text-left">
-                              <span className="font-extrabold text-sm text-slate-900 leading-none">{opp.categoryName}</span>
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-1 self-start tracking-wider font-mono ${
-                                opp.badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
-                                opp.badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
-                                opp.badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
-                              }`}>
-                                {opp.subBadge}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-                            <span className="flex items-center gap-1 justify-end">👁️ {opp.viewerCount} usta inceliyor</span>
-                            <span>{opp.timeText}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 bg-slate-50/60 border border-slate-100/80 rounded-2xl p-3">
-                          <div className="w-8 h-8 rounded-full bg-[#c8f252]/10 border border-[#c8f252]/20 flex items-center justify-center text-[#4c630a] font-extrabold text-xs shrink-0 select-none">
-                            {(opp.name || "Misafir Seeker").charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex flex-col text-left">
-                            <span className="font-extrabold text-xs text-slate-800 leading-snug">{opp.name}</span>
-                            <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              {opp.district}
-                            </span>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-slate-650 font-semibold italic bg-[#f8fafc] p-4 rounded-2xl border border-slate-100 leading-relaxed text-left whitespace-pre-line">
-                          &ldquo;{opp.details}&rdquo;
-                        </p>
-                      </div>
-
-                      <div className="border-t border-slate-100 pt-4 flex items-center justify-end gap-4">
-                        <button
-                          onClick={() => {
-                            if (!token) {
-                              showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!", "info");
-                            } else {
-                              setActiveJob({
-                                id: opp.id,
-                                categoryName: opp.categoryName,
-                                district: opp.district,
-                                details: opp.details
-                              });
-                            }
-                          }}
-                          className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-                        >
-                          Teklif Ver
-                        </button>
-                      </div>
-                    </div>
+                    <OpportunityCard
+                      key={opp.id}
+                      job={opp}
+                      token={token}
+                      renderMockupIcon={renderMockupIcon}
+                      setActiveJob={setActiveJob}
+                      showAlert={showAlert}
+                    />
                   ))
                 )}
-
               </div>
             </>
           )}
@@ -3416,7 +3483,11 @@ export default function ProviderDashboard() {
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-left">Mevcut Abonelik Planı</span>
                       <h3 className="text-2xl font-black tracking-tight text-[#c8f252] uppercase mt-1">
-                        {subscriptionDetails?.subscription?.package_type ? `${subscriptionDetails.subscription.package_type} Paket` : 'Paket Bulunmuyor'}
+                        {subscriptionDetails?.subscription?.package_type === 'vip' ? 'VIP Paket (Yüksek)' :
+                         subscriptionDetails?.subscription?.package_type === 'standard' ? 'Standart Paket (Orta)' :
+                         subscriptionDetails?.subscription?.package_type === 'basic' ? 'Basic Paket (Düşük)' :
+                         subscriptionDetails?.subscription?.package_type ? `${subscriptionDetails.subscription.package_type.toUpperCase()} Paket` :
+                         'Paket Bulunmuyor'}
                       </h3>
                     </div>
                     <span className={`text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded border ${
@@ -3432,8 +3503,8 @@ export default function ProviderDashboard() {
 
                   <div className="space-y-2.5 z-10">
                     <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                      <span>Bu Ayki Kullanılan Kota:</span>
-                      <span className="text-white font-mono">{subscriptionDetails?.quota?.accepted_count || 0} / {subscriptionDetails?.quota?.monthly_limit || 'Sınırsız (VIP)'}</span>
+                      <span>Aktif İş Kapasitesi (Kapasite Kilidi):</span>
+                      <span className="text-white font-mono">{subscriptionDetails?.quota?.accepted_count || 0} / {subscriptionDetails?.quota?.monthly_limit || '3'}</span>
                     </div>
                     {/* Progress Bar */}
                     {subscriptionDetails?.quota?.monthly_limit && (
@@ -3472,7 +3543,7 @@ export default function ProviderDashboard() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                     {availablePackages.map((pkg: any) => {
                       const isCurrent = subscriptionDetails?.subscription?.package_type === pkg.type;
                       return (
@@ -3485,7 +3556,7 @@ export default function ProviderDashboard() {
                               setCampaignCodeInput('');
                             }
                           }}
-                          className={`border rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col justify-between gap-4 h-[180px] ${
+                          className={`border rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col justify-between gap-4 h-[250px] ${
                             isCurrent
                               ? 'bg-slate-50 border-slate-200 opacity-60 pointer-events-none'
                               : selectedPackage?.type === pkg.type
@@ -3496,7 +3567,17 @@ export default function ProviderDashboard() {
                           <div>
                             <span className="block text-[10px] text-slate-450 font-black uppercase tracking-wider">{pkg.name}</span>
                             <span className="block text-2xl font-black text-slate-900 tracking-tight mt-2">₺{pkg.price.toLocaleString('tr-TR')}</span>
-                            <span className="block text-[9px] text-slate-400 font-bold mt-1">{pkg.quota ? `${pkg.quota} Teklif / Ay` : 'Sınırsız Teklif (VIP)'}</span>
+                            <div className="mt-2 space-y-0.5 text-left border-t border-slate-100 pt-2">
+                              <span className="block text-[9px] text-slate-500 font-medium">✓ Teklif Hakkı: Sınırsız</span>
+                              <span className="block text-[9px] text-slate-500 font-medium">✓ Komisyon Oranı: %{pkg.commissionRate}</span>
+                              <span className="block text-[9px] text-slate-500 font-medium">✓ Aktif İş Limiti: {pkg.activeJobsLimit} Slot</span>
+                              <span className="block text-[9px] text-slate-500 font-medium">
+                                ✓ Dağıtım Hızı: {pkg.type === 'vip' ? 'Anında (0 Gecikme)' : pkg.type === 'standard' ? 'Hızlı (5 dk Gecikmeli)' : 'Normal (15 dk Gecikmeli)'}
+                              </span>
+                              <span className="block text-[9px] text-slate-500 font-medium">
+                                ✓ 4. Slot Erişimi: {pkg.type === 'basic' ? 'Ayrıcalıklı Slot Açık' : 'Yeni Ustaya Rezerve'}
+                              </span>
+                            </div>
                           </div>
                           
                           <button
@@ -3530,8 +3611,28 @@ export default function ProviderDashboard() {
                         <span className="font-extrabold text-slate-800">{selectedPackage.name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Kota Sınırı:</span>
-                        <span className="font-extrabold text-slate-800">{selectedPackage.quota ? `${selectedPackage.quota} Teklif` : 'Sınırsız (VIP)'}</span>
+                        <span>Teklif Hakkı:</span>
+                        <span className="font-extrabold text-slate-800">Sınırsız</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Komisyon Oranı:</span>
+                        <span className="font-extrabold text-slate-800">%{selectedPackage.commissionRate}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Aktif İş Limiti:</span>
+                        <span className="font-extrabold text-slate-800">{selectedPackage.activeJobsLimit} Slot</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Dağıtım Hızı:</span>
+                        <span className="font-extrabold text-slate-800">
+                          {selectedPackage.type === 'vip' ? 'Anında (0 Gecikme)' : selectedPackage.type === 'standard' ? 'Hızlı (5 dk Gecikmeli)' : 'Normal (15 dk Gecikmeli)'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>4. Slot Ayrıcalığı:</span>
+                        <span className="font-extrabold text-slate-800">
+                          {selectedPackage.type === 'basic' ? 'Var (Slot Açık)' : 'Yok (Yeni Ustaya Rezerve)'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Plan Fiyatı:</span>

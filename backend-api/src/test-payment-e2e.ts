@@ -55,8 +55,8 @@ async function run() {
   console.log('\n--- STEP A: Fetching Packages ---');
   const packages = await abonelikService.getPackages();
   console.log('Available packages:', packages);
-  if (packages.length === 4) {
-    console.log('✅ Packages query succeeded: Found 4 packages.');
+  if (packages.length === 3) {
+    console.log('✅ Packages query succeeded: Found 3 packages.');
   } else {
     console.error('❌ Packages query failed!');
   }
@@ -76,7 +76,7 @@ async function run() {
       is_active: true,
       valid_from: new Date(Date.now() - 3600000), // active
       valid_until: new Date(Date.now() + 86400000), // active
-      applicable_packages: [PackageType.standard, PackageType.premium],
+      applicable_packages: [PackageType.standard],
       new_users_only: false,
     },
   });
@@ -190,19 +190,19 @@ async function run() {
   
   // Start subscription -> generates checkout form html
   const checkoutRes = await abonelikService.startSubscription(providerUser.id, {
-    packageType: PackageType.premium,
+    packageType: PackageType.standard,
     campaignCode: 'BAHAR20',
   });
   console.log('Checkout Form Init Token:', checkoutRes.token);
 
   // Simulating checkout success callback (CHECKOUT_FORM_AUTH event)
-  // Premium price: 15,000 TL, Campaign BAHAR20 gives 20% discount (final: 12,000 TL, discount: 3,000 TL)
+  // Standard price: 3,000 TL, Campaign BAHAR20 gives 20% discount (final: 2,400 TL, discount: 600 TL)
   const webhookResult = await abonelikService.handleCheckoutSuccess(
     provider.id,
-    PackageType.premium,
+    PackageType.standard,
     'iyzico_subscription_reference_code_123',
     cmpPercent.id,
-    3000
+    600
   );
   console.log('Webhook Success Activation Result:', webhookResult.status);
 
@@ -217,8 +217,8 @@ async function run() {
 
   if (
     subPaid?.status === SubscriptionStatus.active &&
-    subPaid?.package_type === PackageType.premium &&
-    Number(subPaid?.payments[0]?.amount) === 12000
+    subPaid?.package_type === PackageType.standard &&
+    Number(subPaid?.payments[0]?.amount) === 2400
   ) {
     console.log('✅ Paid subscription activation and payment records verified successfully.');
   } else {
@@ -239,7 +239,7 @@ async function run() {
   // Call handleCheckoutSuccess to renew (represents SUBSCRIPTION_RENEW_SUCCESS)
   const renewResult = await abonelikService.handleCheckoutSuccess(
     provider.id,
-    PackageType.premium,
+    PackageType.standard,
     'iyzico_subscription_reference_code_123',
     undefined,
     0
@@ -324,7 +324,7 @@ async function run() {
     where: { provider_id: provider.id },
     data: {
       status: SubscriptionStatus.active,
-      package_type: PackageType.premium,
+      package_type: PackageType.standard,
       expires_at: nextMonth,
     },
   });

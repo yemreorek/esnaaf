@@ -139,6 +139,53 @@ interface SeekerDashboardProps {
   onLogout: () => void;
 }
 
+const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onExpire?: () => void }) => {
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isRed, setIsRed] = useState<boolean>(false);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const createdTime = new Date(createdAt).getTime();
+      const expiresTime = createdTime + 30 * 60 * 1000; // 30 mins
+      const now = Date.now();
+      const diff = expiresTime - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Süre Doldu');
+        setIsRed(true);
+        if (onExpire) onExpire();
+        return false;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+
+      if (minutes < 5) {
+        setIsRed(true);
+      }
+
+      const minStr = minutes.toString().padStart(2, '0');
+      const secStr = seconds.toString().padStart(2, '0');
+      setTimeLeft(`${minStr}:${secStr}`);
+      return true;
+    };
+
+    calculateTime();
+    const interval = setInterval(() => {
+      const active = calculateTime();
+      if (!active) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt, onExpire]);
+
+  return (
+    <span className={`inline-flex items-center gap-1 font-mono font-black text-xs ${isRed ? 'text-red-500 animate-pulse' : 'text-slate-650'}`}>
+      ⏳ {timeLeft}
+    </span>
+  );
+};
+
 // Mockup Active Offers exactly matching the screenshot
 const MOCKUP_ACTIVE_OFFERS = [
   {
@@ -1203,14 +1250,27 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       {`#TR-${req.id.substring(0, 5).toUpperCase()}`}
                                     </span>
 
-                                    {offerCount > 0 ? (
-                                      <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
-                                        {offerCount} Teklif Alındı
+                                    {offerCount >= 4 ? (
+                                      <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
+                                        Teklife Kapatıldı (4 Teklif Sınırı)
+                                      </span>
+                                    ) : (new Date(req.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) ? (
+                                      <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
+                                        Teklife Kapatıldı (Süre Dolanlar)
                                       </span>
                                     ) : (
-                                      <span className="bg-[#c8f252]/15 text-[#4c630a] text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-[#c8f252]/20">
-                                        TEKLİF BEKLENİYOR
-                                      </span>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <CountdownTimer createdAt={req.created_at} />
+                                        {offerCount > 0 ? (
+                                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
+                                            {offerCount} Teklif Alındı
+                                          </span>
+                                        ) : (
+                                          <span className="bg-[#c8f252]/15 text-[#4c630a] text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-[#c8f252]/20">
+                                            TEKLİF BEKLENİYOR
+                                          </span>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
 
@@ -1884,9 +1944,22 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
                               <span>Gelen Teklifler Akışı</span>
                             </h4>
-                            <span className="text-[10px] font-bold bg-[#c8f252]/20 text-[#4c630a] px-2.5 py-1 rounded-full uppercase tracking-wider">
-                              Canlı Bağlantı Aktif
-                            </span>
+                            {selectedRequest.offers?.length >= 4 ? (
+                              <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
+                                Tekliflere Kapandı
+                              </span>
+                            ) : (new Date(selectedRequest.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) ? (
+                              <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
+                                Süre Doldu
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <CountdownTimer createdAt={selectedRequest.created_at} />
+                                <span className="text-[10px] font-bold bg-[#c8f252]/20 text-[#4c630a] px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                  Canlı Bağlantı Aktif
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {selectedRequest.offers?.length === 0 ? (

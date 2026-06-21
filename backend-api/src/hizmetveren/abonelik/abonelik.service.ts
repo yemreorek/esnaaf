@@ -24,10 +24,33 @@ export class AbonelikService {
    */
   async getPackages() {
     return [
-      { type: PackageType.basic, price: 5000, quota: 14, name: 'Basic Paket', description: 'Giriş seviyesi esnaf paketi' },
-      { type: PackageType.standard, price: 10000, quota: 30, name: 'Standart Paket', description: 'Orta seviye büyüyen esnaf paketi' },
-      { type: PackageType.premium, price: 15000, quota: 60, name: 'Premium Paket', description: 'Gelişmiş yoğun esnaf paketi' },
-      { type: PackageType.vip, price: 20000, quota: null, name: 'VIP Paket', description: 'Rozetli, sınırsız ve en yüksek dağıtım öncelikli paket' },
+      { 
+        type: PackageType.basic, 
+        price: 5000, 
+        quota: null, 
+        commissionRate: 10,
+        activeJobsLimit: 3,
+        name: 'Basic Paket (Düşük)', 
+        description: 'Aylık 5.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %10 İş Sonu Komisyonu. Aynı anda en fazla 3 aktif iş (Kapasite Kilidi). Normal Dağıtım (15 dk gecikmeli).' 
+      },
+      { 
+        type: PackageType.standard, 
+        price: 10000, 
+        quota: null, 
+        commissionRate: 7,
+        activeJobsLimit: 5,
+        name: 'Standart Paket (Orta)', 
+        description: 'Aylık 10.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %7 İş Sonu Komisyonu. Aynı anda en fazla 5 aktif iş (Kapasite Kilidi). Hızlı Dağıtım (5 dk gecikmeli).' 
+      },
+      { 
+        type: PackageType.vip, 
+        price: 20000, 
+        quota: null, 
+        commissionRate: 5,
+        activeJobsLimit: 7,
+        name: 'VIP Paket (Yüksek)', 
+        description: 'Aylık 20.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %5 İş Sonu Komisyonu. Aynı anda en fazla 7 aktif iş (Kapasite Kilidi). Anlık Dağıtım ve Güvenilir Uzman Rozeti.' 
+      },
     ];
   }
 
@@ -284,16 +307,64 @@ export class AbonelikService {
       throw new NotFoundException('Hizmet veren bulunamadı.');
     }
 
-    const monthYear = new Date().toISOString().substring(0, 7);
-    const quota = await this.prisma.providerMonthlyQuota.findUnique({
-      where: { provider_id_month_year: { provider_id: provider.id, month_year: monthYear } },
+    // Dynamic Capacity limits based on subscription package:
+    let capacityLimit = 3; // default basic fallback
+    if (provider.subscription && ['active', 'trial', 'admin_trial'].includes(provider.subscription.status)) {
+      const pType = provider.subscription.package_type;
+      if (pType === 'vip') {
+        capacityLimit = 7;
+      } else if (pType === 'standard' || pType === 'premium') {
+        capacityLimit = 5;
+      } else {
+        capacityLimit = 3;
+      }
+    }
+
+    // Calculate active capacity:
+    const acceptedOffers = await this.prisma.acceptedOffer.findMany({
+      where: {
+        provider_id: provider.id,
+        offer: {
+          status: 'accepted',
+        },
+        job: {
+          status: {
+            notIn: ['completed', 'cancelled'],
+          },
+        },
+      },
+      include: {
+        offer: true,
+      },
     });
+
+    const now = new Date();
+    const activeJobsCount = acceptedOffers.filter((ao) => {
+      // 1. If it has started (started_at is NOT null), it occupies slot.
+      if (ao.offer.started_at) {
+        return true;
+      }
+      // 2. If no appointment is set (immediate job), it occupies slot.
+      if (!ao.offer.appointment_at) {
+        return true;
+      }
+      // 3. If the appointment is less than 24 hours in the future, it occupies slot.
+      const appointmentTime = new Date(ao.offer.appointment_at).getTime();
+      const twentyFourHoursFromNow = now.getTime() + 24 * 60 * 60 * 1000;
+      if (appointmentTime <= twentyFourHoursFromNow) {
+        return true;
+      }
+      // Otherwise, it is a future appointment (> 24h away) and not started -> does not occupy slot.
+      return false;
+    }).length;
+
+    const monthYear = new Date().toISOString().substring(0, 7);
 
     return {
       subscription: provider.subscription || null,
-      quota: quota || {
-        accepted_count: 0,
-        monthly_limit: 0,
+      quota: {
+        accepted_count: activeJobsCount,
+        monthly_limit: capacityLimit,
         month_year: monthYear,
       },
     };

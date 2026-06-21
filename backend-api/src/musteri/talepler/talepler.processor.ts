@@ -73,6 +73,7 @@ export class TaleplerProcessor {
       },
       include: {
         user: true,
+        subscription: true,
       },
     });
 
@@ -92,8 +93,7 @@ export class TaleplerProcessor {
       this.logger.log(`[Favori Dağıtımı] Fallback genel dağıtımı kuyruğa eklendi. Gecikme: ${delayMs}ms.`);
     }
 
-    const candidates: { provider: any; score: number; healthScore: number }[] = [];
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const candidates: { provider: any; score: number; healthScore: number; packageLevel: any }[] = [];
 
     for (const provider of providers) {
       const providerCity = provider.city || 'Adana';
@@ -122,23 +122,38 @@ export class TaleplerProcessor {
         continue;
       }
 
-      // 3. Kota Kontrolü (PRD §6): Aylık kota dolmuş mu?
+      // 3. Kota Kontrolü (PRD §6): Aktif Kapasite Kilidi dolmuş mu?
       const packageLevel = this.getProviderPackage(provider);
       
-      if (packageLevel.type !== 'vip') {
-        const acceptedCount = await this.prisma.acceptedOffer.count({
-          where: {
-            provider_id: provider.id,
-            accepted_at: {
-              gte: startOfMonth,
+      const acceptedOffers = await this.prisma.acceptedOffer.findMany({
+        where: {
+          provider_id: provider.id,
+          offer: {
+            status: 'accepted',
+          },
+          job: {
+            status: {
+              notIn: ['completed', 'cancelled'],
             },
           },
-        });
+        },
+        include: {
+          offer: true,
+        },
+      });
 
-        if (acceptedCount >= packageLevel.limit) {
-          this.logger.log(`HV ${provider.user?.name || provider.id} kotası dolduğu için dağıtımdan elendi.`);
-          continue;
-        }
+      const now = new Date();
+      const activeJobsCount = acceptedOffers.filter((ao) => {
+        if (ao.offer.started_at) return true;
+        if (!ao.offer.appointment_at) return true;
+        const appointmentTime = new Date(ao.offer.appointment_at).getTime();
+        const twentyFourHoursFromNow = now.getTime() + 24 * 60 * 60 * 1000;
+        return appointmentTime <= twentyFourHoursFromNow;
+      }).length;
+
+      if (activeJobsCount >= packageLevel.limit) {
+        this.logger.log(`HV ${provider.user?.name || provider.id} aktif iş kapasite limiti (${packageLevel.limit}) dolduğu için dağıtımdan elendi.`);
+        continue;
       }
 
       // 4. Algoritma Skorlama (PRD §11 - 5 Ağırlıklı Faktör + Sağlık Skoru)
@@ -171,7 +186,7 @@ export class TaleplerProcessor {
         tenureScore * 0.05 +
         newMemberBonus;
 
-      candidates.push({ provider, score: totalScore, healthScore });
+      candidates.push({ provider, score: totalScore, healthScore, packageLevel });
     }
 
     // 5. Skorlara göre sırala ve top 5-7 usta seç
@@ -188,18 +203,52 @@ export class TaleplerProcessor {
     
     // 6. Seçilen her usta için response_times kaydı oluştur ve logla
     for (const item of selected) {
-      const { provider, score } = item;
+      const { provider, score, packageLevel } = item;
       const providerCity = provider.city || 'Adana';
       let providerDistricts = provider.service_districts || [];
       if (providerDistricts.length === 0) {
         providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
       }
 
+      // Kademeli gecikme hesaplama (VIP 0dk, Standart 5dk, Basic 15dk)
+      let delayMinutes = 0;
+      if (packageLevel.type === 'vip') {
+        delayMinutes = 0;
+      } else if (packageLevel.type === 'standard') {
+        delayMinutes = 5;
+      } else {
+        delayMinutes = 15;
+      }
+
+      // Son 24 saatte iş kazandıysa +3 dk ek gecikme (Winner Cooldown)
+      const hasWonRecently = await this.prisma.acceptedOffer.findFirst({
+        where: {
+          provider_id: provider.id,
+          accepted_at: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          },
+        },
+      });
+
+      if (hasWonRecently) {
+        delayMinutes += 3;
+      }
+
+      // Test modunda süreleri saniyeye indirge
+      let delayMs = delayMinutes * 60 * 1000;
+      if (process.env.NODE_ENV === 'test') {
+        delayMs = delayMinutes * 1000;
+      }
+
+      const notifiedAt = new Date(Date.now() + delayMs);
+      const isInstant = notifiedAt.getTime() <= Date.now();
+
       await this.prisma.responseTime.create({
         data: {
           provider_id: provider.id,
           job_id: request.id,
-          notified_at: new Date(),
+          notified_at: notifiedAt,
+          notified_sent: isInstant,
         },
       });
 
@@ -212,25 +261,28 @@ export class TaleplerProcessor {
         },
       });
 
-      // WebSocket ile ustaya yeni iş dağıtımını anlık bildir
-      this.chatGateway.emitNewJobToProvider(provider.id, {
-        id: request.id,
-        categoryName: request.category.name,
-        district: requestDistrict,
-        details: formData.details || '',
-        viewerCount: selected.length,
-        created_at: request.created_at,
-        isFavoriteCustomer: !!isFav,
-      });
+      if (isInstant) {
+        // WebSocket ile ustaya yeni iş dağıtımını anlık bildir
+        this.chatGateway.emitNewJobToProvider(provider.id, {
+          id: request.id,
+          categoryName: request.category.name,
+          district: requestDistrict,
+          details: formData.details || '',
+          viewerCount: selected.length,
+          created_at: request.created_at,
+          isFavoriteCustomer: !!isFav,
+          offersCount: 0,
+        });
 
-      // Send push notification to the provider
-      try {
-        await this.bildirimService.sendNotification(provider.user_id, 'HV-01', { jobId: request.id });
-      } catch (notifErr) {
-        this.logger.error(`Failed to send job distribution notification to provider ${provider.id}: ${notifErr.message}`);
+        // Send push notification to the provider
+        try {
+          await this.bildirimService.sendNotification(provider.user_id, 'HV-01', { jobId: request.id });
+        } catch (notifErr) {
+          this.logger.error(`Failed to send job distribution notification to provider ${provider.id}: ${notifErr.message}`);
+        }
       }
 
-      // OTONOM DEMO: Otomatik olarak gerçek veritabanı teklifi oluştur (Demo kolaylığı ve canlı test akışı için)
+      // OTONOM DEMO: Otomatik teklif (gecikme bitiminden 3 saniye sonra tetiklenir)
       setTimeout(async () => {
         try {
           // Double-check if offer already exists to prevent duplicate key errors
@@ -273,9 +325,9 @@ export class TaleplerProcessor {
         } catch (err) {
           this.logger.error(`Otonom teklif hatası: ${err.message}`);
         }
-      }, 3000); // 3 saniye sonra teklif düşsün (canlılık hissi verir)
+      }, isInstant ? 3000 : (delayMs + 3000));
 
-      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Sağlık Skoru: %${item.healthScore} | Paket: ${this.getProviderPackage(provider).type.toUpperCase()} | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
+      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Sağlık Skoru: %${item.healthScore} | Paket: ${packageLevel.type.toUpperCase()} | Gecikme: ${delayMinutes} dk | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
     }
     this.logger.log(`===========================================================\n`);
 
@@ -295,19 +347,31 @@ export class TaleplerProcessor {
   }
 
   /**
-   * Mock subscription limits based on average rating
+   * Get subscription limits from DB subscription
    */
   private getProviderPackage(provider: any): { type: string; limit: number; weight: number } {
-    const rating = provider.avg_rating ? Number(provider.avg_rating) : 4.0;
-    if (rating >= 4.7) {
-      return { type: 'vip', limit: Infinity, weight: 100 };
-    } else if (rating >= 4.3) {
-      return { type: 'premium', limit: 60, weight: 75 };
-    } else if (rating >= 3.8) {
-      return { type: 'standart', limit: 30, weight: 50 };
-    } else {
-      return { type: 'basic', limit: 14, weight: 25 };
+    let type = 'basic';
+    let limit = 3;
+    let weight = 25;
+
+    const sub = provider.subscription;
+    if (sub && ['active', 'trial', 'admin_trial'].includes(sub.status)) {
+      if (sub.package_type === 'vip') {
+        type = 'vip';
+        limit = 7;
+        weight = 100;
+      } else if (sub.package_type === 'standard' || sub.package_type === 'premium') {
+        type = 'standard';
+        limit = 5;
+        weight = 60;
+      } else {
+        type = 'basic';
+        limit = 3;
+        weight = 25;
+      }
     }
+
+    return { type, limit, weight };
   }
 
   /**

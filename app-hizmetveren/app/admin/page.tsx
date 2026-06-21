@@ -4536,9 +4536,9 @@ ${callTaskNotes}`;
                     className="w-full bg-slate-50 border border-slate-200/60 text-slate-750 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-[#c8f252] cursor-pointer"
                   >
                     <option value="">Yok (Tüm Paketlerde Geçerli)</option>
-                    <option value="standard">Standart Paket</option>
-                    <option value="premium">Premium Paket</option>
-                    <option value="executive">Executive Özel Paket</option>
+                    <option value="basic">Basic Paket (Düşük)</option>
+                    <option value="standard">Standart Paket (Orta)</option>
+                    <option value="vip">VIP Paket (Yüksek)</option>
                   </select>
                 </div>
               </div>
