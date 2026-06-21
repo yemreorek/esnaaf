@@ -35,7 +35,8 @@ import {
   Phone,
   Lock,
   AlertTriangle,
-  XCircle
+  XCircle,
+  Calendar
 } from 'lucide-react';
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -255,6 +256,18 @@ export default function ProviderDashboard() {
   const [checkoutFormHtml, setCheckoutFormHtml] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [submittingSubscription, setSubmittingSubscription] = useState(false);
+
+  const [submittingAppointment, setSubmittingAppointment] = useState(false);
+  const [appointmentModal, setAppointmentModal] = useState<{
+    isOpen: boolean;
+    job: any;
+    appointmentDate: string;
+  }>({
+    isOpen: false,
+    job: null,
+    appointmentDate: '',
+  });
+  const [submittingStartJob, setSubmittingStartJob] = useState<Record<string, boolean>>({});
 
   const groupedWonJobs = React.useMemo(() => {
     const groups: { [year: number]: { [month: number]: any[] } } = {};
@@ -1219,6 +1232,67 @@ export default function ProviderDashboard() {
       showAlert("Hata", err.message || "Bir hata oluştu.", "error");
     } finally {
       setSubmittingDeclaration(false);
+    }
+  };
+
+  const handleCreateOrUpdateAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !appointmentModal.job || !appointmentModal.appointmentDate) return;
+
+    setSubmittingAppointment(true);
+    try {
+      const res = await fetch(`/api/hizmetveren/kazanilan-isler/${appointmentModal.job.id}/randevu`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          appointmentAt: new Date(appointmentModal.appointmentDate).toISOString(),
+        }),
+      });
+
+      if (res.ok) {
+        showAlert("Başarılı", "Randevu başarıyla kaydedildi!", "success");
+        setAppointmentModal({ isOpen: false, job: null, appointmentDate: '' });
+        fetchTabDependencies(activeTab, token);
+      } else {
+        const data = await res.json();
+        showAlert("Hata", data.message || "Randevu kaydedilemedi.", "error");
+      }
+    } catch (err: any) {
+      showAlert("Hata", err.message || "Bir hata oluştu.", "error");
+    } finally {
+      setSubmittingAppointment(false);
+    }
+  };
+
+  const handleStartJob = async (wj: any) => {
+    if (!token) return;
+    const confirmed = window.confirm("İşi başlatmak istediğinize emin misiniz? Müşteriye bilgi verilecektir.");
+    if (!confirmed) return;
+
+    setSubmittingStartJob(prev => ({ ...prev, [wj.id]: true }));
+    try {
+      const res = await fetch(`/api/hizmetveren/kazanilan-isler/${wj.id}/basla`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        showAlert("Başarılı", "İş başarıyla başlatıldı!", "success");
+        fetchTabDependencies(activeTab, token);
+      } else {
+        const data = await res.json();
+        showAlert("Hata", data.message || "İş başlatılamadı.", "error");
+      }
+    } catch (err: any) {
+      showAlert("Hata", err.message || "Bir hata oluştu.", "error");
+    } finally {
+      setSubmittingStartJob(prev => ({ ...prev, [wj.id]: false }));
     }
   };
 
@@ -2772,6 +2846,39 @@ export default function ProviderDashboard() {
                                           })}
                                         </span>
                                       </div>
+
+                                      {/* Randevu Tarihi Görünümü */}
+                                      {wj.appointment_at && (
+                                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 flex items-center gap-2.5 mt-2">
+                                          <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
+                                          <div className="text-[11px] font-bold text-blue-800">
+                                            Randevu Tarihi: {new Date(wj.appointment_at).toLocaleString("tr-TR", {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* İş Başlama Tarihi Görünümü */}
+                                      {wj.started_at && (
+                                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 flex items-center gap-2.5 mt-2">
+                                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                                          <div className="text-[11px] font-bold text-emerald-800">
+                                            İş Başlatıldı: {new Date(wj.started_at).toLocaleString("tr-TR", {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
+
                                       <p className="italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 mt-2 font-semibold text-slate-650 leading-relaxed whitespace-pre-line">
                                         &ldquo;{wj.job.details}&rdquo;
                                       </p>
@@ -2789,6 +2896,33 @@ export default function ProviderDashboard() {
                                       >
                                         Mesaj Gönder
                                       </button>
+                                      
+                                      {/* Randevu Oluştur / Güncelle Butonu */}
+                                      <button
+                                        onClick={() => {
+                                          const existingDate = wj.appointment_at ? new Date(wj.appointment_at).toISOString().slice(0, 16) : '';
+                                          setAppointmentModal({
+                                            isOpen: true,
+                                            job: wj,
+                                            appointmentDate: existingDate,
+                                          });
+                                        }}
+                                        className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                      >
+                                        {wj.appointment_at ? 'Randevu Güncelle' : 'Randevu Oluştur'}
+                                      </button>
+
+                                      {/* İşe Başla Butonu */}
+                                      {wj.appointment_at && !wj.started_at && (
+                                        <button
+                                          onClick={() => handleStartJob(wj)}
+                                          disabled={submittingStartJob[wj.id]}
+                                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                                        >
+                                          {submittingStartJob[wj.id] ? 'Başlatılıyor...' : 'İşe Başla'}
+                                        </button>
+                                      )}
+
                                       {wj.isPendingSeeker ? (
                                         <>
                                           <button
@@ -2808,7 +2942,12 @@ export default function ProviderDashboard() {
                                             setCompletingJob(wj);
                                             setDeclarePrice(wj.price ? Number(wj.price).toLocaleString('tr-TR') : '');
                                           }}
-                                          className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                          disabled={!wj.started_at}
+                                          className={`font-black text-[11px] py-2.5 px-4.5 rounded-xl transition-all shadow-sm ${
+                                            wj.started_at
+                                              ? 'bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 cursor-pointer active:scale-95'
+                                              : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                          }`}
                                         >
                                           İşi Tamamla
                                         </button>
@@ -3845,6 +3984,65 @@ export default function ProviderDashboard() {
                     <>
                       <Send className="w-4 h-4 shrink-0 text-white" />
                       <span>Tamamlandığını Bildir</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 📅 Randevu Oluştur / Güncelle Modalı */}
+      {appointmentModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-slate-950" />
+                <span>{appointmentModal.job?.appointment_at ? 'Randevuyu Güncelle' : 'Randevu Oluştur'}</span>
+              </h3>
+              <button 
+                onClick={() => setAppointmentModal({ isOpen: false, job: null, appointmentDate: '' })}
+                className="text-slate-400 hover:text-slate-855 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrUpdateAppointment} className="space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
+                  Randevu Tarihi ve Saati
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={appointmentModal.appointmentDate}
+                  onChange={(e) => setAppointmentModal(prev => ({ ...prev, appointmentDate: e.target.value }))}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a]/50 focus:ring-1 focus:ring-[#4c630a]/10 rounded-xl py-3.5 px-4 text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-inner"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAppointmentModal({ isOpen: false, job: null, appointmentDate: '' })}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs border border-slate-200 active:scale-[0.98] cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingAppointment}
+                  className="flex-1 bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-55 shadow-md shadow-[#4c630a]/10 active:scale-[0.98] cursor-pointer border border-transparent"
+                >
+                  {submittingAppointment ? (
+                    <span>Kaydediliyor...</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 shrink-0 text-white" />
+                      <span>Randevuyu Kaydet</span>
                     </>
                   )}
                 </button>

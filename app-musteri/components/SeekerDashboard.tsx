@@ -78,6 +78,8 @@ interface Offer {
       phone_decrypted?: string;
     };
   };
+  appointment_at?: string | Date | null;
+  started_at?: string | Date | null;
 }
 
 interface RequestItem {
@@ -573,6 +575,52 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         prev.map((req) => {
           if (req.id === data.jobId) {
             const updatedReq = { ...req, status: (data.status === "completed" ? "completed" : req.status) as any };
+            if (selectedRequestRef.current?.id === data.jobId) {
+              setSelectedRequest(updatedReq);
+            }
+            return updatedReq;
+          }
+          return req;
+        })
+      );
+    });
+
+    // Real-time appointment update
+    socket.on("appointment_updated", (data: any) => {
+      console.log("[Dashboard WS] Appointment updated:", data);
+      setRequests((prev) =>
+        prev.map((req) => {
+          if (req.id === data.jobId) {
+            const updatedOffers = (req.offers || []).map((off) => {
+              if (off.id === data.offerId) {
+                return { ...off, appointment_at: data.appointment_at };
+              }
+              return off;
+            });
+            const updatedReq = { ...req, offers: updatedOffers };
+            if (selectedRequestRef.current?.id === data.jobId) {
+              setSelectedRequest(updatedReq);
+            }
+            return updatedReq;
+          }
+          return req;
+        })
+      );
+    });
+
+    // Real-time job started status update
+    socket.on("job_started", (data: any) => {
+      console.log("[Dashboard WS] Job started by provider:", data);
+      setRequests((prev) =>
+        prev.map((req) => {
+          if (req.id === data.jobId) {
+            const updatedOffers = (req.offers || []).map((off) => {
+              if (off.id === data.offerId) {
+                return { ...off, started_at: data.started_at };
+              }
+              return off;
+            });
+            const updatedReq = { ...req, offers: updatedOffers };
             if (selectedRequestRef.current?.id === data.jobId) {
               setSelectedRequest(updatedReq);
             }
@@ -1550,9 +1598,31 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                         <span className="text-xs font-black text-slate-800">
                                           {offer.provider?.user?.name || "Hizmet Veren"}
                                         </span>
-                                        <span className="text-[10px] text-slate-500 font-bold">
+                                        <span className="text-[10px] text-slate-500 font-bold font-sans">
                                           Kabul Fiyatı: {Number(offer.price).toLocaleString("tr-TR")} ₺
                                         </span>
+                                        {offer.appointment_at && (
+                                          <span className="text-[10px] text-blue-600 font-extrabold mt-1 block">
+                                            Randevu: {new Date(offer.appointment_at).toLocaleString("tr-TR", {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </span>
+                                        )}
+                                        {offer.started_at && (
+                                          <span className="text-[10px] text-emerald-600 font-extrabold mt-1 block">
+                                            İş Başlatıldı: {new Date(offer.started_at).toLocaleString("tr-TR", {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="flex items-center gap-1.5">
                                         <span className="text-slate-900 text-sm font-extrabold block">
@@ -1881,6 +1951,36 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                   <p className="text-xs md:text-sm text-slate-600 font-semibold italic bg-white p-3 rounded-2xl border border-slate-100/80 leading-relaxed">
                                     &ldquo;{offer.description || offer.message || "Açıklama belirtilmedi."}&rdquo;
                                   </p>
+
+                                  {offer.appointment_at && (
+                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-2 text-left">
+                                      <span className="text-blue-600 text-xs">📅</span>
+                                      <span className="text-[11px] font-bold text-blue-800">
+                                        Randevu Tarihi: {new Date(offer.appointment_at).toLocaleString("tr-TR", {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {offer.started_at && (
+                                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center gap-2 text-left">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                                      <span className="text-[11px] font-bold text-emerald-800">
+                                        İş Başlatıldı: {new Date(offer.started_at).toLocaleString("tr-TR", {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
 
                                   <div className="flex items-center gap-2.5 w-full pt-1">
                                     <button 

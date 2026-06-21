@@ -592,6 +592,8 @@ export class HizmetverenService {
         status: ao.offer.status,
         offerId: ao.offer.id,
         isPendingSeeker,
+        appointment_at: ao.offer.appointment_at,
+        started_at: ao.offer.started_at,
         job: {
           id: ao.job.id,
           categoryName: ao.job.category.name,
@@ -605,6 +607,131 @@ export class HizmetverenService {
         },
       };
     });
+  }
+
+  /**
+   * Hizmet veren tarafından kazanılan iş için randevu oluşturur veya günceller
+   */
+  async createOrUpdateAppointment(providerUserId: string, acceptedOfferId: string, appointmentAt: Date) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+      include: { user: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const acceptedOffer = await this.prisma.acceptedOffer.findUnique({
+      where: { id: acceptedOfferId },
+      include: {
+        offer: true,
+        seeker: true,
+      },
+    });
+
+    if (!acceptedOffer) {
+      throw new NotFoundException('Kazanılan iş bulunamadı.');
+    }
+
+    if (acceptedOffer.provider_id !== provider.id) {
+      throw new ForbiddenException('Bu işlem için yetkiniz bulunmamaktadır.');
+    }
+
+    const isUpdate = !!acceptedOffer.offer.appointment_at;
+
+    const updatedOffer = await this.prisma.offer.update({
+      where: { id: acceptedOffer.offer_id },
+      data: { appointment_at: appointmentAt },
+    });
+
+    // Send push notification & SMS & In-app to Seeker (Customer)
+    try {
+      const appointmentDateStr = new Date(appointmentAt).toLocaleString('tr-TR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Istanbul',
+      });
+
+      const eventCode = isUpdate ? 'HA-RANDEVU-GUNCELLE' : 'HA-RANDEVU-YENI';
+      await this.bildirimService.sendNotification(acceptedOffer.seeker_id, eventCode, {
+        hv_name: provider.user.name || 'Usta',
+        appointment_date: appointmentDateStr,
+      });
+    } catch (err: any) {
+      this.logger.error('Randevu bildirimi gönderilirken hata oluştu:', err);
+    }
+
+    // Broadcast WebSocket update
+    try {
+      const room = `job_${acceptedOffer.job_id}`;
+      this.chatGateway.server?.to(room).emit('appointment_updated', {
+        offerId: acceptedOffer.offer_id,
+        jobId: acceptedOffer.job_id,
+        appointment_at: appointmentAt,
+      });
+    } catch (err: any) {
+      this.logger.error('Randevu WebSocket yayını yapılırken hata oluştu:', err);
+    }
+
+    return updatedOffer;
+  }
+
+  /**
+   * Hizmet veren tarafından işi başlatır
+   */
+  async startJob(providerUserId: string, acceptedOfferId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const acceptedOffer = await this.prisma.acceptedOffer.findUnique({
+      where: { id: acceptedOfferId },
+      include: {
+        offer: true,
+      },
+    });
+
+    if (!acceptedOffer) {
+      throw new NotFoundException('Kazanılan iş bulunamadı.');
+    }
+
+    if (acceptedOffer.provider_id !== provider.id) {
+      throw new ForbiddenException('Bu işlem için yetkiniz bulunmamaktadır.');
+    }
+
+    if (!acceptedOffer.offer.appointment_at) {
+      throw new BadRequestException('Lütfen önce randevu oluşturun!');
+    }
+
+    if (acceptedOffer.offer.started_at) {
+      throw new BadRequestException('İş zaten başlatılmış.');
+    }
+
+    const now = new Date();
+    const updatedOffer = await this.prisma.offer.update({
+      where: { id: acceptedOffer.offer_id },
+      data: { started_at: now },
+    });
+
+    // Broadcast WebSocket update
+    try {
+      const room = `job_${acceptedOffer.job_id}`;
+      this.chatGateway.server?.to(room).emit('job_started', {
+        offerId: acceptedOffer.offer_id,
+        jobId: acceptedOffer.job_id,
+        started_at: now,
+      });
+    } catch (err: any) {
+      this.logger.error('İş başlama WebSocket yayını yapılırken hata oluştu:', err);
+    }
+
+    return updatedOffer;
   }
 
   /**

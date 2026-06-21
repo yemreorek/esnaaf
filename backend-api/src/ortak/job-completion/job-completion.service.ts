@@ -50,10 +50,17 @@ export class JobCompletionService {
         job_id: jobId,
         provider_id: provider.id,
       },
+      include: {
+        offer: true,
+      },
     });
 
     if (!acceptedOffer) {
       throw new ForbiddenException('Bu iş için onaylanmış bir teklifiniz bulunmamaktadır.');
+    }
+
+    if (!acceptedOffer.offer.started_at) {
+      throw new BadRequestException('Lütfen önce işe başlayın!');
     }
 
     // 4. Mükerrer beyan kontrolü

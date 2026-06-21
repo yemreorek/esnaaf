@@ -73,6 +73,16 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
     body: 'Hesap silme talebiniz alınmıştır. 30 gün içinde tüm verileriniz kalıcı olarak silinecektir.',
     channels: [NotifChannel.email],
   },
+  'HA-RANDEVU-YENI': {
+    title: 'Yeni Randevu Oluşturuldu',
+    body: '{hv_name} firması sizinle {appointment_date} tarihi için randevu oluşturdu.',
+    channels: [NotifChannel.in_app, NotifChannel.push, NotifChannel.sms],
+  },
+  'HA-RANDEVU-GUNCELLE': {
+    title: 'Randevu Tarihi Güncellendi',
+    body: '{hv_name} firması randevu tarihini {appointment_date} olarak güncelledi.',
+    channels: [NotifChannel.in_app, NotifChannel.push, NotifChannel.sms],
+  },
 
   // --- Hizmet Veren (HV) Bildirimleri ---
   'HV-01': {

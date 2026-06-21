@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../common/decorators';
@@ -101,6 +101,33 @@ export class HizmetverenController {
   @HttpCode(HttpStatus.OK)
   async getWonJobs(@CurrentUser() user: any) {
     return this.hizmetverenService.getWonJobs(user.id);
+  }
+
+  /**
+   * Hizmet verenin kazanılan iş için randevu oluşturmasını veya güncellemesini sağlar
+   * POST /api/hizmetveren/kazanilan-isler/:id/randevu
+   */
+  @Post('kazanilan-isler/:id/randevu')
+  @HttpCode(HttpStatus.OK)
+  async createOrUpdateAppointment(
+    @CurrentUser() user: any,
+    @Param('id') acceptedOfferId: string,
+    @Body('appointmentAt') appointmentAt: string,
+  ) {
+    return this.hizmetverenService.createOrUpdateAppointment(user.id, acceptedOfferId, new Date(appointmentAt));
+  }
+
+  /**
+   * Hizmet verenin kazanılan işi başlatmasını sağlar
+   * POST /api/hizmetveren/kazanilan-isler/:id/basla
+   */
+  @Post('kazanilan-isler/:id/basla')
+  @HttpCode(HttpStatus.OK)
+  async startJob(
+    @CurrentUser() user: any,
+    @Param('id') acceptedOfferId: string,
+  ) {
+    return this.hizmetverenService.startJob(user.id, acceptedOfferId);
   }
 
   /**
