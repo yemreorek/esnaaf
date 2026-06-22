@@ -177,8 +177,12 @@ model Offer {
   accepted_offers AcceptedOffer[]
   messages        Message[]
   job_completions JobCompletion[]
-  appointment_at  DateTime?
-  started_at      DateTime?
+  appointment_at      DateTime?
+  started_at          DateTime?
+  cancelled_by        String?
+  cancel_reason_code  String?
+  cancel_reason_text  String?
+  cancelled_at        DateTime?
 
   @@unique([job_id, provider_id])
   @@index([provider_id, status])

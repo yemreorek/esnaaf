@@ -19,7 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  private async sendSms(phone: string, text: string): Promise<boolean> {
+  public async sendSms(phone: string, text: string): Promise<boolean> {
     if (process.env.NODE_ENV === 'development' || !process.env.NETGSM_USERCODE || !process.env.NETGSM_PASSWORD) {
       console.log(`\n==================================================`);
       console.log(`[OTP DEV] SMS Sent to: ${phone}`);

@@ -63,6 +63,14 @@ export function resolveCityFromDistrict(district?: string): string {
   return 'İstanbul';
 }
 
+export const getCancelReasonText = (code?: string | null, text?: string | null): string => {
+  if (code === 'musteri-ulasilamiyor') return 'Müşteriye ulaşılamıyor (Telefon/Mesajlara cevap verilmiyor)';
+  if (code === 'musteri-vazgecti') return 'Müşteri işi sözlü olarak iptal etti / Vazgeçti';
+  if (code === 'adreste-bulunamadi') return 'Hizmet alanı adreste bulamadım / Randevuya gelmedi';
+  if (code === 'diger') return text || 'Diğer Nedenler';
+  return text || code || 'Gerekçe belirtilmedi';
+};
+
 interface Offer {
   id: string;
   price: number;
@@ -80,6 +88,10 @@ interface Offer {
   };
   appointment_at?: string | Date | null;
   started_at?: string | Date | null;
+  cancelled_by?: string | null;
+  cancel_reason_code?: string | null;
+  cancel_reason_text?: string | null;
+  cancelled_at?: string | Date | null;
 }
 
 interface RequestItem {
@@ -678,6 +690,37 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       );
     });
 
+    // Real-time job cancelled by provider status update
+    socket.on("job_cancelled", (data: any) => {
+      console.log("[Dashboard WS] Job cancelled by provider:", data);
+      setRequests((prev) =>
+        prev.map((req) => {
+          if (req.id === data.jobId) {
+            const updatedOffers = (req.offers || []).map((off) => {
+              if (off.status === 'accepted' || off.provider?.user?.name === data.providerName) {
+                return {
+                  ...off,
+                  status: 'cancelled' as const,
+                  cancelled_by: data.cancelledBy,
+                  cancel_reason_code: data.reasonCode,
+                  cancel_reason_text: data.reasonText,
+                  cancelled_at: new Date().toISOString(),
+                };
+              }
+              return off;
+            });
+            const updatedReq: RequestItem = { ...req, status: 'cancelled' as const, offers: updatedOffers };
+            if (selectedRequestRef.current?.id === data.jobId) {
+              setSelectedRequest(updatedReq);
+            }
+            return updatedReq;
+          }
+          return req;
+        })
+      );
+      alert(`Anlaşmış olduğunuz hizmet veren ${data.providerName} işi iptal etti.\nGerekçe: ${data.reasonText}`);
+    });
+
     socket.on("new_message", (msg: any) => {
       console.log("[Dashboard WS] New message received:", msg);
       setChatMessages((prev) => {
@@ -961,7 +1004,9 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const pastRequests = requests.filter((r) => r.status === "completed" || r.status === "cancelled");
 
   const acceptedOffers = selectedRequest?.offers?.filter(o => o.status === "accepted") || [];
-  const showCommunicationCard = acceptedOffers.length > 0 || !!mutualPhones;
+  const cancelledProviderOffer = selectedRequest?.offers?.find(o => o.status === "cancelled" && o.cancelled_by === "service_provider");
+  const hasCancelledByProvider = !!cancelledProviderOffer;
+  const showCommunicationCard = (acceptedOffers.length > 0 || !!mutualPhones) && !hasCancelledByProvider;
 
   // Helper to render outline SVGs for past table or list categories
   const renderCategoryIcon = (type: string) => {
@@ -1465,8 +1510,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     <span className="bg-emerald-50 text-emerald-800 border border-emerald-100/50 px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mono">
                                       TAMAMLANDI
                                     </span>
+                                  ) : req.status === "cancelled" ? (
+                                    <span className="bg-red-50 text-red-800 border border-red-100/50 px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mono">
+                                      İPTAL EDİLDİ
+                                    </span>
                                   ) : (
-                                    <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mono">
+                                    <span className="bg-slate-100 text-slate-650 px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mono">
                                       BEKLEMEDE
                                     </span>
                                   )}
@@ -1625,6 +1674,30 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     {/* Right: Live Offers List & WS status */}
                     <div className="lg:col-span-8 space-y-6">
                       
+                      {/* İş İptal Edildi Uyarısı */}
+                      {hasCancelledByProvider && cancelledProviderOffer && (
+                        <div className="w-full flex flex-col p-5 bg-red-50 border border-red-200 shadow-sm rounded-[24px] animate-scale-up gap-3.5 text-left">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-650 shrink-0 border border-red-200">
+                              <X className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-sm text-red-950">İş İptal Edildi</span>
+                              <span className="text-[10px] text-red-500 font-bold">Hizmet Veren Tarafından Tek Taraflı İptal</span>
+                            </div>
+                          </div>
+                          <div className="bg-white p-4 rounded-xl shadow-inner border border-red-100 text-xs font-semibold text-slate-700 leading-relaxed">
+                            Bu iş, <strong className="text-slate-900">{cancelledProviderOffer.provider?.user?.name || "Hizmet Veren"}</strong> tarafından iptal edilmiştir.
+                            <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-col gap-1">
+                              <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">İptal Gerekçesi</span>
+                              <span className="text-red-700 font-extrabold text-sm">
+                                {getCancelReasonText(cancelledProviderOffer.cancel_reason_code, cancelledProviderOffer.cancel_reason_text)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Mutual Phone display if offer accepted */}
                       {showCommunicationCard && (
                         <div className="w-full flex flex-col p-5 bg-[#c8f252]/10 border border-[#c8f252]/40 shadow-sm rounded-[24px] animate-scale-up gap-3.5">
@@ -2082,17 +2155,21 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     >
                                       Mesaj Gönder
                                     </button>
-                                    {offer.status === "pending" ? (
+                                    {offer.status === "accepted" ? (
+                                      <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
+                                        Kabul Edildi
+                                      </span>
+                                    ) : (offer.status === "cancelled" && offer.cancelled_by === "service_provider") ? (
+                                      <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-red-100 text-red-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
+                                        İptal Edildi
+                                      </span>
+                                    ) : (
                                       <button
                                         onClick={() => handleAcceptOffer(offer)}
                                         className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-[10px] md:text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all shadow-md shadow-[#c8f252]/20 active:scale-95 border border-transparent"
                                       >
                                         Kabul Et
                                       </button>
-                                    ) : (
-                                      <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
-                                        Kabul Edildi
-                                      </span>
                                     )}
                                   </div>
                                 </div>

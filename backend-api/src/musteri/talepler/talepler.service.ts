@@ -7,6 +7,7 @@ import { ChatGateway } from '../../ortak/chat/chat.gateway';
 import { CreateTalepDto } from './dto/create-talep.dto';
 import { decryptPhone } from '../../common/utils/phone.util';
 import { TaleplerProcessor } from './talepler.processor';
+import { AuthService } from '../../ortak/auth/auth.service';
 
 @Injectable()
 export class TaleplerService {
@@ -17,6 +18,7 @@ export class TaleplerService {
     private chatGateway: ChatGateway,
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private taleplerProcessor: TaleplerProcessor,
+    private authService: AuthService,
   ) {}
 
   /**
@@ -356,6 +358,7 @@ export class TaleplerService {
       include: {
         job: {
           include: {
+            offers: true,
             accepted_offers: {
               include: {
                 offer: true,
@@ -380,13 +383,24 @@ export class TaleplerService {
       throw new ForbiddenException('Bu işlem için yetkiniz bulunmamaktadır.');
     }
 
-    if (offer.job.status === 'completed' || offer.job.status === 'cancelled') {
-      throw new BadRequestException('Tamamlanmış veya iptal edilmiş bir talebe ait teklifi kabul edemezsiniz.');
+    if (offer.job.status === 'completed') {
+      throw new BadRequestException('Tamamlanmış bir talebe ait teklifi kabul edemezsiniz.');
     }
 
-    if (offer.status !== 'pending') {
-      throw new BadRequestException('Yalnızca bekleyen (pending) durumundaki teklifleri kabul edebilirsiniz.');
+    if (offer.job.status === 'cancelled') {
+      const wasCancelledByProvider = offer.job.offers.some(
+        o => o.status === 'cancelled' && o.cancelled_by === 'service_provider'
+      );
+      if (!wasCancelledByProvider) {
+        throw new BadRequestException('İptal edilmiş bir talebe ait teklifi kabul edemezsiniz.');
+      }
     }
+
+    if (offer.status !== 'pending' && !(offer.status === 'cancelled' && offer.cancelled_by !== 'service_provider')) {
+      throw new BadRequestException('Yalnızca bekleyen veya yedek durumundaki teklifleri kabul edebilirsiniz.');
+    }
+
+    const isReAccept = offer.status === 'cancelled';
 
     // 2. Önceden kabul edilmiş aktif teklifleri filtrele
     const activePreviousAcceptedOffers = offer.job.accepted_offers.filter(ao => ao.offer.status === 'accepted');
@@ -397,7 +411,21 @@ export class TaleplerService {
       for (const prev of activePreviousAcceptedOffers) {
         await tx.offer.update({
           where: { id: prev.offer_id },
-          data: { status: 'cancelled' },
+          data: {
+            status: 'cancelled',
+            cancelled_by: 'service_seeker',
+            cancel_reason_code: 'switch-offer',
+            cancel_reason_text: 'Müşteri başka bir teklifi kabul etmeyi seçti.',
+            cancelled_at: new Date(),
+          },
+        });
+      }
+
+      // Talebi tekrar 'distributed' durumuna çek (e.g. usta iptal ettiği için 'cancelled' olmuşsa)
+      if (offer.job.status === 'cancelled') {
+        await tx.serviceRequest.update({
+          where: { id: offer.job_id },
+          data: { status: 'distributed' },
         });
       }
 
@@ -413,12 +441,16 @@ export class TaleplerService {
         },
       });
 
-      // Teklif durumunu 'accepted' yap
+      // Teklif durumunu 'accepted' yap ve iptal alanlarını sıfırla
       await tx.offer.update({
         where: { id: offer.id },
         data: {
           status: 'accepted',
           accepted_at: new Date(),
+          cancelled_by: null,
+          cancel_reason_code: null,
+          cancel_reason_text: null,
+          cancelled_at: null,
         },
       });
 
@@ -452,10 +484,11 @@ export class TaleplerService {
       });
     }
 
-    // Yeni ustaya anlık bildirim fırlat
+    // Yeni ustaya veya yeniden kabul edilen ustaya anlık bildirim fırlat
     this.chatGateway.server?.to(`provider_${offer.provider_id}`).emit('offer_accepted_notification', {
       jobId: offer.job_id,
       offerId: offer.id,
+      isReAccept,
     });
 
     const room = `job_${offer.job_id}`;
@@ -467,11 +500,21 @@ export class TaleplerService {
       acceptedCount: 1,
     });
 
-    this.logger.log(`[Teklif Kabul Edildi] Müşteri ${offer.job.seeker.name || seekerUserId} tarafından Hizmet Veren ${offer.provider.user.name} teklifi kabul edildi.`);
+    this.logger.log(`[Teklif Kabul Edildi] Müşteri ${offer.job.seeker.name || seekerUserId} tarafından Hizmet Veren ${offer.provider.user.name} teklifi kabul edildi. (Yeniden Kabul: ${isReAccept})`);
 
     // 5. Telefon numaralarını AES-256'dan çözerek mutual reveal olarak teslim et
     const seekerRealPhone = decryptPhone(offer.job.seeker.phone);
     const providerRealPhone = decryptPhone(offer.provider.user.phone);
+
+    // Yeniden kabul durumunda ustaya SMS gönder
+    if (isReAccept) {
+      try {
+        const smsText = `Musteri teklifinizi yeniden kabul etti! Kazanilan Isler sekmesinden detaya ulasabilirsiniz.`;
+        await this.authService.sendSms(providerRealPhone, smsText);
+      } catch (err) {
+        this.logger.error('Yeniden kabul SMS\'i gönderilemedi:', err);
+      }
+    }
 
     return {
       success: true,

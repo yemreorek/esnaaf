@@ -8,6 +8,7 @@ import { decryptPhone } from '../common/utils/phone.util';
 import { BildirimService } from '../ortak/bildirimler/bildirim.service';
 import { RedisService } from '../common/redis/redis.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { AuthService } from '../ortak/auth/auth.service';
 
 @Injectable()
 export class HizmetverenService {
@@ -18,6 +19,7 @@ export class HizmetverenService {
     private chatGateway: ChatGateway,
     private bildirimService: BildirimService,
     private redis: RedisService,
+    private authService: AuthService,
   ) {}
 
   /**
@@ -999,7 +1001,20 @@ export class HizmetverenService {
       let labelText = 'Teklifi Kaybettin';
 
       if (o.status === 'cancelled') {
-        if (wasAccepted) {
+        if (o.cancelled_by === 'service_provider') {
+          displayStatus = 'cancelled_by_provider';
+          let trReason = 'Diğer';
+          if (o.cancel_reason_code === 'musteri-ulasilamiyor') {
+            trReason = 'Müşteriye Ulaşılamıyor';
+          } else if (o.cancel_reason_code === 'musteri-vazgecti') {
+            trReason = 'Müşteri Vazgeçti';
+          } else if (o.cancel_reason_code === 'adreste-bulunamadi') {
+            trReason = 'Adreste Bulunamadı';
+          } else if (o.cancel_reason_code === 'diger' && o.cancel_reason_text) {
+            trReason = o.cancel_reason_text;
+          }
+          labelText = `${trReason} - Hizmet Veren Tarafından İptal Edildi`;
+        } else if (wasAccepted) {
           displayStatus = 'cancelled_by_seeker';
           labelText = 'İptal Edildi';
         } else if (o.job.status === 'cancelled') {
@@ -1033,6 +1048,9 @@ export class HizmetverenService {
         displayStatus,
         labelText,
         created_at: o.created_at,
+        cancelled_by: o.cancelled_by,
+        cancel_reason_code: o.cancel_reason_code,
+        cancel_reason_text: o.cancel_reason_text,
         job: {
           id: o.job.id,
           categoryName: o.job.category.name,
@@ -1143,6 +1161,102 @@ export class HizmetverenService {
         this.logger.error(`Error processing delayed notification ${rt.id}: ${err.message}`);
       }
     }
+  }
+
+  /**
+   * Hizmet veren tarafından kazanılmış bir işi tek taraflı iptal eder
+   */
+  async cancelWonJob(providerUserId: string, acceptedOfferId: string, reasonCode: string, reasonText?: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+      include: { user: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const acceptedOffer = await this.prisma.acceptedOffer.findUnique({
+      where: { id: acceptedOfferId },
+      include: {
+        job: {
+          include: { seeker: true },
+        },
+        offer: true,
+      },
+    });
+
+    if (!acceptedOffer) {
+      throw new NotFoundException('Kazanılmış iş kaydı bulunamadı.');
+    }
+
+    if (acceptedOffer.provider_id !== provider.id) {
+      throw new ForbiddenException('Bu işi iptal etmeye yetkiniz bulunmamaktadır.');
+    }
+
+    let trReason = 'Diğer Nedenler';
+    if (reasonCode === 'musteri-ulasilamiyor') {
+      trReason = 'Müşteriye ulaşılamıyor (Telefon/Mesajlara cevap verilmiyor)';
+    } else if (reasonCode === 'musteri-vazgecti') {
+      trReason = 'Müşteri işi sözlü olarak iptal etti / Vazgeçti';
+    } else if (reasonCode === 'adreste-bulunamadi') {
+      trReason = 'Hizmet alanı adreste bulamadım / Randevuya gelmedi';
+    } else if (reasonCode === 'diger' && reasonText) {
+      trReason = reasonText;
+    }
+
+    const providerName = provider.user.name || 'Hizmet Veren';
+
+    // Transaction ile teklif ve talebi güncelle
+    await this.prisma.$transaction([
+      this.prisma.offer.update({
+        where: { id: acceptedOffer.offer_id },
+        data: {
+          status: 'cancelled',
+          cancelled_by: 'service_provider',
+          cancel_reason_code: reasonCode,
+          cancel_reason_text: reasonText || null,
+          cancelled_at: new Date(),
+        },
+      }),
+      this.prisma.serviceRequest.update({
+        where: { id: acceptedOffer.job_id },
+        data: {
+          status: 'cancelled',
+        },
+      }),
+    ]);
+
+    // SMS Gönderimi (Müşteriye)
+    try {
+      const customerPhone = decryptPhone(acceptedOffer.job.seeker.phone);
+      const smsText = `Anlasmis oldugunuz hizmet veren ${providerName} isi iptal etti. Gerekce: ${trReason}`;
+      await this.authService.sendSms(customerPhone, smsText);
+    } catch (err) {
+      this.logger.error('Müşteriye iptal SMS\'i gönderilemedi:', err);
+    }
+
+    // WebSocket canlı bildirimi
+    const room = `job_${acceptedOffer.job_id}`;
+    this.chatGateway.server?.to(room).emit('job_cancelled', {
+      jobId: acceptedOffer.job_id,
+      cancelledBy: 'service_provider',
+      reasonCode,
+      reasonText: trReason,
+      providerName,
+    });
+
+    // Müşterinin bireysel WebSocket bildirim odasına da gönderebiliriz
+    this.chatGateway.server?.to(`seeker_${acceptedOffer.seeker_id}`).emit('job_cancelled', {
+      jobId: acceptedOffer.job_id,
+      cancelledBy: 'service_provider',
+      reasonCode,
+      reasonText: trReason,
+      providerName,
+    });
+
+    return {
+      message: 'İş başarıyla iptal edildi ve müşteriye bilgi verildi.',
+    };
   }
 }
 

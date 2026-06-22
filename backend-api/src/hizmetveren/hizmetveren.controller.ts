@@ -169,4 +169,19 @@ export class HizmetverenController {
   async getUnreadMessages(@CurrentUser() user: any) {
     return this.hizmetverenService.getUnreadMessages(user.id);
   }
+
+  /**
+   * Hizmet verenin kazandığı işi iptal etmesini sağlar
+   * POST /api/hizmetveren/kazanilan-isler/:id/iptal
+   */
+  @Post('kazanilan-isler/:id/iptal')
+  @HttpCode(HttpStatus.OK)
+  async cancelWonJob(
+    @CurrentUser() user: any,
+    @Param('id') acceptedOfferId: string,
+    @Body('reasonCode') reasonCode: string,
+    @Body('reasonText') reasonText?: string,
+  ) {
+    return this.hizmetverenService.cancelWonJob(user.id, acceptedOfferId, reasonCode, reasonText);
+  }
 }

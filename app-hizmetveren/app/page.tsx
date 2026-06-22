@@ -399,6 +399,18 @@ export default function ProviderDashboard() {
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
+  const [cancelModal, setCancelModal] = useState<{
+    isOpen: boolean;
+    acceptedOfferId: string;
+    reasonCode: string;
+    reasonText: string;
+  }>({
+    isOpen: false,
+    acceptedOfferId: "",
+    reasonCode: "",
+    reasonText: "",
+  });
+  const [submittingCancelJob, setSubmittingCancelJob] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -1089,15 +1101,27 @@ export default function ProviderDashboard() {
       );
     });
 
-    socket.on('offer_accepted_notification', (data: { jobId: string; offerId: string }) => {
-      addLog(`🎉 [TEKLİF KABUL EDİLDİ] Teklifiniz kabul edildi! Job ID: ${data.jobId}`);
+    socket.on('offer_accepted_notification', (data: { jobId: string; offerId: string; isReAccept?: boolean }) => {
+      const isReAccept = !!data.isReAccept;
+      addLog(isReAccept 
+        ? `🎉 [TEKLİF YENİDEN KABUL EDİLDİ] Müşteri teklifinizi yeniden kabul etti! Job ID: ${data.jobId}`
+        : `🎉 [TEKLİF KABUL EDİLDİ] Teklifiniz kabul edildi! Job ID: ${data.jobId}`
+      );
+      
+      // Instantly remove from the lost and cancelled list
+      setLostAndCancelledJobs((prev) => prev.filter((o) => o.id !== data.offerId));
+      
       if (token) {
         fetchTabDependencies('kazanilanlar', token);
+        fetchTabDependencies('kayip_iptal', token);
         fetchTabDependencies('abonelik', token);
       }
+      
       showAlert(
-        'Teklifiniz Kabul Edildi!',
-        'Bir hizmet alan teklifinizi kabul etti. Müşteri bilgileri "Kazanılan İşler" sekmesine eklendi.',
+        isReAccept ? 'Teklifiniz Yeniden Kabul Edildi!' : 'Teklifiniz Kabul Edildi!',
+        isReAccept 
+          ? 'Müşteri teklifinizi yeniden kabul etti! Müşteri bilgileri "Kazanılan İşler" sekmesine geri taşındı.'
+          : 'Bir hizmet alan teklifinizi kabul etti. Müşteri bilgileri "Kazanılan İşler" sekmesine eklendi.',
         'success'
       );
     });
@@ -1490,6 +1514,54 @@ export default function ProviderDashboard() {
       showAlert("Hata", err.message || "Bir hata oluştu.", "error");
     } finally {
       setSubmittingStartJob(prev => ({ ...prev, [wj.id]: false }));
+    }
+  };
+
+  const handleCancelJob = async () => {
+    if (!token) return;
+    if (!cancelModal.acceptedOfferId || !cancelModal.reasonCode) {
+      alert("Lütfen iptal gerekçesini seçin.");
+      return;
+    }
+    if (cancelModal.reasonCode === 'diger' && !cancelModal.reasonText.trim()) {
+      alert("Lütfen iptal nedenini açıklayınız.");
+      return;
+    }
+
+    setSubmittingCancelJob(true);
+    try {
+      const res = await fetch(`/api/hizmetveren/kazanilan-isler/${cancelModal.acceptedOfferId}/iptal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reasonCode: cancelModal.reasonCode,
+          reasonText: cancelModal.reasonCode === 'diger' ? cancelModal.reasonText : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'İş iptal edilemedi.');
+      }
+
+      showAlert('Başarılı', 'İş başarıyla iptal edildi ve müşteriye bilgi verildi.', 'success');
+      
+      setCancelModal({
+        isOpen: false,
+        acceptedOfferId: '',
+        reasonCode: '',
+        reasonText: '',
+      });
+
+      fetchTabDependencies('kazanilanlar', token);
+      fetchTabDependencies('kayip_iptal', token);
+    } catch (err: any) {
+      showAlert('Hata', err.message || 'İş iptal edilirken bir hata oluştu.', 'error');
+    } finally {
+      setSubmittingCancelJob(false);
     }
   };
 
@@ -3019,6 +3091,22 @@ export default function ProviderDashboard() {
                                           İşi Tamamla
                                         </button>
                                       )}
+
+                                      {!wj.isPendingSeeker && (
+                                        <button
+                                          onClick={() => {
+                                            setCancelModal({
+                                              isOpen: true,
+                                              acceptedOfferId: wj.id,
+                                              reasonCode: '',
+                                              reasonText: '',
+                                            });
+                                          }}
+                                          className="bg-white hover:bg-red-50 text-red-500 border border-red-200 font-extrabold text-[11px] py-2.5 px-4.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                        >
+                                          İşi İptal Et
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -3103,6 +3191,8 @@ export default function ProviderDashboard() {
                       badgeClass = "bg-rose-50 text-rose-700 border border-rose-100";
                     } else if (item.labelText === "İlan İptal Edildi") {
                       badgeClass = "bg-amber-50 text-amber-700 border border-amber-100";
+                    } else if (item.cancelled_by === 'service_provider') {
+                      badgeClass = "bg-red-50 text-red-700 border border-red-100";
                     }
 
                     return (
@@ -3117,9 +3207,15 @@ export default function ProviderDashboard() {
                             </span>
                           </div>
                           
-                          {item.labelText === "İptal Edildi" && (
+                          {item.labelText === "İptal Edildi" && !item.cancelled_by && (
                             <div className="bg-rose-50/50 border border-rose-100/50 rounded-xl p-3 text-[11px] text-rose-800 font-medium">
                               ⚠️ Hizmet alan taraf başka bir firma teklifini onayladı. Bu işteki hakkınız sonlandırılmıştır.
+                            </div>
+                          )}
+
+                          {item.cancelled_by === "service_provider" && (
+                            <div className="bg-red-50/50 border border-red-100/50 rounded-xl p-3 text-[11px] text-red-800 font-semibold leading-relaxed">
+                              ⚠️ Bu işi tek taraflı olarak iptal ettiniz. Müşteriye SMS/Sistem bildirimi gönderilmiştir.
                             </div>
                           )}
 
@@ -4090,6 +4186,95 @@ export default function ProviderDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🔴 İşi İptal Et Modalı */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4 text-left">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span className="text-red-500 text-lg">⚠️</span>
+                <span>İşi İptal Et (İptal Nedeni Seçin)</span>
+              </h3>
+              <button 
+                onClick={() => setCancelModal({ isOpen: false, acceptedOfferId: '', reasonCode: '', reasonText: '' })}
+                className="text-slate-400 hover:text-slate-850 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-left">
+              <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                Hizmet veren olarak mağdur olmamanız adına işi iptal edebilirsiniz. Lütfen iptal gerekçesini dürüstçe belirtiniz. Bu gerekçe müşteriye SMS ile iletilecektir.
+              </p>
+
+              <div className="space-y-2">
+                {[
+                  { code: 'musteri-ulasilamiyor', text: 'Müşteriye ulaşılamıyor (Telefon/Mesajlara cevap verilmiyor)' },
+                  { code: 'musteri-vazgecti', text: 'Müşteri işi sözlü olarak iptal etti / Vazgeçti' },
+                  { code: 'adreste-bulunamadi', text: 'Hizmet alanı adreste bulamadım / Randevuya gelmedi' },
+                  { code: 'diger', text: 'Diğer (Açıklama alanını doldurunuz)' }
+                ].map((reason) => (
+                  <label 
+                    key={reason.code} 
+                    className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                      cancelModal.reasonCode === reason.code 
+                        ? 'border-red-200 bg-red-50/30' 
+                        : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
+                    }`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="cancelReason" 
+                      value={reason.code}
+                      checked={cancelModal.reasonCode === reason.code}
+                      onChange={(e) => setCancelModal(prev => ({ ...prev, reasonCode: e.target.value }))}
+                      className="mt-1 accent-red-600"
+                    />
+                    <span className="text-xs font-semibold text-slate-700 leading-snug">
+                      {reason.text}
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              {cancelModal.reasonCode === 'diger' && (
+                <div className="space-y-1.5 animate-scale-up">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+                    İptal Nedeni Açıklaması
+                  </label>
+                  <textarea
+                    value={cancelModal.reasonText}
+                    onChange={(e) => setCancelModal(prev => ({ ...prev, reasonText: e.target.value }))}
+                    placeholder="Lütfen iptal nedenini buraya detaylıca yazınız..."
+                    rows={3}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-red-400 focus:ring-1 focus:ring-red-100 rounded-xl py-3.5 px-4 text-xs text-slate-900 focus:outline-none transition-all resize-none leading-relaxed shadow-inner font-semibold"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setCancelModal({ isOpen: false, acceptedOfferId: '', reasonCode: '', reasonText: '' })}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs border border-slate-200 active:scale-[0.98] cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelJob}
+                  disabled={submittingCancelJob || !cancelModal.reasonCode || (cancelModal.reasonCode === 'diger' && !cancelModal.reasonText.trim())}
+                  className="flex-1 bg-red-600 hover:bg-red-750 text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-55 shadow-md shadow-red-500/10 active:scale-[0.98] cursor-pointer"
+                >
+                  {submittingCancelJob ? 'İptal Ediliyor...' : 'İşi İptal Et'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
