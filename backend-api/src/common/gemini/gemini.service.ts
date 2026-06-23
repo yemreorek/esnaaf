@@ -94,6 +94,23 @@ export class GeminiService {
               required: ['seekerName', 'phone', 'categorySlug', 'formData'],
             },
           },
+          {
+            name: 'getPlatformStats',
+            description: 'Esnaaf platformundaki kayıtlı ve onaylı usta sayısı, hizmet koşulları, fiyatlandırma veya genel istatistikler hakkında bilgi almak için kullanılır.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                categorySlug: {
+                  type: Type.STRING,
+                  description: 'Sorgulanmak istenen hizmet kategorisi slugı (Örn: boya-badana, ev-temizligi, su-tesisati, elektrik-tesisati, kombi-klima vb.)',
+                },
+                city: {
+                  type: Type.STRING,
+                  description: 'Sorgulanmak istenen şehir (Örn: "Adana", "İstanbul", "Ankara", "İzmir")',
+                },
+              } as any,
+            },
+          },
         ] as any[],
       },
     ];

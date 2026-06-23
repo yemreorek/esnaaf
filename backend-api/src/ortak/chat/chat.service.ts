@@ -264,7 +264,10 @@ export class ChatService {
         
         // Hybrid Deterministic Category Failsafe:
         // Automatically detect category in early steps using the deterministic detectCategory method
-        if (!state.collected_data.categorySlug && (state.step === 'greeting' || state.step === 'category_detection')) {
+        // Only if this is NOT a general informational query
+        if (!state.collected_data.categorySlug && 
+            (state.step === 'greeting' || state.step === 'category_detection') &&
+            !this.isGeneralOrInformationalQuery(message)) {
           const detection = await this.detectCategory(filteredMessage);
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
@@ -746,6 +749,18 @@ export class ChatService {
         const systemInstruction = `
 Sen Türkiye'nin en büyük hizmet pazarı olan Esnaaf platformunun akıllı, samimi ve son derece yardımcı yapay zeka asistanısın. Müşterilerin hizmet taleplerini almak, eksik detayları toplamak ve talebi oluşturmak için onlara rehberlik ediyorsun.
 
+### ℹ️ GENEL SORULAR VE BİLGİLENDİRME (YAPAY ZEKA ÖĞRETİSİ)
+Müşteri Esnaaf platformu hakkında genel sorular (Örn: "sistem nasıl çalışır?", "ücretli mi?", "komisyon alıyor musunuz?", "güvenli mi?", "iletişim bilgileri nedir?", "teklif nasıl alınır?", vb.) sorduğunda veya şehir/kategori bazlı usta istatistiklerini sorguladığında (Örn: "Adana'da kaç boyacı var?", "İstanbul'da temizlikçi var mı?"):
+1. KESİNLİKLE doğrudan talep açma adımlarına (konum, detay, isim, telefon sorma) ZORLAMA!
+2. Müşterinin sorusuna nazikçe, detaylı ve tatmin edici bir şekilde cevap ver:
+   - **Nasıl Çalışır:** Esnaaf, hizmet alanlar ile hizmet veren esnafları buluşturan ücretsiz bir platformdur. Talep açıldıktan sonra en uygun esnaflar size canlı teklifler sunar.
+   - **Ücret / Komisyon:** Hizmet almak, talep oluşturmak tamamen ÜCRETSİZDİR. Esnaaf müşterilerden hiçbir ücret veya komisyon almaz.
+   - **Güvenlik:** Platformdaki tüm esnaflarımız kimlik, oda kaydı ve referans kontrollerinden geçmiş onaylı ustalardır. Ayrıca iş tamamlandıktan sonra yorum ve değerlendirme yapabilirsiniz.
+   - **Usta İstatistikleri/Sorgulama:** Eğer kullanıcı şehir ve kategori belirterek usta sorguluyorsa, derhal 'getPlatformStats' aracını/toolunu çağırarak veritabanından güncel bilgiyi sorgula ve müşteriye tam sayıyı belirt.
+3. Soruyu yanıtladıktan sonra, konuşmanın sonuna şu şekilde nazik bir davet ekle:
+   "Size bu konuda yardımcı olmak için ücretsiz bir hizmet talebi oluşturup en uygun ustalardan canlı teklifler toplamak ister misiniz?"
+4. Eğer kullanıcı onaylarsa (Evet, olur, oluşturalım vb.), o zaman 'detectCategory' aracını çağırıp talep toplama sürecini başlat.
+
 ### ⚠️ ÇOK ÖNEMLİ - HİZMET BÖLGESİ KISITLAMASI ⚠️
 Esnaaf platformu YALNIZCA **Adana, İstanbul, Ankara ve İzmir** illerinde ve bu illerin belirli ilçelerinde hizmet vermektedir.
 Desteklenen iller ve ilçeler şunlardır:
@@ -903,6 +918,22 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               responseMessage = 'Talebiniz hazırlandı. Lütfen bilgilerinizi onaylayın.';
             } catch (e) {
               responseMessage = 'Talebiniz hazırlanırken bir hata oluştu.';
+            }
+          }
+          else if (call.name === 'getPlatformStats') {
+            const { categorySlug, city } = call.args as any;
+            try {
+              const stats = await this.getPlatformStats(categorySlug, city);
+              const catName = stats.category !== 'Tüm Kategoriler' ? stats.category.toLowerCase() : 'farklı alanlarda hizmet veren';
+              const cityText = stats.city !== 'Tüm Şehirler' ? `${stats.city}'da` : 'sistemimizde';
+              
+              if (stats.providerCount > 0) {
+                responseMessage = `${cityText} şu anda size hizmet vermeye hazır ${stats.providerCount} adet onaylı ${catName} ustası bulunuyor. \n\nSizin için ücretsiz bir hizmet talebi oluşturup en uygun ustalardan canlı teklifler almamızı ister misiniz?`;
+              } else {
+                responseMessage = `${cityText} şu anda onaylı ${catName} ustamız bulunmamaktadır. Ancak yeni ustalarımız her gün kaydolmaktadır. Yine de bir talep oluşturup bölgenizdeki yeni ustaların teklif vermesini beklemek ister misiniz?`;
+              }
+            } catch (e) {
+              responseMessage = 'Usta istatistikleri sorgulanırken bir hata oluştu. Ancak size en uygun ustalardan teklif toplamak için ücretsiz bir hizmet talebi oluşturabiliriz. Başlayalım mı?';
             }
           }
         } else {
@@ -1963,5 +1994,71 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
     });
     
     return text.trim();
+  }
+
+  private isGeneralOrInformationalQuery(message: string): boolean {
+    const text = message.toLowerCase().trim();
+    
+    const infoPatterns = [
+      /kaç\s*(?:adet|tane)?\s*(?:usta|boyacı|temizlik|nakliyat|tesisatçı|elektrikçi|esnaf)/i,
+      /nasıl\s*(?:çalışır|işler|oluyor)/i,
+      /ücretli\s*mi/i,
+      /komisyon\s*(?:alıyor|var)/i,
+      /güvenli\s*mi/i,
+      /güvenilir\s*mi/i,
+      /garanti\s*(?:var|veriyor)/i,
+      /fiyat(?:lar)?\s*(?:nedir|ne|ne\s*kadar)/i,
+      /müşteri\s*hizmetleri/i,
+      /iletişim\s*(?:numarası|bilgisi)/i,
+      /telefon\s*(?:numarası)/i,
+      /destek\s*hattı/i,
+      /esnaaf\s*nedir/i,
+      /ne\s*kadar\s*sürer/i,
+      /kaç\s*dakika/i,
+      /teklif\s*nasıl/i
+    ];
+
+    const matchesPattern = infoPatterns.some(pattern => pattern.test(text));
+    
+    const endsWithQuestion = text.endsWith('?') && (
+      text.includes('var') || text.includes('mi') || text.includes('mu') || 
+      text.includes('nasıl') || text.includes('nedir') || text.includes('kim') ||
+      text.includes('kaç') || text.includes('neler')
+    );
+
+    return matchesPattern || endsWithQuestion;
+  }
+
+  async getPlatformStats(categorySlug?: string, city?: string) {
+    const whereClause: any = { is_approved: true };
+    
+    let normalizedCity = city ? city.trim() : undefined;
+    if (normalizedCity) {
+      normalizedCity = normalizedCity.charAt(0).toUpperCase() + normalizedCity.slice(1).toLowerCase();
+    }
+
+    if (normalizedCity) {
+      whereClause.city = normalizedCity;
+    }
+
+    if (categorySlug) {
+      const categoryName = this.getCategoryName(categorySlug);
+      const category = await this.prisma.category.findUnique({
+        where: { name: categoryName }
+      });
+      if (category) {
+        whereClause.category_ids = { has: category.id };
+      }
+    }
+
+    const providerCount = await this.prisma.serviceProvider.count({
+      where: whereClause
+    });
+
+    return {
+      providerCount,
+      city: normalizedCity || 'Tüm Şehirler',
+      category: categorySlug ? this.getCategoryName(categorySlug) : 'Tüm Kategoriler'
+    };
   }
 }
