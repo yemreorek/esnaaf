@@ -593,7 +593,11 @@ export default function ProviderDashboard() {
   const [newMessageText, setNewMessageText] = useState<string>("");
   const [loadingChatMessages, setLoadingChatMessages] = useState<boolean>(false);
   const [unreadMessages, setUnreadMessages] = useState<any[]>([]);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
   const [unreadDropdownOpen, setUnreadDropdownOpen] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
+  const [notificationsDropdownOpen, setNotificationsDropdownOpen] = useState<boolean>(false);
 
   // Completion modal states
   const [completingJob, setCompletingJob] = useState<any | null>(null);
@@ -1029,10 +1033,65 @@ export default function ProviderDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setUnreadMessages(data);
+        setUnreadMessages(data.slice(0, 20)); // Limit to 20 messages
+        
+        const lastReadTimeStr = localStorage.getItem("provider_last_read_message_time");
+        if (lastReadTimeStr) {
+          const lastReadTime = parseInt(lastReadTimeStr, 10);
+          const unreadCount = data.filter((m: any) => new Date(m.createdAt).getTime() > lastReadTime).length;
+          setUnreadMessagesCount(unreadCount);
+        } else {
+          setUnreadMessagesCount(data.length);
+        }
       }
     } catch (err) {
       console.error('Fetch unread messages failed:', err);
+    }
+  };
+
+  const fetchNotifications = async (currentToken?: string) => {
+    const activeToken = currentToken || token;
+    if (!activeToken) return;
+    try {
+      const res = await fetch("/api/ortak/bildirimler/gecmis", {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const result = await res.json();
+        const data = result.data || [];
+        setNotifications(data.slice(0, 10)); // Keep max 10 notifications
+        
+        const lastReadTimeStr = localStorage.getItem("provider_last_read_notif_time");
+        if (lastReadTimeStr) {
+          const lastReadTime = parseInt(lastReadTimeStr, 10);
+          const unreadCount = data.filter((n: any) => new Date(n.sent_at).getTime() > lastReadTime).length;
+          setUnreadNotificationsCount(unreadCount);
+        } else {
+          setUnreadNotificationsCount(data.length);
+        }
+      }
+    } catch (err) {
+      console.error("Fetch notifications failed:", err);
+    }
+  };
+
+  const toggleMessagesDropdown = () => {
+    const nextState = !unreadDropdownOpen;
+    setUnreadDropdownOpen(nextState);
+    if (nextState) {
+      setUnreadMessagesCount(0);
+      localStorage.setItem("provider_last_read_message_time", Date.now().toString());
+      setNotificationsDropdownOpen(false); // close notifications
+    }
+  };
+
+  const toggleNotificationsDropdown = () => {
+    const nextState = !notificationsDropdownOpen;
+    setNotificationsDropdownOpen(nextState);
+    if (nextState) {
+      setUnreadNotificationsCount(0);
+      localStorage.setItem("provider_last_read_notif_time", Date.now().toString());
+      setUnreadDropdownOpen(false); // close messages
     }
   };
 
@@ -1079,7 +1138,7 @@ export default function ProviderDashboard() {
       if (quotaRes.ok) {
         setQuota(quotaData);
         addLog(`Kota durumu yüklendi: Paket: ${quotaData.packageName.toUpperCase()}, Kullanım: ${quotaData.used}/${quotaData.limit || 'Sınırsız'}`);
-        initSocket(quotaData.providerId);
+        initSocket(quotaData.providerId, profileData?.userId);
       }
 
       const jobsRes = await fetch('/api/hizmetveren/gelen-isler', {
@@ -1092,13 +1151,14 @@ export default function ProviderDashboard() {
       }
 
       await fetchUnreadMessages(accessToken);
+      await fetchNotifications(accessToken);
     } catch (err: any) {
       addLog(`Dashboard yükleme hatası: ${err.message}`);
     }
   };
 
   // Socket.io integration
-  const initSocket = (providerId: string) => {
+  const initSocket = (providerId: string, userId?: string) => {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
@@ -1113,6 +1173,12 @@ export default function ProviderDashboard() {
       addLog(`WebSocket connected! Client ID: ${socket.id}`);
       socket.emit('join_provider', { providerId });
       addLog(`Soket odasına katılım yapıldı: provider_${providerId}`);
+      if (userId) {
+        socket.emit('join_user', { userId });
+        addLog(`Soket odasına katılım yapıldı: user_${userId}`);
+        socket.emit('join_provider', { providerId: userId }); 
+        addLog(`Soket odasına katılım yapıldı: provider_${userId}`);
+      }
     });
 
     socket.on('new_job', (newJob: Job) => {
@@ -1149,8 +1215,19 @@ export default function ProviderDashboard() {
       addLog(`🔔 [YENİ MESAJ BİLDİRİMİ] ${noti.customerName}: ${noti.content.substring(0, 20)}...`);
       setUnreadMessages((prev) => {
         if (prev.some(m => m.id === noti.id)) return prev;
-        return [noti, ...prev];
+        const newUnread = [noti, ...prev];
+        return newUnread.slice(0, 20); // Keep max 20
       });
+      
+      setUnreadDropdownOpen(isOpen => {
+        if (!isOpen) {
+          setUnreadMessagesCount(c => c + 1);
+        } else {
+          localStorage.setItem("provider_last_read_message_time", Date.now().toString());
+        }
+        return isOpen;
+      });
+
       setOffersList((prev) => {
         return prev.map(off => {
           if (off.id === noti.offerId) {
@@ -1158,6 +1235,29 @@ export default function ProviderDashboard() {
           }
           return off;
         });
+      });
+    });
+
+    socket.on('new_notification', (notif: any) => {
+      addLog(`🔔 [YENİ BİLDİRİM] ${notif.title || 'Bildirim'}`);
+      setNotifications((prev) => {
+        if (prev.some(n => n.id === notif.id)) return prev;
+        const unifiedNotif = {
+          id: notif.id,
+          sent_at: notif.sentAt || new Date().toISOString(),
+          payload: notif.payload || { title: notif.title, body: notif.body }
+        };
+        const newList = [unifiedNotif, ...prev];
+        return newList.slice(0, 10); // Keep max 10
+      });
+      
+      setNotificationsDropdownOpen(isOpen => {
+        if (!isOpen) {
+          setUnreadNotificationsCount(c => c + 1);
+        } else {
+          localStorage.setItem("provider_last_read_notif_time", Date.now().toString());
+        }
+        return isOpen;
       });
     });
 
@@ -2284,25 +2384,72 @@ export default function ProviderDashboard() {
               </select>
             </div>
 
-            <button 
-              onClick={() => setUnreadDropdownOpen(!unreadDropdownOpen)}
-              className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group"
-            >
-              <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
-              {unreadMessages.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-              )}
-            </button>
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={toggleNotificationsDropdown}
+                className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group"
+              >
+                <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-rose-500 text-white border border-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-sm">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
 
+              {notificationsDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-[100] p-4 animate-scale-up text-left">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                    <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest font-mono">Bildirimler</span>
+                    {unreadNotificationsCount > 0 && (
+                      <span className="bg-rose-50 text-rose-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                        {unreadNotificationsCount} Yeni
+                      </span>
+                    )}
+                  </div>
+                  
+                  {notifications.length > 0 ? (
+                    <div className="space-y-2.5 max-h-64 overflow-y-auto pr-0.5 divide-y divide-slate-50 font-sans">
+                      {notifications.map((notif, index) => {
+                        const title = notif.payload?.title || notif.payload?.payload?.title || 'Bildirim';
+                        const body = notif.payload?.body || notif.payload?.payload?.body || '';
+                        return (
+                          <div key={notif.id || index} className="pt-2.5 first:pt-0 space-y-0.5 text-left">
+                            <h4 className="font-extrabold text-xs text-slate-800">{title}</h4>
+                            <p className="text-[11px] text-slate-500 font-semibold leading-normal">{body}</p>
+                            <span className="text-[9px] text-slate-400 font-bold block pt-0.5">
+                              {new Date(notif.sent_at).toLocaleString("tr-TR", {
+                                day: '2-digit',
+                                month: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-slate-400">
+                      <span className="text-2xl">🔔</span>
+                      <p className="text-xs font-bold mt-2">Bildiriminiz bulunmuyor.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Messages Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setUnreadDropdownOpen(!unreadDropdownOpen)}
+                onClick={toggleMessagesDropdown}
                 className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl cursor-pointer relative"
               >
                 <MessageSquare className="w-4.5 h-4.5 text-slate-500" />
-                {unreadMessages.length > 0 && (
+                {unreadMessagesCount > 0 && (
                   <span className="absolute top-1 right-1 bg-[#c8f252] text-slate-900 border border-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-sm">
-                    {unreadMessages.length}
+                    {unreadMessagesCount}
                   </span>
                 )}
               </button>
@@ -2311,9 +2458,9 @@ export default function ProviderDashboard() {
                 <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-[100] p-4 animate-scale-up text-left">
                   <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
                     <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest font-mono">Okunmamış Mesajlar</span>
-                    {unreadMessages.length > 0 && (
+                    {unreadMessagesCount > 0 && (
                       <span className="bg-[#c8f252]/20 text-[#4c630a] text-[9px] font-extrabold px-2 py-0.5 rounded-full">
-                        {unreadMessages.length} Yeni
+                        {unreadMessagesCount} Yeni
                       </span>
                     )}
                   </div>
