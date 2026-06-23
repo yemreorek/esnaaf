@@ -114,7 +114,9 @@ export class GeminiService {
     let modelToUse = options?.modelName || this.modelName;
 
     // Map legacy or invalid models to actual available models in API
-    if (modelToUse === 'gemini-1.5-flash' || modelToUse === 'gemini-3.5-flash') {
+    if (!modelToUse || typeof modelToUse !== 'string' || !modelToUse.startsWith('gemini-')) {
+      modelToUse = 'gemini-2.5-flash';
+    } else if (modelToUse === 'gemini-1.5-flash' || modelToUse === 'gemini-3.5-flash') {
       modelToUse = 'gemini-2.5-flash';
     } else if (modelToUse === 'gemini-1.5-pro' || modelToUse === 'gemini-3.5-pro' || modelToUse === 'gemini-3.1-pro') {
       modelToUse = 'gemini-2.5-pro';

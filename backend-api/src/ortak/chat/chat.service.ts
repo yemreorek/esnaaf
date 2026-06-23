@@ -241,6 +241,19 @@ export class ChatService {
     const filteredMessage = this.filterPii(message);
     state.messages.push({ role: 'user', content: filteredMessage });
 
+    // Proactive UX Improvement: Capture descriptive messages early in the chat flow
+    const isEarlyStep = ['greeting', 'category_detection', 'collecting_details'].includes(state.step);
+    if (isEarlyStep) {
+      const trimmedMsg = message.trim();
+      const isNotChoiceOrShort = trimmedMsg.length >= 20 && 
+                                 !/^(?:onayla|evet|hayır|hayir|tamam|okey|iptal|seç|sec)/i.test(trimmedMsg);
+      if (isNotChoiceOrShort) {
+        state.collected_data.details = state.collected_data.details 
+          ? `${state.collected_data.details} ${trimmedMsg}` 
+          : trimmedMsg;
+      }
+    }
+
     let responseMessage = '';
     let createdJobId: string | undefined;
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
@@ -249,15 +262,50 @@ export class ChatService {
       // ─── ACTIVE AGENT PATH (GEMINI FLASH) ───────────────────────────
       if (this.geminiService.isAvailable()) {
         
+        // Hybrid Deterministic Category Failsafe:
+        // Automatically detect category in early steps using the deterministic detectCategory method
+        if (!state.collected_data.categorySlug && (state.step === 'greeting' || state.step === 'category_detection')) {
+          const detection = await this.detectCategory(filteredMessage);
+          if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
+            state.collected_data.categorySlug = detection.categorySlug;
+            state.step = 'collecting_details';
+            
+            // Immediately parse parameters for the newly detected category from the current user message
+            const questions = this.getQuestionsForCategory(detection.categorySlug);
+            for (const q of questions) {
+              if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
+                const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
+                if (!isGenericTrim) {
+                  const val = q.parse(message);
+                  if (val) {
+                    state.collected_data[q.key] = val;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
         // A. Transactional Steps (Secure, deterministic verification/creation)
         if (state.step === 'ask_details') {
           const detailMsg = message.trim();
           const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
+          const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
           
-          if (!isNo) {
+          if (isReferredBack) {
+            const previousUserMsgs = state.messages.slice(0, -1)
+              .filter(m => m.role === 'user' && m.content.trim().length >= 15)
+              .map(m => m.content.trim());
+            
+            if (previousUserMsgs.length > 0) {
+              state.collected_data.details = previousUserMsgs[previousUserMsgs.length - 1];
+            } else if (!state.collected_data.details) {
+              state.collected_data.details = 'Detay belirtilmedi.';
+            }
+          } else if (!isNo) {
             state.collected_data.details = detailMsg;
           } else {
-            state.collected_data.details = 'Detay belirtilmedi.';
+            state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
           }
           state.collected_data.hasAskedDetails = true;
           state.step = 'ask_name';
@@ -624,16 +672,30 @@ export class ChatService {
 
         // Deterministic transition to ask_details if all technical questions are answered
         if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
-          state.step = 'ask_details';
-          responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
-          state.messages.push({ role: 'assistant', content: responseMessage });
-          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-          await this.trackTokens(sessionKey, tokensUsed);
-          return {
-            step: 'ask_details',
-            responseMessage,
-            collected_data: state.collected_data,
-          };
+          if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
+            state.collected_data.hasAskedDetails = true;
+            state.step = 'ask_name';
+            responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+            state.messages.push({ role: 'assistant', content: responseMessage });
+            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+            await this.trackTokens(sessionKey, tokensUsed);
+            return {
+              step: 'ask_name',
+              responseMessage,
+              collected_data: state.collected_data,
+            };
+          } else {
+            state.step = 'ask_details';
+            responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
+            state.messages.push({ role: 'assistant', content: responseMessage });
+            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+            await this.trackTokens(sessionKey, tokensUsed);
+            return {
+              step: 'ask_details',
+              responseMessage,
+              collected_data: state.collected_data,
+            };
+          }
         }
 
         // B2. Invoke Gemini model
@@ -935,18 +997,35 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
         if (nextMissingQ) {
           responseMessage = nextMissingQ.question;
         } else {
-          state.step = 'ask_details';
-          responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
+          if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
+            state.collected_data.hasAskedDetails = true;
+            state.step = 'ask_name';
+            responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+          } else {
+            state.step = 'ask_details';
+            responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
+          }
         }
 
       } else if (state.step === 'ask_details') {
         const detailMsg = message.trim();
         const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
+        const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
         
-        if (!isNo) {
+        if (isReferredBack) {
+          const previousUserMsgs = state.messages.slice(0, -1)
+            .filter(m => m.role === 'user' && m.content.trim().length >= 15)
+            .map(m => m.content.trim());
+          
+          if (previousUserMsgs.length > 0) {
+            state.collected_data.details = previousUserMsgs[previousUserMsgs.length - 1];
+          } else if (!state.collected_data.details) {
+            state.collected_data.details = 'Detay belirtilmedi.';
+          }
+        } else if (!isNo) {
           state.collected_data.details = detailMsg;
         } else {
-          state.collected_data.details = 'Detay belirtilmedi.';
+          state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
         }
         state.collected_data.hasAskedDetails = true;
         state.step = 'ask_name';
