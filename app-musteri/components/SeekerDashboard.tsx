@@ -1005,7 +1005,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
   const acceptedOffers = selectedRequest?.offers?.filter(o => o.status === "accepted") || [];
   const cancelledProviderOffer = selectedRequest?.offers?.find(o => o.status === "cancelled" && o.cancelled_by === "service_provider");
-  const hasCancelledByProvider = !!cancelledProviderOffer;
+  const hasCancelledByProvider = !!cancelledProviderOffer && acceptedOffers.length === 0;
   const showCommunicationCard = (acceptedOffers.length > 0 || !!mutualPhones) && !hasCancelledByProvider;
 
   // Helper to render outline SVGs for past table or list categories
@@ -2053,7 +2053,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               {selectedRequest.offers?.map((offer) => (
                                 <div
                                   key={offer.id}
-                                  className="border border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)] animate-scale-up"
+                                  className={`border ${offer.status === "accepted" ? "border-emerald-300 bg-emerald-50/10 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.03)]" : (offer.status === "cancelled" && offer.cancelled_by === "service_provider") ? "border-red-200 bg-red-50/10 shadow-[0_10px_25px_-5px_rgba(239,68,68,0.02)]" : "border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)]"} p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 animate-scale-up`}
                                 >
                                   <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
@@ -2124,6 +2124,15 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                           hour: '2-digit',
                                           minute: '2-digit'
                                         })}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {offer.status === "cancelled" && offer.cancelled_by === "service_provider" && (
+                                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 flex flex-col gap-1 text-left animate-scale-up">
+                                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">İptal Gerekçesi</span>
+                                      <span className="text-red-700 font-extrabold text-xs">
+                                        {getCancelReasonText(offer.cancel_reason_code, offer.cancel_reason_text)}
                                       </span>
                                     </div>
                                   )}
