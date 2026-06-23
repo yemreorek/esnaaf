@@ -26,6 +26,9 @@ function TypewriterText({ text = "", speed = 12, onComplete }: { text: string; s
   const textRef = useRef(text || "");
   textRef.current = text || "";
 
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   useEffect(() => {
     let index = 0;
     setDisplayedText("");
@@ -35,8 +38,8 @@ function TypewriterText({ text = "", speed = 12, onComplete }: { text: string; s
         const fullText = textRef.current || "";
         if (index >= fullText.length) {
           clearInterval(intervalId);
-          if (onComplete) {
-            requestAnimationFrame(() => onComplete());
+          if (onCompleteRef.current) {
+            requestAnimationFrame(() => onCompleteRef.current?.());
           }
           return prev;
         }
@@ -55,7 +58,7 @@ function TypewriterText({ text = "", speed = 12, onComplete }: { text: string; s
     }, speed);
 
     return () => clearInterval(intervalId);
-  }, [speed, onComplete]);
+  }, [speed]);
 
   return (
     <p ref={elementRef} className="whitespace-pre-line">
