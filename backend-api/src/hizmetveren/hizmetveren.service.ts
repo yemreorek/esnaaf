@@ -76,7 +76,7 @@ export class HizmetverenService {
         where: { job_id: job.id },
       });
 
-      const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= Date.now();
+      const { isExpired } = getRequestExpiryInfo(job.created_at);
 
       if (offersCount >= 4 || isExpired) {
         continue; // teklif dolduysa veya zaman aşımına uğradıysa gelen kutusundan kaldır
@@ -234,9 +234,9 @@ export class HizmetverenService {
       throw new BadRequestException('Bu talep maksimum teklif sınırına (4 teklif) ulaşmış ve teklif girişine kapanmıştır.');
     }
 
-    const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= Date.now();
+    const { isExpired, label } = getRequestExpiryInfo(job.created_at);
     if (isExpired) {
-      throw new BadRequestException('Bu talebin 30 dakikalık süresi dolmuş ve teklif girişine kapanmıştır.');
+      throw new BadRequestException(`Bu talebin ${label} süresi dolmuş ve teklif girişine kapanmıştır.`);
     }
 
     if (offerCount === 3) {
@@ -739,7 +739,7 @@ export class HizmetverenService {
         timeZone: 'Europe/Istanbul',
       });
 
-      const eventCode = isUpdate ? 'HA-RANDEVU-GUNCELLE' : 'HA-RANDEVU-YENI';
+      const eventCode = isUpdate ? 'HA-RAN-GNC' : 'HA-RAN-YN';
       await this.bildirimService.sendNotification(acceptedOffer.seeker_id, eventCode, {
         hv_name: provider.user.name || 'Usta',
         appointment_date: appointmentDateStr,
@@ -1111,7 +1111,7 @@ export class HizmetverenService {
           where: { job_id: rt.job_id },
         });
 
-        const isExpired = new Date(job.created_at).getTime() + 30 * 60 * 1000 <= now.getTime();
+        const { isExpired } = getRequestExpiryInfo(job.created_at, now.getTime());
 
         if (offerCount >= 4 || isExpired || job.status === 'completed' || job.status === 'cancelled') {
           // Teklife kapanmışsa sadece gönderildi işaretle, bildirim atma
@@ -1235,6 +1235,16 @@ export class HizmetverenService {
       this.logger.error('Müşteriye iptal SMS\'i gönderilemedi:', err);
     }
 
+    // In-app & push notification to customer (Seeker)
+    try {
+      await this.bildirimService.sendNotification(acceptedOffer.seeker_id, 'HA-IS-IPT', {
+        hv_name: providerName,
+        reason: trReason,
+      });
+    } catch (err) {
+      this.logger.error('Müşteriye iptal bildirimi gönderilemedi:', err);
+    }
+
     // WebSocket canlı bildirimi
     const room = `job_${acceptedOffer.job_id}`;
     this.chatGateway.server?.to(room).emit('job_cancelled', {
@@ -1259,4 +1269,61 @@ export class HizmetverenService {
     };
   }
 }
+
+export function getRequestExpiryInfo(createdAt: Date | string, compareWith: number = Date.now()) {
+  const createdDate = new Date(createdAt);
+  
+  // Format parts timezone-independently using Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Istanbul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(createdDate);
+  const partVal = (type: string) => parts.find(p => p.type === type)?.value || '';
+  
+  const hour = parseInt(partVal('hour'), 10);
+  const isNight = hour >= 18 || hour < 10;
+  
+  let expiresTime = 0;
+  let label = '30 dakikalık';
+
+  if (isNight) {
+    const targetDate = new Date(createdDate);
+    if (hour >= 18) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+    
+    // Format target date parts to get YYYY-MM-DD
+    const targetFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Istanbul',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour12: false
+    });
+    
+    const tParts = targetFormatter.formatToParts(targetDate);
+    const tPartVal = (type: string) => tParts.find(p => p.type === type)?.value || '';
+    
+    const tYear = tPartVal('year');
+    const tMonth = tPartVal('month').padStart(2, '0');
+    const tDay = tPartVal('day').padStart(2, '0');
+    
+    // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
+    const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
+    expiresTime = new Date(istanbul10AMIso).getTime();
+    label = "sabah 10:00'a kadar olan";
+  } else {
+    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+  }
+
+  const isExpired = expiresTime <= compareWith;
+  return { expiresTime, isExpired, label };
+}
+
 

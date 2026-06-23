@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException,
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ChatGateway } from '../chat/chat.gateway';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { BildirimService } from '../bildirimler/bildirim.service';
 
 @Injectable()
 export class MesajlarService {
@@ -10,6 +11,7 @@ export class MesajlarService {
   constructor(
     private prisma: PrismaService,
     private chatGateway: ChatGateway,
+    private bildirimService: BildirimService,
   ) {}
 
   /**
@@ -25,7 +27,11 @@ export class MesajlarService {
             category: true,
           },
         },
-        provider: true,
+        provider: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -74,10 +80,10 @@ export class MesajlarService {
       createdAt: message.created_at,
     });
 
-    // 6. Alıcı bir usta ise usta genel odasına (provider_${provider.id}) bildirim gönder
+    // 6. Alıcı bir usta ise usta genel odasına (provider_${provider.id}) bildirim gönder ve in-app bildirim oluştur
+    const customerName = offer.job.form_data ? (offer.job.form_data as any).name || 'Müşteri' : 'Müşteri';
     if (isSeeker) {
       const providerRoom = `provider_${offer.provider.id}`;
-      const customerName = offer.job.form_data ? (offer.job.form_data as any).name || 'Müşteri' : 'Müşteri';
       this.chatGateway.server?.to(providerRoom).emit('new_message_notification', {
         id: message.id,
         content: message.content,
@@ -88,6 +94,24 @@ export class MesajlarService {
         customerName,
       });
       this.logger.log(`[Mesaj Bildirimi] Provider room ${providerRoom} içindeki ustaya yeni mesaj bildirimi iletildi.`);
+
+      // Trigger HV-02b notification for the provider
+      try {
+        await this.bildirimService.sendNotification(offer.provider.user_id, 'HV-02b', {
+          ha_name: customerName,
+        });
+      } catch (err: any) {
+        this.logger.error(`Failed to send message notification to provider: ${err.message}`);
+      }
+    } else {
+      // Trigger HA-05b notification for the customer (Seeker)
+      try {
+        await this.bildirimService.sendNotification(offer.job.seeker_id, 'HA-05b', {
+          hv_name: offer.provider.user.name || 'Usta',
+        });
+      } catch (err: any) {
+        this.logger.error(`Failed to send message notification to customer: ${err.message}`);
+      }
     }
 
     this.logger.log(`[Mesaj Gönderildi] Room ${room} içindeki sohbet odasına yeni mesaj iletildi.`);

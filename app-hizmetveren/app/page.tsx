@@ -89,6 +89,62 @@ export function normalizePhone(rawPhone: string): string {
   return `+90${digits}`;
 }
 
+const getRequestExpiryInfo = (createdAt: string | Date) => {
+  const createdDate = new Date(createdAt);
+  
+  // Format parts timezone-independently using Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Istanbul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(createdDate);
+  const partVal = (type: string) => parts.find(p => p.type === type)?.value || '';
+  
+  const hour = parseInt(partVal('hour'), 10);
+  const isNight = hour >= 18 || hour < 10;
+  
+  let expiresTime = 0;
+  let label = '30 dakika';
+
+  if (isNight) {
+    const targetDate = new Date(createdDate);
+    if (hour >= 18) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+    
+    // Format target date parts to get YYYY-MM-DD
+    const targetFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Istanbul',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour12: false
+    });
+    
+    const tParts = targetFormatter.formatToParts(targetDate);
+    const tPartVal = (type: string) => tParts.find(p => p.type === type)?.value || '';
+    
+    const tYear = tPartVal('year');
+    const tMonth = tPartVal('month').padStart(2, '0');
+    const tDay = tPartVal('day').padStart(2, '0');
+    
+    // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
+    const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
+    expiresTime = new Date(istanbul10AMIso).getTime();
+    label = '15 saat';
+  } else {
+    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+  }
+
+  const isExpired = expiresTime <= Date.now();
+  return { expiresTime, isExpired, label };
+};
+
 const CountdownTimer = ({ 
   createdAt, 
   onExpire, 
@@ -102,8 +158,7 @@ const CountdownTimer = ({
 
   useEffect(() => {
     const calculateTime = () => {
-      const createdTime = new Date(createdAt).getTime();
-      const expiresTime = createdTime + 30 * 60 * 1000; // 30 mins
+      const { expiresTime } = getRequestExpiryInfo(createdAt);
       const now = Date.now();
       const diff = expiresTime - now;
 
@@ -113,12 +168,14 @@ const CountdownTimer = ({
         return false;
       }
 
-      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
 
+      const hourStr = hours > 0 ? hours.toString().padStart(2, '0') + ':' : '';
       const minStr = minutes.toString().padStart(2, '0');
       const secStr = seconds.toString().padStart(2, '0');
-      setTimeLeft(`${minStr}:${secStr}`);
+      setTimeLeft(`${hourStr}${minStr}:${secStr}`);
       return true;
     };
 
@@ -160,7 +217,7 @@ const OpportunityCard = ({
   showAlert?: (title: string, msg: string, type?: "success" | "error" | "info") => void;
 }) => {
   const [isExpired, setIsExpired] = useState<boolean>(
-    new Date(job.created_at || Date.now()).getTime() + 30 * 60 * 1000 <= Date.now()
+    job.created_at ? getRequestExpiryInfo(job.created_at).isExpired : false
   );
 
   const badgeText = job.aciliyet || (

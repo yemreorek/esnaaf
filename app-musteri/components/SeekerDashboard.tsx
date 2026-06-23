@@ -151,6 +151,62 @@ interface SeekerDashboardProps {
   onLogout: () => void;
 }
 
+const getRequestExpiryInfo = (createdAt: string | Date) => {
+  const createdDate = new Date(createdAt);
+  
+  // Format parts timezone-independently using Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Istanbul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(createdDate);
+  const partVal = (type: string) => parts.find(p => p.type === type)?.value || '';
+  
+  const hour = parseInt(partVal('hour'), 10);
+  const isNight = hour >= 18 || hour < 10;
+  
+  let expiresTime = 0;
+  let label = '30 dakika';
+
+  if (isNight) {
+    const targetDate = new Date(createdDate);
+    if (hour >= 18) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+    
+    // Format target date parts to get YYYY-MM-DD
+    const targetFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Istanbul',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour12: false
+    });
+    
+    const tParts = targetFormatter.formatToParts(targetDate);
+    const tPartVal = (type: string) => tParts.find(p => p.type === type)?.value || '';
+    
+    const tYear = tPartVal('year');
+    const tMonth = tPartVal('month').padStart(2, '0');
+    const tDay = tPartVal('day').padStart(2, '0');
+    
+    // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
+    const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
+    expiresTime = new Date(istanbul10AMIso).getTime();
+    label = '15 saat';
+  } else {
+    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+  }
+
+  const isExpired = expiresTime <= Date.now();
+  return { expiresTime, isExpired, label };
+};
+
 const CountdownTimer = ({ 
   createdAt, 
   onExpire, 
@@ -164,8 +220,7 @@ const CountdownTimer = ({
 
   useEffect(() => {
     const calculateTime = () => {
-      const createdTime = new Date(createdAt).getTime();
-      const expiresTime = createdTime + 30 * 60 * 1000; // 30 mins
+      const { expiresTime } = getRequestExpiryInfo(createdAt);
       const now = Date.now();
       const diff = expiresTime - now;
 
@@ -175,12 +230,14 @@ const CountdownTimer = ({
         return false;
       }
 
-      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
 
+      const hourStr = hours > 0 ? hours.toString().padStart(2, '0') + ':' : '';
       const minStr = minutes.toString().padStart(2, '0');
       const secStr = seconds.toString().padStart(2, '0');
-      setTimeLeft(`${minStr}:${secStr}`);
+      setTimeLeft(`${hourStr}${minStr}:${secStr}`);
       return true;
     };
 
@@ -333,6 +390,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [mutualPhones, setMutualPhones] = useState<{ seekerPhone?: string; providerPhone?: string } | null>(null);
 
+  // Notification states
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -456,13 +518,14 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fetch initial profile
+  // Fetch initial profile & notifications
   useEffect(() => {
     const authUser = getAuthUser();
     if (authUser) {
       setUser(authUser);
       setProfileName(authUser.name || "");
       setProfileEmail(authUser.email || "");
+      fetchNotifications();
     }
     fetchRequests();
   }, []);
@@ -546,10 +609,22 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
     socket.on("connect", () => {
       console.log(`[Dashboard WS] Connected globally: ${socket.id}`);
+      // Join seeker's personal room for in-app notifications
+      socket.emit("join_user", { userId: authUser.id });
       // Join rooms for whatever requests we currently have
       requestsRef.current.forEach(req => {
         socket.emit("join_job", { jobId: req.id });
       });
+    });
+
+    // Listen to real-time in-app notifications
+    socket.on("new_notification", (notif: any) => {
+      console.log("[Dashboard WS] New notification received:", notif);
+      setNotifications((prev) => {
+        if (prev.some(n => n.id === notif.id)) return prev;
+        return [notif, ...prev];
+      });
+      setUnreadNotifCount((c) => c + 1);
     });
 
     // Real-time incoming offer
@@ -788,6 +863,28 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       console.error("Fetch requests failed:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await customFetch("/api/ortak/bildirimler/gecmis");
+      if (res.ok) {
+        const result = await res.json();
+        const data = result.data || [];
+        setNotifications(data);
+        
+        const lastReadTimeStr = localStorage.getItem("last_read_notif_time");
+        if (lastReadTimeStr) {
+          const lastReadTime = parseInt(lastReadTimeStr, 10);
+          const unreadCount = data.filter((n: any) => new Date(n.sent_at).getTime() > lastReadTime).length;
+          setUnreadNotifCount(unreadCount);
+        } else {
+          setUnreadNotifCount(data.length);
+        }
+      }
+    } catch (err) {
+      console.error("Fetch notifications failed:", err);
     }
   };
 
@@ -1206,10 +1303,63 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group">
-              <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setNotifDropdownOpen(!notifDropdownOpen);
+                  if (!notifDropdownOpen) {
+                    setUnreadNotifCount(0);
+                    localStorage.setItem("last_read_notif_time", Date.now().toString());
+                  }
+                }}
+                className="text-slate-400 hover:text-slate-850 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group"
+              >
+                <Bell className="w-4.5 h-4.5 text-slate-500 animate-wiggle" />
+                {unreadNotifCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                )}
+              </button>
+
+              {notifDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-[100] p-4 animate-scale-up text-left max-h-[400px] overflow-y-auto">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                    <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest font-mono">Bildirimler</span>
+                    {unreadNotifCount > 0 && (
+                      <span className="bg-rose-50 text-rose-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                        {unreadNotifCount} Yeni
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-3 divide-y divide-slate-50 font-sans">
+                    {notifications.length === 0 ? (
+                      <p className="text-slate-450 text-[11px] font-medium text-center py-6">
+                        Henüz bir bildiriminiz bulunmuyor.
+                      </p>
+                    ) : (
+                      notifications.map((notif) => {
+                        const title = notif.payload?.title || notif.payload?.payload?.title || 'Bildirim';
+                        const body = notif.payload?.body || notif.payload?.payload?.body || '';
+                        return (
+                          <div key={notif.id} className="pt-2.5 first:pt-0 space-y-0.5 text-left">
+                            <h4 className="font-extrabold text-xs text-slate-800">{title}</h4>
+                            <p className="text-[11px] text-slate-500 font-medium leading-normal leading-relaxed">{body}</p>
+                            <span className="text-[9px] text-slate-400 font-bold block pt-0.5">
+                              {new Date(notif.sent_at).toLocaleString("tr-TR", {
+                                day: '2-digit',
+                                month: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="h-6 w-[1px] bg-slate-200"></div>
 
@@ -1309,7 +1459,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
                                         Teklife Kapatıldı (4 Teklif Sınırı)
                                       </span>
-                                    ) : (new Date(req.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) ? (
+                                    ) : getRequestExpiryInfo(req.created_at).isExpired ? (
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
                                         Teklife Kapatıldı (Süre Dolanlar)
                                       </span>
@@ -1632,12 +1782,21 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                       <p className="text-xs text-slate-400 font-bold uppercase mt-0.5">{selectedRequest.category?.name}</p>
                     </div>
                     
-                    <button
-                      onClick={() => handleCancelRequest(selectedRequest.id)}
-                      className="ml-auto bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-200 text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                    >
-                      İptal Et
-                    </button>
+                    {selectedRequest.status === "cancelled" ? (
+                      <button
+                        disabled
+                        className="ml-auto bg-slate-100 text-slate-400 border border-slate-200 text-xs font-bold px-4 py-2.5 rounded-xl cursor-not-allowed shadow-sm"
+                      >
+                        İptal Edildi
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleCancelRequest(selectedRequest.id)}
+                        className="ml-auto bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-200 text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                      >
+                        İptal Et
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -2026,14 +2185,20 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                         <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm space-y-4">
                           <div className="flex items-center justify-between border-b border-slate-50 pb-3">
                             <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                              {selectedRequest.status !== "cancelled" && (
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                              )}
                               <span>Gelen Teklifler Akışı</span>
                             </h4>
-                            {selectedRequest.offers?.length >= 4 ? (
+                            {selectedRequest.status === "cancelled" ? (
+                              <span className="text-[10px] font-bold bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-100 uppercase tracking-wider">
+                                İptal Edildi
+                              </span>
+                            ) : selectedRequest.offers?.length >= 4 ? (
                               <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
                                 Tekliflere Kapandı
                               </span>
-                            ) : (new Date(selectedRequest.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) ? (
+                            ) : getRequestExpiryInfo(selectedRequest.created_at).isExpired ? (
                               <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
                                 Süre Doldu
                               </span>
@@ -2047,7 +2212,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                           </div>
 
                           {/* Center Large Countdown & Reassuring text */}
-                          {!(selectedRequest.offers?.length >= 4) && !(new Date(selectedRequest.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) && (
+                          {selectedRequest.status === "cancelled" ? (
+                            <div className="bg-red-50/40 border border-red-100/70 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 animate-scale-up">
+                              <p className="text-red-700 text-xs font-extrabold leading-relaxed max-w-md">
+                                Bu hizmet talebi iptal edilmiştir. Yeni teklif alımına kapalıdır.
+                              </p>
+                            </div>
+                          ) : !(selectedRequest.offers?.length >= 4) && !getRequestExpiryInfo(selectedRequest.created_at).isExpired ? (
                             <div className="bg-rose-50/40 border border-rose-100/70 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 animate-scale-up">
                               <div className="flex flex-col items-center gap-1">
                                 <CountdownTimer createdAt={selectedRequest.created_at} variant="large" />
@@ -2056,23 +2227,34 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                 </span>
                               </div>
                               <p className="text-slate-700 text-xs font-extrabold leading-relaxed max-w-md">
-                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. 30 dakika içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
+                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. {getRequestExpiryInfo(selectedRequest.created_at).label} içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
                               </p>
                             </div>
-                          )}
+                          ) : null}
 
                           {selectedRequest.offers?.length === 0 ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
-                              <div className="relative w-12 h-12 flex items-center justify-center">
-                                {/* Premium Neon lime spinning loading loader */}
-                                <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#c8f252] animate-spin"></div>
-                              </div>
-                              <div className="space-y-1">
-                                <div className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</div>
-                                <div className="text-slate-500 text-xs font-semibold max-w-[280px] leading-relaxed mx-auto">
-                                  Talebiniz bölgenizdeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
+                              {selectedRequest.status !== "cancelled" ? (
+                                <>
+                                  <div className="relative w-12 h-12 flex items-center justify-center">
+                                    {/* Premium Neon lime spinning loading loader */}
+                                    <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#c8f252] animate-spin"></div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</div>
+                                    <div className="text-slate-500 text-xs font-semibold max-w-[280px] leading-relaxed mx-auto">
+                                      Talebiniz bölgenizdeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="space-y-1">
+                                  <div className="font-extrabold text-sm text-slate-400">Talep İptal Edildi</div>
+                                  <div className="text-slate-550 text-xs font-semibold max-w-[280px] leading-relaxed mx-auto">
+                                    Bu talebe gelen herhangi bir teklif bulunmamaktadır.
+                                  </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
                           ) : (
                             <div className="space-y-4">
@@ -2175,6 +2357,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       <span>Profili Gör</span>
                                     </button>
                                     <button 
+                                      disabled={selectedRequest?.status === "cancelled"}
                                       onClick={() => {
                                         if (selectedRequest) {
                                           setActiveChat({
@@ -2186,7 +2369,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                           setActiveTab("mesajlar");
                                         }
                                       }}
-                                      className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
+                                      className="flex-1 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
                                     >
                                       Mesaj Gönder
                                     </button>
@@ -2198,6 +2381,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-red-100 text-red-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
                                         İptal Edildi
                                       </span>
+                                    ) : selectedRequest?.status === "cancelled" ? (
+                                      <button
+                                        disabled
+                                        className="flex-1 bg-slate-100 text-slate-400 border border-slate-200 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-not-allowed text-center uppercase tracking-wider"
+                                      >
+                                        Geçersiz
+                                      </button>
                                     ) : (
                                       <button
                                         onClick={() => handleAcceptOffer(offer)}

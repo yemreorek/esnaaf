@@ -69,6 +69,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { status: 'error', message: 'Geçersiz hizmet veren ID' };
   }
 
+  @SubscribeMessage('join_user')
+  handleJoinUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string },
+  ) {
+    if (data && data.userId) {
+      const room = `user_${data.userId}`;
+      client.join(room);
+      console.log(`[WS User Join] User client ${client.id} joined room: ${room}`);
+      return { status: 'success', room };
+    }
+    return { status: 'error', message: 'Geçersiz kullanıcı ID' };
+  }
+
+
   /**
    * Broadcasts a new job distributed notification to a specific provider.
    */

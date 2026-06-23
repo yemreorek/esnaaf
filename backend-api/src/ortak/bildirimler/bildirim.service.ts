@@ -7,6 +7,7 @@ import { NpsRespondDto } from './dto/bildirim.dto';
 import { NotifChannel, NpsGroup, NotifStatus } from '@prisma/client';
 import * as admin from 'firebase-admin';
 import { RedisService } from '../../common/redis/redis.service';
+import { ChatGateway } from '../chat/chat.gateway';
 
 @Injectable()
 export class BildirimService implements OnModuleInit {
@@ -18,6 +19,7 @@ export class BildirimService implements OnModuleInit {
     @InjectQueue('nps-survey') private npsSurveyQueue: Bull.Queue,
     @InjectQueue('dispute-alert') private disputeAlertQueue: Bull.Queue,
     private redis: RedisService,
+    private chatGateway: ChatGateway,
   ) {}
 
   onModuleInit() {
@@ -146,7 +148,7 @@ export class BildirimService implements OnModuleInit {
         await this.sendFcmPush(user.fcm_token, title, body, payload);
       }
 
-      await this.prisma.notificationLog.create({
+      const log = await this.prisma.notificationLog.create({
         data: {
           user_id: userId,
           event_code: eventCode,
@@ -161,6 +163,25 @@ export class BildirimService implements OnModuleInit {
           delivered_at: new Date(),
         },
       });
+
+      // Emit new_notification WebSocket event in real-time
+      try {
+        const notifData = {
+          id: log.id,
+          eventCode: log.event_code,
+          channel: log.channel,
+          title,
+          body,
+          sentAt: log.sent_at,
+          payload: log.payload,
+        };
+        this.chatGateway.server?.to(`user_${userId}`).emit('new_notification', notifData);
+        this.chatGateway.server?.to(`seeker_${userId}`).emit('new_notification', notifData);
+        this.chatGateway.server?.to(`provider_${userId}`).emit('new_notification', notifData);
+        this.logger.log(`[WS Broadcast] Real-time notification emitted to user_${userId}`);
+      } catch (wsErr: any) {
+        this.logger.error(`Failed to emit WebSocket notification: ${wsErr.message}`);
+      }
     }
   }
 
