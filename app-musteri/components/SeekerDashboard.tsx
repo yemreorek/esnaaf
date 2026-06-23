@@ -151,9 +151,16 @@ interface SeekerDashboardProps {
   onLogout: () => void;
 }
 
-const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onExpire?: () => void }) => {
+const CountdownTimer = ({ 
+  createdAt, 
+  onExpire, 
+  variant = 'default' 
+}: { 
+  createdAt: string | Date; 
+  onExpire?: () => void; 
+  variant?: 'default' | 'large';
+}) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
-  const [isRed, setIsRed] = useState<boolean>(false);
 
   useEffect(() => {
     const calculateTime = () => {
@@ -164,17 +171,12 @@ const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onE
 
       if (diff <= 0) {
         setTimeLeft('Süre Doldu');
-        setIsRed(true);
         if (onExpire) onExpire();
         return false;
       }
 
       const minutes = Math.floor(diff / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-
-      if (minutes < 5) {
-        setIsRed(true);
-      }
 
       const minStr = minutes.toString().padStart(2, '0');
       const secStr = seconds.toString().padStart(2, '0');
@@ -191,9 +193,17 @@ const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onE
     return () => clearInterval(interval);
   }, [createdAt, onExpire]);
 
+  if (variant === 'large') {
+    return (
+      <span className="font-mono font-black text-2xl md:text-3xl text-red-500 animate-pulse tracking-wider">
+        {timeLeft}
+      </span>
+    );
+  }
+
   return (
-    <span className={`inline-flex items-center gap-1 font-mono font-black text-xs ${isRed ? 'text-red-500 animate-pulse' : 'text-slate-650'}`}>
-      ⏳ {timeLeft}
+    <span className="font-mono font-black text-xs text-red-500 animate-pulse">
+      {timeLeft}
     </span>
   );
 };
@@ -1305,7 +1315,9 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </span>
                                     ) : (
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <CountdownTimer createdAt={req.created_at} />
+                                        <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100 flex items-center gap-1">
+                                          <CountdownTimer createdAt={req.created_at} /> TEKLİFE KAPANACAK
+                                        </span>
                                         {offerCount > 0 ? (
                                           <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
                                             {offerCount} Teklif Alındı
@@ -2027,13 +2039,27 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               </span>
                             ) : (
                               <div className="flex items-center gap-2">
-                                <CountdownTimer createdAt={selectedRequest.created_at} />
                                 <span className="text-[10px] font-bold bg-[#c8f252]/20 text-[#4c630a] px-2.5 py-1 rounded-full uppercase tracking-wider">
                                   Canlı Bağlantı Aktif
                                 </span>
                               </div>
                             )}
                           </div>
+
+                          {/* Center Large Countdown & Reassuring text */}
+                          {!(selectedRequest.offers?.length >= 4) && !(new Date(selectedRequest.created_at).getTime() + 30 * 60 * 1000 <= Date.now()) && (
+                            <div className="bg-rose-50/40 border border-rose-100/70 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 animate-scale-up">
+                              <div className="flex flex-col items-center gap-1">
+                                <CountdownTimer createdAt={selectedRequest.created_at} variant="large" />
+                                <span className="text-xs font-black text-rose-500 uppercase tracking-wider">
+                                  Teklife Kapanacak
+                                </span>
+                              </div>
+                              <p className="text-slate-700 text-xs font-extrabold leading-relaxed max-w-md">
+                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. 30 dakika içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
+                              </p>
+                            </div>
+                          )}
 
                           {selectedRequest.offers?.length === 0 ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">

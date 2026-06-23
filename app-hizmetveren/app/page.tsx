@@ -89,9 +89,16 @@ export function normalizePhone(rawPhone: string): string {
   return `+90${digits}`;
 }
 
-const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onExpire?: () => void }) => {
+const CountdownTimer = ({ 
+  createdAt, 
+  onExpire, 
+  variant = 'default' 
+}: { 
+  createdAt: string | Date; 
+  onExpire?: () => void; 
+  variant?: 'default' | 'large';
+}) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
-  const [isRed, setIsRed] = useState<boolean>(false);
 
   useEffect(() => {
     const calculateTime = () => {
@@ -102,17 +109,12 @@ const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onE
 
       if (diff <= 0) {
         setTimeLeft('Süre Doldu');
-        setIsRed(true);
         if (onExpire) onExpire();
         return false;
       }
 
       const minutes = Math.floor(diff / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-
-      if (minutes < 5) {
-        setIsRed(true);
-      }
 
       const minStr = minutes.toString().padStart(2, '0');
       const secStr = seconds.toString().padStart(2, '0');
@@ -129,9 +131,17 @@ const CountdownTimer = ({ createdAt, onExpire }: { createdAt: string | Date; onE
     return () => clearInterval(interval);
   }, [createdAt, onExpire]);
 
+  if (variant === 'large') {
+    return (
+      <span className="font-mono font-black text-2xl md:text-3xl text-red-500 animate-pulse tracking-wider">
+        {timeLeft}
+      </span>
+    );
+  }
+
   return (
-    <span className={`inline-flex items-center gap-1 font-mono font-black text-xs ${isRed ? 'text-red-500 animate-pulse' : 'text-slate-650'}`}>
-      ⏳ {timeLeft}
+    <span className="font-mono font-black text-xs text-red-500 animate-pulse">
+      {timeLeft}
     </span>
   );
 };
@@ -226,10 +236,6 @@ const OpportunityCard = ({
           <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
             <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
             <div className="flex items-center gap-1 justify-end">
-              {job.created_at && (
-                <CountdownTimer createdAt={job.created_at} onExpire={() => setIsExpired(true)} />
-              )}
-              <span>•</span>
               <span>{formatRelativeTime(job.created_at || new Date().toISOString())}</span>
             </div>
           </div>
@@ -247,6 +253,16 @@ const OpportunityCard = ({
             </span>
           </div>
         </div>
+
+        {/* Centered Countdown Timer Banner */}
+        {!isExpired && job.created_at && (
+          <div className="bg-rose-50/50 border border-rose-100/60 rounded-2xl p-3.5 text-center flex flex-col items-center justify-center gap-1 animate-scale-up">
+            <CountdownTimer createdAt={job.created_at} variant="large" onExpire={() => setIsExpired(true)} />
+            <span className="text-[10px] font-black text-rose-500 uppercase tracking-wider">
+              Teklife Kapanacak
+            </span>
+          </div>
+        )}
 
         <p className="text-xs text-slate-650 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed font-semibold whitespace-pre-line text-left">
           &ldquo;{job.details}&rdquo;
