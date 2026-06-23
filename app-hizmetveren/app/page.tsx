@@ -465,8 +465,22 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal' | 'loyal_customers'>('dashboard');
   const [lostAndCancelledJobs, setLostAndCancelledJobs] = useState<any[]>([]);
+  
+  // Loyalty / Direct Job states
+  const [esnaafId, setEsnaafId] = useState<string>('');
+  const [loyalCustomers, setLoyalCustomers] = useState<any[]>([]);
+  const [searchSeekerEsnaafId, setSearchSeekerEsnaafId] = useState<string>('');
+  const [searchSeekerResult, setSearchSeekerResult] = useState<any | null>(null);
+  const [isSearchingSeeker, setIsSearchingSeeker] = useState<boolean>(false);
+  const [searchSeekerError, setSearchSeekerError] = useState<string>('');
+  const [directRequestCustomer, setDirectRequestCustomer] = useState<any | null>(null);
+  const [directJobPrice, setDirectJobPrice] = useState<string>('');
+  const [directJobCategory, setDirectJobCategory] = useState<string>('ev-temizligi');
+  const [directJobDate, setDirectJobDate] = useState<string>('');
+  const [directJobDetails, setDirectJobDetails] = useState<string>('');
+  const [isSubmittingDirectJob, setIsSubmittingDirectJob] = useState<boolean>(false);
   const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
@@ -1125,6 +1139,7 @@ export default function ProviderDashboard() {
       const profileData = await profileRes.json();
       if (profileRes.ok) {
         setProfile(profileData);
+        setEsnaafId(profileData.esnaaf_id || '');
         addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
         if (!profileData.isApproved) {
           setActiveTab('belge-dogrulama');
@@ -1152,8 +1167,106 @@ export default function ProviderDashboard() {
 
       await fetchUnreadMessages(accessToken);
       await fetchNotifications(accessToken);
+      await fetchLoyalCustomers(accessToken);
     } catch (err: any) {
       addLog(`Dashboard yükleme hatası: ${err.message}`);
+    }
+  };
+
+  const fetchLoyalCustomers = async (accessToken: string) => {
+    try {
+      const res = await fetch('/api/ortak/favoriler/musterilerim', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLoyalCustomers(data);
+      }
+    } catch (err) {
+      console.error('Fetch loyal customers failed:', err);
+    }
+  };
+
+  const handleSearchSeeker = async () => {
+    if (!searchSeekerEsnaafId) return;
+    setIsSearchingSeeker(true);
+    setSearchSeekerError('');
+    setSearchSeekerResult(null);
+    try {
+      const res = await fetch(`/api/ortak/favoriler/profil-bul/${searchSeekerEsnaafId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSearchSeekerResult(data);
+      } else {
+        const err = await res.json();
+        setSearchSeekerError(err.error?.message || 'Müşteri bulunamadı.');
+      }
+    } catch (err) {
+      setSearchSeekerError('Arama sırasında bir hata oluştu.');
+    } finally {
+      setIsSearchingSeeker(false);
+    }
+  };
+
+  const handleSendLoyaltyRequest = async (seekerEsnaafId: string) => {
+    try {
+      const res = await fetch('/api/ortak/favoriler/ekle-istek', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ esnaafId: seekerEsnaafId })
+      });
+      if (res.ok) {
+        alert('Sadık müşteri daveti başarıyla gönderildi! Müşteri onayladığında listenizde görünecektir.');
+        setSearchSeekerResult(null);
+        setSearchSeekerEsnaafId('');
+      } else {
+        const err = await res.json();
+        alert(err.error?.message || 'Davet gönderilemedi.');
+      }
+    } catch (err) {
+      alert('Davet gönderilirken bir hata oluştu.');
+    }
+  };
+
+  const handleCreateDirectJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directRequestCustomer) return;
+    setIsSubmittingDirectJob(true);
+    try {
+      const res = await fetch('/api/hizmetveren/dogrudan-is-karti', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          seekerId: directRequestCustomer.seeker_id,
+          categorySlug: directJobCategory,
+          price: Number(directJobPrice),
+          appointmentDate: directJobDate,
+          details: directJobDetails
+        })
+      });
+      if (res.ok) {
+        alert('Doğrudan iş teklif kartı başarıyla oluşturuldu ve müşteriye gönderildi!');
+        setDirectRequestCustomer(null);
+        setDirectJobPrice('');
+        setDirectJobDate('');
+        setDirectJobDetails('');
+        if (token) fetchLoyalCustomers(token);
+      } else {
+        const err = await res.json();
+        alert(err.error?.message || 'Teklif oluşturulamadı.');
+      }
+    } catch (err) {
+      alert('Teklif oluşturulurken bir hata oluştu.');
+    } finally {
+      setIsSubmittingDirectJob(false);
     }
   };
 
@@ -2313,6 +2426,21 @@ export default function ProviderDashboard() {
             <span>Abonelik & Paket Bilgisi</span>
             {isTabLocked('abonelik') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
+
+          <button
+            onClick={() => handleTabClick('loyal_customers')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              isTabLocked('loyal_customers')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'loyal_customers' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-amber-500" />
+            <span>Sadık Müşterilerim</span>
+            {isTabLocked('loyal_customers') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
+          </button>
         </div>
 
         {/* Sidebar bottom lime publish button */}
@@ -2565,6 +2693,62 @@ export default function ProviderDashboard() {
 
               {/* Metrics Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Esnaaf ID & QR Kod Kartı */}
+                <div className="bg-slate-900 p-6 rounded-[28px] border border-slate-805 shadow-md hover:shadow-lg transition-all flex flex-col justify-between text-white relative overflow-hidden min-h-[160px]">
+                  {/* Decorative glow */}
+                  <div className="absolute top-[-30px] right-[-30px] w-20 h-20 rounded-full bg-[#c8f252]/10 blur-xl"></div>
+                  
+                  <div className="flex justify-between items-start z-10 gap-3">
+                    <div className="text-left space-y-1">
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Kolay Eşleşme ID</span>
+                      <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all">
+                        {esnaafId || 'ESN-74291'}
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
+                        Müşteriniz bu ID'yi aratarak sizi sadık usta listesine ekleyebilir.
+                      </p>
+                    </div>
+                    {/* Visual QR Code Mockup */}
+                    <div className="w-16 h-16 bg-white p-1.5 rounded-xl shrink-0 flex flex-col gap-0.5 justify-between items-center relative shadow-md">
+                      <div className="grid grid-cols-5 gap-0.5 w-full h-full">
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-200 rounded-sm"></div>
+                        <div className="bg-slate-900 rounded-sm"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-bold z-10">
+                    <span>Esnaaf ID Kartım</span>
+                    <span className="text-[#c8f252]">Aktif</span>
+                  </div>
+                </div>
                 {/* 1. Bids Sent */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
@@ -3053,9 +3237,16 @@ export default function ProviderDashboard() {
                     <div key={off.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-start gap-4">
-                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                            {off.job.categoryName}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                              {off.job.categoryName}
+                            </span>
+                            {off.job.is_direct && (
+                              <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                                🌟 Sadık Müşteriden Özel
+                              </span>
+                            )}
+                          </div>
                           <span className={`text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider ${
                             off.status === 'accepted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                             off.status === 'rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
@@ -3179,9 +3370,16 @@ export default function ProviderDashboard() {
                                 <div key={wj.id} className="bg-white p-6 rounded-[24px] border border-slate-150 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 animate-scale-up">
                                   <div className="space-y-3">
                                     <div className="flex justify-between items-start gap-4">
-                                      <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                                        {wj.job.categoryName}
-                                      </span>
+                                      <div className="flex flex-col gap-1 items-start">
+                                        <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                                          {wj.job.categoryName}
+                                        </span>
+                                        {wj.job.is_direct && (
+                                          <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                                            🌟 Sadık Müşteriden Özel
+                                          </span>
+                                        )}
+                                      </div>
                                       <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
                                         Anlaşma Sağlandı
                                       </span>
@@ -3342,46 +3540,91 @@ export default function ProviderDashboard() {
             </div>
           )}
 
-          {activeTab === 'tamamlananlar' && (
-            <div className="space-y-6 animate-scale-up text-left">
-              <div>
-                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
-                  Tamamlanan İşler
-                </h2>
-                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
-                  Başarıyla tamamlayıp teslim ettiğiniz geçmiş işleriniz.
-                </p>
-              </div>
+          {activeTab === 'tamamlananlar' && (() => {
+            const openDoorJobsCount = completedJobs.filter(cj => !cj.is_direct && Number(cj.commission_rate) === 0).length;
+            return (
+              <div className="space-y-6 animate-scale-up text-left w-full">
+                <div>
+                  <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                    Tamamlanan İşler
+                  </h2>
+                  <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                    Başarıyla tamamlayıp teslim ettiğiniz geçmiş işleriniz.
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
-                {completedJobs.length > 0 ? (
-                  completedJobs.map((cj) => (
-                    <div key={cj.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start gap-4">
-                          <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                            {cj.job.categoryName}
-                          </span>
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                            Tamamlandı
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-1.5 text-slate-600 font-semibold border-t border-slate-50 pt-2.5">
-                          <div><strong>Müşteri:</strong> {cj.job.name}</div>
-                          <div><strong>Konum:</strong> {cj.job.district}</div>
-                          <div><strong>Açıklama:</strong> <span className="whitespace-pre-line">{cj.job.details}</span></div>
-                        </div>
-                      </div>
-                      <div className="border-t border-slate-50 pt-3 flex justify-between items-center">
-                        <span className="text-slate-900 font-black text-sm">₺{cj.price.toLocaleString("tr-TR")}</span>
-                        <span className="text-[10px] text-slate-400 font-mono font-bold">
-                          {new Date(cj.completed_at).toLocaleDateString("tr-TR")}
-                        </span>
-                      </div>
+                {openDoorJobsCount > 0 && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-[20px] p-4 flex items-center gap-3.5 text-left w-full">
+                    <div className="bg-emerald-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-black shrink-0 shadow-sm shadow-emerald-100">
+                      🎉
                     </div>
-                  ))
-                ) : (
-                  <div className="lg:col-span-2 bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
+                    <div>
+                      <h4 className="font-extrabold text-emerald-950 text-sm">Açık Kapı Avantajı Raporu</h4>
+                      <p className="text-emerald-700 text-xs mt-0.5 font-semibold">
+                        Kendi müşterinizi platforma taşıdığınız için kazandığınız <strong>{openDoorJobsCount} adet</strong> genel havuz işini <strong>%0 komisyon</strong> ile tamamladınız!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-4 w-full">
+                  {completedJobs.length > 0 ? (
+                    completedJobs.map((cj) => (
+                      <div key={cj.id} className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        {/* Sol Bölüm: Kategori, Müşteri ve İş Bilgisi */}
+                        <div className="flex-grow space-y-2 text-left">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                              {cj.job.categoryName}
+                            </span>
+                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                              Tamamlandı
+                            </span>
+                            {!cj.is_direct && Number(cj.commission_rate) === 0 && (
+                              <span className="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider flex items-center gap-1 shadow-sm shadow-emerald-100">
+                                🌟 Açık Kapı Hediyesi (%0 Komisyon)
+                              </span>
+                            )}
+                            {cj.is_direct && (
+                              <span className="bg-amber-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                                Doğrudan İş (%0 Komisyon)
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs space-y-1 text-slate-600 font-semibold">
+                            <div><strong className="text-slate-800">Müşteri:</strong> {cj.job.name}</div>
+                            <div><strong className="text-slate-800">Konum:</strong> {cj.job.district}</div>
+                            <div className="text-slate-500 font-medium max-w-lg truncate"><strong className="text-slate-800 font-semibold font-mono">Detay:</strong> {cj.job.details}</div>
+                          </div>
+                        </div>
+
+                        {/* Orta Bölüm: Fiyat ve Tarih */}
+                        <div className="flex flex-col items-start md:items-end justify-center min-w-[120px] text-left md:text-right border-l md:border-l-0 md:border-r border-slate-100 pl-4 md:pl-0 md:pr-6 py-1 shrink-0">
+                          <span className="text-slate-900 font-black text-base">₺{cj.price.toLocaleString("tr-TR")}</span>
+                          <span className="text-[10px] text-slate-400 font-mono font-bold mt-0.5">
+                            {new Date(cj.completed_at).toLocaleDateString("tr-TR")}
+                          </span>
+                        </div>
+
+                        {/* Sağ Bölüm: Komisyon Bilgileri (Yatay Sıralanan Kartın En Sonunda) */}
+                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between md:justify-end gap-6 w-full md:w-auto min-w-[200px] shrink-0 text-left md:text-right">
+                          <div className="space-y-0.5">
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">Komisyon Oranı</p>
+                            <p className="text-xs font-extrabold text-slate-800 font-mono bg-white border border-slate-200 px-2 py-0.5 rounded-lg inline-block">
+                              %{cj.commission_rate ?? 0}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">Komisyon Tutarı</p>
+                            <p className="text-sm font-black text-rose-600 font-mono">
+                              ₺{((cj.price * (cj.commission_rate ?? 0)) / 100).toLocaleString("tr-TR")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                  <div className="bg-white p-12 rounded-[32px] border border-slate-100 text-center py-16 w-full">
                     <span className="text-3xl">🏆</span>
                     <h3 className="font-extrabold text-slate-950 text-base mt-3">Tamamlanan İş Yok</h3>
                     <p className="text-slate-400 text-xs mt-1">Tamamladığınız ve her iki tarafça onaylanan iş geçmişiniz burada listelenecektir.</p>
@@ -3389,7 +3632,8 @@ export default function ProviderDashboard() {
                 )}
               </div>
             </div>
-          )}
+          );
+        })()}
 
           {activeTab === 'kayip_iptal' && (
             <div className="space-y-6 animate-scale-up text-left">
@@ -3790,63 +4034,95 @@ export default function ProviderDashboard() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left: Active Subscription Card */}
-                <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-[28px] p-6 shadow-lg text-white flex flex-col justify-between relative overflow-hidden h-[240px]">
-                  {/* Glowing blobs */}
-                  <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-[#c8f252]/10 blur-xl"></div>
-                  
-                  <div className="flex justify-between items-start z-10">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-left">Mevcut Abonelik Planı</span>
-                      <h3 className="text-2xl font-black tracking-tight text-[#c8f252] uppercase mt-1">
-                        {subscriptionDetails?.subscription?.package_type === 'vip' ? 'VIP Paket (Yüksek)' :
-                         subscriptionDetails?.subscription?.package_type === 'standard' ? 'Standart Paket (Orta)' :
-                         subscriptionDetails?.subscription?.package_type === 'basic' ? 'Basic Paket (Düşük)' :
-                         subscriptionDetails?.subscription?.package_type ? `${subscriptionDetails.subscription.package_type.toUpperCase()} Paket` :
-                         'Paket Bulunmuyor'}
-                      </h3>
-                    </div>
-                    <span className={`text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded border ${
-                      subscriptionDetails?.subscription?.status === 'active'
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        : subscriptionDetails?.subscription?.status === 'trial' || subscriptionDetails?.subscription?.status === 'admin_trial'
-                        ? 'bg-[#c8f252]/10 border-[#c8f252]/20 text-[#c8f252]'
-                        : 'bg-red-500/10 border-red-500/20 text-red-400'
-                    }`}>
-                      {subscriptionDetails?.subscription?.status || 'Abonelik Yok'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5 z-10">
-                    <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                      <span>Aktif İş Kapasitesi (Kapasite Kilidi):</span>
-                      <span className="text-white font-mono">{subscriptionDetails?.quota?.accepted_count || 0} / {subscriptionDetails?.quota?.monthly_limit || '3'}</span>
-                    </div>
-                    {/* Progress Bar */}
-                    {subscriptionDetails?.quota?.monthly_limit && (
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#c8f252]"
-                          style={{ width: `${Math.min(100, ((subscriptionDetails.quota.accepted_count || 0) / subscriptionDetails.quota.monthly_limit) * 100)}%` }}
-                        ></div>
+                {/* Left: Active Subscription Card & Commission Balance Card */}
+                <div className="flex flex-col gap-6 lg:col-span-1">
+                  {/* Active Subscription Card */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-[28px] p-6 shadow-lg text-white flex flex-col justify-between relative overflow-hidden h-[240px] shrink-0">
+                    {/* Glowing blobs */}
+                    <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-[#c8f252]/10 blur-xl"></div>
+                    
+                    <div className="flex justify-between items-start z-10">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-left">Mevcut Abonelik Planı</span>
+                        <h3 className="text-2xl font-black tracking-tight text-[#c8f252] uppercase mt-1">
+                          {subscriptionDetails?.subscription?.package_type === 'vip' ? 'VIP Paket (Yüksek)' :
+                           subscriptionDetails?.subscription?.package_type === 'standard' ? 'Standart Paket (Orta)' :
+                           subscriptionDetails?.subscription?.package_type === 'basic' ? 'Basic Paket (Düşük)' :
+                           subscriptionDetails?.subscription?.package_type ? `${subscriptionDetails.subscription.package_type.toUpperCase()} Paket` :
+                           'Paket Bulunmuyor'}
+                        </h3>
                       </div>
-                    )}
+                      <span className={`text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded border ${
+                        subscriptionDetails?.subscription?.status === 'active'
+                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                          : subscriptionDetails?.subscription?.status === 'trial' || subscriptionDetails?.subscription?.status === 'admin_trial'
+                          ? 'bg-[#c8f252]/10 border-[#c8f252]/20 text-[#c8f252]'
+                          : 'bg-red-500/10 border-red-500/20 text-red-400'
+                      }`}>
+                        {subscriptionDetails?.subscription?.status || 'Abonelik Yok'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5 z-10">
+                      <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                        <span>Aktif İş Kapasitesi (Kapasite Kilidi):</span>
+                        <span className="text-white font-mono">{subscriptionDetails?.quota?.accepted_count || 0} / {subscriptionDetails?.quota?.monthly_limit || '3'}</span>
+                      </div>
+                      {/* Progress Bar */}
+                      {subscriptionDetails?.quota?.monthly_limit && (
+                        <div className="w-full h-1.5 bg-slate-880 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#c8f252]"
+                            style={{ width: `${Math.min(100, ((subscriptionDetails.quota.accepted_count || 0) / subscriptionDetails.quota.monthly_limit) * 100)}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-[10px] text-slate-400 font-bold z-10">
+                      <span>
+                        {subscriptionDetails?.subscription?.expires_at 
+                          ? `Yenilenme: ${new Date(subscriptionDetails.subscription.expires_at).toLocaleDateString('tr-TR')}` 
+                          : 'Son Kullanım Tarihi: Yok'}
+                      </span>
+                      {subscriptionDetails?.subscription?.status === 'active' && (
+                        <button 
+                          onClick={handleCancelSubscription}
+                          className="text-red-400 hover:text-red-300 font-black cursor-pointer bg-transparent border-none outline-none active:scale-95 transition-all"
+                        >
+                          İptal Et
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-[10px] text-slate-400 font-bold z-10">
-                    <span>
-                      {subscriptionDetails?.subscription?.expires_at 
-                        ? `Yenilenme: ${new Date(subscriptionDetails.subscription.expires_at).toLocaleDateString('tr-TR')}` 
-                        : 'Son Kullanım Tarihi: Yok'}
-                    </span>
-                    {subscriptionDetails?.subscription?.status === 'active' && (
-                      <button 
-                        onClick={handleCancelSubscription}
-                        className="text-red-400 hover:text-red-300 font-black cursor-pointer bg-transparent border-none outline-none active:scale-95 transition-all"
-                      >
-                        İptal Et
-                      </button>
-                    )}
+                  {/* Commission Balance Card */}
+                  <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden h-[240px] shrink-0 text-left">
+                    <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-rose-500/5 blur-xl"></div>
+                    
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Birikmiş Komisyon Bilgisi</span>
+                      <div className="flex items-baseline gap-1 mt-2">
+                        <span className="text-3xl font-black text-rose-600 font-mono">
+                          ₺{(subscriptionDetails?.unpaidCommission ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className="text-xs text-slate-400 font-bold">Ödenmemiş</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-500">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400 font-bold">Sonraki Tahsilat:</span>
+                        <span className="text-slate-800 font-mono font-bold">
+                          {subscriptionDetails?.nextBillingDate
+                            ? new Date(subscriptionDetails.nextBillingDate).toLocaleDateString('tr-TR')
+                            : '--.--.----'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 leading-relaxed mt-1.5 font-medium">
+                        Komisyonlar tamamlanan işler üzerinden hesaplanır ve her ayın 1'inde kayıtlı kartınızdan otomatik olarak tahsil edilir. Kendi müşterilerinizden (%0) ve açık kapı haklarınızdan (%0) doğan işlerde komisyon alınmaz.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -4081,6 +4357,214 @@ export default function ProviderDashboard() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'loyal_customers' && (
+            <div className="space-y-8 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Sadık Müşterilerim
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Müşterilerinizle doğrudan çalışın. Onları Esnaaf platformuna davet edin ve komisyonsuz veya doğrudan iş oluşturun.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
+                {/* Sol Taraf: Müşteri Arama ve Davet Etme */}
+                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm space-y-5 lg:col-span-1">
+                  <div className="space-y-1">
+                    <h3 className="font-extrabold text-slate-900 text-sm">Yeni Sadık Müşteri Ekle</h3>
+                    <p className="text-[11px] text-slate-450 font-semibold leading-relaxed">
+                      Müşterinizin ekranındaki 5 haneli **Esnaaf ID**'sini girerek bulun ve listenize ekleme isteği gönderin.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Örn: ESN-K3T9X"
+                        value={searchSeekerEsnaafId}
+                        onChange={(e) => setSearchSeekerEsnaafId(e.target.value.toUpperCase())}
+                        className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSearchSeeker}
+                        disabled={isSearchingSeeker}
+                        className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
+                      >
+                        {isSearchingSeeker ? 'Aranıyor...' : 'Bul'}
+                      </button>
+                    </div>
+
+                    {searchSeekerError && (
+                      <p className="text-xs text-red-500 font-semibold">{searchSeekerError}</p>
+                    )}
+
+                    {searchSeekerResult && (
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3 animate-scale-up">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 text-sm">
+                            {searchSeekerResult.name?.substring(0, 2).toUpperCase() || 'MÜ'}
+                          </div>
+                          <div className="text-left">
+                            <h4 className="font-extrabold text-xs text-slate-800">{searchSeekerResult.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">{searchSeekerResult.esnaaf_id}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSendLoyaltyRequest(searchSeekerResult.esnaaf_id)}
+                          className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-2.5 rounded-xl cursor-pointer shadow-sm transition-all text-center"
+                        >
+                          Sadık Müşteri İsteği Gönder
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sağ Taraf: Müşterilerim Listesi */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm space-y-4">
+                    <h3 className="font-extrabold text-slate-900 text-sm">Sadık Müşteri Listesi ({loyalCustomers.length})</h3>
+                    
+                    {loyalCustomers.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {loyalCustomers.map((cust: any) => (
+                          <div key={cust.id} className="bg-slate-50 hover:bg-slate-100/50 border border-slate-100 hover:border-slate-200 rounded-2xl p-4 transition-all flex flex-col justify-between gap-4">
+                            <div className="flex items-center gap-3 text-left">
+                              <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 text-xs">
+                                {cust.seeker?.user?.name?.substring(0, 2).toUpperCase() || 'C'}
+                              </div>
+                              <div>
+                                <h4 className="font-extrabold text-xs text-slate-800">{cust.seeker?.user?.name || 'Müşteri'}</h4>
+                                <p className="text-[10px] text-slate-400 font-bold font-mono">{cust.seeker?.user?.esnaaf_id}</p>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDirectRequestCustomer(cust);
+                                setDirectJobCategory('temizlik');
+                              }}
+                              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] py-2 rounded-xl transition-all cursor-pointer text-center"
+                            >
+                              Doğrudan İş Kartı Oluştur
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 text-slate-400">
+                        <span className="text-3xl">👥</span>
+                        <p className="text-xs font-bold mt-2">Henüz onaylanmış sadık müşteriniz bulunmuyor.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Doğrudan İş Kartı Oluşturma Modalı */}
+          {directRequestCustomer && (
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-[32px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-scale-up text-left space-y-5">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                    <Star className="w-5 h-5 text-amber-500" />
+                    <span>Doğrudan İş Kartı Gönder</span>
+                  </h3>
+                  <button 
+                    onClick={() => {
+                      setDirectRequestCustomer(null);
+                      setDirectJobPrice('');
+                      setDirectJobDate('');
+                      setDirectJobDetails('');
+                    }}
+                    className="text-slate-400 hover:text-slate-850 rounded-xl p-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 text-xs">
+                    {directRequestCustomer.seeker?.user?.name?.substring(0, 2).toUpperCase() || 'C'}
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs text-slate-800">{directRequestCustomer.seeker?.user?.name}</h4>
+                    <p className="text-[10px] text-slate-400 font-bold font-mono">{directRequestCustomer.seeker?.user?.esnaaf_id}</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateDirectJob} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Hizmet Kategorisi</label>
+                    <select
+                      value={directJobCategory}
+                      onChange={(e) => setDirectJobCategory(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      required
+                    >
+                      <option value="temizlik">Temizlik</option>
+                      <option value="nakliyat">Nakliyat</option>
+                      <option value="boyaci">Boyacı</option>
+                      <option value="tesisatci">Tesisatçı</option>
+                      <option value="elektrikci">Elektrikçi</option>
+                      <option value="marangoz">Marangoz</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Doğrudan Anlaşılan Fiyat (TL)</label>
+                    <input
+                      type="number"
+                      placeholder="Örn: 2500"
+                      value={directJobPrice}
+                      onChange={(e) => setDirectJobPrice(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      min="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Randevu Tarihi & Saati</label>
+                    <input
+                      type="datetime-local"
+                      value={directJobDate}
+                      onChange={(e) => setDirectJobDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">İş Detayları</label>
+                    <textarea
+                      placeholder="Müşterinizle anlaştığınız iş detaylarını yazın..."
+                      value={directJobDetails}
+                      onChange={(e) => setDirectJobDetails(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 min-h-[100px] transition-colors resize-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingDirectJob}
+                    className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-xl cursor-pointer shadow-sm transition-all text-center"
+                  >
+                    {isSubmittingDirectJob ? 'Gönderiliyor...' : 'Doğrudan İş Kartını Gönder'}
+                  </button>
+                </form>
               </div>
             </div>
           )}

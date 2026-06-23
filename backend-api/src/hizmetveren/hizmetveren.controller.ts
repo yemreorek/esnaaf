@@ -184,4 +184,17 @@ export class HizmetverenController {
   ) {
     return this.hizmetverenService.cancelWonJob(user.id, acceptedOfferId, reasonCode, reasonText);
   }
+
+  /**
+   * Sadık müşteri için doğrudan iş kartı oluşturur
+   * POST /api/hizmetveren/dogrudan-is-karti
+   */
+  @Post('dogrudan-is-karti')
+  @HttpCode(HttpStatus.CREATED)
+  async createDirectJobCard(
+    @CurrentUser() user: any,
+    @Body() body: { seekerId: string; price: number; categorySlug: string; details: string; district: string }
+  ) {
+    return this.hizmetverenService.createDirectJobCard(user.id, body);
+  }
 }

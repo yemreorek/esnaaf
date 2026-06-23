@@ -358,6 +358,32 @@ export class AbonelikService {
       return false;
     }).length;
 
+    // Calculate unpaid commission:
+    // Find all completed job completions for this provider where offer.commission_paid is false
+    const unpaidCompletions = await this.prisma.jobCompletion.findMany({
+      where: {
+        provider_id: provider.id,
+        status: 'completed',
+        offer: {
+          commission_paid: false,
+        },
+      },
+      include: {
+        offer: true,
+      },
+    });
+
+    let totalUnpaidCommission = 0;
+    for (const c of unpaidCompletions) {
+      const price = c.provider_declared_amount ? Number(c.provider_declared_amount) : Number(c.offer.price);
+      const rate = c.offer.commission_rate ? Number(c.offer.commission_rate) : 0;
+      totalUnpaidCommission += (price * rate) / 100;
+    }
+
+    // Next billing date is the 1st of the next month
+    const currentDate = new Date();
+    const nextBillingDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+
     const monthYear = new Date().toISOString().substring(0, 7);
 
     return {
@@ -367,6 +393,8 @@ export class AbonelikService {
         monthly_limit: capacityLimit,
         month_year: monthYear,
       },
+      unpaidCommission: totalUnpaidCommission,
+      nextBillingDate: nextBillingDate.toISOString(),
     };
   }
 

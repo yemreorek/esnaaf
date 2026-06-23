@@ -40,6 +40,20 @@ export class TaleplerService {
       throw new BadRequestException('Bu kategori geçici olarak hizmete kapalıdır.');
     }
 
+    // 1b. Eğer doğrudan iş ise usta bağlantısını kontrol et
+    if (dto.isDirect && dto.directProviderId) {
+      const isFavorite = await this.prisma.favoriteProvider.findFirst({
+        where: {
+          seeker_id: seekerUserId,
+          provider_id: dto.directProviderId,
+          approved: true,
+        },
+      });
+      if (!isFavorite) {
+        throw new BadRequestException('Bu ustaya doğrudan talep iletmek için ustanın favorilerinizde onaylı olması gerekir.');
+      }
+    }
+
     // 2. Talebi "pending" olarak oluştur
     const job = await this.prisma.serviceRequest.create({
       data: {
@@ -53,6 +67,9 @@ export class TaleplerService {
           sendToFavoritesOnly: dto.sendToFavoritesOnly === true,
         },
         status: 'pending',
+        is_direct: dto.isDirect === true,
+        direct_provider_id: dto.isDirect ? dto.directProviderId : null,
+        created_by_provider: false,
       },
       include: {
         category: true,
@@ -79,7 +96,9 @@ export class TaleplerService {
 
     return {
       success: true,
-      message: 'Talebiniz başarıyla oluşturuldu ve dağıtıma başlandı.',
+      message: dto.isDirect 
+        ? 'Talebiniz doğrudan ustaya iletildi.'
+        : 'Talebiniz başarıyla oluşturuldu ve dağıtıma başlandı.',
       job,
     };
   }
@@ -370,6 +389,7 @@ export class TaleplerService {
         provider: {
           include: {
             user: true,
+            subscription: true,
           },
         },
       },
@@ -404,6 +424,33 @@ export class TaleplerService {
 
     // 2. Önceden kabul edilmiş aktif teklifleri filtrele
     const activePreviousAcceptedOffers = offer.job.accepted_offers.filter(ao => ao.offer.status === 'accepted');
+
+    // 2.5. Komisyon oranı hesaplama ve "Açık Kapı" hakkı kontrolü
+    const COMMISSION_RATES: Record<string, number> = {
+      basic: 10,
+      standard: 7,
+      premium: 5,
+      vip: 5,
+    };
+
+    let commissionRate = 10; // Varsayılan/Fallback oranı %10
+    let updateOpenDoorToFalse = false;
+
+    if (offer.job.is_direct) {
+      commissionRate = 0;
+    } else {
+      // Havuz işi: Ustanın "Açık Kapı" hakkı aktif mi?
+      if (offer.provider.open_door_right) {
+        commissionRate = 0;
+        updateOpenDoorToFalse = true;
+      } else {
+        const sub = offer.provider.subscription;
+        const activeStatuses = ['active', 'trial', 'admin_trial'];
+        if (sub && activeStatuses.includes(sub.status)) {
+          commissionRate = COMMISSION_RATES[sub.package_type] ?? 10;
+        }
+      }
+    }
 
     // 3. Veritabanı transaction işlemleri
     const result = await this.prisma.$transaction(async (tx) => {
@@ -441,7 +488,7 @@ export class TaleplerService {
         },
       });
 
-      // Teklif durumunu 'accepted' yap ve iptal alanlarını sıfırla
+      // Teklif durumunu 'accepted' yap ve iptal alanlarını sıfırla, komisyonu mühürle
       await tx.offer.update({
         where: { id: offer.id },
         data: {
@@ -451,8 +498,17 @@ export class TaleplerService {
           cancel_reason_code: null,
           cancel_reason_text: null,
           cancelled_at: null,
+          commission_rate: commissionRate,
         },
       });
+
+      // Eğer Açık Kapı hakkı kullanıldıysa, hakkı pasifleştir (FALSE yap)
+      if (updateOpenDoorToFalse) {
+        await tx.serviceProvider.update({
+          where: { id: offer.provider_id },
+          data: { open_door_right: false },
+        });
+      }
 
       // KVKK uyumluluğu için karşılıklı telefon açılma günlüğü yaz
       // Seeker -> Provider

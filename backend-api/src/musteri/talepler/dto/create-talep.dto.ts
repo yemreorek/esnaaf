@@ -20,4 +20,13 @@ export class CreateTalepDto {
   @IsOptional()
   @IsBoolean({ message: 'sendToFavoritesOnly parametresi boolean olmalıdır.' })
   sendToFavoritesOnly?: boolean;
+
+  @IsOptional()
+  @IsBoolean({ message: 'isDirect parametresi boolean olmalıdır.' })
+  isDirect?: boolean;
+
+  @IsOptional()
+  @IsString({ message: 'directProviderId parametresi string olmalıdır.' })
+  directProviderId?: string;
 }
+

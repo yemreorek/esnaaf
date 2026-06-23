@@ -79,6 +79,7 @@ model User {
   name                    String?
   email                   String?
   role                    UserRole
+  esnaaf_id               String?                 @unique
   kvkk_consent            Boolean                 @default(false)
   kvkk_consent_date       DateTime?
   marketing_consent       Boolean                 @default(false)
@@ -114,6 +115,7 @@ model ServiceProvider {
   response_time_avg Int?
   is_approved       Boolean                @default(false)
   approved_at       DateTime?
+  open_door_right   Boolean                @default(false)
   subscription_id   String?                @db.Uuid
   city              String                 @default("Adana")
   service_districts String[]               @default([])
@@ -125,6 +127,7 @@ model ServiceProvider {
   monthly_quotas    ProviderMonthlyQuota[]
   reviews_received  Review[]               @relation("ProviderReviews")
   favorited_by      FavoriteProvider[]     @relation("ProviderFavoritedBy")
+  direct_requests   ServiceRequest[]       @relation("DirectProviderRequests")
 
   @@map("service_providers")
   @@index([city])
@@ -157,9 +160,16 @@ model ServiceRequest {
   phone_reveal_logs PhoneRevealLog[]
   reviews           Review[]
 
+  is_direct           Boolean          @default(false)
+  direct_provider_id  String?          @db.Uuid
+  created_by_provider Boolean          @default(false)
+  direct_price        Decimal?         @db.Decimal(10, 2)
+  direct_provider     ServiceProvider? @relation("DirectProviderRequests", fields: [direct_provider_id], references: [id], onDelete: SetNull)
+
   @@index([seeker_id, status])
   @@index([status, created_at(sort: Desc)])
   @@index([category_id, status])
+  @@index([direct_provider_id])
   @@map("service_requests")
 }
 
@@ -170,6 +180,8 @@ model Offer {
   provider_id     String          @db.Uuid
   provider        ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
   price           Decimal
+  commission_rate Decimal         @default(0) @db.Decimal(5, 2)
+  commission_paid Boolean         @default(false)
   message         String?
   status          OfferStatus     @default(pending)
   accepted_at     DateTime?
@@ -681,6 +693,8 @@ model FavoriteProvider {
   id          String   @id @default(uuid()) @db.Uuid
   seeker_id   String   @db.Uuid
   provider_id String   @db.Uuid
+  approved    Boolean  @default(true)
+  created_by  String   @default("seeker")
   created_at  DateTime @default(now()) @db.Timestamp(6)
 
   // Relations

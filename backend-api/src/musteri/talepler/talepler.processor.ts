@@ -37,6 +37,61 @@ export class TaleplerProcessor {
       return;
     }
 
+    // 1b. Eğer doğrudan iş/ilan ise, dağıtımı direkt tek bir ustaya yap
+    if (request.is_direct && request.direct_provider_id) {
+      this.logger.log(`[Dağıtım - Doğrudan] Talep ${jobId} doğrudan usta ${request.direct_provider_id} için yönlendiriliyor.`);
+      
+      // Talebi distributed yap
+      await this.prisma.serviceRequest.update({
+        where: { id: jobId },
+        data: { status: 'distributed' },
+      });
+
+      // Ustayı çek
+      const provider = await this.prisma.serviceProvider.findUnique({
+        where: { id: request.direct_provider_id },
+        include: { user: true },
+      });
+
+      if (provider) {
+        // ResponseTime oluştur
+        await this.prisma.responseTime.create({
+          data: {
+            provider_id: provider.id,
+            job_id: request.id,
+            notified_at: new Date(),
+            notified_sent: true,
+          },
+        });
+
+        const formData = request.form_data as any;
+        const requestDistrict = formData.district || 'Kadıköy';
+
+        // WebSocket ile usta odasına bildir
+        this.chatGateway.emitNewJobToProvider(provider.id, {
+          id: request.id,
+          categoryName: request.category.name,
+          district: requestDistrict,
+          details: formData.details || '',
+          viewerCount: 1,
+          created_at: request.created_at,
+          isFavoriteCustomer: true,
+          isDirectRequest: true,
+          createdByProvider: request.created_by_provider,
+          directPrice: request.direct_price ? Number(request.direct_price) : null,
+          offersCount: 0,
+        });
+
+        // Usta kullanıcısına HV-01 şablonuyla in-app/push bildirimi gönder
+        try {
+          await this.bildirimService.sendNotification(provider.user_id, 'HV-01', { jobId: request.id });
+        } catch (notifErr: any) {
+          this.logger.error(`Doğrudan dağıtım bildirimi gönderilemedi: ${notifErr.message}`);
+        }
+      }
+      return;
+    }
+
     const acceptedCount = await this.prisma.acceptedOffer.count({
       where: { job_id: jobId },
     });

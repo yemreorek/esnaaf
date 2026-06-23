@@ -98,6 +98,8 @@ interface RequestItem {
   id: string;
   status: "pending" | "distributed" | "completed" | "cancelled";
   created_at: string;
+  is_direct?: boolean;
+  created_by_provider?: boolean;
   form_data: {
     name?: string;
     phone?: string;
@@ -356,7 +358,7 @@ const MOCK_PAST_REQUESTS_MOCKUP = [
 
 export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashboardProps) {
   // Navigation tabs matching sidebar
-  const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile" | "cuzdan">("tekliflerim");
+  const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile" | "cuzdan" | "favoriler">("tekliflerim");
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
   const [compareJobId, setCompareJobId] = useState<string>("");
@@ -395,11 +397,30 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
+  // Esnaaf Loyalty & Direct Request states
+  const [esnaafId, setEsnaafId] = useState<string>("");
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [loyaltyRequests, setLoyaltyRequests] = useState<any[]>([]);
+  
+  // Search & add usta
+  const [searchEsnaafId, setSearchEsnaafId] = useState("");
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const [searchError, setSearchError] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Direct Request Form
+  const [directRequestProvider, setDirectRequestProvider] = useState<any>(null);
+  const [directDetails, setDirectDetails] = useState("");
+  const [directDistrict, setDirectDistrict] = useState("");
+  const [directCategorySlug, setDirectCategorySlug] = useState("ev-temizligi");
+  const [isSubmittingDirect, setIsSubmittingDirect] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
     message: string;
     onConfirm: () => void;
+    onCancel?: () => void;
   }>({
     isOpen: false,
     title: "",
@@ -407,12 +428,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     onConfirm: () => {},
   });
 
-  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+  const showConfirm = (title: string, message: string, onConfirm: () => void, onCancel?: () => void) => {
     setConfirmModal({
       isOpen: true,
       title,
       message,
       onConfirm,
+      onCancel,
     });
   };
 
@@ -528,7 +550,165 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
       fetchNotifications();
     }
     fetchRequests();
+    
+    // Fetch Esnaaf ID
+    const fetchEsnaafId = async () => {
+      try {
+        const res = await customFetch("/api/ortak/favoriler/profil-esnaaf-id");
+        if (res.ok) {
+          const data = await res.json();
+          setEsnaafId(data.esnaaf_id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch Esnaaf ID:", err);
+      }
+    };
+    fetchEsnaafId();
   }, []);
+
+  // Fetch favorites and loyalty requests on tab change
+  useEffect(() => {
+    if (activeTab === "favoriler") {
+      fetchFavorites();
+      fetchLoyaltyRequests();
+    }
+  }, [activeTab]);
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await customFetch("/api/ortak/favoriler");
+      if (res.ok) {
+        const data = await res.json();
+        setFavorites(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchLoyaltyRequests = async () => {
+    try {
+      const res = await customFetch("/api/ortak/favoriler/onay-bekleyenler");
+      if (res.ok) {
+        const data = await res.json();
+        setLoyaltyRequests(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSearchUsta = async () => {
+    if (!searchEsnaafId.trim()) return;
+    setIsSearching(true);
+    setSearchError("");
+    setSearchResult(null);
+    try {
+      const res = await customFetch(`/api/ortak/favoriler/esnaaf-ara/${searchEsnaafId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResult(data);
+      } else {
+        setSearchError("Eşleşen aktif usta bulunamadı.");
+      }
+    } catch (err) {
+      setSearchError("Arama sırasında hata oluştu.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddUsta = async (providerEsnaafId: string) => {
+    try {
+      const res = await customFetch("/api/ortak/favoriler/esnaaf-ekle", {
+        method: "POST",
+        body: JSON.stringify({ esnaaf_id: providerEsnaafId }),
+      });
+      if (res.ok) {
+        alert("Usta favori listenize eklendi!");
+        setSearchEsnaafId("");
+        setSearchResult(null);
+        fetchFavorites();
+      } else {
+        const err = await res.json();
+        alert(err.message || "Usta eklenemedi.");
+      }
+    } catch (err) {
+      alert("Bir hata oluştu.");
+    }
+  };
+
+  const handleApproveLoyalty = async (id: string) => {
+    try {
+      const res = await customFetch(`/api/ortak/favoriler/onayla/${id}`, { method: "POST" });
+      if (res.ok) {
+        alert("Sadık müşteri bağlantısı onaylandı.");
+        fetchLoyaltyRequests();
+        fetchFavorites();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRejectLoyalty = async (id: string) => {
+    try {
+      const res = await customFetch(`/api/ortak/favoriler/reddet/${id}`, { method: "POST" });
+      if (res.ok) {
+        alert("Bağlantı isteği reddedildi.");
+        fetchLoyaltyRequests();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveFavorite = async (providerId: string) => {
+    if (!confirm("Bu ustayı favorilerinizden çıkarmak istediğinize emin misiniz?")) return;
+    try {
+      const res = await customFetch(`/api/ortak/favoriler/sil/${providerId}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Usta favorilerinizden çıkarıldı.");
+        fetchFavorites();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateDirectRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directRequestProvider || !directDetails.trim() || !directDistrict.trim()) return;
+    setIsSubmittingDirect(true);
+    try {
+      const res = await customFetch("/api/musteri/talepler", {
+        method: "POST",
+        body: JSON.stringify({
+          categorySlug: directCategorySlug,
+          district: directDistrict,
+          details: directDetails,
+          name: user?.name || "Müşteri",
+          isDirect: true,
+          directProviderId: directRequestProvider.providerId || directRequestProvider.provider?.id || directRequestProvider.id,
+        }),
+      });
+      if (res.ok) {
+        alert("Doğrudan iş talebiniz ustaya iletildi!");
+        setDirectRequestProvider(null);
+        setDirectDetails("");
+        setDirectDistrict("");
+        fetchRequests();
+        setActiveTab("tekliflerim");
+      } else {
+        const err = await res.json();
+        alert(err.message || "Talep gönderilemedi.");
+      }
+    } catch (err) {
+      alert("Hata oluştu.");
+    } finally {
+      setIsSubmittingDirect(false);
+    }
+  };
 
   // Fetch referral data on tab change
   useEffect(() => {
@@ -625,6 +805,40 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         return [notif, ...prev];
       });
       setUnreadNotifCount((c) => c + 1);
+    });
+
+    // Listen to loyalty connection request
+    socket.on("new_loyalty_request", (data: any) => {
+      console.log("[Dashboard WS] New loyalty request:", data);
+      showConfirm(
+        "Sadık Müşteri Talebi",
+        `${data.providerName} sizi sadık müşteri listesine eklemek istiyor. Onaylıyor musunuz?`,
+        async () => {
+          try {
+            await customFetch(`/api/ortak/favoriler/onayla/${data.id}`, { method: "POST" });
+            alert("Bağlantı başarıyla onaylandı!");
+            fetchLoyaltyRequests();
+            fetchFavorites();
+          } catch (err) {
+            console.error(err);
+          }
+        },
+        async () => {
+          try {
+            await customFetch(`/api/ortak/favoriler/reddet/${data.id}`, { method: "POST" });
+            fetchLoyaltyRequests();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      );
+    });
+
+    // Listen to direct job offer
+    socket.on("new_direct_job_offer", (data: any) => {
+      console.log("[Dashboard WS] New direct job offer:", data);
+      alert(`Favori ustanız ${data.providerName} size özel bir iş kartı oluşturdu! Detayları Tekliflerim sayfasında inceleyebilirsiniz.`);
+      fetchRequests();
     });
 
     // Real-time incoming offer
@@ -1247,6 +1461,18 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           </button>
 
           <button
+            onClick={() => { setActiveTab("favoriler"); setSelectedRequest(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-xs cursor-pointer transition-all ${
+              activeTab === "favoriler"
+                ? "bg-[#c8f252] text-slate-900 shadow-sm font-black"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Favori Ustalarım</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab("profile"); setSelectedRequest(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-xs cursor-pointer transition-all ${
               activeTab === "profile"
@@ -1455,6 +1681,12 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       {`#TR-${req.id.substring(0, 5).toUpperCase()}`}
                                     </span>
 
+                                    {req.is_direct && (
+                                      <span className="bg-violet-50 text-violet-750 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-violet-100">
+                                        {req.created_by_provider ? "Ustanızdan Doğrudan İş Kartı" : "Ustaya Özel Talep"}
+                                      </span>
+                                    )}
+
                                     {offerCount >= 4 ? (
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
                                         Teklife Kapatıldı (4 Teklif Sınırı)
@@ -1465,9 +1697,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       </span>
                                     ) : (
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100 flex items-center gap-1">
-                                          <CountdownTimer createdAt={req.created_at} /> TEKLİFE KAPANACAK
-                                        </span>
+                                        {!req.is_direct && (
+                                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100 flex items-center gap-1">
+                                            <CountdownTimer createdAt={req.created_at} /> TEKLİFE KAPANACAK
+                                          </span>
+                                        )}
                                         {offerCount > 0 ? (
                                           <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-emerald-100">
                                             {offerCount} Teklif Alındı
@@ -1507,20 +1741,40 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                               </div>
 
                               {/* Action Buttons */}
-                              <div className="flex items-center gap-2 self-end md:self-center">
-                                <button 
-                                  onClick={() => setSelectedRequest(req)}
-                                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1"
-                                >
-                                  {offerCount > 0 ? `Teklifleri Gör (${offerCount})` : 'Detayları İncele'}
-                                </button>
-                                <button 
-                                  onClick={() => handleCancelRequest(req.id)}
-                                  className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                                >
-                                  İptal Et
-                                </button>
-                              </div>
+                              {req.is_direct && req.created_by_provider && req.offers?.[0] ? (
+                                <div className="flex items-center gap-2 self-end md:self-center">
+                                  <span className="font-extrabold text-xs text-slate-800 bg-[#c8f252]/10 border border-[#c8f252]/30 px-3 py-2 rounded-xl mr-2">
+                                    Teklif Fiyatı: ₺{Number(req.offers[0].price).toLocaleString("tr-TR")}
+                                  </span>
+                                  <button 
+                                    onClick={() => handleAcceptOffer(req.offers[0])}
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent"
+                                  >
+                                    Kabul Et
+                                  </button>
+                                  <button 
+                                    onClick={() => handleCancelRequest(req.id)}
+                                    className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                  >
+                                    Reddet
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 self-end md:self-center">
+                                  <button 
+                                    onClick={() => setSelectedRequest(req)}
+                                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1"
+                                  >
+                                    {offerCount > 0 ? `Teklifleri Gör (${offerCount})` : 'Detayları İncele'}
+                                  </button>
+                                  <button 
+                                    onClick={() => handleCancelRequest(req.id)}
+                                    className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                  >
+                                    İptal Et
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           );
                         })
@@ -3118,6 +3372,229 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                         </div>
                       </>
                     )}
+                  </div>
+                )}
+
+                {/* VIEW 8: FAVORİ LİSTESİ & DOĞRUDAN İŞ TEKLİFİ */}
+                {activeTab === "favoriler" && (
+                  <div className="space-y-8 animate-scale-up text-left">
+                    <header>
+                      <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
+                        Favori Ustalarım
+                      </h2>
+                      <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                        Güvendiğiniz ustaları ekleyin, doğrudan teklif isteyin ve sadık müşteri isteklerini onaylayın.
+                      </p>
+                    </header>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Sol kolon: Usta Arama & Ekleme */}
+                      <div className="lg:col-span-1 bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-5 text-left h-fit">
+                        <h4 className="font-extrabold text-slate-850 text-sm">Esnaaf ID ile Usta Bul</h4>
+                        <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                          Ustanızın Esnaaf ID'sini (Örn: ESN-K3T9X) girerek favori listenize doğrudan ekleyebilirsiniz.
+                        </p>
+                        
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Örn: ESN-K3T9X"
+                            value={searchEsnaafId}
+                            onChange={(e) => setSearchEsnaafId(e.target.value.toUpperCase())}
+                            className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                          />
+                          <button
+                            onClick={handleSearchUsta}
+                            disabled={isSearching}
+                            className="bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-400 text-xs font-black px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
+                          >
+                            {isSearching ? "Aranıyor..." : "Ara"}
+                          </button>
+                        </div>
+
+                        {searchError && (
+                          <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-200">
+                            {searchError}
+                          </div>
+                        )}
+
+                        {searchResult && (
+                          <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="block text-xs font-extrabold text-slate-800">{searchResult.name}</span>
+                                <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
+                              </div>
+                              <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
+                                Usta
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleAddUsta(searchResult.esnaaf_id)}
+                              className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-900 font-bold text-xs py-2 rounded-xl"
+                            >
+                              Favorilerime Ekle
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sağ kolon: Favori Ustalar & Onay Bekleyen Talepler */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {/* Onay Bekleyen Sadık Müşteri İstekleri */}
+                        {loyaltyRequests.length > 0 && (
+                          <div className="bg-amber-50/50 border border-amber-100 rounded-[28px] p-6 shadow-inner space-y-4">
+                            <h3 className="font-extrabold text-amber-900 text-sm">Onay Bekleyen Sadık Usta Bağlantıları</h3>
+                            <div className="space-y-3">
+                              {loyaltyRequests.map((req) => (
+                                <div key={req.id} className="bg-white border border-amber-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
+                                  <div className="text-left">
+                                    <span className="block text-xs font-extrabold text-slate-800">{req.provider?.user?.name || "Usta"}</span>
+                                    <span className="block text-[9px] text-slate-400 font-bold">ID: {req.provider?.user?.esnaaf_id}</span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleRejectLoyalty(req.id)}
+                                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      Reddet
+                                    </button>
+                                    <button
+                                      onClick={() => handleApproveLoyalty(req.id)}
+                                      className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      Onayla
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Favori Ustalar Listesi */}
+                        <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm space-y-4 text-left">
+                          <h3 className="font-extrabold text-slate-800 text-sm">Kayıtlı Favori Ustalarım</h3>
+                          
+                          {favorites.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {favorites.map((fav) => {
+                                const prov = fav.provider;
+                                return (
+                                  <div key={fav.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between gap-4 transition-all hover:shadow-md">
+                                    <div className="flex justify-between items-start">
+                                      <div className="text-left">
+                                        <span className="block text-xs font-extrabold text-slate-800">{prov?.user?.name}</span>
+                                        <span className="block text-[9px] text-slate-400 font-bold mb-1">Esnaaf ID: {prov?.user?.esnaaf_id}</span>
+                                        {prov?.avg_rating && (
+                                          <div className="flex items-center gap-1 text-[10px] font-extrabold text-amber-500">
+                                            ★ {parseFloat(prov.avg_rating).toFixed(1)}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <button
+                                        onClick={() => handleRemoveFavorite(prov.id)}
+                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                        title="Favorilerden Kaldır"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => setDirectRequestProvider(prov)}
+                                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold py-2 rounded-xl transition-all"
+                                      >
+                                        Özel İş İste
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-slate-400 text-xs font-semibold">
+                              Henüz favori ustanız bulunmamaktadır. Esnaaf ID arama kutusundan ekleme yapabilirsiniz.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Direct Request Modal Form */}
+                {directRequestProvider && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-md w-full shadow-2xl animate-scale-up space-y-5 text-left">
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-sm">
+                          {directRequestProvider.user?.name} Ustaya Özel İş Talebi
+                        </h4>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          Bu talep genel havuzda yayınlanmayacak, sadece bu ustaya iletilecektir.
+                        </p>
+                      </div>
+
+                      <form onSubmit={handleCreateDirectRequest} className="space-y-4">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-slate-500">Hizmet Kategorisi:</label>
+                          <select
+                            value={directCategorySlug}
+                            onChange={(e) => setDirectCategorySlug(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-800"
+                          >
+                            <option value="ev-temizligi">Ev Temizliği</option>
+                            <option value="boya-badana">Boya Badana</option>
+                            <option value="su-tesisati">Su Tesisatı</option>
+                            <option value="elektrik-tesisati">Elektrik Tesisatı</option>
+                            <option value="ev-tadilat">Ev Tadilatı</option>
+                            <option value="nakliyat">Nakliyat / Taşıma</option>
+                          </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-slate-500">İlçe / Bölge:</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Örn: Kadıköy"
+                            value={directDistrict}
+                            onChange={(e) => setDirectDistrict(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-800"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-slate-500">İş Detayları ve Talebiniz:</label>
+                          <textarea
+                            required
+                            rows={4}
+                            placeholder="Lütfen yapılacak işi, tarih tercihlerinizi ve varsa detayları detaylıca yazınız..."
+                            value={directDetails}
+                            onChange={(e) => setDirectDetails(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-semibold text-slate-800 resize-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setDirectRequestProvider(null)}
+                            className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-3 rounded-xl transition-all"
+                          >
+                            Vazgeç
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSubmittingDirect}
+                            className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-350 text-slate-950 text-xs font-black py-3 rounded-xl transition-all"
+                          >
+                            {isSubmittingDirect ? "Gönderiliyor..." : "Talebi Gönder"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
                   </div>
                 )}
             </>

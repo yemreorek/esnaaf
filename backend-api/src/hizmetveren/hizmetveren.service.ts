@@ -414,6 +414,7 @@ export class HizmetverenService {
         companyType: onboardingData.companyType || '',
         companyName: onboardingData.companyName || '',
         healthScore,
+        esnaaf_id: provider.user.esnaaf_id,
       };
     }, 600); // Cache for 10 minutes
   }
@@ -848,6 +849,8 @@ export class HizmetverenService {
         id: c.id,
         price: c.provider_declared_amount ? Number(c.provider_declared_amount) : Number(c.offer.price),
         completed_at: c.updated_at,
+        commission_rate: c.offer.commission_rate ? Number(c.offer.commission_rate) : 0,
+        is_direct: c.job.is_direct,
         job: {
           id: c.job.id,
           categoryName: c.job.category.name,
@@ -1267,6 +1270,147 @@ export class HizmetverenService {
     return {
       message: 'İş başarıyla iptal edildi ve müşteriye bilgi verildi.',
     };
+  }
+
+  /**
+   * Sadık müşteri için doğrudan iş kartı oluşturur
+   */
+  async createDirectJobCard(
+    providerUserId: string,
+    dto: { seekerId: string; price: number; categorySlug: string; details: string; district: string }
+  ) {
+    // 1. Hizmet veren kontrolü
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+      include: { user: true },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    if (!provider.is_approved) {
+      throw new ForbiddenException('Hizmet veren hesabınız henüz onaylanmamıştır.');
+    }
+
+    // 2. Sadık müşteri bağlantısı kontrolü
+    const connection = await this.prisma.favoriteProvider.findFirst({
+      where: {
+        provider_id: provider.id,
+        seeker_id: dto.seekerId,
+        approved: true,
+      },
+      include: {
+        seeker: true,
+      }
+    });
+
+    if (!connection) {
+      throw new BadRequestException('Bu müşteri ile sadık müşteri bağlantınız bulunmamaktadır.');
+    }
+
+    // 3. Kategori bul
+    const categoryName = this.getCategoryName(dto.categorySlug);
+    const category = await this.prisma.category.findUnique({
+      where: { name: categoryName },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Kategori bulunamadı: ${categoryName}`);
+    }
+
+    // 4. İş Talebi ve Teklifi transaction içinde oluştur
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 4a. ServiceRequest oluştur (status = 'distributed')
+      const request = await tx.serviceRequest.create({
+        data: {
+          seeker_id: dto.seekerId,
+          category_id: category.id,
+          form_data: {
+            details: dto.details,
+            name: connection.seeker?.name || 'Müşteri',
+            city: this.resolveCityFromDistrict(dto.district),
+            district: dto.district,
+            sendToFavoritesOnly: false,
+          },
+          status: 'distributed',
+          is_direct: true,
+          direct_provider_id: provider.id,
+          created_by_provider: true,
+          direct_price: dto.price,
+        },
+      });
+
+      // 4b. Usta için ResponseTime oluştur
+      await tx.responseTime.create({
+        data: {
+          provider_id: provider.id,
+          job_id: request.id,
+          notified_at: new Date(),
+          notified_sent: true,
+          responded_at: new Date(),
+          response_duration_minutes: 0,
+        },
+      });
+
+      // 4c. Offer oluştur (status = 'pending')
+      const offer = await tx.offer.create({
+        data: {
+          job_id: request.id,
+          provider_id: provider.id,
+          price: dto.price,
+          message: 'Anlaşılan fiyat üzerinden doğrudan teklif oluşturuldu.',
+          status: 'pending',
+        },
+      });
+
+      return { request, offer };
+    });
+
+    // 5. WebSocket ile müşteriye anlık istek bildir
+    try {
+      this.chatGateway.server?.to(`user_${dto.seekerId}`).emit('new_direct_job_offer', {
+        jobId: result.request.id,
+        offerId: result.offer.id,
+        price: dto.price,
+        providerName: provider.user?.name || 'Usta',
+        categoryName: category.name,
+        details: dto.details,
+      });
+    } catch (wsErr) {
+      console.error('Failed to emit direct job WebSocket event:', wsErr);
+    }
+
+    return {
+      success: true,
+      message: 'Doğrudan iş kartı başarıyla oluşturuldu ve müşteriye gönderildi.',
+      jobId: result.request.id,
+      offerId: result.offer.id,
+    };
+  }
+
+  private getCategoryName(slug: string): string {
+    switch (slug) {
+      case 'ev-temizligi': return 'Ev Temizliği';
+      case 'boya-badana': return 'Boya Badana';
+      case 'su-tesisati': return 'Su Tesisatı';
+      case 'elektrik-tesisati': return 'Elektrik Tesisatı';
+      case 'ev-tadilat': return 'Ev Tadilat';
+      case 'nakliyat': return 'Nakliyat / Ev Taşıma';
+      case 'hali-koltuk-yikama': return 'Halı & Koltuk Yıkama';
+      case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
+      case 'fayans-parke': return 'Fayans & Parke Döşeme';
+      case 'hasere-ilaclama': return 'Haşere & Böcek İlaçlama';
+      case 'kombi-klima': return 'Kombi & Klima Bakımı';
+      case 'mantolama-discephe': return 'Mantolama & Dış Cephe';
+      case 'marangoz-mobilya': return 'Marangoz & Mobilya Montajı';
+      case 'ozel-ders': return 'Özel Ders';
+      default: return 'Genel Esnaf Hizmeti';
+    }
+  }
+
+  private resolveCityFromDistrict(district: string): string {
+    return 'İstanbul';
   }
 }
 

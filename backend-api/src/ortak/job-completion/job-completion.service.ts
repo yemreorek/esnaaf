@@ -205,13 +205,27 @@ export class JobCompletionService {
         },
       });
 
-      // İlgili ServiceRequest talebini de tamamlandı olarak güncelle
-      await tx.serviceRequest.update({
+      // İlgili ServiceRequest talebini de tamamlandı olarak güncelle ve doğrudan iş durumunu öğren
+      const requestDetails = await tx.serviceRequest.update({
         where: { id: jobId },
         data: {
           status: 'completed',
         },
+        select: {
+          is_direct: true,
+          direct_provider_id: true,
+        },
       });
+
+      // Eğer tamamlanan iş doğrudan iş ise, ustanın "Açık Kapı" hakkını TRUE yap
+      if (requestDetails.is_direct && requestDetails.direct_provider_id) {
+        await tx.serviceProvider.update({
+          where: { id: requestDetails.direct_provider_id },
+          data: {
+            open_door_right: true,
+          },
+        });
+      }
 
       // Uyuşmazlık durumunda otomatik CallTask oluşturma (§15.12.3)
       if (finalStatus === JobCompletionStatus.disputed || disputeStatus === DisputeStatus.open) {
