@@ -131,51 +131,64 @@ export class GeminiService {
         parts: [{ text: msg.content }],
       }));
 
-    const maxRetries = 3;
+    // Build fallback list of models to try if the primary is overloaded
+    const modelsToTry = [modelToUse];
+    if (modelToUse.includes('flash')) {
+      modelsToTry.push('gemini-2.5-pro');
+      modelsToTry.push('gemini-pro-latest');
+    } else {
+      modelsToTry.push('gemini-2.5-flash');
+      modelsToTry.push('gemini-pro-latest');
+    }
+
     let lastError: any = null;
-    let currentModel = modelToUse;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await this.ai.models.generateContent({
-          model: currentModel,
-          contents,
-          config: {
-            systemInstruction,
-            tools: this.getTools(),
-            temperature: options?.temperature !== undefined ? options.temperature : undefined,
-          },
-        });
+    for (const currentModel of modelsToTry) {
+      const maxRetries = 2;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`[GeminiService] Calling generateContent with model: ${currentModel} (Attempt ${attempt}/${maxRetries})`);
+          const response = await this.ai.models.generateContent({
+            model: currentModel,
+            contents,
+            config: {
+              systemInstruction,
+              tools: this.getTools(),
+              temperature: options?.temperature !== undefined ? options.temperature : undefined,
+            },
+          });
 
-        return {
-          text: response.text,
-          functionCalls: response.functionCalls || null,
-        };
-      } catch (error: any) {
-        lastError = error;
-        const status = error.status || error.statusCode || (error.response && error.response.status);
-        const errMsg = error.message || '';
-        
-        const isTransient = 
-          status === 503 || 
-          status === 429 || 
-          errMsg.includes('high demand') || 
-          errMsg.includes('UNAVAILABLE') || 
-          errMsg.includes('RESOURCE_EXHAUSTED') ||
-          errMsg.includes('quota');
+          return {
+            text: response.text,
+            functionCalls: response.functionCalls || null,
+          };
+        } catch (error: any) {
+          lastError = error;
+          const status = error.status || error.statusCode || (error.response && error.response.status);
+          const errMsg = error.message || '';
+          
+          const isTransient = 
+            status === 503 || 
+            status === 429 || 
+            errMsg.includes('high demand') || 
+            errMsg.includes('UNAVAILABLE') || 
+            errMsg.includes('RESOURCE_EXHAUSTED') ||
+            errMsg.includes('quota');
 
-        if (isTransient && attempt < maxRetries) {
-          const delay = attempt * 1000; // 1s, 2s backoff
-          console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
+          if (isTransient && attempt < maxRetries) {
+            const delay = attempt * 1000; // 1s, 2s backoff
+            console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          console.warn(`[GeminiService] Model ${currentModel} failed with error: ${errMsg}. Trying next fallback model if available...`);
+          break; // Break the attempt loop to try the next model in modelsToTry
         }
-
-        console.error('[GeminiService] generateResponse Error:', error);
-        throw error;
       }
     }
 
-    throw lastError || new Error('Gemini Service failed after max retries.');
+    console.error('[GeminiService] All models in fallback list failed.', lastError);
+    throw lastError || new Error('Gemini Service failed after trying all fallback models.');
   }
 }
