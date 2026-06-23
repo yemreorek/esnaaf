@@ -6,7 +6,7 @@ import { TaleplerService } from './talepler.service';
 
 @Controller('musteri/teklifler')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('service_seeker')
+@Roles('service_seeker', 'service_provider')
 export class TekliflerMusteriController {
   constructor(private readonly taleplerService: TaleplerService) {}
 

@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  @Roles('service_seeker')
+  @Roles('service_seeker', 'service_provider')
   @Post('musteri/reviews')
   async createReview(
     @Body() dto: CreateReviewDto,

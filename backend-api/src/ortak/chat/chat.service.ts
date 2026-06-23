@@ -7,6 +7,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { ChatGateway } from './chat.gateway';
 import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phone.util';
 import { GeminiService } from '../../common/gemini/gemini.service';
+import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -66,6 +67,7 @@ export class ChatService {
     private redis: RedisService,
     private chatGateway: ChatGateway,
     @InjectQueue('chat-retry') private chatRetryQueue: Bull.Queue,
+    @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private geminiService: GeminiService,
   ) {}
 
@@ -366,7 +368,7 @@ export class ChatService {
                 data: {
                   phone: encryptedPhone,
                   phone_masked: maskPhone(phone),
-                  name: state.collected_data.name,
+                  name: sanitizeForWin1254(state.collected_data.name || 'Misafir Kullanıcı'),
                   role: 'service_seeker',
                   is_active: true,
                   kvkk_consent: true,
@@ -442,14 +444,14 @@ export class ChatService {
               data: {
                 seeker_id: seeker.id,
                 category_id: category.id,
-                form_data: {
+                form_data: sanitizeObjectForWin1254({
                   ...state.collected_data,
                   details: this.generateRequestSummary(state.collected_data),
                   name: state.collected_data.name || 'Misafir Kullanıcı',
                   city: state.collected_data.city || 'Adana',
                   district: state.collected_data.district || 'Seyhan',
                   sendToFavoritesOnly: sendToFavoritesOnly,
-                },
+                }),
                 status: 'pending',
               },
             });
@@ -1008,7 +1010,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
               data: {
                 phone: encryptedPhone,
                 phone_masked: maskPhone(phone),
-                name: state.collected_data.name,
+                name: sanitizeForWin1254(state.collected_data.name || 'Misafir Kullanıcı'),
                 role: 'service_seeker',
                 is_active: true,
                 kvkk_consent: true,
@@ -1081,14 +1083,14 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
             data: {
               seeker_id: seeker.id,
               category_id: category.id,
-              form_data: {
+              form_data: sanitizeObjectForWin1254({
                 ...state.collected_data,
                 details: this.generateRequestSummary(state.collected_data),
                 name: state.collected_data.name || 'Misafir Kullanıcı',
                 city: state.collected_data.city || 'Adana',
                 district: state.collected_data.district || 'Seyhan',
                 sendToFavoritesOnly: sendToFavoritesOnly,
-              },
+              }),
               status: 'pending',
             },
           });
@@ -1096,69 +1098,12 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa ve çözüm odaklı olsun. 
           createdJobId = job.id;
           await this.redis.incr(`ab_test:sessions:completed:${state.ab_variant || 'control'}`);
 
-          // Trigger matches & distribution (failsafe direct synchronous distribution)
+          // Add to smart distribution queue (handles scoring, status transition, push notifications, and automated offers)
           try {
-            const requestDistrict = state.collected_data.district || 'Seyhan';
-            const requestCity = state.collected_data.city || 'Adana';
-
-            // Find all active, approved providers supporting this category in the database
-            const providers = await this.prisma.serviceProvider.findMany({
-              where: {
-                is_approved: true,
-                category_ids: { has: category.id }
-              },
-              include: { user: true }
-            });
-
-            console.log(`[ChatService Failsafe Match] Found ${providers.length} approved providers in database for category ${category.name}`);
-
-            for (const provider of providers) {
-              const providerCity = provider.city || 'Adana';
-              let providerDistricts = provider.service_districts || [];
-              if (providerDistricts.length === 0) {
-                if (providerCity === 'İstanbul') {
-                  providerDistricts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'];
-                } else if (providerCity === 'Ankara') {
-                  providerDistricts = ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'];
-                } else if (providerCity === 'İzmir') {
-                  providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
-                } else {
-                  providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
-                }
-              }
-
-              // Match City and District
-              const cityMatch = providerCity.toLowerCase() === requestCity.toLowerCase();
-              const districtMatch = providerDistricts.map(d => d.toLowerCase()).includes(requestDistrict.toLowerCase());
-
-              if (cityMatch && districtMatch) {
-                // Create responseTime mapping record
-                await this.prisma.responseTime.create({
-                  data: {
-                    provider_id: provider.id,
-                    job_id: job.id,
-                    notified_at: new Date()
-                  }
-                });
-
-                // Emit new job event to the provider via WebSocket in real-time
-                this.chatGateway.emitNewJobToProvider(provider.id, {
-                  id: job.id,
-                  categoryName: category.name,
-                  district: requestDistrict,
-                  details: this.generateRequestSummary(state.collected_data),
-                  viewerCount: 1,
-                  created_at: job.created_at,
-                  isFavoriteCustomer: false
-                });
-
-                console.log(`[ChatService Failsafe Match] Successfully matched and assigned job ${job.id} to provider ${provider.user.name}`);
-              } else {
-                console.log(`[ChatService Failsafe Match] Provider ${provider.user.name} mismatched: CityMatch=${cityMatch}, DistrictMatch=${districtMatch}`);
-              }
-            }
+            await this.distributionQueue.add('distribute', { jobId: job.id });
+            console.log(`[ChatService] Successfully enqueued job ${job.id} to talepler-distribution queue`);
           } catch (err: any) {
-            console.error(`[ChatService Failsafe Match] Error during direct request distribution matching: ${err.message}`, err.stack);
+            console.error(`[ChatService] Failed to enqueue job ${job.id}: ${err.message}`, err.stack);
           }
 
           state.step = 'completed';

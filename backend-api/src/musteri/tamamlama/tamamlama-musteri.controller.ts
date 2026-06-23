@@ -7,7 +7,7 @@ import { JobCompletionService } from '../../ortak/job-completion/job-completion.
 
 @Controller('musteri/tamamlama')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('service_seeker')
+@Roles('service_seeker', 'service_provider')
 export class TamamlamaMusteriController {
   constructor(private readonly jobCompletionService: JobCompletionService) {}
 

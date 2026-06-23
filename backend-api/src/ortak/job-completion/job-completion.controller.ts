@@ -30,7 +30,7 @@ export class JobCompletionController {
    * Hizmet Alan (HA) onay veya itiraz aksiyonu
    * POST /api/musteri/jobs/:id/complete
    */
-  @Roles('service_seeker')
+  @Roles('service_seeker', 'service_provider')
   @Post('musteri/jobs/:id/complete')
   @HttpCode(HttpStatus.OK)
   async confirmCompletion(

@@ -10,9 +10,10 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 @Module({
   imports: [
     JwtModule.register({}),
-    BullModule.registerQueue({
-      name: 'chat-retry',
-    }),
+    BullModule.registerQueue(
+      { name: 'chat-retry' },
+      { name: 'talepler-distribution' },
+    ),
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway, ChatRetryProcessor, GeminiService],

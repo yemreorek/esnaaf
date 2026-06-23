@@ -7,7 +7,7 @@ import { AddFavoriteDto } from './dto/favorite.dto';
 
 @Controller('ortak/favoriler')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('service_seeker')
+@Roles('service_seeker', 'service_provider')
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
