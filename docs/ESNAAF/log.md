@@ -1,7 +1,7 @@
 ---
 title: Wiki Aktivite Logu
 type: log
-updated: 2026-05-24
+updated: 2026-06-23
 ---
 
 # Wiki Aktivite Logu
@@ -9,6 +9,13 @@ updated: 2026-05-24
 Kronolojik sırayla wiki üzerinde yapılan tüm değişikliklerin kaydı.
 
 ---
+
+## 2026-06-23 build | Adım 25 tamamlandı - AI Öğretisi & Akıllı Sohbet (Yapay Zeka Öğretisi)
+
+- **Genel Soru Algılama & Failsafe Bypass**: Canlı sohbet robotunda kullanıcıların platform ücretleri, komisyon oranları, platformun çalışma şekli ve güvenlik kontrolleri gibi sorular sorduğunda doğrudan konum ve telefon sorma adımlarına zorlanmasını engellemek için `isGeneralOrInformationalQuery` metodu eklendi. İlk mesajda boyacı gibi kategori kelimeleri geçtiğinde doğrudan talep formuna yönlendiren "Hybrid Deterministic Category Failsafe" mekanizması, eğer mesaj genel bilgi/sorgulama içeriyorsa bypass edilecek şekilde güncellendi.
+- **Yapay Zeka Öğretisi Sistem Talimatı**: Gemini modelinin `systemInstruction` metni güncellendi. Platformun tamamen ücretsiz olduğu, hiçbir komisyon veya ücret alınmadığı, ustaların onaylı ve kimlik kontrollerinden geçmiş olduğu detayları AI'a öğretildi. Soruyu yanıtladıktan sonra konuşmanın sonuna nazikçe hizmet talebi açma teklifi eklenmesi kurala bağlandı: *"Size bu konuda yardımcı olmak için ücretsiz bir hizmet talebi oluşturup en uygun ustalardan canlı teklifler toplamak ister misiniz?"*
+- **Dinamik Veritabanı Usta Sorgulaması (`getPlatformStats` Tool)**: AI modelinin belirli bir ilçe/şehir ve kategorideki onaylı usta sayılarını sorgulayabilmesi için `getPlatformStats` aracı tanımlandı. Model bu aracı tetiklediğinde Prisma veritabanından onaylı usta sayısı (`prisma.serviceProvider.count`) çekilerek kullanıcıya dinamik ve güncel usta adet bilgi verilmesi ve ardından talep açmaya davet edilmesi sağlandı.
+- **Entegrasyon ve Regex Testleri**: Yapılan regex geliştirmelerini test etmek için `test-regex.js` test betiği yazıldı ve doğrulandı. Backend API tip kontrolü (tsc) sıfır hatayla doğrulandı ve `main` branch'ine pushlanarak canlıya dağıtıldı.
 
 ## 2026-06-07 build | Adım 23 tamamlandı - Altyapı Optimizasyonu & Caching
 

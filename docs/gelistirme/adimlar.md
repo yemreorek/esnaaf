@@ -33,6 +33,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 22** | **GCP & Canlı Dağıtım** | Google Cloud Platform (GCP) Canlı Ortam Kurulumu, Cloud Run API/Frontend Servisleri, Memorystore Redis VPC Egress, Firebase Hosting Özel Alan Adı (esnaaf.com) Entegrasyonu ve Otomatik GitHub Actions CI/CD Dağıtım Altyapısı | **✅ Tamamlandı** |
 | **Adım 23** | **Altyapı & Caching** | Veritabanı indeks optimizasyonları, Redis `getOrSet`/`invalidatePattern` cache helper entegrasyonu, Kategori ve Profil caching/invalidation, AWS ECS healthcheck ve deploy pipeline | **✅ Tamamlandı** |
 | **Adım 24** | **Canlı Entegrasyonlar** | Canlı iyzico, Netgsm SMS, Firebase FCM ve Gemini API çevre değişkenleri ve AWS ECS task secrets hazırlıkları | **✅ Tamamlandı** |
+| **Adım 25** | **AI Öğretisi & Akıllı Sohbet** | Gemini system instruction genişletmesi: SSS bilgi bankası (iptal, ödeme, fatura, şikayet, garanti), 20 kategori bazlı uzmanlık rehberliği, few-shot ideal konuşma örnekleri, güvenlik/etik kuralları, cross-sell akıllı öneriler, bilgi sorgusu regex kalıpları genişletmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -740,5 +741,33 @@ Esnaaf platformunun canlı (production) ortama geçiş hazırlıkları kapsamın
 
 ### 4. Gemini API & Genel Altyapı Hazırlıkları
 *   Gemini Active Agent entegrasyonu için gerekli `GEMINI_API_KEY` değişkeni ile birlikte cryptographic ve oturum güvenliği için `JWT_REFRESH_SECRET`, `ENCRYPTION_KEY`, `ENCRYPTION_IV` ve `WS_SECRET` gibi tüm kritik secrets bileşenleri ECS Task Definition (`ecs-task-def.json`) dosyasına işlenmiştir.
+
+---
+
+## 🛠️ Adım 25 Geliştirme Detayları (AI Öğretisi & Akıllı Sohbet)
+
+Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretler, komisyonlar, platformun işleyişi, güvenilirlik vb.) ve il/kategori bazlı usta istatistik taleplerine doğru yanıtlar vermesini sağlamak amacıyla "Yapay Zeka Öğretisi" ve akıllı araç entegrasyonu tamamlanmıştır:
+
+### 1. Genel Bilgi/Platform Soru Algılama Katmanı
+*   `ChatService` (`chat.service.ts`) sınıfına regex tabanlı `isGeneralOrInformationalQuery` metodu kazandırılarak, kullanıcının mesajının işlem/talep tabanlı mı yoksa platform hakkında genel bilgi edinmeye yönelik mi olduğu ayırt edildi.
+*   İlgili regex kalıpları ücret, komisyon, güvenlik, iletişim, sistem işleyişi ve usta adet sorgularını kapsayacak şekilde yapılandırıldı.
+
+### 2. Kategori Failsafe Bypassı
+*   Girilen ilk mesajda kategori kelimesi geçtiğinde Gemini devreye girmeden önce otomatik kategori tespiti yapan "Hybrid Deterministic Category Failsafe" mekanizması, eğer mesaj genel bilgi/sorgulama içeriyorsa bypass edilecek şekilde güncellendi.
+*   Bu sayede kullanıcının genel bilgi ve usta sorguları doğrudan Gemini modeline aktarılarak yanıtlanması sağlandı.
+
+### 3. Yapay Zeka Öğretisi & SSS Bilgi Bankası
+*   Gemini modelinin `systemInstruction` talimat metni güncellendi:
+    *   Platformun ücretsiz olduğu, komisyon alınmadığı, ustaların kimlik ve oda kaydı kontrollerinden geçmiş onaylı kişiler olduğu detaylarıyla AI'a öğretildi.
+    *   Genel soruları yanıtladıktan sonra konuşmanın sonuna nazikçe hizmet talebi açma teklifi eklenmesi kurala bağlandı: *"Size bu konuda yardımcı olmak için ücretsiz bir hizmet talebi oluşturup en uygun ustalardan canlı teklifler toplamak ister misiniz?"*
+
+### 4. Dinamik Veritabanı Usta Sorgulaması (`getPlatformStats`)
+*   AI'ın şehir ve kategori bazlı usta sayısını sorgulaması için `getPlatformStats` fonksiyonu tool/araç olarak Gemini API şemasına eklendi.
+*   `chat.service.ts` içinde tool call yakalanarak, Prisma veritabanındaki aktif/onaylı hizmet veren (`ServiceProvider`) sayısı dinamik olarak sorgulandı (`prisma.serviceProvider.count`) ve usta sayısı kullanıcıya canlı olarak bildirildi.
+
+### 5. Tip Kontrolü ve Doğrulama
+*   Backend projesinde tsc check komutu sıfır hatayla çalışmıştır.
+*   `test-regex.js` çevrimdışı test betiği yazılarak regex eşleşmeleri test edildi ve doğrulandı.
+
 
 
