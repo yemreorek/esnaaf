@@ -1221,15 +1221,15 @@ export default function ProviderDashboard() {
         body: JSON.stringify({ esnaafId: seekerEsnaafId })
       });
       if (res.ok) {
-        alert('Sadık müşteri daveti başarıyla gönderildi! Müşteri onayladığında listenizde görünecektir.');
+        showAlert('Başarılı', 'Sadık müşteri daveti başarıyla gönderildi! Müşteri onayladığında listenizde görünecektir.', 'success');
         setSearchSeekerResult(null);
         setSearchSeekerEsnaafId('');
       } else {
         const err = await res.json();
-        alert(err.error?.message || 'Davet gönderilemedi.');
+        showAlert('Hata', err.error?.message || 'Davet gönderilemedi.', 'error');
       }
     } catch (err) {
-      alert('Davet gönderilirken bir hata oluştu.');
+      showAlert('Hata', 'Davet gönderilirken bir hata oluştu.', 'error');
     }
   };
 
@@ -1253,7 +1253,7 @@ export default function ProviderDashboard() {
         })
       });
       if (res.ok) {
-        alert('Doğrudan iş teklif kartı başarıyla oluşturuldu ve müşteriye gönderildi!');
+        showAlert('Başarılı', 'Doğrudan iş teklif kartı başarıyla oluşturuldu ve müşteriye gönderildi!', 'success');
         setDirectRequestCustomer(null);
         setDirectJobPrice('');
         setDirectJobDate('');
@@ -1261,10 +1261,10 @@ export default function ProviderDashboard() {
         if (token) fetchLoyalCustomers(token);
       } else {
         const err = await res.json();
-        alert(err.error?.message || 'Teklif oluşturulamadı.');
+        showAlert('Hata', err.error?.message || 'Teklif oluşturulamadı.', 'error');
       }
     } catch (err) {
-      alert('Teklif oluşturulurken bir hata oluştu.');
+      showAlert('Hata', 'Teklif oluşturulurken bir hata oluştu.', 'error');
     } finally {
       setIsSubmittingDirectJob(false);
     }
@@ -1774,43 +1774,46 @@ export default function ProviderDashboard() {
     }
   };
 
-  const handleStartJob = async (wj: any) => {
+  const handleStartJob = (wj: any) => {
     if (!token) return;
-    const confirmed = window.confirm("İşi başlatmak istediğinize emin misiniz? Müşteriye bilgi verilecektir.");
-    if (!confirmed) return;
+    showConfirm(
+      "İşi Başlat",
+      "İşi başlatmak istediğinize emin misiniz? Müşteriye bilgi verilecektir.",
+      async () => {
+        setSubmittingStartJob(prev => ({ ...prev, [wj.id]: true }));
+        try {
+          const res = await fetch(`/api/hizmetveren/kazanilan-isler/${wj.id}/basla`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
 
-    setSubmittingStartJob(prev => ({ ...prev, [wj.id]: true }));
-    try {
-      const res = await fetch(`/api/hizmetveren/kazanilan-isler/${wj.id}/basla`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        showAlert("Başarılı", "İş başarıyla başlatıldı!", "success");
-        fetchTabDependencies(activeTab, token);
-      } else {
-        const data = await res.json();
-        showAlert("Hata", data.message || "İş başlatılamadı.", "error");
+          if (res.ok) {
+            showAlert("Başarılı", "İş başarıyla başlatıldı!", "success");
+            fetchTabDependencies(activeTab, token);
+          } else {
+            const data = await res.json();
+            showAlert("Hata", data.message || "İş başlatılamadı.", "error");
+          }
+        } catch (err: any) {
+          showAlert("Hata", err.message || "Bir hata oluştu.", "error");
+        } finally {
+          setSubmittingStartJob(prev => ({ ...prev, [wj.id]: false }));
+        }
       }
-    } catch (err: any) {
-      showAlert("Hata", err.message || "Bir hata oluştu.", "error");
-    } finally {
-      setSubmittingStartJob(prev => ({ ...prev, [wj.id]: false }));
-    }
+    );
   };
 
   const handleCancelJob = async () => {
     if (!token) return;
     if (!cancelModal.acceptedOfferId || !cancelModal.reasonCode) {
-      alert("Lütfen iptal gerekçesini seçin.");
+      showAlert("Uyarı", "Lütfen iptal gerekçesini seçin.", "error");
       return;
     }
     if (cancelModal.reasonCode === 'diger' && !cancelModal.reasonText.trim()) {
-      alert("Lütfen iptal nedenini açıklayınız.");
+      showAlert("Uyarı", "Lütfen iptal nedenini açıklayınız.", "error");
       return;
     }
 

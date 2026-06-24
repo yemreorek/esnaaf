@@ -2,6 +2,11 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 feat | Özel Onay (Confirm) ve Uyarı (Alert) Tasarımlarının Entegrasyonu
+
+- **İşe Başla Butonu Onay Ekranı Güncellendi:** "Kazanılan İşler" sayfasındaki işe başlama butonuna tıklandığında çıkan eski tarayıcı onay kutusu (`window.confirm`) kaldırılarak, platform tasarım diline (glassmorphic arka plan, yumuşak kenarlar, yeşil tonlu butonlar ve pürüzsüz animasyonlar) uygun özel `showConfirm` modalı ile değiştirildi.
+- **Yerel Uyarılar Kaldırıldı:** Sadık müşteri daveti, doğrudan iş teklifi gönderme ve iş iptal ekranlarındaki tüm `alert(...)` diyalogları, platform genelinde tutarlı bir deneyim için `showAlert` modal yapısı ile uyumlu hale getirildi.
+
 ## 2026-06-24 feat | "Açık Kapı" Terminolojisinin "Sadık Müşteri" Olarak Güncellenmesi
 
 - **Arayüz Terminolojisi Güncellendi:** Hizmet Veren panelinde yer alan "Açık Kapı Avantajı Raporu" ve tamamlanan iş kartlarındaki "Açık Kapı Hediyesi (%0 Komisyon)" ifadeleri, kullanıcılar tarafından daha kolay anlaşılması amacıyla "Sadık Müşteri Avantajı Raporu" ve "Sadık Müşteri Hediyesi (%0 Komisyon)" olarak güncellendi.
