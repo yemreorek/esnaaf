@@ -2,6 +2,12 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 perf | Ana Sayfa Görsel Optimizasyonu ve WebP Dönüşümü
+
+- **Görsel Boyutlarının Azaltılması:** Ana sayfada kullanılan yapay zeka üretimi `esnaaf_cleaners.png` (646KB) ve `esnaaf_van_driver.png` (691KB) görselleri WebP formatına dönüştürüldü.
+- **Dosya Boyutu Küçülmesi:** WebP dönüşümü sayesinde dosya boyutları sırasıyla `80.7KB` (%87.5 küçülme) ve `100.9KB` (%85.4 küçülme) seviyelerine çekilerek toplam **1.16 MB** tasarruf sağlandı ve ilk sayfa yükleme performansı artırıldı.
+- **Next.js Image Entegrasyonu:** Standart `<img>` etiketleri Next.js'in `<Image>` bileşeni ile değiştirildi. `fill` ve `sizes` özellikleri eklenerek görselin ekran boyutuna göre optimize edilmiş olarak indirilmesi, lazy loading ve preloading (`priority`) yetenekleriyle LCP (Largest Contentful Paint) değerlerinin iyileşmesi sağlandı.
+
 ## 2026-06-24 feat | Adım 26: Sadık Müşteri & Doğrudan İş Kartı Sistemi
 
 - **Esnaaf ID & QR Kod Eşleşmesi:**

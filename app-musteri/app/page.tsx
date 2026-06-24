@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ChatScreen from "../components/ChatScreen";
 import SeekerDashboard from "../components/SeekerDashboard";
 import { startNewSession, isLoggedIn, getAuthUser, logout } from "../lib/session";
@@ -802,10 +803,13 @@ export default function Home() {
       <section className="py-24 bg-white border-t border-slate-100 px-4 md:px-6">
         <div className="max-w-7xl mx-auto bg-slate-50 border border-slate-150/50 rounded-[2rem] overflow-hidden grid md:grid-cols-2 items-center">
           <div className="h-96 md:h-[450px] relative">
-            <img
+            <Image
               alt="Esnaaf Provider"
-              className="w-full h-full object-cover"
-              src="/esnaaf_van_driver.png"
+              className="object-cover"
+              src="/esnaaf_van_driver.webp"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
             />
           </div>
           <div className="p-8 md:p-16 space-y-6">
@@ -875,10 +879,12 @@ export default function Home() {
             </button>
           </div>
           <div className="md:col-span-5 h-80 md:h-[400px] relative">
-            <img
+            <Image
               alt="Esnaaf Cleaners"
-              className="w-full h-full object-cover"
-              src="/esnaaf_cleaners.png"
+              className="object-cover"
+              src="/esnaaf_cleaners.webp"
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
             />
           </div>
         </div>
