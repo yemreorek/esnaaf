@@ -2,6 +2,11 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 feat | Canlı iyzico Ödeme Entegrasyonunun Tamamlanması
+
+- **Çevre Değişkenleri Güncellemesi:** Google Cloud CLI aracılığıyla canlı `esnaaf-backend` Cloud Run servisine `IYZICO_API_KEY`, `IYZICO_SECRET_KEY` ve `IYZICO_BASE_URL=https://api.iyzipay.com` değerleri başarıyla tanımlandı ve yeni sürüm sorunsuz yayına alındı.
+- **Sağlık Testleri:** API sunucusu üzerinde sağlık durum sorgulamaları gerçekleştirilerek veritabanı, Redis ve iyzico bağlantılarının tam olarak `UP` durumda olduğu teyit edildi.
+
 ## 2026-06-24 perf | Ana Sayfa Görsel Optimizasyonu ve WebP Dönüşümü
 
 - **Görsel Boyutlarının Azaltılması:** Ana sayfada kullanılan yapay zeka üretimi `esnaaf_cleaners.png` (646KB) ve `esnaaf_van_driver.png` (691KB) görselleri WebP formatına dönüştürüldü.
