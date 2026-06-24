@@ -106,7 +106,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       description: offer.description,
       provider: {
         id: offer.providerId,
-        name: offer.providerName || 'Usta',
+        name: offer.providerName || 'Hizmet Veren',
         rating: offer.providerRating || 5.0,
       },
     });

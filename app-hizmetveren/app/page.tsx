@@ -291,7 +291,7 @@ const OpportunityCard = ({
           </div>
           
           <div className="text-right flex flex-col text-[10px] text-slate-400 font-semibold gap-0.5">
-            <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} usta inceliyor</span>
+            <span className="flex items-center gap-1 justify-end">👁️ {job.viewerCount || 3} hizmet veren inceliyor</span>
             <div className="flex items-center gap-1 justify-end">
               <span>{formatRelativeTime(job.created_at || new Date().toISOString())}</span>
             </div>
@@ -341,7 +341,7 @@ const OpportunityCard = ({
             onClick={() => {
               if (!token) {
                 if (showAlert) {
-                  showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir usta seçerek giriş yapın!", "info");
+                  showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir Hizmet Veren seçerek giriş yapın!", "info");
                 } else {
                   alert("Lütfen önce giriş yapın!");
                 }
@@ -2221,7 +2221,7 @@ export default function ProviderDashboard() {
               ))}
             </div>
             <p className="text-[9px] font-bold text-slate-400 text-center mt-3 font-mono">
-              * Bu test ustaları Adana bölgesi için onaylanmış aktiftir.
+              * Bu test hizmet verenleri Adana bölgesi için onaylanmış aktiftir.
             </p>
           </div>
 
@@ -2269,10 +2269,10 @@ export default function ProviderDashboard() {
           </div>
           <div className="overflow-hidden text-left">
             <p className="font-extrabold text-slate-800 text-xs truncate leading-none">
-              {profile ? profile.name : 'Usta'}
+              {profile ? profile.name : 'Hizmet Veren'}
             </p>
             <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase block tracking-wider font-mono">
-              {profile && !profile.isApproved ? 'ONAY BEKLEYEN USTA' : 'DOĞRULANMIŞ UZMAN'}
+              {profile && !profile.isApproved ? 'ONAY BEKLEYEN HİZMET VEREN' : 'DOĞRULANMIŞ UZMAN'}
             </span>
           </div>
         </div>
@@ -2637,7 +2637,7 @@ export default function ProviderDashboard() {
               <span className="text-xs font-black text-slate-850 leading-none">{quota ? quota.providerName : 'Mert Yılmaz'}</span>
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                alt="Usta Profil"
+                alt="Hizmet Veren Profil"
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100"
               />
             </div>
@@ -2708,7 +2708,7 @@ export default function ProviderDashboard() {
                         {esnaafId || 'ESN-74291'}
                       </div>
                       <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
-                        Müşteriniz bu ID'yi aratarak sizi sadık usta listesine ekleyebilir.
+                        Müşteriniz bu ID'yi aratarak sizi sadık hizmet veren listesine ekleyebilir.
                       </p>
                     </div>
                     {/* Visual QR Code Mockup */}

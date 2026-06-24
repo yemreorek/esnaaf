@@ -90,7 +90,7 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
   },
   'HA-IS-BEYAN': {
     title: 'İş Tamamlama Beyanı',
-    body: '{hv_name} firması işi tamamladığını beyan etti. Lütfen onaylayın ve usta performansını değerlendirin.',
+    body: '{hv_name} firması işi tamamladığını beyan etti. Lütfen onaylayın ve hizmet veren performansını değerlendirin.',
     channels: [NotifChannel.in_app, NotifChannel.push, NotifChannel.sms],
   },
 

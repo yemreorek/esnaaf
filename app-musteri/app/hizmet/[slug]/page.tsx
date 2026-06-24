@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps) {
     if (!res.ok) {
       return {
         title: 'Hizmet Detayı | Esnaaf',
-        description: 'Güvenilir usta ve esnaf bulma platformu.',
+        description: 'Güvenilir Hizmet Veren ve esnaf bulma platformu.',
       };
     }
     const data = await res.json();
@@ -192,10 +192,10 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                   Profesyonel {categoryName}
                 </span>
                 <h1 className="font-bold text-4xl md:text-5xl leading-tight text-on-surface tracking-tight">
-                  {locationHeader} {categoryName} Ustaları
+                  {locationHeader} {categoryName} Hizmet Verenleri
                 </h1>
                 <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
-                  {locationHeader} genelinde <strong>{providerCount} onaylı {categoryName.toLowerCase()} ustası</strong> arasından teklif al, karşılaştır ve seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
+                  {locationHeader} genelinde <strong>{providerCount} onaylı {categoryName.toLowerCase()} uzmanı</strong> arasından teklif al, karşılaştır ve seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
                 </p>
               </div>
               

@@ -179,7 +179,7 @@ export class HizmetverenService {
 
     return {
       providerId: provider.id,
-      providerName: provider.user.name || 'Usta',
+      providerName: provider.user.name || 'Hizmet Veren',
       packageName,
       used: activeJobsCount,
       limit: capacityLimit,
@@ -306,7 +306,7 @@ export class HizmetverenService {
       price: Number(result.price),
       description: result.message || '',
       providerId: provider.id,
-      providerName: provider.user.name || 'Usta',
+      providerName: provider.user.name || 'Hizmet Veren',
       providerRating: provider.avg_rating ? Number(provider.avg_rating) : 4.0,
     });
 
@@ -404,7 +404,7 @@ export class HizmetverenService {
       return {
         id: provider.id,
         userId: provider.user_id,
-        name: provider.user.name || 'Usta',
+        name: provider.user.name || 'Hizmet Veren',
         phone_masked: provider.user.phone_masked,
         city: provider.city || 'Adana',
         serviceDistricts: provider.service_districts || [],
@@ -742,7 +742,7 @@ export class HizmetverenService {
 
       const eventCode = isUpdate ? 'HA-RAN-GNC' : 'HA-RAN-YN';
       await this.bildirimService.sendNotification(acceptedOffer.seeker_id, eventCode, {
-        hv_name: provider.user.name || 'Usta',
+        hv_name: provider.user.name || 'Hizmet Veren',
         appointment_date: appointmentDateStr,
       });
     } catch (err: any) {
@@ -1373,7 +1373,7 @@ export class HizmetverenService {
         jobId: result.request.id,
         offerId: result.offer.id,
         price: dto.price,
-        providerName: provider.user?.name || 'Usta',
+        providerName: provider.user?.name || 'Hizmet Veren',
         categoryName: category.name,
         details: dto.details,
       });

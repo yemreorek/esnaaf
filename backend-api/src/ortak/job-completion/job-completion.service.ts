@@ -103,7 +103,7 @@ export class JobCompletionService {
     this.chatGateway.emitJobCompletedByProvider(jobId, {
       jobId,
       providerId: provider.id,
-      providerName: provider.user?.name || 'Usta',
+      providerName: provider.user?.name || 'Hizmet Veren',
       price: dto.price,
       note: dto.note || '',
     });

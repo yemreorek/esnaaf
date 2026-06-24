@@ -381,7 +381,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       
       let resultMsg = "";
       if (data.status === "completed") {
-        resultMsg = `🎉 İş başarıyla tamamlandı ve onaylandı! Ödenen Tutar: ${data.seekerDeclared} ₺. \n\nBizi tercih ettiğiniz için teşekkür ederiz! Hizmet kalitemizi artırmak için usta profilini puanlayabilirsiniz.`;
+        resultMsg = `🎉 İş başarıyla tamamlandı ve onaylandı! Ödenen Tutar: ${data.seekerDeclared} ₺. \n\nBizi tercih ettiğiniz için teşekkür ederiz! Hizmet kalitemizi artırmak için hizmet veren profilini puanlayabilirsiniz.`;
       } else {
         resultMsg = `⚠️ Ücret uyuşmazlığı (%${data.amountDiffPct.toFixed(1)} fark) veya itiraz nedeniyle uyuşmazlık incelemesi başlatıldı. Kalite personeli ekibimiz iki tarafla da görüşerek incelemeyi yürütecektir.`;
       }
@@ -722,8 +722,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       if (res.ok) {
         setIsAddedToFavorites(true);
       } else {
-        const err = await safeJsonParse(res, "Usta favorilere eklenemedi.");
-        alert(err.error?.message || "Usta favorilere eklenemedi.");
+        const err = await safeJsonParse(res, "Hizmet veren favorilere eklenemedi.");
+        alert(err.error?.message || "Hizmet veren favorilere eklenemedi.");
       }
     } catch (err: any) {
       console.error("Favoriye ekleme hatası:", err);
@@ -1103,7 +1103,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             <div className="flex flex-col gap-1">
               <span className="font-extrabold text-sm text-slate-900">İş Başarıyla Tamamlandı!</span>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
-                Ücret teyidi başarıyla sağlandı ve iş başarıyla kapatıldı. Ustanızı değerlendirebilirsiniz!
+                Ücret teyidi başarıyla sağlandı ve iş başarıyla kapatıldı. Hizmet vereninizi değerlendirebilirsiniz!
               </p>
             </div>
  
@@ -1128,7 +1128,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                       <label className="text-xs font-bold text-slate-500">Görüşleriniz:</label>
                       <textarea
                         rows={3}
-                        placeholder="Ustanızın hizmet kalitesi hakkında yorum yazın..."
+                        placeholder="Hizmet vereninizin hizmet kalitesi hakkında yorum yazın..."
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
                         disabled={isUploadingPhoto}
@@ -1197,11 +1197,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     onClick={handleAddToFavorites}
                     className="flex items-center gap-2 border border-[#c8f252]/40 bg-[#c8f252]/10 hover:bg-[#c8f252]/20 text-slate-800 text-xs font-black px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm mt-1"
                   >
-                    ❤️ Ustayı Favorilerime Ekle
+                    ❤️ Hizmet Vereni Favorilerime Ekle
                   </button>
                 ) : (
                   <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1 font-semibold">
-                    ❤️ Usta Favorilerinize Eklendi!
+                    ❤️ Hizmet Veren Favorilerinize Eklendi!
                   </span>
                 )}
               </div>
@@ -1218,12 +1218,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             <div className="flex flex-col gap-1">
               <span className="font-extrabold text-sm text-slate-900">Uyuşmazlık Kaydı Oluşturuldu</span>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
-                Usta ile beyan ettiğiniz ücretler uyuşmamaktadır. Kalite personeli ekibimiz iki tarafla da görüşerek çözüm sağlayacaktır.
+                Hizmet veren ile beyan ettiğiniz ücretler uyuşmamaktadır. Kalite personeli ekibimiz iki tarafla da görüşerek çözüm sağlayacaktır.
               </p>
             </div>
             {finalDetails && (
               <div className="bg-red-50/50 p-3.5 rounded-xl border border-red-100 text-[11px] text-red-700 font-bold w-full flex flex-col gap-1.5 text-left">
-                <div>Usta Beyan Tutarı: {finalDetails.providerDeclared || providerDeclaredAmount} ₺</div>
+                <div>Hizmet Veren Beyan Tutarı: {finalDetails.providerDeclared || providerDeclaredAmount} ₺</div>
                 <div>Sizin Beyan Tutarınız: {finalDetails.seekerDeclared || seekerDisputeAmount} ₺</div>
                 <div>Sapma Oranı: %{finalDetails.amountDiffPct ? finalDetails.amountDiffPct.toFixed(1) : "0.0"}</div>
               </div>

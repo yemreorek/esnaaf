@@ -1,0 +1,10 @@
+- [x] Backend: `hizmetveren.service.ts` içine `getRequestExpiryInfo` yardımcı fonksiyonunu eklemek.
+- [x] Backend: `hizmetveren.service.ts` içindeki tüm `isExpired` kontrollerini (satır 79, 237, 1114) `getRequestExpiryInfo` ile güncellemek.
+- [x] Backend: `hizmetveren.service.ts` satır 238'deki `BadRequestException` hata mesajını dinamik etiketle (`label`) güncellemek.
+- [x] Frontend Seeker: `SeekerDashboard.tsx` içine `getRequestExpiryInfo` yardımcı fonksiyonunu eklemek.
+- [x] Frontend Seeker: `SeekerDashboard.tsx` içindeki `CountdownTimer` bileşeninin saatleri de formatlayacak şekilde güncellenmesi (`HH:MM:SS` formatı).
+- [x] Frontend Seeker: `SeekerDashboard.tsx` içindeki tüm 30 dakika kontrollerini ve süre hesaplamalarını (satır 168, 1405, 2144, 2164) dinamik hale getirmek.
+- [x] Frontend Seeker: `SeekerDashboard.tsx` satır 2173'teki açıklama metnini dinamik hale getirmek ("15 saat" veya "30 dakika").
+- [x] Frontend Provider: `app-hizmetveren/app/page.tsx` içine `getRequestExpiryInfo` yardımcı fonksiyonunu eklemek.
+- [x] Frontend Provider: `app-hizmetveren/app/page.tsx` içindeki `CountdownTimer` bileşeninin saatleri formatlayacak şekilde güncellenmesi.
+- [x] Frontend Provider: `app-hizmetveren/app/page.tsx` içindeki `OpportunityCard` `isExpired` ve `isClosed` süre hesaplamalarını dinamik hale getirmek.

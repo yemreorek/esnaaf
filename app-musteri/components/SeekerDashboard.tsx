@@ -460,13 +460,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     try {
       const res = await customFetch(`/api/musteri/teklifler/hizmetveren/${providerId}/profil`);
       if (!res.ok) {
-        throw new Error("Usta profili yüklenemedi.");
+        throw new Error("Hizmet veren profili yüklenemedi.");
       }
       const data = await res.json();
       setSelectedProviderProfile(data);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Usta profili yüklenirken bir hata oluştu.");
+      alert(err.message || "Hizmet veren profili yüklenirken bir hata oluştu.");
     } finally {
       setLoadingProviderProfile(false);
     }
@@ -609,7 +609,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         const data = await res.json();
         setSearchResult(data);
       } else {
-        setSearchError("Eşleşen aktif usta bulunamadı.");
+        setSearchError("Eşleşen aktif hizmet veren bulunamadı.");
       }
     } catch (err) {
       setSearchError("Arama sırasında hata oluştu.");
@@ -625,13 +625,13 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         body: JSON.stringify({ esnaaf_id: providerEsnaafId }),
       });
       if (res.ok) {
-        alert("Usta favori listenize eklendi!");
+        alert("Hizmet veren favori listenize eklendi!");
         setSearchEsnaafId("");
         setSearchResult(null);
         fetchFavorites();
       } else {
         const err = await res.json();
-        alert(err.message || "Usta eklenemedi.");
+        alert(err.message || "Hizmet veren eklenemedi.");
       }
     } catch (err) {
       alert("Bir hata oluştu.");
@@ -664,11 +664,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
   };
 
   const handleRemoveFavorite = async (providerId: string) => {
-    if (!confirm("Bu ustayı favorilerinizden çıkarmak istediğinize emin misiniz?")) return;
+    if (!confirm("Bu hizmet verenini favorilerinizden çıkarmak istediğinize emin misiniz?")) return;
     try {
       const res = await customFetch(`/api/ortak/favoriler/sil/${providerId}`, { method: "DELETE" });
       if (res.ok) {
-        alert("Usta favorilerinizden çıkarıldı.");
+        alert("Hizmet veren favorilerinizden çıkarıldı.");
         fetchFavorites();
       }
     } catch (err) {
@@ -693,7 +693,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         }),
       });
       if (res.ok) {
-        alert("Doğrudan iş talebiniz ustaya iletildi!");
+        alert("Doğrudan iş talebiniz hizmet verenine iletildi!");
         setDirectRequestProvider(null);
         setDirectDetails("");
         setDirectDistrict("");
@@ -837,7 +837,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     // Listen to direct job offer
     socket.on("new_direct_job_offer", (data: any) => {
       console.log("[Dashboard WS] New direct job offer:", data);
-      alert(`Favori ustanız ${data.providerName} size özel bir iş kartı oluşturdu! Detayları Tekliflerim sayfasında inceleyebilirsiniz.`);
+      alert(`Favori hizmet vereniniz ${data.providerName} size özel bir iş kartı oluşturdu! Detayları Tekliflerim sayfasında inceleyebilirsiniz.`);
       fetchRequests();
     });
 
@@ -1261,7 +1261,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         setSelectedRating(0);
         setSelectedRequest(null);
         setCommentText("");
-        alert("Değerlendirmeniz başarıyla gönderildi! Yönetici onayından sonra ustanın profilinde yayınlanacaktır.");
+        alert("Değerlendirmeniz başarıyla gönderildi! Yönetici onayından sonra hizmet verenin profilinde yayınlanacaktır.");
         fetchRequests();
       } else {
         const errorData = await reviewRes.json();
@@ -1469,7 +1469,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
             }`}
           >
             <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Favori Ustalarım</span>
+            <span>Favori Hizmet Verenlerim</span>
           </button>
 
           <button
@@ -1701,7 +1701,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
                                     {req.is_direct && (
                                       <span className="bg-violet-50 text-violet-750 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-violet-100">
-                                        {req.created_by_provider ? "Ustanızdan Doğrudan İş Kartı" : "Ustaya Özel Talep"}
+                                        {req.created_by_provider ? "Hizmet Verenden Doğrudan İş Kartı" : "Hizmet Verene Özel Talep"}
                                       </span>
                                     )}
 
@@ -2239,14 +2239,14 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                             </div>
                             <div className="flex flex-col">
                               <span className="font-bold text-sm text-slate-900">İş Tamamlama Teyidi</span>
-                              <span className="text-xs text-slate-500 font-bold">Usta İş Sonu Ücret Beyanı</span>
+                              <span className="text-xs text-slate-500 font-bold">Hizmet Veren İş Sonu Ücret Beyanı</span>
                             </div>
                           </div>
 
                           {!showDiscrepancyForm ? (
                             <>
                               <p className="text-sm text-slate-600 leading-relaxed font-semibold">
-                                <strong>{providerName || "Usta"}</strong> işi bitirdiğini ve sizden <strong>{providerDeclaredAmount} ₺</strong> aldığını beyan etti.
+                                <strong>{providerName || "Hizmet Veren"}</strong> işi bitirdiğini ve sizden <strong>{providerDeclaredAmount} ₺</strong> aldığını beyan etti.
                                 <br /><br />
                                 Ödediğiniz bu tutar doğru mu?
                               </p>
@@ -2332,7 +2332,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                             <div className="flex flex-col gap-1">
                               <span className="font-extrabold text-sm text-slate-900">İş Başarıyla Tamamlandı!</span>
                               <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
-                                Ücret teyidi başarıyla sağlandı ve iş başarıyla kapatıldı. Ustanızı değerlendirebilirsiniz!
+                                Ücret teyidi başarıyla sağlandı ve iş başarıyla kapatıldı. Hizmet vereninizi değerlendirebilirsiniz!
                               </p>
                             </div>
                   
@@ -2357,7 +2357,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                       <label className="text-xs font-bold text-slate-500">Görüşleriniz:</label>
                                       <textarea
                                         rows={3}
-                                        placeholder="Ustanızın hizmet kalitesi hakkında yorum yazın..."
+                                        placeholder="Hizmet vereninizin hizmet kalitesi hakkında yorum yazın..."
                                         value={commentText}
                                         onChange={(e) => setCommentText(e.target.value)}
                                         disabled={isUploadingPhoto}
@@ -2426,11 +2426,11 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                                     onClick={handleAddToFavorites}
                                     className="flex items-center gap-2 border border-[#c8f252]/40 bg-[#c8f252]/10 hover:bg-[#c8f252]/20 text-slate-800 text-xs font-black px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm mt-1"
                                   >
-                                    ❤️ Ustayı Favorilerime Ekle
+                                    ❤️ Hizmet Vereni Favorilerime Ekle
                                   </button>
                                 ) : (
                                   <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1 font-semibold">
-                                    ❤️ Usta Favorilerinize Eklendi!
+                                    ❤️ Hizmet Veren Favorilerinize Eklendi!
                                   </span>
                                 )}
                               </div>
@@ -2447,7 +2447,7 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                             <div className="flex flex-col gap-1">
                               <span className="font-extrabold text-sm text-slate-900">Uyuşmazlık Kaydı Oluşturuldu</span>
                               <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[280px]">
-                                Usta ile beyan ettiğiniz ücretler uyuşmamaktadır. Kalite personeli ekibimiz iki tarafla da görüşerek çözüm sağlayacaktır.
+                                Hizmet veren ile beyan ettiğiniz ücretler uyuşmamaktadır. Kalite personeli ekibimiz iki tarafla da görüşerek çözüm sağlayacaktır.
                               </p>
                             </div>
                           </div>

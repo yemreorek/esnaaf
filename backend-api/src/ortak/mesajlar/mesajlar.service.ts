@@ -107,7 +107,7 @@ export class MesajlarService {
       // Trigger HA-05b notification for the customer (Seeker)
       try {
         await this.bildirimService.sendNotification(offer.job.seeker_id, 'HA-05b', {
-          hv_name: offer.provider.user.name || 'Usta',
+          hv_name: offer.provider.user.name || 'Hizmet Veren',
         });
       } catch (err: any) {
         this.logger.error(`Failed to send message notification to customer: ${err.message}`);

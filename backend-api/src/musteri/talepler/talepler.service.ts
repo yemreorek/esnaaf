@@ -667,7 +667,7 @@ export class TaleplerService {
 
     return {
       id: provider.id,
-      name: provider.user.name || 'Usta',
+      name: provider.user.name || 'Hizmet Veren',
       phone_masked: provider.user.phone_masked,
       city: provider.city || 'Adana',
       service_districts: provider.service_districts || [],

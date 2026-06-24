@@ -138,7 +138,7 @@ const defaultStaffList = [
 const defaultCampaigns = [
   {
     id: "camp_1",
-    name: "Yaz Sezonu Usta Tanıtım Kuponu",
+    name: "Yaz Sezonu Hizmet Veren Tanıtım Kuponu",
     code: "YAZ2026",
     type: "percent",
     value: 20,
@@ -168,7 +168,7 @@ const defaultAuditLogs = [
     created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
     user: { name: "Admin Mert", email: "mert@esnaaf.com" },
     action: "APPROVE_PROVIDER",
-    target: "Usta: Davut Temiz (ID: prov_44)",
+    target: "Hizmet Veren: Davut Temiz (ID: prov_44)",
     ip_address: "192.168.1.45"
   },
   {
@@ -775,7 +775,7 @@ export default function AdminPortal() {
       };
 
       const formattedSurveyNotes = `[KALİTE ANKETİ]
-- Usta Deneyim Puanı: ${surveyRating}/5 Yıldız
+- Hizmet Veren Deneyim Puanı: ${surveyRating}/5 Yıldız
 - Zamanlama Uyum: ${timingLabels[surveyTiming] || surveyTiming}
 - Fiyatlandırma Uyum: ${pricingLabels[surveyPricing] || surveyPricing}
 - Görüşme Süresi: ${callDuration} saniye
@@ -1024,7 +1024,7 @@ ${callTaskNotes}`;
       const data = await res.json();
       if (res.ok) {
         addLog(`Yorum onaylandı: ID ${reviewId}`);
-        alert('Yorum onaylandı ve usta profili güncellendi!');
+        alert('Yorum onaylandı ve hizmet veren profili güncellendi!');
         await loadPendingReviews(token);
         await loadStats(token);
       } else {
@@ -1682,7 +1682,7 @@ ${callTaskNotes}`;
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-center shadow-inner">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Onay Bekleyen Usta</p>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Onay Bekleyen Hizmet Veren</p>
                           <h4 className="text-2xl font-black text-slate-900 mt-2">{stats.pendingProviders}</h4>
                         </div>
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-center shadow-inner">
@@ -2149,7 +2149,7 @@ ${callTaskNotes}`;
                     <CheckCircle className="w-14 h-14 text-green-500 mx-auto mb-4" />
                     <h3 className="text-lg font-bold text-slate-855 mb-2">Tüm Başvurular İşlendi</h3>
                     <p className="text-slate-500 text-sm max-w-md mx-auto">
-                      Onay veya belge denetimi bekleyen yeni bir usta başvurusu bulunmamaktadır.
+                      Onay veya belge denetimi bekleyen yeni bir hizmet veren başvurusu bulunmamaktadır.
                     </p>
                   </div>
                 ) : (
@@ -2162,7 +2162,7 @@ ${callTaskNotes}`;
                         <div>
                           <div className="flex justify-between items-start mb-4">
                             <div>
-                              <h3 className="font-extrabold text-slate-800 text-lg">{prov.user.name || 'Usta İsmi Belirtilmemiş'}</h3>
+                              <h3 className="font-extrabold text-slate-800 text-lg">{prov.user.name || 'Hizmet Veren İsmi Belirtilmemiş'}</h3>
                               <p className="text-xs text-slate-400 mt-0.5">Kayıt: {new Date(prov.user.created_at).toLocaleDateString('tr-TR')}</p>
                             </div>
                             <span className="bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md">
@@ -2316,7 +2316,7 @@ ${callTaskNotes}`;
               <div className="space-y-6 animate-scale-up">
                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                   <Percent className="w-6 h-6 text-slate-800" />
-                  <span>NPS Memnuniyet Analitiği & Usta Denetim Paneli</span>
+                  <span>NPS Memnuniyet Analitiği & Hizmet Veren Denetim Paneli</span>
                 </h2>
 
                 {loadingNps ? (
@@ -2469,14 +2469,14 @@ ${callTaskNotes}`;
                       <div className="flex items-center gap-2 text-red-650 border-b border-slate-100 pb-3">
                         <AlertTriangle className="w-5 h-5" />
                         <h3 className="text-xs font-black uppercase tracking-wider">
-                          Kritik Detraktör Alarm Listesi (Son 30 Günde 3+ Detraktör Alan Ustalar)
+                          Kritik Detraktör Alarm Listesi (Son 30 Günde 3+ Detraktör Alan Hizmet Verenler)
                         </h3>
                       </div>
 
                       {npsAlarms.length === 0 ? (
                         <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-200/60">
                           <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                          <p className="text-xs text-slate-500 font-bold">Kritik seviyede kötüleyici yorum biriktirmiş usta bulunmamaktadır.</p>
+                          <p className="text-xs text-slate-500 font-bold">Kritik seviyede kötüleyici yorum biriktirmiş hizmet veren bulunmamaktadır.</p>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3087,7 +3087,7 @@ ${callTaskNotes}`;
                   <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
                     <span className="text-xl">⚙️</span>
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Operasyon & Onay</h4>
-                    <p className="text-xs font-bold text-slate-800 leading-snug">Usta Belge Onay ve Denetim</p>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Hizmet Veren Belge Onay ve Denetim</p>
                     <div className="text-[10px] text-slate-400 font-bold">
                       Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'ops_staff' && s.is_active).length} Personel</strong>
                     </div>
@@ -3107,7 +3107,7 @@ ${callTaskNotes}`;
                   <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2 text-left">
                     <span className="text-xl">🚀</span>
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Satış & Destek</h4>
-                    <p className="text-xs font-bold text-slate-800 leading-snug">Usta Onboarding ve Kota Alarmları</p>
+                    <p className="text-xs font-bold text-slate-800 leading-snug">Hizmet Veren Onboarding ve Kota Alarmları</p>
                     <div className="text-[10px] text-slate-400 font-bold">
                       Aktif: <strong className="text-slate-800">{staffList.filter(s => s.role === 'sales_staff' && s.is_active).length} Personel</strong>
                     </div>
@@ -3534,7 +3534,7 @@ ${callTaskNotes}`;
                 </div>
                 <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
                   <span className="text-slate-500">Rol:</span>
-                  <span className="text-slate-800 font-extrabold uppercase text-xs">{selectedUser.role === 'service_seeker' ? 'Müşteri' : selectedUser.role === 'service_provider' ? 'Usta' : 'Admin'}</span>
+                  <span className="text-slate-800 font-extrabold uppercase text-xs">{selectedUser.role === 'service_seeker' ? 'Müşteri' : selectedUser.role === 'service_provider' ? 'Hizmet Veren' : 'Admin'}</span>
                 </div>
                 <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
                   <span className="text-slate-500">KVKK Onayı:</span>
@@ -3738,7 +3738,7 @@ ${callTaskNotes}`;
               <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-5">
                 <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#c8f252]" />
-                  <span>Usta Belgeleri: {viewDocsTarget.user.name}</span>
+                  <span>Hizmet Veren Belgeleri: {viewDocsTarget.user.name}</span>
                 </h3>
                 <button 
                   onClick={() => setViewDocsTarget(null)}
@@ -4025,7 +4025,7 @@ ${callTaskNotes}`;
                   </div>
 
                   <div className="bg-indigo-50 border border-indigo-100/60 p-3.5 rounded-2xl text-[11px] text-slate-700 animate-scale-up">
-                    <span className="font-extrabold text-indigo-700 block mb-1">Usta Savunması (Açıklama)</span>
+                    <span className="font-extrabold text-indigo-700 block mb-1">Hizmet Veren Savunması (Açıklama)</span>
                     "{selectedDispute.job?.providerDefense || providerDefense}"
                   </div>
 
@@ -4065,7 +4065,7 @@ ${callTaskNotes}`;
                     <div className="flex justify-between items-center mb-1">
                       <label className="block text-[10px] font-bold text-slate-555 uppercase tracking-wider">Hakediş Bölüşüm Oranı</label>
                       <span className="text-[11px] font-black text-indigo-650 font-mono">
-                        %{Math.round((Number(resolvedAmount || 0) / (netTotal || 1)) * 100)} Usta / %{Math.round(((netTotal - Number(resolvedAmount || 0)) / (netTotal || 1)) * 100)} Müşteri
+                        %{Math.round((Number(resolvedAmount || 0) / (netTotal || 1)) * 100)} Hizmet Veren / %{Math.round(((netTotal - Number(resolvedAmount || 0)) / (netTotal || 1)) * 100)} Müşteri
                       </span>
                     </div>
                     <input
@@ -4126,7 +4126,7 @@ ${callTaskNotes}`;
                         Number(resolvedAmount) === netTotal ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-200 text-slate-655 hover:bg-slate-100'
                       }`}
                     >
-                      Ustaya %100
+                      Hizmet Verene %100
                     </button>
                   </div>
 
@@ -4276,7 +4276,7 @@ ${callTaskNotes}`;
                 
                 {/* 1. Yıldız Puanı */}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Usta Hizmet Kalitesi (Puanı)</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hizmet Veren Hizmet Kalitesi (Puanı)</label>
                   <div className="flex items-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -4481,7 +4481,7 @@ ${callTaskNotes}`;
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kampanya Adı</label>
                 <input
                   type="text"
-                  placeholder="Örn: Yaz Sezonu Usta Hoşgeldin Kampanyası"
+                  placeholder="Örn: Yaz Sezonu Hizmet Veren Hoşgeldin Kampanyası"
                   value={campaignName}
                   onChange={(e) => setCampaignName(e.target.value)}
                   required

@@ -522,7 +522,7 @@ export default function Home() {
               En İyi <span className="bg-gradient-to-r from-[#719600] to-[#88b500] bg-clip-text text-transparent">5 Esnaftan</span> Teklif Al
             </h1>
             <p className="font-body text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi esnaf ve ustaları saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
+              İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi esnaf ve hizmet verenleri saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
             </p>
           </div>
 
@@ -705,7 +705,7 @@ export default function Home() {
           <div className="text-center mb-16 space-y-4">
             <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Kolay Süreç</span>
             <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">3 Kolay Adımla Komşu Esnaftan Hizmet Al</h2>
-            <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu usta ve esnaflarla buluşun</p>
+            <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu hizmet veren ve esnaflarla buluşun</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -732,7 +732,7 @@ export default function Home() {
                 <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 2</span>
                 <h3 className="font-black text-slate-900 text-lg tracking-tight">Teklifleri Topla</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
-                  Mahallendeki onaylanmış usta ve esnaflardan gelen teklifleri ve fiyatları gör.
+                  Mahallendeki onaylanmış hizmet veren ve esnaflardan gelen teklifleri ve fiyatları gör.
                 </p>
               </div>
             </div>
@@ -746,7 +746,7 @@ export default function Home() {
                 <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 3</span>
                 <h3 className="font-black text-slate-900 text-lg tracking-tight">Karşılaştır ve Seç</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
-                  Usta profillerini, referansları inceleyin; fiyatları karşılaştırıp en uygununu seçin.
+                  Hizmet veren profillerini, referansları inceleyin; fiyatları karşılaştırıp en uygununu seçin.
                 </p>
               </div>
             </div>
@@ -869,7 +869,7 @@ export default function Home() {
               Komşu Esnaflarla Hayatını Kolaylaştır
             </h2>
             <p className="font-body text-slate-350 text-sm leading-relaxed max-w-xl">
-              Mahallendeki güvenilir usta ve esnafları bulmanın en konforlu yolu. Güvenli ödeme, kaliteli hizmet ve Esnaaf koruma garantisiyle hemen başlayın.
+              Mahallendeki güvenilir hizmet veren ve esnafları bulmanın en konforlu yolu. Güvenli ödeme, kaliteli hizmet ve Esnaaf koruma garantisiyle hemen başlayın.
             </p>
             <button
               onClick={() => handleStartChat("Merhaba, hizmet almak istiyorum.")}

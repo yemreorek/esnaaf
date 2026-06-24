@@ -382,7 +382,7 @@ export class TaleplerProcessor {
         }
       }, isInstant ? 3000 : (delayMs + 3000));
 
-      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Usta'} (Skor: ${score.toFixed(1)} | Sağlık Skoru: %${item.healthScore} | Paket: ${packageLevel.type.toUpperCase()} | Gecikme: ${delayMinutes} dk | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
+      this.logger.log(`[DAĞITILDI] -> ${provider.user?.name || 'Hizmet Veren'} (Skor: ${score.toFixed(1)} | Sağlık Skoru: %${item.healthScore} | Paket: ${packageLevel.type.toUpperCase()} | Gecikme: ${delayMinutes} dk | Konum: ${providerCity} / ${providerDistricts.join(', ')})`);
     }
     this.logger.log(`===========================================================\n`);
 

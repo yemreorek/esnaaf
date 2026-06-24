@@ -726,7 +726,7 @@ export default function HizmetVerenBasvuru() {
                   <FileText className="w-8 h-8 text-slate-800" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Ustalık Tanıtım Yazısı</h2>
+                  <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Hizmet Tanıtım Yazısı</h2>
                   <p className="text-slate-500 text-xs font-semibold leading-relaxed">
                     Müşterilerin sizi tercih etmesi için tecrübenizi, uzmanlıklarınızı anlatan bir yazı yazın.
                   </p>
