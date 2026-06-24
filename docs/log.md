@@ -2,6 +2,11 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 feat | "Açık Kapı" Terminolojisinin "Sadık Müşteri" Olarak Güncellenmesi
+
+- **Arayüz Terminolojisi Güncellendi:** Hizmet Veren panelinde yer alan "Açık Kapı Avantajı Raporu" ve tamamlanan iş kartlarındaki "Açık Kapı Hediyesi (%0 Komisyon)" ifadeleri, kullanıcılar tarafından daha kolay anlaşılması amacıyla "Sadık Müşteri Avantajı Raporu" ve "Sadık Müşteri Hediyesi (%0 Komisyon)" olarak güncellendi.
+- **Backend Kod/Yorum Uyumlaştırılması:** Backend tarafında `talepler.service.ts` ve `job-completion.service.ts` dosyalarındaki ilgili komisyon ve hak tanımlama yorum satırları yeni "Sadık Müşteri" terminolojisi ile uyumlu hale getirildi.
+
 ## 2026-06-24 feat | Canlı iyzico Ödeme Entegrasyonunun Tamamlanması
 
 - **Çevre Değişkenleri Güncellemesi:** Google Cloud CLI aracılığıyla canlı `esnaaf-backend` Cloud Run servisine `IYZICO_API_KEY`, `IYZICO_SECRET_KEY` ve `IYZICO_BASE_URL=https://api.iyzipay.com` değerleri başarıyla tanımlandı ve yeni sürüm sorunsuz yayına alındı.

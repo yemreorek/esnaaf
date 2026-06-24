@@ -425,7 +425,7 @@ export class TaleplerService {
     // 2. Önceden kabul edilmiş aktif teklifleri filtrele
     const activePreviousAcceptedOffers = offer.job.accepted_offers.filter(ao => ao.offer.status === 'accepted');
 
-    // 2.5. Komisyon oranı hesaplama ve "Açık Kapı" hakkı kontrolü
+    // 2.5. Komisyon oranı hesaplama ve "Sadık Müşteri" hakkı kontrolü
     const COMMISSION_RATES: Record<string, number> = {
       basic: 10,
       standard: 7,
@@ -439,7 +439,7 @@ export class TaleplerService {
     if (offer.job.is_direct) {
       commissionRate = 0;
     } else {
-      // Havuz işi: Ustanın "Açık Kapı" hakkı aktif mi?
+      // Havuz işi: Ustanın "Sadık Müşteri" hakkı aktif mi?
       if (offer.provider.open_door_right) {
         commissionRate = 0;
         updateOpenDoorToFalse = true;
@@ -502,7 +502,7 @@ export class TaleplerService {
         },
       });
 
-      // Eğer Açık Kapı hakkı kullanıldıysa, hakkı pasifleştir (FALSE yap)
+      // Eğer Sadık Müşteri hakkı kullanıldıysa, hakkı pasifleştir (FALSE yap)
       if (updateOpenDoorToFalse) {
         await tx.serviceProvider.update({
           where: { id: offer.provider_id },

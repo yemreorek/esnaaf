@@ -3559,7 +3559,7 @@ export default function ProviderDashboard() {
                       🎉
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-emerald-950 text-sm">Açık Kapı Avantajı Raporu</h4>
+                      <h4 className="font-extrabold text-emerald-950 text-sm">Sadık Müşteri Avantajı Raporu</h4>
                       <p className="text-emerald-700 text-xs mt-0.5 font-semibold">
                         Kendi müşterinizi platforma taşıdığınız için kazandığınız <strong>{openDoorJobsCount} adet</strong> genel havuz işini <strong>%0 komisyon</strong> ile tamamladınız!
                       </p>
@@ -3582,7 +3582,7 @@ export default function ProviderDashboard() {
                             </span>
                             {!cj.is_direct && Number(cj.commission_rate) === 0 && (
                               <span className="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider flex items-center gap-1 shadow-sm shadow-emerald-100">
-                                🌟 Açık Kapı Hediyesi (%0 Komisyon)
+                                🌟 Sadık Müşteri Hediyesi (%0 Komisyon)
                               </span>
                             )}
                             {cj.is_direct && (
@@ -4120,7 +4120,7 @@ export default function ProviderDashboard() {
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 leading-relaxed mt-1.5 font-medium">
-                        Komisyonlar tamamlanan işler üzerinden hesaplanır ve her ayın 1'inde kayıtlı kartınızdan otomatik olarak tahsil edilir. Kendi müşterilerinizden (%0) ve açık kapı haklarınızdan (%0) doğan işlerde komisyon alınmaz.
+                        Komisyonlar tamamlanan işler üzerinden hesaplanır ve her ayın 1'inde kayıtlı kartınızdan otomatik olarak tahsil edilir. Kendi müşterilerinizden (%0) ve sadık müşteri haklarınızdan (%0) doğan işlerde komisyon alınmaz.
                       </p>
                     </div>
                   </div>

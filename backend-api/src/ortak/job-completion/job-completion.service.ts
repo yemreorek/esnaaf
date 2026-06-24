@@ -217,7 +217,7 @@ export class JobCompletionService {
         },
       });
 
-      // Eğer tamamlanan iş doğrudan iş ise, ustanın "Açık Kapı" hakkını TRUE yap
+      // Eğer tamamlanan iş doğrudan iş ise, ustanın "Sadık Müşteri" hakkını TRUE yap
       if (requestDetails.is_direct && requestDetails.direct_provider_id) {
         await tx.serviceProvider.update({
           where: { id: requestDetails.direct_provider_id },
