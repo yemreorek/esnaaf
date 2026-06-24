@@ -2,6 +2,33 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 feat | Adım 26: Sadık Müşteri & Doğrudan İş Kartı Sistemi
+
+- **Esnaaf ID & QR Kod Eşleşmesi:**
+  - `User` modeline 5 haneli benzersiz `esnaaf_id` alanı eklendi (Örn: `ESN-K3T9X`).
+  - Alfanümerik kod üretici ve boot sırasında eksik ID'leri dolduran `populateEsnaafIds` metodu entegre edildi.
+  - Canlı veritabanındaki tüm mevcut kullanıcılara benzersiz Esnaaf ID'leri tanımlandı.
+- **Çift Taraflı İzin & Güvenlik:**
+  - `FavoriteProvider` modeline `approved` ve `created_by` alanları eklenerek usta-müşteri eşleşmesinin onay mekanizmasına bağlanması sağlandı.
+  - Müşteri onay modalı, usta arama ve WebSocket bildirim tetikleyicileri (`new_loyalty_request`) entegre edildi.
+- **Doğrudan İş Kartı ve İlanı:**
+  - Usta tarafından sadık müşteriye doğrudan teklifli iş kartı göndermeyi sağlayan `POST /api/hizmetveren/dogrudan-is-karti` endpoint'i yazıldı.
+  - Müşterinin sadece seçtiği favori ustasına özel talep açması sağlandı (havuza düşmeden usta panelinde `🌟 Sadık Müşterinizden Özel Talep` etiketiyle listelenir).
+
+## 2026-06-24 feat | Adım 27: Tekli "Açık Kapı" Komisyon Modeli
+
+- **Komisyonsuz İlk İş Hakkı:**
+  - Usta kendi müşterisiyle iş tamamladığında (`is_direct = true`), veritabanında `open_door_right = true` olarak set edilir.
+  - Usta havuzdan ilk işini kazandığı anda, eğer bu hak aktifse teklifine **%0 komisyon** mühürlenir (`commission_rate = 0`) ve hakkı sıfırlanır.
+- **Arayüz Kart Güncellemesi:**
+  - Usta paneli "Tamamlanan İşler" sekmesi, komisyon detaylarını net gösteren yatay kart tasarımına geçirildi. Kartlarda komisyon oranı ve tutarı dinamik hesaplanmaktadır.
+
+## 2026-06-24 feat | Adım 28: Aylık Toplu Komisyon Tahsilatı
+
+- **Tahsilat Altyapısı:**
+  - `Offer` tablosuna `commission_paid` alanı eklenerek ödenmemiş komisyonlar (`unpaidCommission`) ve gelecek faturalama tarihi (`nextBillingDate`) API üzerinden dinamik olarak hesaplandı.
+  - Usta paneli abonelik sekmesine "Birikmiş Komisyon Bilgisi" kartı eklenerek ödeme döngüleri şeffaflaştırıldı.
+
 ## 2026-06-23 feat | Adım 25: AI Öğretisi & Akıllı Sohbet (Yapay Zeka Öğretisi)
 
 - **Genel Soru Algılama & Failsafe Bypass:**

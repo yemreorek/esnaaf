@@ -34,6 +34,9 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 23** | **Altyapı & Caching** | Veritabanı indeks optimizasyonları, Redis `getOrSet`/`invalidatePattern` cache helper entegrasyonu, Kategori ve Profil caching/invalidation, AWS ECS healthcheck ve deploy pipeline | **✅ Tamamlandı** |
 | **Adım 24** | **Canlı Entegrasyonlar** | Canlı iyzico, Netgsm SMS, Firebase FCM ve Gemini API çevre değişkenleri ve AWS ECS task secrets hazırlıkları | **✅ Tamamlandı** |
 | **Adım 25** | **AI Öğretisi & Akıllı Sohbet** | Gemini system instruction genişletmesi: SSS bilgi bankası (iptal, ödeme, fatura, şikayet, garanti), 20 kategori bazlı uzmanlık rehberliği, few-shot ideal konuşma örnekleri, güvenlik/etik kuralları, cross-sell akıllı öneriler, bilgi sorgusu regex kalıpları genişletmesi | **✅ Tamamlandı** |
+| **Adım 26** | **Sadık Müşteri & Doğrudan İş** | 5 haneli Esnaaf ID ve dinamik QR kod eşleşmesi, çift taraflı onay mekanizması, usta doğrudan iş kartı oluşturma ve müşteriye özel doğrudan iş ilanı akışları | **✅ Tamamlandı** |
+| **Adım 27** | **Açık Kapı Komisyon Modeli** | Kendi müşterisiyle iş tamamlayan ustanın havuzdan kazanacağı ilk işin %0 komisyonlu olması ve tamamlanan iş kartlarında komisyon gösterimi | **✅ Tamamlandı** |
+| **Adım 28** | **Aylık Komisyon Tahsilatı** | Birikmiş komisyon hesaplama, gelecek faturalama tarihi ve usta paneli abonelik sekmesi entegrasyonları | **✅ Tamamlandı** |
 
 ---
 
@@ -768,6 +771,29 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 ### 5. Tip Kontrolü ve Doğrulama
 *   Backend projesinde tsc check komutu sıfır hatayla çalışmıştır.
 *   `test-regex.js` çevrimdışı test betiği yazılarak regex eşleşmeleri test edildi ve doğrulandı.
+
+---
+
+## 🛠️ Adım 26 Geliştirme Detayları (Sadık Müşteri & Doğrudan İş Kartı Sistemi)
+
+- **Esnaaf ID & QR Eşleşmesi:**
+  - Alfanümerik 5 haneli benzersiz ID'ler (`User.esnaaf_id`) tescil edilerek tüm mevcut kullanıcılara veri tutarlılığı için kod atandı.
+- **Çift Taraflı İzin & Güvenlik:**
+  - `FavoriteProvider` modeline `approved` ve `created_by` alanları eklenerek onaylanmış usta-müşteri ilişkisi kuruldu.
+- **Doğrudan Teklif & İş İlanı:**
+  - Usta panelinden doğrudan iş kartı oluşturma modalı ve müşteri panelinde favori ustalara özel talep açma akışı tamamlandı.
+
+## 🛠️ Adım 27 Geliştirme Detayları (Tekli "Açık Kapı" Komisyon Modeli)
+
+- **Komisyonsuz Geçiş:**
+  - Ustanın kendi müşterisiyle iş tamamladığında kazandığı `open_door_right` hakkı, ilk havuz işinde %0 komisyon uygulayarak hakkı sıfırlar.
+- **Yatay Kart Tasarımı:**
+  - "Tamamlanan İşler" sekmesinde komisyon oranları ve tutarları dinamik yansıtılacak şekilde yatay tasarım entegre edildi.
+
+## 🛠️ Adım 28 Geliştirme Detayları (Aylık Toplu Komisyon Tahsilatı)
+
+- **Birikmiş Bakiye Hesaplama:**
+  - Ustanın henüz ödemediği komisyon tutarları (`unpaidCommission`) toplanarak bir sonraki ayın 1'i faturalama tarihiyle birlikte usta paneli abonelik sekmesinde gösterildi.
 
 
 
