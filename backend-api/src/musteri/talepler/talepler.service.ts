@@ -556,6 +556,22 @@ export class TaleplerService {
       acceptedCount: 1,
     });
 
+    try {
+      const responseTimes = await this.prisma.responseTime.findMany({
+        where: { job_id: offer.job_id },
+        select: { provider_id: true },
+      });
+      for (const rt of responseTimes) {
+        if (rt.provider_id !== offer.provider_id) {
+          this.chatGateway.server?.to(`provider_${rt.provider_id}`).emit('job_closed', {
+            jobId: offer.job_id,
+          });
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Failed to broadcast job_closed: ${err.message}`);
+    }
+
     this.logger.log(`[Teklif Kabul Edildi] Müşteri ${offer.job.seeker.name || seekerUserId} tarafından Hizmet Veren ${offer.provider.user.name} teklifi kabul edildi. (Yeniden Kabul: ${isReAccept})`);
 
     // 5. Telefon numaralarını AES-256'dan çözerek mutual reveal olarak teslim et

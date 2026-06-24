@@ -451,6 +451,11 @@ export default function ProviderDashboard() {
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [editName, setEditName] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editDistricts, setEditDistricts] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
   
   const [quota, setQuota] = useState<Quota | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -465,7 +470,7 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal' | 'loyal_customers'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal' | 'loyal_customers' | 'profil-ayarlar'>('dashboard');
   const [lostAndCancelledJobs, setLostAndCancelledJobs] = useState<any[]>([]);
   
   // Loyalty / Direct Job states
@@ -482,6 +487,7 @@ export default function ProviderDashboard() {
   const [directJobDetails, setDirectJobDetails] = useState<string>('');
   const [isSubmittingDirectJob, setIsSubmittingDirectJob] = useState<boolean>(false);
   const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
+  const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
   const [offersList, setOffersList] = useState<any[]>([]);
@@ -1140,6 +1146,10 @@ export default function ProviderDashboard() {
       if (profileRes.ok) {
         setProfile(profileData);
         setEsnaafId(profileData.esnaaf_id || '');
+        setEditName(profileData.name || '');
+        setEditCity(profileData.city || '');
+        setEditDistricts(profileData.serviceDistricts ? profileData.serviceDistricts.join(', ') : '');
+        setEditBio(profileData.bio || '');
         addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
         if (!profileData.isApproved) {
           setActiveTab('belge-dogrulama');
@@ -1170,6 +1180,49 @@ export default function ProviderDashboard() {
       await fetchLoyalCustomers(accessToken);
     } catch (err: any) {
       addLog(`Dashboard yükleme hatası: ${err.message}`);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!token) return;
+    if (!editName.trim()) {
+      showAlert('Hata', 'Ad soyad alanı boş bırakılamaz.', 'error');
+      return;
+    }
+    if (!editCity.trim()) {
+      showAlert('Hata', 'Şehir alanı boş bırakılamaz.', 'error');
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editName,
+          city: editCity,
+          serviceDistricts: editDistricts.split(',').map(s => s.trim()).filter(Boolean),
+          description: editBio
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showAlert('Başarılı', 'Profil bilgileriniz başarıyla güncellendi.', 'success');
+        setProfile(data.provider || data);
+        loadDashboardData(token);
+      } else {
+        showAlert('Hata', data.error?.message || data.message || 'Profil güncellenemedi.', 'error');
+      }
+    } catch (err: any) {
+      showAlert('Hata', 'Profil güncellenirken bir hata oluştu.', 'error');
+    } finally {
+      setIsSavingProfile(false);
     }
   };
 
@@ -1424,6 +1477,11 @@ export default function ProviderDashboard() {
         'Teklif verdiğiniz veya incelediğiniz bir ilan müşteri tarafından iptal edildi.',
         'info'
       );
+    });
+
+    socket.on('job_closed', (data: { jobId: string }) => {
+      addLog(`ℹ️ [İŞ ALINDI / KAPATILDI] Bu ilan için başka bir teklif kabul edildi. Job ID: ${data.jobId}`);
+      setJobs((prev) => prev.filter((j) => j.id !== data.jobId));
     });
 
     socket.on('disconnect', () => {
@@ -2449,10 +2507,15 @@ export default function ProviderDashboard() {
         {/* Sidebar bottom lime publish button */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
           <button
-            onClick={() => showAlert("Yakında", "Hizmet yayınlama özelliği yakında partnerlerimizin kullanımına sunulacaktır.", "info")}
-            className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all text-center border border-transparent"
+            onClick={() => { setActiveTab("profil-ayarlar"); setMobileMenuOpen(false); }}
+            className={`w-full font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border ${
+              activeTab === 'profil-ayarlar'
+                ? 'bg-[#4c630a] text-white border-transparent'
+                : 'bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 border-transparent'
+            }`}
           >
-            Hizmet Yayınla
+            <Settings className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Profil ve Ayarlar</span>
           </button>
           
           {token && (
@@ -4470,6 +4533,88 @@ export default function ProviderDashboard() {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'profil-ayarlar' && (
+            <div className="max-w-2xl mx-auto space-y-8 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl">
+                  Profil ve Ayarlar
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Müşterilere gösterilen profil bilgilerinizi güncelleyin.
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Name field */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Ad Soyad / Firma Adı</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Örn: Ahmet Yılmaz"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  {/* City field */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Şehir</label>
+                    <input
+                      type="text"
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      placeholder="Örn: İstanbul"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Service Districts field */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-extrabold text-slate-700">
+                    Hizmet Verdiğiniz İlçeler (Virgülle ayırın)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDistricts}
+                    onChange={(e) => setEditDistricts(e.target.value)}
+                    placeholder="Örn: Kadıköy, Beşiktaş, Üsküdar"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                  />
+                  <span className="text-[10px] text-slate-400 font-semibold block">
+                    Birden fazla ilçe girmek için aralarına virgül koyarak yazabilirsiniz.
+                  </span>
+                </div>
+
+                {/* Biography/Description field */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-extrabold text-slate-700">Usta Tanıtım Yazısı / Biyografi</label>
+                  <textarea
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="Müşterilere kendinizi ve tecrübelerinizi tanıtın..."
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 min-h-[120px] transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    {isSavingProfile ? 'Güncelleniyor...' : 'Değişiklikleri Kaydet'}
+                  </button>
                 </div>
               </div>
             </div>

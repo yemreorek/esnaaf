@@ -1,4 +1,4 @@
-import { IsString, IsArray } from 'class-validator';
+import { IsString, IsArray, IsOptional } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsString()
@@ -7,4 +7,13 @@ export class UpdateProfileDto {
   @IsArray()
   @IsString({ each: true })
   serviceDistricts: string[];
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 }
+

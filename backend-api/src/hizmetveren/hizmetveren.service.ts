@@ -71,6 +71,16 @@ export class HizmetverenService {
         continue;
       }
 
+      const acceptedOffer = await this.prisma.offer.findFirst({
+        where: {
+          job_id: job.id,
+          status: 'accepted',
+        },
+      });
+      if (acceptedOffer) {
+        continue;
+      }
+
       // 30 dk zaman sayacı ve 4 teklif sınırı kontrolü
       const offersCount = await this.prisma.offer.count({
         where: { job_id: job.id },
@@ -391,12 +401,18 @@ export class HizmetverenService {
       }
 
       let onboardingData: any = {};
-      try {
-        if (provider.description && provider.description.startsWith('{')) {
-          onboardingData = JSON.parse(provider.description);
+      let bioStr = '';
+      if (provider.description) {
+        if (provider.description.startsWith('{')) {
+          try {
+            onboardingData = JSON.parse(provider.description);
+            bioStr = onboardingData.bio || '';
+          } catch (e) {
+            bioStr = provider.description;
+          }
+        } else {
+          bioStr = provider.description;
         }
-      } catch (e) {
-        // ignore
       }
 
       const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
@@ -413,6 +429,7 @@ export class HizmetverenService {
         taxPlateDocument: onboardingData.taxPlateDocument || '',
         companyType: onboardingData.companyType || '',
         companyName: onboardingData.companyName || '',
+        bio: bioStr,
         healthScore,
         esnaaf_id: provider.user.esnaaf_id,
       };
@@ -476,24 +493,47 @@ export class HizmetverenService {
       throw new NotFoundException('Hizmet veren profili bulunamadı.');
     }
 
+    let descriptionObj: any = {};
+    if (provider.description) {
+      if (provider.description.startsWith('{')) {
+        try {
+          descriptionObj = JSON.parse(provider.description);
+        } catch (e) {
+          descriptionObj = { bio: provider.description };
+        }
+      } else {
+        descriptionObj = { bio: provider.description };
+      }
+    }
+
+    if (dto.description !== undefined) {
+      descriptionObj.bio = dto.description;
+    }
+
     const updated = await this.prisma.serviceProvider.update({
       where: { id: provider.id },
       data: {
         city: dto.city,
         service_districts: dto.serviceDistricts,
+        description: JSON.stringify(descriptionObj),
       },
     });
 
+    if (dto.name !== undefined) {
+      await this.prisma.user.update({
+        where: { id: providerUserId },
+        data: { name: dto.name },
+      });
+    }
+
     await this.redis.del(`provider:profile:v2:${providerUserId}`);
+
+    const freshProfile = await this.getProfile(providerUserId);
 
     return {
       success: true,
-      message: 'Profil konum bilgileriniz başarıyla güncellendi.',
-      provider: {
-        id: updated.id,
-        city: updated.city,
-        serviceDistricts: updated.service_districts,
-      },
+      message: 'Profil bilgileriniz başarıyla güncellendi.',
+      provider: freshProfile,
     };
   }
 

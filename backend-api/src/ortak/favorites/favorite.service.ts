@@ -47,6 +47,8 @@ export class FavoriteService {
     }
 
     // 4. Tamamlanmış iş kontrolü (seeker_id ve provider_id eşleşen en az bir tamamlanmış iş)
+    // Devre dışı bırakıldı: Müşteri dilediği hizmet vereni favorilerine ekleyebilir.
+    /*
     const completedJob = await this.prisma.jobCompletion.findFirst({
       where: {
         seeker_id: seekerId,
@@ -70,6 +72,7 @@ export class FavoriteService {
     if (!review) {
       throw new BadRequestException('Bu ustayı favorilerinize eklemek için önce değerlendirme/puanlama yapmanız gerekmektedir.');
     }
+    */
 
     // 6. Kaydı oluştur (Seeker eklediği için approved = true)
     return this.prisma.favoriteProvider.create({

@@ -906,7 +906,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                           <div><strong className="text-slate-900">Çıkış Konumu:</strong> {msg.collected_data.district}, {msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}</div>
                           <div><strong className="text-slate-900">Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, {msg.collected_data.destinationCity || msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.destinationDistrict)}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            if (['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly'].includes(key)) return null;
+                            if (['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails'].includes(key)) return null;
                             if (!val) return null;
                             const label = FIELD_LABELS[key] || key;
                             return (
@@ -918,7 +918,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         <>
                           <div><strong className="text-slate-900">Konum:</strong> {msg.collected_data.district || 'Belirtilmedi'}{msg.collected_data.district ? `, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : ''}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            if (['name', 'phone', 'city', 'district', 'categorySlug', 'details', 'sendToFavoritesOnly'].includes(key)) return null;
+                            if (['name', 'phone', 'city', 'district', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails'].includes(key)) return null;
                             if (!val) return null;
                             const label = FIELD_LABELS[key] || key;
                             return (
