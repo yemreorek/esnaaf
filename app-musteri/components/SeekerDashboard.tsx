@@ -1566,10 +1566,28 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                       notifications.map((notif) => {
                         const title = notif.payload?.title || notif.payload?.payload?.title || 'Bildirim';
                         const body = notif.payload?.body || notif.payload?.payload?.body || '';
+                        const isJobCompletionNotif = notif.event_code === 'HA-IS-BEYAN';
                         return (
-                          <div key={notif.id} className="pt-2.5 first:pt-0 space-y-0.5 text-left">
-                            <h4 className="font-extrabold text-xs text-slate-800">{title}</h4>
+                          <div
+                            key={notif.id}
+                            onClick={() => {
+                              if (isJobCompletionNotif) {
+                                setActiveTab("puanlama");
+                                setNotifDropdownOpen(false);
+                              }
+                            }}
+                            className={`pt-2.5 first:pt-0 space-y-0.5 text-left ${isJobCompletionNotif ? 'cursor-pointer hover:bg-slate-50/60 p-1.5 rounded-lg transition-colors border-l-2 border-[#88b000] pl-2' : ''}`}
+                          >
+                            <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
+                              {isJobCompletionNotif && <span className="w-1.5 h-1.5 rounded-full bg-[#88b000] inline-block animate-pulse"></span>}
+                              {title}
+                            </h4>
                             <p className="text-[11px] text-slate-500 font-medium leading-normal leading-relaxed">{body}</p>
+                            {isJobCompletionNotif && (
+                              <span className="text-[10px] text-[#4c630a] font-extrabold hover:underline block mt-1">
+                                Teyit Paneline Git ➡️
+                              </span>
+                            )}
                             <span className="text-[9px] text-slate-400 font-bold block pt-0.5">
                               {new Date(notif.sent_at).toLocaleString("tr-TR", {
                                 day: '2-digit',

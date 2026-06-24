@@ -108,6 +108,16 @@ export class JobCompletionService {
       note: dto.note || '',
     });
 
+    // 7. Müşteriye bildirim zilinde gözükmesi ve push/SMS olarak gitmesi için sistem bildirimi gönder
+    try {
+      await this.bildirimService.sendNotification(acceptedOffer.seeker_id, 'HA-IS-BEYAN', {
+        hv_name: provider.user?.name || 'Hizmet Veren',
+        jobId,
+      });
+    } catch (notifErr: any) {
+      console.error(`Failed to send job completion notification to seeker: ${notifErr.message}`);
+    }
+
     return {
       success: true,
       message: 'İş tamamlama beyanınız kaydedildi, müşteri onayı bekleniyor.',

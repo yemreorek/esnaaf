@@ -2,6 +2,12 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-24 feat | İş Tamamlama Beyanı Bildirim Akışının Entegrasyonu
+
+- **Yeni Bildirim Şablonu Oluşturuldu (`HA-IS-BEYAN`):** Hizmet Veren işi tamamladığında Hizmet Alan'a (Müşteri) gönderilecek yeni bildirim şablonu backend tarafında `bildirim-sablonlari.ts` içine tanımlandı. Bu şablon in-app (uygulama içi), push ve SMS kanallarını desteklemektedir.
+- **Backend Tetikleyici Entegre Edildi (`job-completion.service.ts`):** Hizmet veren "İşi Tamamla" beyanında bulunduğunda (`declareCompletion`), müşteriye hem anlık WebSocket olayı ile hem de veritabanına kaydedilen kalıcı bildirim kaydıyla `HA-IS-BEYAN` bildirimi gönderilmesi sağlandı. Böylece müşteri offline (uygulamada değil) olsa bile FCM push / SMS üzerinden de uyarılacaktır.
+- **Müşteri Paneli Teyit Yönlendirmesi (`SeekerDashboard.tsx`):** Bildirim zili dropdown listesindeki iş tamamlama bildirimi öne çıkarıldı (yeşil pulse noktası ve sol kenarlık ile görselleştirildi) ve tıklandığında müşteriyi doğrudan ilgili işi teyit edebileceği / puanlayabileceği "İş Teyit & Puanlama" sekmesine yönlendirecek şekilde interaktif hale getirildi.
+
 ## 2026-06-24 feat | Özel Onay (Confirm) ve Uyarı (Alert) Tasarımlarının Entegrasyonu
 
 - **İşe Başla Butonu Onay Ekranı Güncellendi:** "Kazanılan İşler" sayfasındaki işe başlama butonuna tıklandığında çıkan eski tarayıcı onay kutusu (`window.confirm`) kaldırılarak, platform tasarım diline (glassmorphic arka plan, yumuşak kenarlar, yeşil tonlu butonlar ve pürüzsüz animasyonlar) uygun özel `showConfirm` modalı ile değiştirildi.

@@ -88,6 +88,11 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
     body: '{hv_name} firması anlaşmış olduğunuz işi iptal etti. Gerekçe: {reason}',
     channels: [NotifChannel.in_app, NotifChannel.push],
   },
+  'HA-IS-BEYAN': {
+    title: 'İş Tamamlama Beyanı',
+    body: '{hv_name} firması işi tamamladığını beyan etti. Lütfen onaylayın ve usta performansını değerlendirin.',
+    channels: [NotifChannel.in_app, NotifChannel.push, NotifChannel.sms],
+  },
 
 
   // --- Hizmet Veren (HV) Bildirimleri ---
