@@ -424,6 +424,10 @@ export default function Home() {
           setActiveView("home");
           triggerNotification("Çıkış yapıldı.");
         }}
+        onStartChat={(initialMessage?: string) => {
+          setChatInitialMessage(initialMessage || "");
+          setActiveView("chat");
+        }}
       />
     );
   }

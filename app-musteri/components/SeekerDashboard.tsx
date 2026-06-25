@@ -37,7 +37,8 @@ import {
   Activity,
   Wallet,
   Copy,
-  Check
+  Check,
+  Bot
 } from "lucide-react";
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -151,6 +152,7 @@ interface RequestItem {
 interface SeekerDashboardProps {
   initialJobId?: string | null;
   onLogout: () => void;
+  onStartChat?: (initialMessage?: string) => void;
 }
 
 const getRequestExpiryInfo = (createdAt: string | Date) => {
@@ -356,7 +358,7 @@ const MOCK_PAST_REQUESTS_MOCKUP = [
   }
 ];
 
-export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashboardProps) {
+export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }: SeekerDashboardProps) {
   // Navigation tabs matching sidebar
   const [activeTab, setActiveTab] = useState<"tekliflerim" | "canlobi" | "karsilastirma" | "mesajlar" | "puanlama" | "profile" | "cuzdan" | "favoriler">("tekliflerim");
   const [requests, setRequests] = useState<RequestItem[]>([]);
@@ -576,30 +578,46 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
     }
   }, [activeTab]);
 
+  const prevSelectedRequestRef = useRef<string | null>(null);
+
   // Reset justReviewedRequest when changing tabs
   useEffect(() => {
     setJustReviewedRequest(null);
+    setRatingSubmitted(false);
   }, [activeTab]);
 
-  // Synchronize ratingSubmitted and isAddedToFavorites states
+  // Reset ratingSubmitted when selectedRequest changes
   useEffect(() => {
-    setRatingSubmitted(false);
-    const reqToUse = selectedRequest || justReviewedRequest;
-    if (reqToUse) {
-      const providerIdFromReq = reqToUse.job_completions?.[0]?.provider?.id 
-        || reqToUse.offers?.find((o: any) => o.status === 'accepted')?.provider?.id
-        || providerId;
-        
-      if (providerIdFromReq) {
-        const alreadyFav = favorites.some(fav => fav.provider_id === providerIdFromReq);
-        setIsAddedToFavorites(alreadyFav);
+    if (selectedRequest?.id !== prevSelectedRequestRef.current) {
+      setRatingSubmitted(false);
+      prevSelectedRequestRef.current = selectedRequest?.id || null;
+    }
+  }, [selectedRequest]);
+
+  // Synchronize isAddedToFavorites state
+  useEffect(() => {
+    let targetProviderId: string | null = null;
+    
+    if (selectedProviderProfile?.id) {
+      targetProviderId = selectedProviderProfile.id;
+    } else {
+      const reqToUse = selectedRequest || justReviewedRequest;
+      if (reqToUse) {
+        targetProviderId = reqToUse.job_completions?.[0]?.provider?.id 
+          || reqToUse.offers?.find((o: any) => o.status === 'accepted')?.provider?.id
+          || providerId;
       } else {
-        setIsAddedToFavorites(false);
+        targetProviderId = providerId;
       }
+    }
+    
+    if (targetProviderId) {
+      const alreadyFav = favorites.some(fav => fav.provider_id === targetProviderId);
+      setIsAddedToFavorites(alreadyFav);
     } else {
       setIsAddedToFavorites(false);
     }
-  }, [selectedRequest, justReviewedRequest, favorites, providerId]);
+  }, [selectedRequest, justReviewedRequest, favorites, providerId, selectedProviderProfile]);
 
   async function fetchFavorites() {
     try {
@@ -1290,9 +1308,6 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         setCommentText("");
         alert("Değerlendirmeniz başarıyla gönderildi! Yönetici onayından sonra hizmet verenin profilinde yayınlanacaktır.");
         fetchRequests();
-        if (activeTab === "puanlama") {
-          setSelectedRequest(null);
-        }
       } else {
         const errorData = await reviewRes.json();
         alert(errorData.error?.message || "Gönderim başarısız.");
@@ -1520,6 +1535,14 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
         {/* Sidebar bottom action button strictly matching mockup */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
           <button
+            onClick={() => { onStartChat?.(); setMobileMenuOpen(false); }}
+            className="w-full bg-slate-800 hover:bg-slate-900 text-[#c8f252] font-black text-xs py-3 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent"
+          >
+            <Bot className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Yapay Zeka Asistanı</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab("canlobi"); setSelectedRequest(null); setMobileMenuOpen(false); }}
             className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent"
           >
@@ -1561,6 +1584,15 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => onStartChat?.()}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-slate-700 font-bold text-[11px] transition-all cursor-pointer hover:border-slate-350 active:scale-95 shadow-sm"
+              title="Yapay Zeka Asistanı ile Konuş"
+            >
+              <Bot className="w-4 h-4 text-slate-800 animate-pulse" />
+              <span className="hidden md:inline">Yapay Zeka Asistanı</span>
+            </button>
+
             <div className="relative">
               <button 
                 onClick={() => {
@@ -3051,6 +3083,63 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
 
                 {/* VIEW 5: İŞ TEYİT & PUANLAMA VIEW */}
                 {activeTab === "puanlama" && (() => {
+                  if (ratingSubmitted) {
+                    const req = justReviewedRequest || selectedRequest;
+                    const pId = req?.job_completions?.[0]?.provider?.id 
+                      || req?.offers?.find((o: any) => o.status === 'accepted')?.provider?.id
+                      || providerId;
+
+                    return (
+                      <div className="space-y-6 animate-scale-up text-left">
+                        <div>
+                          <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
+                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                        </div>
+
+                        <div className="bg-white border border-slate-100 rounded-[24px] p-8 text-center shadow-sm max-w-lg mx-auto mt-6 flex flex-col items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-lime-50 text-[#c8f252] flex items-center justify-center font-bold text-2xl animate-bounce shadow-sm border border-lime-100">
+                            🎉
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Değerlendirmeniz İçin Teşekkür Ederiz!</h4>
+                            <p className="text-slate-400 text-xs font-semibold leading-relaxed">
+                              Değerlendirmeniz başarıyla gönderildi! Yönetici onayından sonra hizmet verenin profilinde yayınlanacaktır. Dilerseniz bu hizmet vereni favorilerinize ekleyebilirsiniz.
+                            </p>
+                          </div>
+                          
+                          <div className="flex flex-col items-center gap-3 w-full border-t border-slate-100 pt-4 mt-2">
+                            {!isAddedToFavorites ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (pId) handleAddToFavorites(pId);
+                                }}
+                                className="flex items-center gap-2 border border-[#c8f252]/40 bg-[#c8f252]/10 hover:bg-[#c8f252]/20 text-slate-800 text-xs font-black px-6 py-3 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                              >
+                                ❤️ Hizmet Vereni Favorilerime Ekle
+                              </button>
+                            ) : (
+                              <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 font-semibold bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-150">
+                                ❤️ Hizmet Veren Favorilerinize Eklendi!
+                              </span>
+                            )}
+                            
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRatingSubmitted(false);
+                                setJustReviewedRequest(null);
+                              }}
+                              className="text-xs text-slate-500 hover:text-slate-800 font-bold underline mt-2 cursor-pointer"
+                            >
+                              Panele Geri Dön
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const pendingCompletionsRequests = requests.filter(r => r.job_completions?.some(jc => jc.status === "pending_seeker"));
                   const completedNoReviewRequests = requests.filter(r => r.status === "completed" && (!r.reviews || r.reviews.length === 0));
 
@@ -3755,34 +3844,16 @@ export default function SeekerDashboard({ initialJobId, onLogout }: SeekerDashbo
                     </button>
 
                     <button 
-                      onClick={async () => {
-                        const isProfileFav = favorites.some(fav => fav.provider_id === selectedProviderProfile.id);
-                        if (isProfileFav) return;
-                        try {
-                          const res = await customFetch("/api/ortak/favoriler/ekle", {
-                            method: "POST",
-                            body: JSON.stringify({ provider_id: selectedProviderProfile.id })
-                          });
-                          if (res.ok) {
-                            alert("Usta favorilerinize başarıyla eklendi.");
-                            fetchFavorites();
-                          } else {
-                            const err = await res.json();
-                            alert(err.error?.message || "Favorilere eklenirken bir hata oluştu.");
-                          }
-                        } catch (e) {
-                          alert("Favorilere eklenirken bir hata oluştu.");
-                        }
-                      }}
-                      disabled={favorites.some(fav => fav.provider_id === selectedProviderProfile.id)}
+                      onClick={() => handleAddToFavorites(selectedProviderProfile.id)}
+                      disabled={isAddedToFavorites}
                       className={`flex-1 text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border ${
-                        favorites.some(fav => fav.provider_id === selectedProviderProfile.id)
+                        isAddedToFavorites
                           ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
                           : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
                       <span>
-                        {favorites.some(fav => fav.provider_id === selectedProviderProfile.id)
+                        {isAddedToFavorites
                           ? "❤️ Favorilerinizde"
                           : "❤️ Favorilere Ekle"}
                       </span>
