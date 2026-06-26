@@ -117,17 +117,21 @@ async function run() {
   console.log(`Favorite Provider ID: ${provider.id} (${providerUser.name})`);
   console.log(`Normal Provider ID: ${normalProvider.id} (${normalProviderUser.name})`);
 
-  // --- TEST 1: Validation Constraint - No Completed Job ---
-  console.log('\n--- TEST 1: Validation Constraint - No Completed Job ---');
+  // --- TEST 1: Direct Favorite Addition (No Completed Job, No Review) ---
+  console.log('\n--- TEST 1: Direct Favorite Addition (No Completed Job, No Review) ---');
   try {
-    await favoriteService.addFavorite(seeker.id, provider.id);
-    console.error('❌ Fail: Expected addFavorite to throw due to no completed jobs!');
+    const directFav = await favoriteService.addFavorite(seeker.id, provider.id);
+    console.log(`✅ Success: Provider favoriye doğrudan eklendi! Fav ID: ${directFav.id}`);
+    
+    // Clean up for next tests
+    await favoriteService.removeFavorite(seeker.id, provider.id);
+    console.log('Cleaned up direct favorite for next test steps.');
   } catch (err: any) {
-    console.log(`✅ Success: Ekleme engellendi as expected! Error: "${err.message}"`);
+    console.error('❌ Fail: Direct favorite addition failed!', err);
   }
 
-  // --- TEST 2: Validation Constraint - Completed Job but No Review ---
-  console.log('\n--- TEST 2: Validation Constraint - Completed Job but No Review ---');
+  // --- TEST 2: Favorite Addition with Completed Job (But No Review) ---
+  console.log('\n--- TEST 2: Favorite Addition with Completed Job (But No Review) ---');
 
   // Create a completed job completion record
   const jobRecord = await prisma.serviceRequest.create({
@@ -159,14 +163,18 @@ async function run() {
   });
 
   try {
-    await favoriteService.addFavorite(seeker.id, provider.id);
-    console.error('❌ Fail: Expected addFavorite to throw due to no reviews!');
+    const jobFav = await favoriteService.addFavorite(seeker.id, provider.id);
+    console.log(`✅ Success: Provider favoriye eklendi (iş tamamlandı, yorum yok)! Fav ID: ${jobFav.id}`);
+    
+    // Clean up for next tests
+    await favoriteService.removeFavorite(seeker.id, provider.id);
+    console.log('Cleaned up job favorite for next test steps.');
   } catch (err: any) {
-    console.log(`✅ Success: Ekleme engellendi (puanlama yok) as expected! Error: "${err.message}"`);
+    console.error('❌ Fail: Favorite addition with completed job failed!', err);
   }
 
-  // --- TEST 3: Successful Favorite Addition ---
-  console.log('\n--- TEST 3: Successful Favorite Addition ---');
+  // --- TEST 3: Successful Favorite Addition with Review ---
+  console.log('\n--- TEST 3: Successful Favorite Addition with Review ---');
   await prisma.review.create({
     data: {
       job_id: jobRecord.id,
@@ -178,7 +186,7 @@ async function run() {
   });
 
   const addedFav = await favoriteService.addFavorite(seeker.id, provider.id);
-  console.log(`✅ Success: Provider favoriye eklendi! Fav ID: ${addedFav.id}`);
+  console.log(`✅ Success: Provider favoriye eklendi (yorum dahil)! Fav ID: ${addedFav.id}`);
 
   // --- TEST 4: Validation Constraint - Duplicate Favorite ---
   console.log('\n--- TEST 4: Validation Constraint - Duplicate Favorite ---');

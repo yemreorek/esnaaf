@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Get, Body, Param, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Delete, Get, Body, Param, UseGuards, HttpStatus, HttpCode, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../../common/decorators';
@@ -18,7 +18,11 @@ export class FavoriteController {
   @Post('ekle')
   @HttpCode(HttpStatus.CREATED)
   async addFavorite(@CurrentUser() user: any, @Body() dto: AddFavoriteDto) {
-    return this.favoriteService.addFavorite(user.id, dto.provider_id);
+    const providerId = dto.provider_id || dto.providerId;
+    if (!providerId) {
+      throw new BadRequestException('Hizmet veren ID alanı boş bırakılamaz.');
+    }
+    return this.favoriteService.addFavorite(user.id, providerId);
   }
 
   /**

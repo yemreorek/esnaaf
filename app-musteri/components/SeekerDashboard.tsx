@@ -37,8 +37,7 @@ import {
   Activity,
   Wallet,
   Copy,
-  Check,
-  Bot
+  Check
 } from "lucide-react";
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -378,7 +377,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
   // Completion/Rating states (Step 6 / Phase 2)
   const [completionState, setCompletionState] = useState<string | null>(null);
-  const [providerName, setProviderName] = useState("");
+  const [providerName, setProviderName] = useState<string | null>("");
   const [providerDeclaredAmount, setProviderDeclaredAmount] = useState<number | null>(null);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [showDiscrepancyForm, setShowDiscrepancyForm] = useState(false);
@@ -586,13 +585,39 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
     setRatingSubmitted(false);
   }, [activeTab]);
 
-  // Reset ratingSubmitted when selectedRequest changes
+  // Reset ratingSubmitted when selectedRequest changes and sync provider / completion states
   useEffect(() => {
     if (selectedRequest?.id !== prevSelectedRequestRef.current) {
       setRatingSubmitted(false);
       prevSelectedRequestRef.current = selectedRequest?.id || null;
     }
+
+    if (selectedRequest) {
+      const currentCompletion = selectedRequest.job_completions?.[0];
+      const acceptedOffer = selectedRequest.offers?.find((o: any) => o.status === 'accepted');
+      
+      setCompletionState(currentCompletion?.status || null);
+      setProviderId(currentCompletion?.provider?.id || acceptedOffer?.provider?.id || null);
+      setProviderName(currentCompletion?.provider?.user?.name || acceptedOffer?.provider?.user?.name || null);
+      setProviderDeclaredAmount(Number(currentCompletion?.provider_declared_amount || 0));
+    } else {
+      setCompletionState(null);
+      setProviderId(null);
+      setProviderName(null);
+      setProviderDeclaredAmount(0);
+      setMutualPhones(null);
+    }
   }, [selectedRequest]);
+
+  // Sync selectedRequest with the latest data from requests when requests list updates
+  useEffect(() => {
+    if (selectedRequest) {
+      const updated = requests.find((r) => r.id === selectedRequest.id);
+      if (updated) {
+        setSelectedRequest(updated);
+      }
+    }
+  }, [requests]);
 
   // Synchronize isAddedToFavorites state
   useEffect(() => {
@@ -618,6 +643,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
       setIsAddedToFavorites(false);
     }
   }, [selectedRequest, justReviewedRequest, favorites, providerId, selectedProviderProfile]);
+
+  useEffect(() => {
+    if (directRequestProvider?.categories && directRequestProvider.categories.length > 0) {
+      setDirectCategorySlug(directRequestProvider.categories[0].slug);
+    } else {
+      setDirectCategorySlug("ev-temizligi");
+    }
+  }, [directRequestProvider]);
 
   async function fetchFavorites() {
     try {
@@ -1532,18 +1565,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           </button>
         </div>
 
-        {/* Sidebar bottom action button strictly matching mockup */}
+        {/* Sidebar bottom action button */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
           <button
             onClick={() => { onStartChat?.(); setMobileMenuOpen(false); }}
-            className="w-full bg-slate-800 hover:bg-slate-900 text-[#c8f252] font-black text-xs py-3 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent"
-          >
-            <Bot className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Yapay Zeka Asistanı</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab("canlobi"); setSelectedRequest(null); setMobileMenuOpen(false); }}
             className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent"
           >
             <PlusCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
@@ -1583,15 +1608,8 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
             </h2>
           </div>
 
+
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => onStartChat?.()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-slate-700 font-bold text-[11px] transition-all cursor-pointer hover:border-slate-350 active:scale-95 shadow-sm"
-              title="Yapay Zeka Asistanı ile Konuş"
-            >
-              <Bot className="w-4 h-4 text-slate-800 animate-pulse" />
-              <span className="hidden md:inline">Yapay Zeka Asistanı</span>
-            </button>
 
             <div className="relative">
               <button 
@@ -3689,12 +3707,22 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             onChange={(e) => setDirectCategorySlug(e.target.value)}
                             className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-800"
                           >
-                            <option value="ev-temizligi">Ev Temizliği</option>
-                            <option value="boya-badana">Boya Badana</option>
-                            <option value="su-tesisati">Su Tesisatı</option>
-                            <option value="elektrik-tesisati">Elektrik Tesisatı</option>
-                            <option value="ev-tadilat">Ev Tadilatı</option>
-                            <option value="nakliyat">Nakliyat / Taşıma</option>
+                            {directRequestProvider.categories && directRequestProvider.categories.length > 0 ? (
+                              directRequestProvider.categories.map((cat: any) => (
+                                <option key={cat.slug} value={cat.slug}>
+                                  {cat.name}
+                                </option>
+                              ))
+                            ) : (
+                              <>
+                                <option value="ev-temizligi">Ev Temizliği</option>
+                                <option value="boya-badana">Boya Badana</option>
+                                <option value="su-tesisati">Su Tesisatı</option>
+                                <option value="elektrik-tesisati">Elektrik Tesisatı</option>
+                                <option value="ev-tadilat">Ev Tadilatı</option>
+                                <option value="nakliyat">Nakliyat / Taşıma</option>
+                              </>
+                            )}
                           </select>
                         </div>
 

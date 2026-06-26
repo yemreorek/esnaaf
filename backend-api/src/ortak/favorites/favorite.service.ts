@@ -123,7 +123,7 @@ export class FavoriteService {
    * Müşterinin tüm favori ustalarını listeler (sadece approved olanlar).
    */
   async getFavorites(seekerId: string) {
-    return this.prisma.favoriteProvider.findMany({
+    const favorites = await this.prisma.favoriteProvider.findMany({
       where: { seeker_id: seekerId, approved: true },
       include: {
         provider: {
@@ -143,6 +143,67 @@ export class FavoriteService {
       orderBy: {
         created_at: 'desc',
       },
+    });
+
+    // Resolve categories for each provider
+    const allCategoryIds = Array.from(
+      new Set(
+        favorites.flatMap((fav) => fav.provider?.category_ids || [])
+      )
+    );
+
+    const categories = await this.prisma.category.findMany({
+      where: {
+        id: { in: allCategoryIds },
+      },
+    });
+
+    const categoryMap = new Map(categories.map((c) => [c.id, c]));
+
+    const helperGetCategorySlug = (name: string): string => {
+      switch (name) {
+        case 'Ev Temizliği': return 'ev-temizligi';
+        case 'Boya Badana': return 'boya-badana';
+        case 'Su Tesisatı': return 'su-tesisati';
+        case 'Elektrik Tesisatı': return 'elektrik-tesisati';
+        case 'Ev Tadilat': return 'ev-tadilat';
+        case 'Nakliyat / Ev Taşıma': return 'nakliyat';
+        case 'Halı & Koltuk Yıkama': return 'hali-koltuk-yikama';
+        case 'İnşaat / Tadilat Sonrası Temizlik': return 'insaat-sonrasi-temizlik';
+        case 'Fayans & Parke Döşeme': return 'fayans-parke';
+        case 'Haşere & Böcek İlaçlama': return 'hasere-ilaclama';
+        case 'Kombi & Klima Bakımı': return 'kombi-klima';
+        case 'Mantolama & Dış Cephe': return 'mantolama-discephe';
+        case 'Marangoz & Mobilya Montajı': return 'marangoz-mobilya';
+        case 'Özel Ders': return 'ozel-ders';
+        case 'Cam Balkon & PVC Pencere': return 'cam-balkon-pvc';
+        case 'Ofis & İş Yeri Temizliği': return 'ofis-temizligi';
+        case 'Doğalgaz Tesisatı': return 'dogalgaz-tesisati';
+        case 'İç Mimar & Dekorasyon': return 'ic-mimar-dekorasyon';
+        case 'Fotoğrafçı': return 'fotografci';
+        case 'Organizasyon & Etkinlik': return 'organizasyon-etkinlik';
+        default: return 'genel-esnaf-hizmeti';
+      }
+    };
+
+    return favorites.map((fav) => {
+      if (!fav.provider) return fav;
+      const provCategories = (fav.provider.category_ids || [])
+        .map((id) => categoryMap.get(id))
+        .filter(Boolean)
+        .map((c) => ({
+          id: c!.id,
+          name: c!.name,
+          slug: helperGetCategorySlug(c!.name),
+        }));
+
+      return {
+        ...fav,
+        provider: {
+          ...fav.provider,
+          categories: provCategories,
+        },
+      };
     });
   }
 
