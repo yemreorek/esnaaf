@@ -2,6 +2,18 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-28 feat | Talep Otomatik Uzatma, Tekrar Yayınlama ve Anonim Rakip Teklif Analizi Entegrasyonu
+
+- **Talep Süresini Otomatik Uzatma:**
+  - Gündüz taleplerinde (10:00 - 18:00) ilk 30 dakikada, gece taleplerinde (18:00 - 10:00) sabah 10:00 limitinde hiç teklif gelmediyse, ihale süresi otomatik olarak 15 dakika daha uzatılacak şekilde backend `getRequestExpiryInfo` mantığı güncellendi.
+- **Süre Dolan Talepleri Tekrar Yayınlama:**
+  - Teklif alım süresi dolmuş veya iptal edilmiş talepler için müşteri panelinde belirgin bir **"Tekrar Yayınla"** butonu entegre edildi.
+  - Tıklandığında eski talebi iptal eden ve aynı bilgilerle yeni bir talep açarak esnaf havuzuna ve dağıtım sırasına ileten `POST /api/musteri/talepler/:id/tekrar-yayinla` endpoint'i ve arayüz fonksiyonu yazıldı.
+- **Anonim Rakip Teklif Analizi Modülü:**
+  - Süresi dolan veya başka bir usta tarafından kazanılan (teklife kapanan) işler için teklif vermiş olan tüm ustaların "Kaybedilen ve İptal Edilenler" sekmesindeki iş kartlarında **"Rakiplerin Verdiği Teklifler"** paneli açıldı.
+  - Rakip ustaların tüm profil bilgileri maskelendi (API sadece `{ price, isMe }` dönecek şekilde sınırlandırıldı).
+  - Teklif fiyatları en düşükten en yükseğe doğru sıralanarak listelendi. Ustanın kendi teklifi **"Sizin Teklifiniz: ₺X.XXX"** şeklinde mavi etiket ile belirginleştirildi.
+
 ## 2026-06-24 feat | İş Tamamlama Beyanı Bildirim Akışının Entegrasyonu
 
 - **Yeni Bildirim Şablonu Oluşturuldu (`HA-IS-BEYAN`):** Hizmet Veren işi tamamladığında Hizmet Alan'a (Müşteri) gönderilecek yeni bildirim şablonu backend tarafında `bildirim-sablonlari.ts` içine tanımlandı. Bu şablon in-app (uygulama içi), push ve SMS kanallarını desteklemektedir.

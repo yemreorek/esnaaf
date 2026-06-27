@@ -89,7 +89,11 @@ export function normalizePhone(rawPhone: string): string {
   return `+90${digits}`;
 }
 
-const getRequestExpiryInfo = (createdAt: string | Date) => {
+const getRequestExpiryInfo = (
+  createdAt: Date | string,
+  compareWith: number = Date.now(),
+  offers: { created_at?: Date | string | number }[] = []
+) => {
   const createdDate = new Date(createdAt);
   
   // Format parts timezone-independently using Intl.DateTimeFormat
@@ -108,8 +112,8 @@ const getRequestExpiryInfo = (createdAt: string | Date) => {
   const hour = parseInt(partVal('hour'), 10);
   const isNight = hour >= 18 || hour < 10;
   
-  let expiresTime = 0;
-  let label = '30 dakika';
+  let initialExpiresTime = 0;
+  let initialLabel = '30 dakika';
 
   if (isNight) {
     const targetDate = new Date(createdDate);
@@ -135,22 +139,41 @@ const getRequestExpiryInfo = (createdAt: string | Date) => {
     
     // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
     const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
-    expiresTime = new Date(istanbul10AMIso).getTime();
-    label = '15 saat';
+    initialExpiresTime = new Date(istanbul10AMIso).getTime();
+    initialLabel = "sabah 10:00'a kadar olan";
   } else {
-    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+    initialExpiresTime = createdDate.getTime() + 30 * 60 * 1000;
   }
 
-  const isExpired = expiresTime <= Date.now();
-  return { expiresTime, isExpired, label };
+  // Check if any offers arrived before the initial expiry time
+  const offersBeforeExpiry = (offers || []).filter(o => {
+    const offerTime = o.created_at ? new Date(o.created_at).getTime() : 0;
+    return offerTime > 0 && offerTime < initialExpiresTime;
+  });
+  const hasOffersBeforeExpiry = offersBeforeExpiry.length > 0;
+
+  let expiresTime = initialExpiresTime;
+  let label = initialLabel;
+  let isExtended = false;
+
+  if (!hasOffersBeforeExpiry) {
+    expiresTime = initialExpiresTime + 15 * 60 * 1000; // Extend by 15 minutes
+    isExtended = true;
+    label = isNight ? "sabah 10:15'e kadar uzatılan" : "45 dakikalık (uzatılmış)";
+  }
+
+  const isExpired = expiresTime <= compareWith;
+  return { expiresTime, isExpired, label, isExtended, initialExpiresTime };
 };
 
 const CountdownTimer = ({ 
   createdAt, 
+  expiresTime,
   onExpire, 
   variant = 'default' 
 }: { 
   createdAt: string | Date; 
+  expiresTime?: number;
   onExpire?: () => void; 
   variant?: 'default' | 'large';
 }) => {
@@ -158,9 +181,13 @@ const CountdownTimer = ({
 
   useEffect(() => {
     const calculateTime = () => {
-      const { expiresTime } = getRequestExpiryInfo(createdAt);
+      let expTime = expiresTime;
+      if (!expTime) {
+        const { expiresTime: calculated } = getRequestExpiryInfo(createdAt);
+        expTime = calculated;
+      }
       const now = Date.now();
-      const diff = expiresTime - now;
+      const diff = expTime - now;
 
       if (diff <= 0) {
         setTimeLeft('Süre Doldu');
@@ -217,7 +244,9 @@ const OpportunityCard = ({
   showAlert?: (title: string, msg: string, type?: "success" | "error" | "info") => void;
 }) => {
   const [isExpired, setIsExpired] = useState<boolean>(
-    job.created_at ? getRequestExpiryInfo(job.created_at).isExpired : false
+    job.expiresTime 
+      ? job.expiresTime <= Date.now() 
+      : (job.created_at ? getRequestExpiryInfo(job.created_at).isExpired : false)
   );
 
   const badgeText = job.aciliyet || (
@@ -314,7 +343,7 @@ const OpportunityCard = ({
         {/* Centered Countdown Timer Banner */}
         {!isExpired && job.created_at && (
           <div className="bg-rose-50/50 border border-rose-100/60 rounded-2xl p-3.5 text-center flex flex-col items-center justify-center gap-1 animate-scale-up">
-            <CountdownTimer createdAt={job.created_at} variant="large" onExpire={() => setIsExpired(true)} />
+            <CountdownTimer createdAt={job.created_at} expiresTime={job.expiresTime} variant="large" onExpire={() => setIsExpired(true)} />
             <span className="text-[10px] font-black text-rose-500 uppercase tracking-wider">
               Teklife Kapanacak
             </span>
@@ -3759,6 +3788,36 @@ export default function ProviderDashboard() {
                               </div>
                             )}
                           </div>
+
+                          {item.competitorOffers && item.competitorOffers.length > 0 && (
+                            <div className="border-t border-slate-50 pt-3.5 mt-3 space-y-2.5 text-left animate-scale-up">
+                              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block font-mono">
+                                Rakiplerin Verdiği Teklifler
+                              </span>
+                              <div className="bg-slate-50/50 border border-slate-100/70 rounded-2xl p-3.5 space-y-2 text-xs font-semibold">
+                                {(() => {
+                                  let competitorIndex = 1;
+                                  return item.competitorOffers.map((off: any, idx: number) => {
+                                    if (off.isMe) {
+                                      return (
+                                        <div key={idx} className="flex justify-between items-center text-blue-600 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
+                                          <span className="font-extrabold">Sizin Teklifiniz:</span>
+                                          <span className="font-black text-sm">₺{off.price.toLocaleString("tr-TR")}</span>
+                                        </div>
+                                      );
+                                    } else {
+                                      return (
+                                        <div key={idx} className="flex justify-between items-center text-slate-600 px-2 py-0.5">
+                                          <span>{competitorIndex++}. Teklif Veren (Anonim):</span>
+                                          <span className="font-extrabold text-slate-800">₺{off.price.toLocaleString("tr-TR")}</span>
+                                        </div>
+                                      );
+                                    }
+                                  });
+                                })()}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="border-t border-slate-50 pt-3 flex justify-between items-center">

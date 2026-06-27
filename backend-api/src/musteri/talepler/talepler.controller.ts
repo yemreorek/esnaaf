@@ -50,4 +50,14 @@ export class TaleplerController {
   async cancel(@CurrentUser() user: any, @Param('id') jobId: string) {
     return this.taleplerService.cancel(user.id, jobId);
   }
+
+  /**
+   * Talebi aynı bilgilerle tekrar yayına alır (yeni talep gibi)
+   * POST /api/musteri/talepler/:id/tekrar-yayinla
+   */
+  @Post(':id/tekrar-yayinla')
+  @HttpCode(HttpStatus.CREATED)
+  async republish(@CurrentUser() user: any, @Param('id') jobId: string) {
+    return this.taleplerService.republish(user.id, jobId);
+  }
 }

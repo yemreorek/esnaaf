@@ -82,11 +82,13 @@ export class HizmetverenService {
       }
 
       // 30 dk zaman sayacı ve 4 teklif sınırı kontrolü
-      const offersCount = await this.prisma.offer.count({
+      const jobOffers = await this.prisma.offer.findMany({
         where: { job_id: job.id },
+        select: { created_at: true },
       });
+      const offersCount = jobOffers.length;
 
-      const { isExpired } = getRequestExpiryInfo(job.created_at);
+      const { isExpired, expiresTime } = getRequestExpiryInfo(job.created_at, Date.now(), jobOffers);
 
       if (offersCount >= 4 || isExpired) {
         continue; // teklif dolduysa veya zaman aşımına uğradıysa gelen kutusundan kaldır
@@ -110,6 +112,7 @@ export class HizmetverenService {
         butce: formData.butce || null,
         aciliyet: formData.aciliyet || null,
         offersCount,
+        expiresTime,
       });
     }
 
@@ -236,15 +239,17 @@ export class HizmetverenService {
     }
 
     // 3b. Zaman ve Teklif Sınırı Koruması (Rezervasyon dahil)
-    const offerCount = await this.prisma.offer.count({
+    const jobOffers = await this.prisma.offer.findMany({
       where: { job_id: dto.jobId },
+      select: { created_at: true },
     });
+    const offerCount = jobOffers.length;
 
     if (offerCount >= 4) {
       throw new BadRequestException('Bu talep maksimum teklif sınırına (4 teklif) ulaşmış ve teklif girişine kapanmıştır.');
     }
 
-    const { isExpired, label } = getRequestExpiryInfo(job.created_at);
+    const { isExpired, label } = getRequestExpiryInfo(job.created_at, Date.now(), jobOffers);
     if (isExpired) {
       throw new BadRequestException(`Bu talebin ${label} süresi dolmuş ve teklif girişine kapanmıştır.`);
     }
@@ -580,6 +585,11 @@ export class HizmetverenService {
         job: {
           include: {
             category: true,
+            offers: {
+              select: {
+                created_at: true,
+              },
+            },
           },
         },
         messages: {
@@ -592,7 +602,12 @@ export class HizmetverenService {
       orderBy: { created_at: 'desc' },
     });
 
-    return offers.map((o) => {
+    const activeOffers = offers.filter((o) => {
+      const { isExpired } = getRequestExpiryInfo(o.job.created_at, Date.now(), o.job.offers);
+      return !isExpired;
+    });
+
+    return activeOffers.map((o) => {
       const formData = o.job.form_data as any;
       return {
         id: o.id,
@@ -1021,6 +1036,13 @@ export class HizmetverenService {
               ],
             },
           },
+          // Expired jobs check
+          {
+            status: 'pending',
+            job: {
+              status: { in: ['pending', 'distributed'] },
+            },
+          },
         ],
       },
       include: {
@@ -1030,18 +1052,41 @@ export class HizmetverenService {
             accepted_offers: {
               where: { provider_id: provider.id },
             },
+            offers: {
+              select: {
+                id: true,
+                price: true,
+                created_at: true,
+                provider_id: true,
+                status: true,
+              },
+            },
           },
         },
       },
       orderBy: { created_at: 'desc' },
     });
 
-    return offers.map((o) => {
+    const filteredOffers = offers.filter((o) => {
+      if (o.status === 'pending' && ['pending', 'distributed'].includes(o.job.status)) {
+        const hasAccepted = o.job.offers.some((off) => off.status === 'accepted');
+        if (hasAccepted) return true;
+
+        const { isExpired } = getRequestExpiryInfo(o.job.created_at, Date.now(), o.job.offers);
+        return isExpired;
+      }
+      return true;
+    });
+
+    return filteredOffers.map((o) => {
       const formData = o.job.form_data as any;
       const wasAccepted = o.job.accepted_offers.length > 0;
       
       let displayStatus = 'lost';
       let labelText = 'Teklifi Kaybettin';
+
+      // Check if expired
+      const { isExpired } = getRequestExpiryInfo(o.job.created_at, Date.now(), o.job.offers);
 
       if (o.status === 'cancelled') {
         if (o.cancelled_by === 'service_provider') {
@@ -1077,10 +1122,27 @@ export class HizmetverenService {
         } else if (o.job.status === 'cancelled') {
           displayStatus = 'job_cancelled';
           labelText = 'İlan İptal Edildi';
+        } else if (isExpired) {
+          displayStatus = 'lost';
+          labelText = 'Süre Doldu (Teklifi Kaybettin)';
         } else {
           displayStatus = 'lost';
           labelText = 'Teklifi Kaybettin';
         }
+      }
+
+      // Calculate competitor offers if bidding is closed (won, completed or expired)
+      const hasAccepted = o.job.offers.some((off) => off.status === 'accepted');
+      const isBiddingClosed = isExpired || o.job.status === 'completed' || hasAccepted;
+      
+      let competitorOffers: any[] = [];
+      if (isBiddingClosed) {
+        // Sort all offers of the job from lowest to highest price
+        const sortedOffers = [...o.job.offers].sort((a, b) => Number(a.price) - Number(b.price));
+        competitorOffers = sortedOffers.map((off) => ({
+          price: Number(off.price),
+          isMe: off.provider_id === provider.id,
+        }));
       }
 
       return {
@@ -1102,6 +1164,7 @@ export class HizmetverenService {
           name: formData.name || 'Müşteri',
           status: o.job.status,
         },
+        competitorOffers,
       };
     });
   }
@@ -1150,11 +1213,13 @@ export class HizmetverenService {
         const requestDistrict = formData.district || 'Kadıköy';
 
         // Teklif limitleri ve zaman aşımı kontrolleri
-        const offerCount = await this.prisma.offer.count({
+        const jobOffers = await this.prisma.offer.findMany({
           where: { job_id: rt.job_id },
+          select: { created_at: true },
         });
+        const offerCount = jobOffers.length;
 
-        const { isExpired } = getRequestExpiryInfo(job.created_at, now.getTime());
+        const { isExpired } = getRequestExpiryInfo(job.created_at, now.getTime(), jobOffers);
 
         if (offerCount >= 4 || isExpired || job.status === 'completed' || job.status === 'cancelled') {
           // Teklife kapanmışsa sadece gönderildi işaretle, bildirim atma
@@ -1454,7 +1519,11 @@ export class HizmetverenService {
   }
 }
 
-export function getRequestExpiryInfo(createdAt: Date | string, compareWith: number = Date.now()) {
+export function getRequestExpiryInfo(
+  createdAt: Date | string,
+  compareWith: number = Date.now(),
+  offers: { created_at: Date | string | number }[] = []
+) {
   const createdDate = new Date(createdAt);
   
   // Format parts timezone-independently using Intl.DateTimeFormat
@@ -1473,8 +1542,8 @@ export function getRequestExpiryInfo(createdAt: Date | string, compareWith: numb
   const hour = parseInt(partVal('hour'), 10);
   const isNight = hour >= 18 || hour < 10;
   
-  let expiresTime = 0;
-  let label = '30 dakikalık';
+  let initialExpiresTime = 0;
+  let initialLabel = '30 dakikalık';
 
   if (isNight) {
     const targetDate = new Date(createdDate);
@@ -1500,14 +1569,31 @@ export function getRequestExpiryInfo(createdAt: Date | string, compareWith: numb
     
     // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
     const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
-    expiresTime = new Date(istanbul10AMIso).getTime();
-    label = "sabah 10:00'a kadar olan";
+    initialExpiresTime = new Date(istanbul10AMIso).getTime();
+    initialLabel = "sabah 10:00'a kadar olan";
   } else {
-    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+    initialExpiresTime = createdDate.getTime() + 30 * 60 * 1000;
+  }
+
+  // Check if any offers arrived before the initial expiry time
+  const offersBeforeExpiry = (offers || []).filter(o => {
+    const offerTime = o.created_at ? new Date(o.created_at).getTime() : 0;
+    return offerTime > 0 && offerTime < initialExpiresTime;
+  });
+  const hasOffersBeforeExpiry = offersBeforeExpiry.length > 0;
+
+  let expiresTime = initialExpiresTime;
+  let label = initialLabel;
+  let isExtended = false;
+
+  if (!hasOffersBeforeExpiry) {
+    expiresTime = initialExpiresTime + 15 * 60 * 1000; // Extend by 15 minutes
+    isExtended = true;
+    label = isNight ? "sabah 10:15'e kadar uzatılan" : "45 dakikalık (uzatılmış)";
   }
 
   const isExpired = expiresTime <= compareWith;
-  return { expiresTime, isExpired, label };
+  return { expiresTime, isExpired, label, isExtended, initialExpiresTime };
 }
 
 

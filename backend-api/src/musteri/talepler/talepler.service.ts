@@ -8,6 +8,7 @@ import { CreateTalepDto } from './dto/create-talep.dto';
 import { decryptPhone } from '../../common/utils/phone.util';
 import { TaleplerProcessor } from './talepler.processor';
 import { AuthService } from '../../ortak/auth/auth.service';
+import { getRequestExpiryInfo } from '../../hizmetveren/hizmetveren.service';
 
 @Injectable()
 export class TaleplerService {
@@ -146,6 +147,8 @@ export class TaleplerService {
           }
         });
       }
+      const { expiresTime } = getRequestExpiryInfo(req.created_at, Date.now(), req.offers);
+      (req as any).expiresTime = expiresTime;
       return req;
     });
   }
@@ -199,6 +202,9 @@ export class TaleplerService {
         }
       });
     }
+
+    const { expiresTime } = getRequestExpiryInfo(job.created_at, Date.now(), job.offers);
+    (job as any).expiresTime = expiresTime;
 
     return job;
   }
@@ -707,6 +713,99 @@ export class TaleplerService {
         category_name: r.job?.category?.name || 'Genel Hizmet',
       })),
       satisfaction_rate: satisfactionRate,
+    };
+  }
+
+  /**
+   * Süresi dolan veya iptal olan talebi aynı verilerle tekrar yayına alır
+   */
+  async republish(seekerUserId: string, jobId: string) {
+    // 1. Eski talebi getir
+    const oldJob = await this.prisma.serviceRequest.findUnique({
+      where: { id: jobId },
+      include: {
+        category: true,
+        offers: true,
+      },
+    });
+
+    if (!oldJob) {
+      throw new NotFoundException('Talep bulunamadı.');
+    }
+
+    if (oldJob.seeker_id !== seekerUserId) {
+      throw new ForbiddenException('Bu işlem için yetkiniz bulunmamaktadır.');
+    }
+
+    // 2. Süresinin dolup dolmadığını kontrol et
+    const { isExpired } = getRequestExpiryInfo(oldJob.created_at, Date.now(), oldJob.offers);
+    if (!isExpired && oldJob.status !== 'cancelled') {
+      throw new BadRequestException('Süresi dolmamış aktif bir talebi tekrar yayınlayamazsınız.');
+    }
+
+    // 3. Eski talebi iptal et (veya statüsünü güncelle)
+    if (oldJob.status !== 'cancelled' && oldJob.status !== 'completed') {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.serviceRequest.update({
+          where: { id: jobId },
+          data: { status: 'cancelled' },
+        });
+
+        await tx.offer.updateMany({
+          where: {
+            job_id: jobId,
+            status: 'pending',
+          },
+          data: { status: 'cancelled' },
+        });
+      });
+      
+      // WebSocket ile odadaki taraflara iptal duyurusu yap
+      const room = `job_${jobId}`;
+      this.chatGateway.server?.to(room).emit('job_status_changed', {
+        jobId,
+        status: 'cancelled',
+        message: 'Talep tekrar yayınlanmak üzere kapatıldı.',
+      });
+    }
+
+    // 4. Yeni talebi oluştur
+    const newJob = await this.prisma.serviceRequest.create({
+      data: {
+        seeker_id: seekerUserId,
+        category_id: oldJob.category_id,
+        form_data: oldJob.form_data as any,
+        status: 'pending',
+        is_direct: oldJob.is_direct,
+        direct_provider_id: oldJob.direct_provider_id,
+        created_by_provider: false,
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    // 5. Akıllı Dağıtım Algoritmasını BullMQ kuyruğuna ekle (Asenkron)
+    await this.distributionQueue.add('distribute', { jobId: newJob.id });
+    this.logger.log(`[Kuyruğa Eklendi - Tekrar Yayınlama] Talep ${newJob.id} dağıtım kuyruğuna başarıyla eklendi.`);
+
+    // 6. Serverless Google Cloud Run Failsafe: Run distribution synchronously in the background thread immediately!
+    try {
+      this.logger.log(`[Eşzamanlı Dağıtım Başladı - Tekrar Yayınlama] Failsafe tetikleniyor: Talep ${newJob.id}`);
+      this.taleplerProcessor.handleDistribution({
+        data: { jobId: newJob.id },
+        queue: this.distributionQueue,
+      } as any).catch(err => {
+        this.logger.error(`Eşzamanlı dağıtım hatası: ${err.message}`, err.stack);
+      });
+    } catch (err: any) {
+      this.logger.error(`Eşzamanlı dağıtım tetiklenemedi: ${err.message}`);
+    }
+
+    return {
+      success: true,
+      message: 'Talebiniz başarıyla tekrar yayına alındı.',
+      job: newJob,
     };
   }
 }

@@ -37,7 +37,8 @@ import {
   Activity,
   Wallet,
   Copy,
-  Check
+  Check,
+  RefreshCw
 } from "lucide-react";
 
 export function resolveCityFromDistrict(district?: string): string {
@@ -77,6 +78,7 @@ interface Offer {
   description?: string;
   message?: string;
   status: "pending" | "accepted" | "rejected" | "cancelled";
+  created_at: string | Date;
   provider: {
     id: string;
     avg_rating?: number | string;
@@ -154,7 +156,11 @@ interface SeekerDashboardProps {
   onStartChat?: (initialMessage?: string) => void;
 }
 
-const getRequestExpiryInfo = (createdAt: string | Date) => {
+const getRequestExpiryInfo = (
+  createdAt: Date | string,
+  compareWith: number = Date.now(),
+  offers: { created_at?: Date | string | number }[] = []
+) => {
   const createdDate = new Date(createdAt);
   
   // Format parts timezone-independently using Intl.DateTimeFormat
@@ -173,8 +179,8 @@ const getRequestExpiryInfo = (createdAt: string | Date) => {
   const hour = parseInt(partVal('hour'), 10);
   const isNight = hour >= 18 || hour < 10;
   
-  let expiresTime = 0;
-  let label = '30 dakika';
+  let initialExpiresTime = 0;
+  let initialLabel = '30 dakika';
 
   if (isNight) {
     const targetDate = new Date(createdDate);
@@ -200,32 +206,57 @@ const getRequestExpiryInfo = (createdAt: string | Date) => {
     
     // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
     const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;
-    expiresTime = new Date(istanbul10AMIso).getTime();
-    label = '15 saat';
+    initialExpiresTime = new Date(istanbul10AMIso).getTime();
+    initialLabel = "sabah 10:00'a kadar olan";
   } else {
-    expiresTime = createdDate.getTime() + 30 * 60 * 1000;
+    initialExpiresTime = createdDate.getTime() + 30 * 60 * 1000;
   }
 
-  const isExpired = expiresTime <= Date.now();
-  return { expiresTime, isExpired, label };
+  // Check if any offers arrived before the initial expiry time
+  const offersBeforeExpiry = (offers || []).filter(o => {
+    const offerTime = o.created_at ? new Date(o.created_at).getTime() : 0;
+    return offerTime > 0 && offerTime < initialExpiresTime;
+  });
+  const hasOffersBeforeExpiry = offersBeforeExpiry.length > 0;
+
+  let expiresTime = initialExpiresTime;
+  let label = initialLabel;
+  let isExtended = false;
+
+  if (!hasOffersBeforeExpiry) {
+    expiresTime = initialExpiresTime + 15 * 60 * 1000; // Extend by 15 minutes
+    isExtended = true;
+    label = isNight ? "sabah 10:15'e kadar uzatılan" : "45 dakikalık (uzatılmış)";
+  }
+
+  const isExpired = expiresTime <= compareWith;
+  return { expiresTime, isExpired, label, isExtended, initialExpiresTime };
 };
 
 const CountdownTimer = ({ 
   createdAt, 
+  expiresTime,
   onExpire, 
-  variant = 'default' 
+  variant = 'default',
+  offers = []
 }: { 
   createdAt: string | Date; 
+  expiresTime?: number;
   onExpire?: () => void; 
   variant?: 'default' | 'large';
+  offers?: any[];
 }) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
 
   useEffect(() => {
     const calculateTime = () => {
-      const { expiresTime } = getRequestExpiryInfo(createdAt);
+      let expTime = expiresTime;
+      if (!expTime) {
+        const { expiresTime: calculated } = getRequestExpiryInfo(createdAt, Date.now(), offers);
+        expTime = calculated;
+      }
       const now = Date.now();
-      const diff = expiresTime - now;
+      const diff = expTime - now;
 
       if (diff <= 0) {
         setTimeLeft('Süre Doldu');
@@ -927,6 +958,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
         price: offer.price,
         description: offer.description,
         status: "pending",
+        created_at: offer.created_at || new Date().toISOString(),
         provider: {
           id: offer.provider.id,
           user: {
@@ -1196,6 +1228,35 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           } else {
             const err = await res.json();
             alert(err.error?.message || "İptal işlemi başarısız.");
+          }
+        } catch (err) {
+          alert("Bir hata oluştu.");
+        }
+      }
+    );
+  };
+
+  const handleRePublishRequest = async (id: string) => {
+    showConfirm(
+      "Talebi Tekrar Yayınla",
+      "Bu talebi aynı bilgilerle tekrar yayına almak istiyor musunuz?\nTalebiniz yeni bir talep gibi yayına alınacak ve esnaflara iletilecektir.",
+      async () => {
+        try {
+          const res = await customFetch(`/api/musteri/talepler/${id}/tekrar-yayinla`, {
+            method: "POST",
+          });
+          if (res.ok) {
+            const result = await res.json();
+            alert("Talebiniz başarıyla tekrar yayına alındı!");
+            fetchRequests();
+            if (result.job) {
+              setSelectedRequest(result.job);
+            } else {
+              setSelectedRequest(null);
+            }
+          } else {
+            const err = await res.json();
+            alert(err.error?.message || "Tekrar yayınlama işlemi başarısız.");
           }
         } catch (err) {
           alert("Bir hata oluştu.");
@@ -1861,18 +1922,30 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2 self-end md:self-center">
-                                  <button 
-                                    onClick={() => setSelectedRequest(req)}
-                                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1"
-                                  >
-                                    {offerCount > 0 ? `Teklifleri Gör (${offerCount})` : 'Detayları İncele'}
-                                  </button>
-                                  <button 
-                                    onClick={() => handleCancelRequest(req.id)}
-                                    className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
-                                  >
-                                    İptal Et
-                                  </button>
+                                  {getRequestExpiryInfo(req.created_at, Date.now(), req.offers).isExpired ? (
+                                    <button 
+                                      onClick={() => handleRePublishRequest(req.id)}
+                                      className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-[#b2db42] flex items-center gap-1.5"
+                                    >
+                                      <RefreshCw className="w-3.5 h-3.5" />
+                                      Tekrar Yayınla
+                                    </button>
+                                  ) : (
+                                    <>
+                                      <button 
+                                        onClick={() => setSelectedRequest(req)}
+                                        className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1"
+                                      >
+                                        {offerCount > 0 ? `Teklifleri Gör (${offerCount})` : 'Detayları İncele'}
+                                      </button>
+                                      <button 
+                                        onClick={() => handleCancelRequest(req.id)}
+                                        className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                      >
+                                        İptal Et
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2558,7 +2631,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                               <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
                                 Tekliflere Kapandı
                               </span>
-                            ) : getRequestExpiryInfo(selectedRequest.created_at).isExpired ? (
+                            ) : getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).isExpired ? (
                               <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
                                 Süre Doldu
                               </span>
@@ -2578,16 +2651,32 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 Bu hizmet talebi iptal edilmiştir. Yeni teklif alımına kapalıdır.
                               </p>
                             </div>
-                          ) : !(selectedRequest.offers?.length >= 4) && !getRequestExpiryInfo(selectedRequest.created_at).isExpired && !selectedRequest.offers?.some((o: any) => o.status === "accepted") ? (
+                          ) : getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).isExpired ? (
+                            <div className="bg-slate-50 border border-slate-200/60 rounded-[20px] p-6 text-center flex flex-col items-center justify-center gap-4 animate-scale-up">
+                              <div className="space-y-1.5">
+                                <h5 className="font-extrabold text-sm text-slate-900">Teklif Alım Süresi Doldu</h5>
+                                <p className="text-slate-500 text-xs font-semibold max-w-[320px] leading-relaxed mx-auto">
+                                  Bu talebin teklif toplama süresi dolmuştur. Dilerseniz bu talebi aynı bilgilerle tekrar yayına alabilirsiniz.
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleRePublishRequest(selectedRequest.id)}
+                                className="bg-[#c8f252] hover:bg-[#b5dc43] text-[#2c3e07] font-black text-xs py-3 px-6 rounded-2xl transition-all shadow-[0_4px_12px_rgba(200,242,82,0.2)] hover:scale-[1.02] flex items-center gap-2 border border-[#b2db42] cursor-pointer"
+                              >
+                                <RefreshCw className="w-4 h-4" />
+                                Talebi Tekrar Yayınla
+                              </button>
+                            </div>
+                          ) : !(selectedRequest.offers?.length >= 4) && !getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).isExpired && !selectedRequest.offers?.some((o: any) => o.status === "accepted") ? (
                             <div className="bg-rose-50/40 border border-rose-100/70 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 animate-scale-up">
                               <div className="flex flex-col items-center gap-1">
-                                <CountdownTimer createdAt={selectedRequest.created_at} variant="large" />
+                                <CountdownTimer createdAt={selectedRequest.created_at} variant="large" offers={selectedRequest.offers} />
                                 <span className="text-xs font-black text-rose-500 uppercase tracking-wider">
                                   Teklife Kapanacak
                                 </span>
                               </div>
                               <p className="text-slate-700 text-xs font-extrabold leading-relaxed max-w-md">
-                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. {getRequestExpiryInfo(selectedRequest.created_at).label} içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
+                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. {getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).label} içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
                               </p>
                             </div>
                           ) : null}
