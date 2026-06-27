@@ -447,7 +447,7 @@ export default function Home() {
       <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
           <div className="flex items-center gap-12">
-            <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center">
+            <a href="/" className="flex items-center">
               <div className="h-16 w-[180px] overflow-hidden flex items-center justify-center relative cursor-pointer">
                 <img
                   alt="Esnaaf Logo"
@@ -993,13 +993,13 @@ export default function Home() {
       <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
           <div className="space-y-6">
-            <div className="h-16 w-[180px] overflow-hidden flex items-center justify-center relative -ml-[18px]">
+            <a href="/" className="block h-16 w-[180px] overflow-hidden flex items-center justify-center relative -ml-[18px]">
               <img
                 alt="Esnaaf Logo"
                 className="absolute h-[180px] w-auto max-w-none object-contain"
                 src="/logo.png"
               />
-            </div>
+            </a>
             <p className="text-sm font-body text-on-surface-variant leading-relaxed">
               Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
             </p>
@@ -1207,11 +1207,13 @@ export default function Home() {
               <>
                 {/* Logo and Intro */}
                 <div className="flex flex-col items-center text-center mt-2 mb-6">
-                  <img 
-                    alt="Esnaaf Logo" 
-                    className="h-14 w-auto object-contain select-none mb-3" 
-                    src="/logo.png" 
-                  />
+                  <a href="/">
+                    <img 
+                      alt="Esnaaf Logo" 
+                      className="h-14 w-auto object-contain select-none mb-3" 
+                      src="/logo.png" 
+                    />
+                  </a>
                   <h3 className="font-bold text-lg md:text-xl text-slate-900 tracking-tight">
                     {otpSent ? "Doğrulama Kodunu Girin" : "Esnaaf'a Giriş Yap"}
                   </h3>
