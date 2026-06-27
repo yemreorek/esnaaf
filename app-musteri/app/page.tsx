@@ -507,7 +507,7 @@ export default function Home() {
       </header>
 
       {/* 🚀 Hero Section */}
-      <section className="relative min-h-[95vh] flex flex-col justify-center items-center pt-24 pb-16 overflow-hidden bg-[#ffffff] text-slate-900 text-center tech-grid">
+      <section className="relative min-h-[85vh] flex flex-col justify-center items-center pt-24 pb-8 overflow-hidden bg-[#ffffff] text-slate-900 text-center tech-grid">
         {/* Glow ambient meshes */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full mesh-glow-green pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2 opacity-60"></div>
         <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full mesh-glow-indigo pointer-events-none z-0 transform translate-x-1/2 translate-y-1/2 opacity-40"></div>
@@ -593,7 +593,7 @@ export default function Home() {
       </section>
 
       {/* 🧭 Categories Section */}
-      <section id="categories-section" className="py-16 bg-slate-50/40 border-y border-slate-100 scroll-mt-24">
+      <section id="categories-section" className="py-10 bg-slate-50/40 border-y border-slate-100 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 w-full">
             {[
@@ -624,8 +624,8 @@ export default function Home() {
       </section>
 
       {/* 📊 Haftanın Trend Hizmetleri Section */}
-      <section id="trend-services" className="py-24 max-w-7xl mx-auto px-4 md:px-6">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+      <section id="trend-services" className="py-12 max-w-7xl mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-4">
           <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Popüler Listeler</span>
           <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Haftanın Trend Hizmetleri</h2>
           <p className="font-body text-slate-500 text-sm">Mahallenizde en çok aranan ve en hızlı teklif toplayan popüler hizmetler</p>
@@ -704,9 +704,9 @@ export default function Home() {
       </section>
 
       {/* 3 Easy Steps Section */}
-      <section id="how-it-works" className="py-24 bg-slate-50/40 border-t border-slate-100 overflow-hidden">
+      <section id="how-it-works" className="py-12 bg-slate-50/40 border-t border-slate-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative">
-          <div className="text-center mb-16 space-y-4">
+          <div className="text-center mb-10 space-y-4">
             <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Kolay Süreç</span>
             <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">3 Kolay Adımla Komşu Esnaftan Hizmet Al</h2>
             <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu hizmet veren ve esnaflarla buluşun</p>
@@ -759,9 +759,9 @@ export default function Home() {
       </section>
 
       {/* Neden Biz Section */}
-      <section id="why-us" className="py-24 bg-white border-t border-slate-100">
+      <section id="why-us" className="py-12 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+          <div className="text-center max-w-2xl mx-auto mb-10 space-y-4">
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-slate-200/50">Neden Esnaaf</span>
             <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Uzağa Arama, Mahallendeki Esnaflara Hızlıca Ulaş</h2>
             <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalle esnafıyla keyifli bir işbirliğine dönüştürüyoruz.</p>
@@ -804,7 +804,7 @@ export default function Home() {
       </section>
 
       {/* Provider Join CTA Section */}
-      <section className="py-24 bg-white border-t border-slate-100 px-4 md:px-6">
+      <section className="py-12 bg-white border-t border-slate-100 px-4 md:px-6">
         <div className="max-w-7xl mx-auto bg-slate-50 border border-slate-150/50 rounded-[2rem] overflow-hidden grid md:grid-cols-2 items-center">
           <div className="h-96 md:h-[450px] relative">
             <Image
@@ -833,7 +833,7 @@ export default function Home() {
       </section>
 
       {/* Category Link List 1 */}
-      <section className="py-16 bg-white border-t border-slate-100 px-4 md:px-6">
+      <section className="py-10 bg-white border-t border-slate-100 px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
           <h3 className="font-bold text-xl text-slate-900">
             Mahallendeki En Çok Tercih Edilen <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
@@ -866,7 +866,7 @@ export default function Home() {
       </section>
 
       {/* Cleaners Banner Section */}
-      <section className="py-12 bg-white px-4 md:px-6">
+      <section className="py-8 bg-white px-4 md:px-6">
         <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-900 text-white grid md:grid-cols-12 items-center shadow-lg">
           <div className="md:col-span-7 p-8 md:p-16 space-y-6">
             <h2 className="font-bold text-3xl md:text-4xl text-white tracking-tight">
@@ -895,7 +895,7 @@ export default function Home() {
       </section>
 
       {/* Category Link List 2 */}
-      <section className="py-16 bg-white px-4 md:px-6">
+      <section className="py-10 bg-white px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
           <h3 className="font-bold text-xl text-slate-900">
             En Çok Tercih Edilen İllerde <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
@@ -926,7 +926,7 @@ export default function Home() {
       </section>
 
       {/* Guarantee Banner Section */}
-      <section className="py-12 bg-white px-4 md:px-6">
+      <section className="py-8 bg-white px-4 md:px-6">
         <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-50 border border-slate-150/50 grid md:grid-cols-12 items-center shadow-sm">
           <div className="md:col-span-6 h-80 md:h-[400px] relative">
             <img
@@ -956,7 +956,7 @@ export default function Home() {
       </section>
 
       {/* 📱 Mobile App Download Banner */}
-      <section id="app-download" className="py-24 bg-surface-container-low relative overflow-hidden">
+      <section id="app-download" className="py-12 bg-surface-container-low relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl z-0"></div>
         
@@ -990,7 +990,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24">
+      <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
           <div className="space-y-6">
             <a href="/" className="block h-16 w-[180px] overflow-hidden flex items-center justify-center relative -ml-[18px]">
