@@ -1317,5 +1317,150 @@ export class AdminService {
       },
     };
   }
+
+  /**
+   * Generates regional KPI stats and open leaderboard for administrators
+   */
+  async getRegionalKpiReport(
+    query: { city?: string; district?: string; categorySlug?: string; period?: string },
+    adminEmail?: string,
+  ) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'dashboard', 'read');
+    }
+
+    const { city, district, categorySlug, period = 'monthly' } = query;
+
+    // 1. Resolve timeframe
+    let dateLimit = new Date();
+    if (period === 'weekly') {
+      dateLimit.setDate(dateLimit.getDate() - 7);
+    } else if (period === 'six_months') {
+      dateLimit.setDate(dateLimit.getDate() - 180);
+    } else {
+      dateLimit.setDate(dateLimit.getDate() - 30);
+    }
+
+    // 2. Resolve Category ID by slug
+    let categoryId: string | undefined = undefined;
+    if (categorySlug) {
+      const catName = SLUG_TO_NAME[categorySlug];
+      if (catName) {
+        const cat = await this.prisma.category.findUnique({
+          where: { name: catName }
+        });
+        if (cat) categoryId = cat.id;
+      }
+    }
+
+    // 3. Fetch ServiceRequests within time range
+    const requests = await this.prisma.serviceRequest.findMany({
+      where: {
+        created_at: { gte: dateLimit },
+        ...(categoryId && { category_id: categoryId }),
+      },
+      include: {
+        offers: {
+          include: {
+            provider: {
+              include: {
+                user: true
+              }
+            }
+          }
+        },
+        accepted_offers: true,
+      }
+    });
+
+    // 4. In-Memory Filter by Location (city & district)
+    const filteredRequests = requests.filter((r) => {
+      const fd = r.form_data as any;
+      if (!fd) return false;
+      if (city && fd.city !== city) return false;
+      if (district && fd.district !== district) return false;
+      return true;
+    });
+
+    const totalRequests = filteredRequests.length;
+
+    // Successful requests: status is completed OR has at least one accepted offer
+    const successfulRequests = filteredRequests.filter((r) => {
+      return r.status === 'completed' || r.accepted_offers.length > 0 || r.offers.some(o => o.status === 'accepted');
+    }).length;
+
+    const cancelledRequests = filteredRequests.filter((r) => r.status === 'cancelled').length;
+    const lostRequests = totalRequests - successfulRequests;
+
+    const conversionRate = totalRequests > 0 ? Math.round((successfulRequests / totalRequests) * 100) : 0;
+    const lossRate = totalRequests > 0 ? Math.round((lostRequests / totalRequests) * 100) : 0;
+
+    // 5. Build Leaderboard
+    const providerStatsMap: Record<string, { name: string; bidsSent: number; jobsWon: number }> = {};
+
+    for (const r of filteredRequests) {
+      for (const o of r.offers) {
+        const pId = o.provider_id;
+        const pName = o.provider.description || o.provider.user.name || 'Bilinmeyen Usta';
+        
+        if (!providerStatsMap[pId]) {
+          providerStatsMap[pId] = { name: pName, bidsSent: 0, jobsWon: 0 };
+        }
+        providerStatsMap[pId].bidsSent += 1;
+        if (o.status === 'accepted') {
+          providerStatsMap[pId].jobsWon += 1;
+        }
+      }
+    }
+
+    const leaderboard = Object.keys(providerStatsMap).map((pId) => {
+      const stats = providerStatsMap[pId];
+      const winRate = stats.bidsSent > 0 ? Math.round((stats.jobsWon / stats.bidsSent) * 100) : 0;
+      return {
+        providerId: pId,
+        name: stats.name,
+        jobsWon: stats.jobsWon,
+        bidsSent: stats.bidsSent,
+        successRate: winRate,
+      };
+    })
+    .sort((a, b) => b.jobsWon - a.jobsWon || b.successRate - a.successRate)
+    .slice(0, 10);
+
+    return {
+      metrics: {
+        totalRequests,
+        successfulRequests,
+        cancelledRequests,
+        lostRequests,
+        conversionRate,
+        lossRate,
+      },
+      leaderboard,
+    };
+  }
 }
+
+export const SLUG_TO_NAME: Record<string, string> = {
+  'ev-temizligi': 'Ev Temizliği',
+  'boya-badana': 'Boya Badana',
+  'su-tesisati': 'Su Tesisatı',
+  'elektrik-tesisati': 'Elektrik Tesisatı',
+  'ev-tadilat': 'Ev Tadilat',
+  'nakliyat': 'Nakliyat / Ev Taşıma',
+  'hali-koltuk-yikama': 'Halı & Koltuk Yıkama',
+  'insaat-sonrasi-temizlik': 'İnşaat / Tadilat Sonrası Temizlik',
+  'fayans-parke': 'Fayans & Parke Döşeme',
+  'hasere-ilaclama': 'Haşere & Böcek İlaçlama',
+  'kombi-klima': 'Kombi & Klima Bakımı',
+  'mantolama-discephe': 'Mantolama & Dış Cephe',
+  'marangoz-mobilya': 'Marangoz & Mobilya Montajı',
+  'ozel-ders': 'Özel Ders',
+  'cam-balkon-pvc': 'Cam Balkon & PVC Pencere',
+  'ofis-temizligi': 'Ofis & İş Yeri Temizliği',
+  'dogalgaz-tesisati': 'Doğalgaz Tesisatı',
+  'ic-mimar-dekorasyon': 'İç Mimar & Dekorasyon',
+  'fotografci': 'Fotoğrafçı',
+  'organizasyon-etkinlik': 'Organizasyon & Etkinlik'
+};
 

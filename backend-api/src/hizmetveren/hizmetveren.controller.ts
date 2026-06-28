@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, Param, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../common/decorators';
@@ -196,5 +196,18 @@ export class HizmetverenController {
     @Body() body: { seekerId: string; price: number; categorySlug: string; details: string; district: string }
   ) {
     return this.hizmetverenService.createDirectJobCard(user.id, body);
+  }
+
+  /**
+   * Hizmet verene özel rakip istatistikleri ve bölgesel performans raporu
+   * GET /api/hizmetveren/kpi-raporlari
+   */
+  @Get('kpi-raporlari')
+  @HttpCode(HttpStatus.OK)
+  async getCompetitorStatsReport(
+    @CurrentUser() user: any,
+    @Query('period') period?: string
+  ) {
+    return this.hizmetverenService.getCompetitorStatsReport(user.id, period);
   }
 }

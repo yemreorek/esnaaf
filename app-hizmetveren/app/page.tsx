@@ -499,7 +499,7 @@ export default function ProviderDashboard() {
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal' | 'loyal_customers' | 'profil-ayarlar'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'firsatlar' | 'teklifler' | 'kazanilanlar' | 'tamamlananlar' | 'yorumlar' | 'abonelik' | 'uyusmazliklar' | 'belge-dogrulama' | 'kayip_iptal' | 'loyal_customers' | 'profil-ayarlar' | 'kpi'>('dashboard');
   const [lostAndCancelledJobs, setLostAndCancelledJobs] = useState<any[]>([]);
   
   // Loyalty / Direct Job states
@@ -518,6 +518,13 @@ export default function ProviderDashboard() {
   const [isDemoStats, setIsDemoStats] = useState<boolean>(true);
   const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+
+  // Competitor KPI stats state variables
+  const [providerKpiPeriod, setProviderKpiPeriod] = useState<'weekly' | 'monthly' | 'six_months'>('monthly');
+  const [providerKpiData, setProviderKpiData] = useState<any>(null);
+  const [loadingProviderKpi, setLoadingProviderKpi] = useState<boolean>(false);
+  const [providerKpiSelectedCategorySlug, setProviderKpiSelectedCategorySlug] = useState<string>('');
+  
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
   const [offersList, setOffersList] = useState<any[]>([]);
   const [wonJobs, setWonJobs] = useState<any[]>([]);
@@ -1957,11 +1964,47 @@ export default function ProviderDashboard() {
     }
   };
 
+  const fetchProviderKpiReport = async (currentToken?: string) => {
+    const activeToken = currentToken || token;
+    if (!activeToken) return;
+    setLoadingProviderKpi(true);
+    try {
+      const url = new URL('/api/hizmetveren/kpi-raporlari', window.location.origin);
+      url.searchParams.set('period', providerKpiPeriod);
+      const res = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProviderKpiData(data);
+        if (data.reports && data.reports.length > 0 && !providerKpiSelectedCategorySlug) {
+          setProviderKpiSelectedCategorySlug(data.reports[0].categorySlug);
+        }
+      } else {
+        addLog(`Usta KPI raporu yüklenemedi: ${data.error?.message}`);
+      }
+    } catch (err: any) {
+      addLog(`Usta KPI raporu yükleme hatası: ${err.message}`);
+    } finally {
+      setLoadingProviderKpi(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      fetchTabDependencies(activeTab, token);
+      if (activeTab === 'kpi') {
+        fetchProviderKpiReport(token);
+      } else {
+        fetchTabDependencies(activeTab, token);
+      }
     }
   }, [activeTab, token]);
+
+  useEffect(() => {
+    if (token && activeTab === 'kpi') {
+      fetchProviderKpiReport(token);
+    }
+  }, [providerKpiPeriod, token, activeTab]);
 
   useEffect(() => {
     if (!activeChat) return;
@@ -2494,6 +2537,21 @@ export default function ProviderDashboard() {
             <XCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-red-500" />
             <span>Kaybedilen ve İptal Edilenler</span>
             {isTabLocked('kayip_iptal') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
+          </button>
+
+          <button
+            onClick={() => handleTabClick('kpi')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              isTabLocked('kpi')
+                ? 'opacity-40 cursor-not-allowed text-slate-400'
+                : activeTab === 'kpi' 
+                  ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                  : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <TrendingUp className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
+            <span>Rakip İstatistikleri (KPI)</span>
+            {isTabLocked('kpi') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
           </button>
 
           <button
@@ -3982,7 +4040,7 @@ export default function ProviderDashboard() {
                           {new Date(rev.created_at).toLocaleDateString("tr-TR")}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-650 font-semibold bg-slate-50 p-4 rounded-xl border border-slate-100 italic leading-relaxed">
+                      <p className="text-xs text-slate-655 font-semibold bg-slate-50 p-4 rounded-xl border border-slate-100 italic leading-relaxed">
                         &ldquo;{rev.comment}&rdquo;
                       </p>
                       <span className="text-[9px] bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] px-2.5 py-0.5 rounded font-mono font-black tracking-wider uppercase inline-block">
@@ -3998,6 +4056,195 @@ export default function ProviderDashboard() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'kpi' && (
+            <div className="space-y-6 animate-scale-up text-left">
+              <div>
+                <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl flex items-center gap-2">
+                  <TrendingUp className="w-7 h-7 text-[#4c630a]" />
+                  <span>Rakip İstatistikleri & KPI Analizi</span>
+                </h2>
+                <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
+                  Bölgenizdeki rekabet durumunu ve fiyat politikalarını analiz ederek iş kazanma şansınızı optimize edin.
+                </p>
+              </div>
+
+              {/* Filters bar */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+                {/* Category Dropdown */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-black text-slate-500 uppercase">Kategori:</span>
+                  <select
+                    value={providerKpiSelectedCategorySlug}
+                    onChange={(e) => setProviderKpiSelectedCategorySlug(e.target.value)}
+                    className="bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2 text-xs font-black text-slate-700 outline-none focus:border-slate-300"
+                  >
+                    {providerKpiData?.reports?.map((rep: any) => (
+                      <option key={rep.categorySlug} value={rep.categorySlug}>
+                        {rep.categoryName}
+                      </option>
+                    ))}
+                    {(!providerKpiData?.reports || providerKpiData.reports.length === 0) && (
+                      <option value="">Yükleniyor...</option>
+                    )}
+                  </select>
+                </div>
+
+                {/* Period selector */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-black text-slate-500 uppercase">Periyot:</span>
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button
+                      onClick={() => setProviderKpiPeriod('weekly')}
+                      className={`text-[10px] font-black py-1.5 px-3.5 rounded-lg transition-all cursor-pointer ${
+                        providerKpiPeriod === 'weekly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Haftalık
+                    </button>
+                    <button
+                      onClick={() => setProviderKpiPeriod('monthly')}
+                      className={`text-[10px] font-black py-1.5 px-3.5 rounded-lg transition-all cursor-pointer ${
+                        providerKpiPeriod === 'monthly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Aylık
+                    </button>
+                    <button
+                      onClick={() => setProviderKpiPeriod('six_months')}
+                      className={`text-[10px] font-black py-1.5 px-3.5 rounded-lg transition-all cursor-pointer ${
+                        providerKpiPeriod === 'six_months' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      6 Aylık
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {loadingProviderKpi ? (
+                <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 rounded-full border-4 border-slate-100 border-t-[#4c630a] animate-spin mb-3"></div>
+                  <p className="text-slate-400 text-xs font-bold">Performans raporu hesaplanıyor...</p>
+                </div>
+              ) : providerKpiData ? (() => {
+                const currentReport = providerKpiData.reports?.find(
+                  (r: any) => r.categorySlug === providerKpiSelectedCategorySlug
+                ) || providerKpiData.reports?.[0];
+
+                if (!currentReport) {
+                  return (
+                    <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
+                      <p className="text-slate-400 text-xs font-bold">Seçilen kategoriye ait veri bulunamadı.</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-6 max-w-4xl">
+                    {/* Bölge Durum Özeti */}
+                    <div className="bg-gradient-to-r from-[#4c630a]/5 to-[#c8f252]/10 border border-[#4c630a]/15 p-5 rounded-[24px] shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-[#c8f252]/10 rounded-full blur-xl pointer-events-none"></div>
+                      <h4 className="font-extrabold text-[#4c630a] text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4c630a] animate-ping"></span>
+                        Bölge Durum Özeti
+                      </h4>
+                      <p className="text-sm font-black text-slate-800 leading-relaxed">
+                        {currentReport.summary}
+                      </p>
+                    </div>
+
+                    {/* Anonim Rekabet Tablosu & Gelişim Tavsiyesi Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                      {/* Competitor list */}
+                      <div className="bg-white rounded-[28px] border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4.5 border-b border-slate-100 bg-slate-50/60">
+                          <h3 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Award className="w-4 h-4 text-[#4c630a]" />
+                            <span>Anonim Rekabet Tablosu</span>
+                          </h3>
+                        </div>
+
+                        <div className="divide-y divide-slate-100">
+                          {currentReport.competitorTable?.length === 0 ? (
+                            <div className="text-center py-10 text-slate-400 text-xs italic">
+                              Henüz iş kazanan usta kaydı bulunamadı.
+                            </div>
+                          ) : (
+                            currentReport.competitorTable?.map((row: any) => (
+                              <div
+                                key={row.rank + '-' + row.name}
+                                className={`px-6 py-4 flex justify-between items-center transition-colors ${
+                                  row.isMe 
+                                    ? 'bg-[#c8f252]/15 border-l-4 border-l-[#4c630a]' 
+                                    : 'hover:bg-slate-50/60'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className={`w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                                    row.isMe 
+                                      ? 'bg-[#4c630a] text-white' 
+                                      : 'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {row.rank}
+                                  </span>
+                                  <span className={`text-xs ${row.isMe ? 'font-black text-[#4c630a]' : 'font-bold text-slate-700'}`}>
+                                    {row.name}
+                                  </span>
+                                </div>
+                                <span className={`text-xs font-black ${row.isMe ? 'text-slate-900' : 'text-slate-500'}`}>
+                                  {row.wonJobs} İş Kazandı
+                                </span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Gelişim Tavsiyesi */}
+                      <div className="bg-white rounded-[28px] border border-slate-100 shadow-sm p-6 space-y-4">
+                        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                          <div className="w-8 h-8 rounded-xl bg-[#c8f252]/20 flex items-center justify-center text-[#4c630a]">
+                            <Briefcase className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                              Gelişim Tavsiyesi
+                            </h3>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Yapay Zeka & Sistem Önerisi</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-655 font-semibold leading-relaxed bg-[#c8f252]/5 border border-[#c8f252]/10 p-4.5 rounded-2xl italic">
+                          &ldquo;{currentReport.advice}&rdquo;
+                        </p>
+
+                        {/* Price Comparison */}
+                        <div className="grid grid-cols-2 gap-4 pt-1">
+                          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-center">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Kazanan Teklif Ortalaması</span>
+                            <p className="text-base font-black text-[#4c630a] mt-1">
+                              {currentReport.winningPriceAvg ? `₺${currentReport.winningPriceAvg.toLocaleString('tr-TR')}` : '₺-'}
+                            </p>
+                          </div>
+                          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-center">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Sizin Teklif Ortalamanız</span>
+                            <p className="text-base font-black text-slate-800 mt-1">
+                              {currentReport.myPriceAvg ? `₺${currentReport.myPriceAvg.toLocaleString('tr-TR')}` : '₺-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })() : (
+                <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
+                  <p className="text-slate-400 text-sm font-bold">Raporlar yüklenemedi. Lütfen tekrar deneyin.</p>
+                </div>
+              )}
             </div>
           )}
 

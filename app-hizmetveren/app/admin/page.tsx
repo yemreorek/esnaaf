@@ -19,7 +19,9 @@ import {
   TrendingUp,
   FileText,
   Percent,
-  Sliders
+  Sliders,
+  Award,
+  Check
 } from 'lucide-react';
 
 interface Stats {
@@ -231,7 +233,7 @@ export default function AdminPortal() {
 
 
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs' | 'kpi'>('dashboard');
   const [logMessages, setLogMessages] = useState<string[]>([]);
   
   // Simulated Logged-In User Profile and RBAC States
@@ -267,6 +269,8 @@ export default function AdminPortal() {
       switch (tab) {
         case 'dashboard':
           return !!(perms.dashboard && perms.dashboard !== 'none');
+        case 'kpi':
+          return !!(perms.dashboard && perms.dashboard !== 'none');
         case 'users':
           return !!(perms.users && perms.users !== 'none');
         case 'approvals':
@@ -296,13 +300,13 @@ export default function AdminPortal() {
     const role = currentUser.role;
     switch (role) {
       case 'quality_staff':
-        return ['calltasks', 'reviews', 'nps', 'dashboard'].includes(tab);
+        return ['calltasks', 'reviews', 'nps', 'dashboard', 'kpi'].includes(tab);
       case 'finance_staff':
-        return ['disputes', 'campaigns', 'dashboard'].includes(tab);
+        return ['disputes', 'campaigns', 'dashboard', 'kpi'].includes(tab);
       case 'ops_staff':
-        return ['approvals', 'users', 'disputes'].includes(tab);
+        return ['approvals', 'users', 'disputes', 'kpi'].includes(tab);
       case 'sales_staff':
-        return ['campaigns', 'dashboard'].includes(tab);
+        return ['campaigns', 'dashboard', 'kpi'].includes(tab);
       default:
         return false;
     }
@@ -443,6 +447,14 @@ export default function AdminPortal() {
   const [statusFilter, setStatusFilter] = useState('');
   const [userPage, setUserPage] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+
+  // Regional KPI state variables
+  const [kpiCity, setKpiCity] = useState('');
+  const [kpiDistrict, setKpiDistrict] = useState('');
+  const [kpiCategorySlug, setKpiCategorySlug] = useState('');
+  const [kpiPeriod, setKpiPeriod] = useState<'weekly' | 'monthly' | 'six_months'>('monthly');
+  const [kpiData, setKpiData] = useState<any>(null);
+  const [loadingKpi, setLoadingKpi] = useState(false);
 
   // Modals / Overlays
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -1165,6 +1177,33 @@ ${callTaskNotes}`;
     }
   };
 
+  const loadKpiReport = async (tokenString?: string) => {
+    const activeToken = tokenString || token;
+    if (!activeToken) return;
+    setLoadingKpi(true);
+    try {
+      const url = new URL('/api/admin/reports/regional-kpi', window.location.origin);
+      if (kpiCity) url.searchParams.set('city', kpiCity);
+      if (kpiDistrict) url.searchParams.set('district', kpiDistrict);
+      if (kpiCategorySlug) url.searchParams.set('categorySlug', kpiCategorySlug);
+      url.searchParams.set('period', kpiPeriod);
+
+      const res = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setKpiData(data);
+      } else {
+        addLog(`KPI Raporu yükleme başarısız: ${data.error?.message}`);
+      }
+    } catch (err: any) {
+      addLog(`KPI Raporu yükleme hatası: ${err.message}`);
+    } finally {
+      setLoadingKpi(false);
+    }
+  };
+
   const showUserDetail = async (userId: string) => {
     if (!token) return;
     try {
@@ -1269,6 +1308,8 @@ ${callTaskNotes}`;
         loadCampaigns(token);
       } else if (activeTab === 'auditlogs') {
         loadAuditLogs(token, auditLogsPage);
+      } else if (activeTab === 'kpi') {
+        loadKpiReport(token);
       }
     }
   }, [activeTab, token]);
@@ -1278,6 +1319,12 @@ ${callTaskNotes}`;
       loadRoleDashboardStats(token, dashboardRole);
     }
   }, [dashboardRole, token]);
+
+  useEffect(() => {
+    if (token && activeTab === 'kpi') {
+      loadKpiReport(token);
+    }
+  }, [kpiCity, kpiDistrict, kpiCategorySlug, kpiPeriod, token, activeTab]);
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans pb-12 relative overflow-hidden selection:bg-[#c8f252]/30 selection:text-slate-950">
@@ -1648,6 +1695,23 @@ ${callTaskNotes}`;
                 <div className="flex items-center gap-3">
                   <FileText className="w-5 h-5" />
                   <span>Denetim Günlükleri</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </button>
+            )}
+
+            {isTabAllowed('kpi') && (
+              <button
+                onClick={() => setActiveTab('kpi')}
+                className={`w-full text-left px-5 py-4 rounded-2xl font-black text-sm flex items-center justify-between transition-all border cursor-pointer ${
+                  activeTab === 'kpi'
+                    ? 'bg-[#c8f252] border-[#c8f252]/20 text-slate-955 font-extrabold shadow-sm shadow-[#c8f252]/10'
+                    : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Bölgesel Raporlar / KPI</span>
                 </div>
                 <ChevronRight className="w-4 h-4 opacity-50" />
               </button>
@@ -3519,6 +3583,233 @@ ${callTaskNotes}`;
               </div>
             )}
 
+            {/* TAB 12: REGIONAL KPI & PERFORMANCE REPORTS */}
+            {activeTab === 'kpi' && (
+              <div className="space-y-6 animate-scale-up">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                    <TrendingUp className="w-6 h-6 text-slate-800" />
+                    <span>Bölgesel KPI & Performans Raporları</span>
+                  </h2>
+                  <div className="text-xs bg-[#c8f252]/10 border border-[#c8f252]/20 text-slate-800 font-extrabold px-3 py-1.5 rounded-xl">
+                    Veri Güncelleme: Anlık
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
+                  <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">İl</label>
+                    <select
+                      value={kpiCity}
+                      onChange={(e) => {
+                        setKpiCity(e.target.value);
+                        setKpiDistrict('');
+                      }}
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                    >
+                      <option value="">Tüm İller</option>
+                      <option value="Adana">Adana</option>
+                      <option value="İstanbul">İstanbul</option>
+                      <option value="Ankara">Ankara</option>
+                      <option value="İzmir">İzmir</option>
+                    </select>
+                  </div>
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">İlçe</label>
+                    <select
+                      value={kpiDistrict}
+                      onChange={(e) => setKpiDistrict(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                    >
+                      <option value="">Tüm İlçeler</option>
+                      {kpiCity === 'Adana' && (
+                        <>
+                          <option value="Seyhan">Seyhan</option>
+                          <option value="Çukurova">Çukurova</option>
+                          <option value="Yüreğir">Yüreğir</option>
+                        </>
+                      )}
+                      {kpiCity === 'İstanbul' && (
+                        <>
+                          <option value="Kadıköy">Kadıköy</option>
+                          <option value="Beşiktaş">Beşiktaş</option>
+                          <option value="Şişli">Şişli</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="flex-1 min-w-[180px]">
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">Kategori</label>
+                    <select
+                      value={kpiCategorySlug}
+                      onChange={(e) => setKpiCategorySlug(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                    >
+                      <option value="">Tüm Kategoriler</option>
+                      <option value="ev-temizligi">Ev Temizliği</option>
+                      <option value="boya-badana">Boya Badana</option>
+                      <option value="su-tesisati">Su Tesisatı</option>
+                      <option value="elektrik-tesisati">Elektrik Tesisatı</option>
+                    </select>
+                  </div>
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">Zaman Dilimi</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                      <button
+                        onClick={() => setKpiPeriod('weekly')}
+                        className={`flex-1 text-[11px] font-black py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
+                          kpiPeriod === 'weekly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        Haftalık
+                      </button>
+                      <button
+                        onClick={() => setKpiPeriod('monthly')}
+                        className={`flex-1 text-[11px] font-black py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
+                          kpiPeriod === 'monthly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        Aylık
+                      </button>
+                      <button
+                        onClick={() => setKpiPeriod('six_months')}
+                        className={`flex-1 text-[11px] font-black py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
+                          kpiPeriod === 'six_months' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        6 Aylık
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {loadingKpi ? (
+                  <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-4 border-slate-100 border-t-slate-800 animate-spin mb-3"></div>
+                    <p className="text-slate-400 text-xs font-bold">KPI verileri hesaplanıyor...</p>
+                  </div>
+                ) : kpiData ? (
+                  <>
+                    {/* General Metrics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500">
+                          <TrendingUp className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-400 uppercase">Toplam Talep (Hacim)</p>
+                          <h4 className="text-2xl font-black text-slate-900 mt-1">{kpiData.metrics?.totalRequests} Adet</h4>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#c8f252]/10 rounded-3xl p-6 border border-[#c8f252]/20 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                        <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/30 flex items-center justify-center text-slate-900">
+                          <Check className="w-6 h-6 font-bold" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-500 uppercase">Başarılı İş (Dönüşüm)</p>
+                          <h4 className="text-2xl font-black text-slate-900 mt-1">
+                            {kpiData.metrics?.successfulRequests} İş <span className="text-xs font-extrabold text-slate-500">(Dönüşüm: %{kpiData.metrics?.conversionRate})</span>
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="bg-red-50 rounded-3xl p-6 border border-red-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                        <div className="w-12 h-12 rounded-2xl bg-red-100/50 flex items-center justify-center text-red-500">
+                          <X className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-400 uppercase">İptal / Kabul Edilmeyen</p>
+                          <h4 className="text-2xl font-black text-slate-900 mt-1">
+                            {kpiData.metrics?.lostRequests} İş <span className="text-xs font-extrabold text-red-500">(Kayıp: %{kpiData.metrics?.lossRate})</span>
+                          </h4>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Leaderboard Table */}
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                      <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
+                        <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                          <Award className="w-4 h-4 text-slate-700" />
+                          <span>Liderlik Tablosu (Açık İsimli)</span>
+                        </h3>
+                        <span className="text-[10px] text-slate-400 font-mono">En Çok İş Kazananlar</span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                            <tr>
+                              <th className="px-6 py-4 text-center w-20">Sıralama</th>
+                              <th className="px-6 py-4">Usta / İşletme İsmi</th>
+                              <th className="px-6 py-4 text-center">Kazanılan İş</th>
+                              <th className="px-6 py-4 text-center">Gönderilen Teklif</th>
+                              <th className="px-6 py-4 text-center">Teklif Başarı Oranı</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-medium">
+                            {kpiData.leaderboard?.length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="text-center py-12 text-slate-400 text-sm italic font-sans">
+                                  Seçilen filtrelerde henüz kayıt bulunmamaktadır.
+                                </td>
+                              </tr>
+                            ) : (
+                              kpiData.leaderboard?.map((item: any, idx: number) => (
+                                <tr key={item.providerId} className="hover:bg-slate-50/60 transition-colors">
+                                  <td className="px-6 py-4 text-center">
+                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black mx-auto ${
+                                      idx === 0 
+                                        ? 'bg-amber-100 text-amber-700 border border-amber-200' 
+                                        : idx === 1 
+                                          ? 'bg-slate-100 text-slate-700 border border-slate-200' 
+                                          : idx === 2 
+                                            ? 'bg-orange-100 text-orange-700 border border-orange-200' 
+                                            : 'bg-slate-50 text-slate-400'
+                                    }`}>
+                                      {idx + 1}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 font-bold text-slate-800">
+                                    {item.name}
+                                  </td>
+                                  <td className="px-6 py-4 text-center font-black text-slate-900">
+                                    {item.jobsWon} İş
+                                  </td>
+                                  <td className="px-6 py-4 text-center text-slate-500 font-mono text-xs">
+                                    {item.bidsSent} Teklif
+                                  </td>
+                                  <td className="px-6 py-4 text-center">
+                                    <span className={`px-2 py-0.5 rounded-md font-bold text-xs ${
+                                      item.successRate >= 70 
+                                        ? 'bg-green-50 text-green-600 border border-green-100'
+                                        : item.successRate >= 40 
+                                          ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                                          : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                    }`}>
+                                      %{item.successRate}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
+                    <p className="text-slate-400 text-sm font-bold">Lütfen filtreleri kullanarak analiz yapın.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
         </div>
       )}

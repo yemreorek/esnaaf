@@ -330,4 +330,20 @@ export class AdminController {
   ) {
     return this.adminService.createCampaign(user.email, dto);
   }
+
+  /**
+   * Bölgesel KPI ve Performans Analiz Raporu
+   * GET /api/admin/reports/regional-kpi
+   */
+  @Get('reports/regional-kpi')
+  @HttpCode(HttpStatus.OK)
+  async getRegionalKpiReport(
+    @Query('city') city?: string,
+    @Query('district') district?: string,
+    @Query('categorySlug') categorySlug?: string,
+    @Query('period') period?: string,
+    @CurrentUser() user?: any
+  ) {
+    return this.adminService.getRegionalKpiReport({ city, district, categorySlug, period }, user.email);
+  }
 }

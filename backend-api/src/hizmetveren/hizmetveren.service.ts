@@ -1517,6 +1517,174 @@ export class HizmetverenService {
   private resolveCityFromDistrict(district: string): string {
     return 'İstanbul';
   }
+
+  /**
+   * Generates regional competitor statistics and AI pricing recommendations for service providers
+   */
+  async getCompetitorStatsReport(providerUserId: string, period: string = 'monthly') {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+      include: { user: true }
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren kaydı bulunamadı.');
+    }
+
+    let dateLimit = new Date();
+    if (period === 'weekly') {
+      dateLimit.setDate(dateLimit.getDate() - 7);
+    } else if (period === 'six_months') {
+      dateLimit.setDate(dateLimit.getDate() - 180);
+    } else {
+      dateLimit.setDate(dateLimit.getDate() - 30);
+    }
+
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: provider.category_ids } }
+    });
+
+    const categoryReports: any[] = [];
+
+    for (const cat of categories) {
+      const slug = this.getCategorySlugByName(cat.name);
+      
+      const requests = await this.prisma.serviceRequest.findMany({
+        where: {
+          category_id: cat.id,
+          created_at: { gte: dateLimit }
+        },
+        include: {
+          offers: {
+            include: {
+              provider: {
+                include: { user: true }
+              }
+            }
+          },
+          accepted_offers: true
+        }
+      });
+
+      // Filter requests by provider's city
+      const cityRequests = requests.filter(r => {
+        const fd = r.form_data as any;
+        return fd && fd.city === provider.city;
+      });
+
+      const totalRequests = cityRequests.length;
+      const completedRequests = cityRequests.filter(r => {
+        return r.status === 'completed' || r.accepted_offers.length > 0 || r.offers.some(o => o.status === 'accepted');
+      }).length;
+
+      const competitorJobsCount: Record<string, { name: string; count: number; isMe: boolean }> = {};
+      
+      competitorJobsCount[provider.id] = {
+        name: `SİZ (${provider.description || provider.user.name || 'Siz'})`,
+        count: 0,
+        isMe: true
+      };
+
+      for (const r of cityRequests) {
+        for (const o of r.offers) {
+          if (o.status === 'accepted') {
+            const pId = o.provider_id;
+            if (!competitorJobsCount[pId]) {
+              competitorJobsCount[pId] = {
+                name: '[Rakip İşletme - Anonim]',
+                count: 0,
+                isMe: false
+              };
+            }
+            competitorJobsCount[pId].count += 1;
+          }
+        }
+      }
+
+      const competitorsList = Object.keys(competitorJobsCount)
+        .map(pId => competitorJobsCount[pId])
+        .filter(c => c.count > 0 || c.isMe)
+        .sort((a, b) => b.count - a.count);
+
+      const competitorTable = competitorsList.map((c, index) => ({
+        rank: index + 1,
+        name: c.isMe ? `SİZ (${provider.description || provider.user.name || 'Usta'})` : c.name,
+        wonJobs: c.count,
+        isMe: c.isMe
+      }));
+
+      const winningPrices = cityRequests
+        .flatMap(r => r.offers)
+        .filter(o => o.status === 'accepted')
+        .map(o => Number(o.price));
+
+      const winningPriceAvg = winningPrices.length > 0
+        ? Math.round(winningPrices.reduce((a, b) => a + b, 0) / winningPrices.length)
+        : null;
+
+      const myPrices = cityRequests
+        .flatMap(r => r.offers)
+        .filter(o => o.provider_id === provider.id)
+        .map(o => Number(o.price));
+
+      const myPriceAvg = myPrices.length > 0
+        ? Math.round(myPrices.reduce((a, b) => a + b, 0) / myPrices.length)
+        : null;
+
+      let advice = 'Bölgenizde henüz teklif vermediniz. İş kazanmaya başlamak için gelen taleplere rekabetçi fiyatlarla ilk teklifleri vermeyi deneyebilirsiniz.';
+      if (myPriceAvg !== null && winningPriceAvg !== null) {
+        if (myPriceAvg > winningPriceAvg) {
+          advice = `Bu ay ${provider.city} genelinde kazanan tekliflerin fiyat ortalaması ${winningPriceAvg.toLocaleString('tr-TR')} TL olmuştur. Sizin verdiğiniz tekliflerin ortalaması ise ${myPriceAvg.toLocaleString('tr-TR')} TL'dir. Bölgenizde daha çok iş kazanmak için fiyat politikanızı veya profil yorumlarınızı gözden geçirebilirsiniz.`;
+        } else {
+          advice = `Tebrikler! Verdiğiniz tekliflerin ortalaması (${myPriceAvg.toLocaleString('tr-TR')} TL), bölgedeki kazanan tekliflerin ortalamasından (${winningPriceAvg.toLocaleString('tr-TR')} TL) daha cazip durumda. Profilinizi daha da zenginleştirerek ve hızlı yanıt vererek usta puanınızı yükseltebilir, iş alma şansınızı katlayabilirsiniz.`;
+        }
+      } else if (winningPriceAvg !== null) {
+        advice = `Bölgenizde kazanan tekliflerin fiyat ortalaması ${winningPriceAvg.toLocaleString('tr-TR')} TL olmuştur. Gelecek taleplere bu fiyat dolaylarında teklif vererek ilk işinizi kazanmayı deneyebilirsiniz!`;
+      }
+
+      categoryReports.push({
+        categoryId: cat.id,
+        categoryName: cat.name,
+        categorySlug: slug,
+        summary: `${provider.city} genelinde bu dönem ${cat.name} kategorisinde toplam ${totalRequests} iş açıldı, ${completedRequests} tanesi tamamlandı.`,
+        competitorTable,
+        advice,
+        winningPriceAvg,
+        myPriceAvg
+      });
+    }
+
+    return {
+      city: provider.city,
+      period,
+      reports: categoryReports
+    };
+  }
+
+  private getCategorySlugByName(name: string): string {
+    switch (name) {
+      case 'Ev Temizliği': return 'ev-temizligi';
+      case 'Boya Badana': return 'boya-badana';
+      case 'Su Tesisatı': return 'su-tesisati';
+      case 'Elektrik Tesisatı': return 'elektrik-tesisati';
+      case 'Ev Tadilat': return 'ev-tadilat';
+      case 'Nakliyat / Ev Taşıma': return 'nakliyat';
+      case 'Halı & Koltuk Yıkama': return 'hali-koltuk-yikama';
+      case 'İnşaat / Tadilat Sonrası Temizlik': return 'insaat-sonrasi-temizlik';
+      case 'Fayans & Parke Döşeme': return 'fayans-parke';
+      case 'Haşere & Böcek İlaçlama': return 'hasere-ilaclama';
+      case 'Kombi & Klima Bakımı': return 'kombi-klima';
+      case 'Mantolama & Dış Cephe': return 'mantolama-discephe';
+      case 'Marangoz & Mobilya Montajı': return 'marangoz-mobilya';
+      case 'Özel Ders': return 'ozel-ders';
+      case 'Cam Balkon & PVC Pencere': return 'cam-balkon-pvc';
+      case 'Ofis & İş Yeri Temizliği': return 'ofis-temizligi';
+      case 'Doğalgaz Tesisatı': return 'dogalgaz-tesisati';
+      case 'İç Mimar & Dekorasyon': return 'ic-mimar-dekorasyon';
+      case 'Fotoğrafçı': return 'fotografci';
+      case 'Organizasyon & Etkinlik': return 'organizasyon-etkinlik';
+      default: return 'genel';
+    }
+  }
 }
 
 export function getRequestExpiryInfo(
