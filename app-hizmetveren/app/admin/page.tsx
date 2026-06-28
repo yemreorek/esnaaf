@@ -1134,6 +1134,37 @@ ${callTaskNotes}`;
     );
   };
 
+  const handleImpersonateUser = async (targetUser: any) => {
+    if (!token || !targetUser) return;
+    try {
+      const res = await fetch(`/api/admin/users/${targetUser.id}/impersonate`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.accessToken) {
+        addLog(`Kullanıcı taklit modunda ön izleniyor: ${targetUser.name || 'N/A'} (ID: ${targetUser.id})`);
+        
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        let targetUrl = '';
+        if (targetUser.role === 'service_provider') {
+          const providerBase = isLocal ? 'http://localhost:3001' : window.location.origin;
+          targetUrl = `${providerBase}/?token=${data.accessToken}&phone=${data.user.phone}&impersonate=true`;
+        } else {
+          const customerBase = isLocal ? 'http://localhost:3000' : 'https://esnaaf.com';
+          targetUrl = `${customerBase}/?token=${data.accessToken}&refresh=${data.refreshToken}&user=${encodeURIComponent(JSON.stringify(data.user))}&impersonate=true`;
+        }
+
+        window.open(targetUrl, '_blank');
+      } else {
+        alert(data.error?.message || 'Ön izleme başlatılamadı.');
+      }
+    } catch (err: any) {
+      addLog(`Ön izleme başlatma hatası: ${err.message}`);
+    }
+  };
+
   const showUserDetail = async (userId: string) => {
     if (!token) return;
     try {
@@ -3501,12 +3532,23 @@ ${callTaskNotes}`;
                 <Users className="w-5 h-5 text-slate-800" />
                 <span>Kullanıcı Detay Kartı</span>
               </h3>
-              <button 
-                onClick={() => setSelectedUser(null)}
-                className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                {selectedUser.role !== 'admin' && (
+                  <button
+                    onClick={() => handleImpersonateUser(selectedUser)}
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 text-xs font-black py-1.5 px-3.5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1.5"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Ön İzle</span>
+                  </button>
+                )}
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-6">

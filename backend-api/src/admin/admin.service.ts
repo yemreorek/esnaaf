@@ -13,6 +13,7 @@ import {
   SaveAbTestConfigDto,
   CreateCampaignDto
 } from './dto/admin-users.dto';
+import { JwtService } from '@nestjs/jwt';
 import { decryptPhone, encryptPhone, maskPhone } from '../common/utils/phone.util';
 import { 
   UserRole, 
@@ -30,6 +31,7 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
+    private jwtService: JwtService,
   ) {}
 
   /**
@@ -1246,6 +1248,73 @@ export class AdminService {
       phone: staff.phone,
       role: staff.role,
       permissions: PERMISSION_MATRIX[staff.role],
+    };
+  }
+
+  /**
+   * Generates a read-only impersonation token for the target user
+   */
+  async impersonateUser(targetUserId: string, adminEmail: string) {
+    // 1. Verify that the requesting admin has write permission on the 'users' module
+    const staff = await this.checkPermission(adminEmail, 'users', 'write');
+
+    // 2. Fetch the target user
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+    if (!targetUser) {
+      throw new NotFoundException('Taklit edilecek kullanıcı bulunamadı.');
+    }
+    if (targetUser.deleted_at || !targetUser.is_active) {
+      throw new BadRequestException('Silinmiş veya inaktif kullanıcılar taklit edilemez.');
+    }
+
+    // 3. Create an AuditLog entry for this security event
+    await this.prisma.auditLog.create({
+      data: {
+        staff_id: staff.id,
+        action: 'user.impersonate',
+        target_type: 'user',
+        target_id: targetUserId,
+        old_value: {},
+        new_value: {
+          impersonatedUserId: targetUserId,
+          impersonatedUserRole: targetUser.role,
+        },
+      },
+    });
+
+    // 4. Generate JWT tokens with the isImpersonated flag
+    const payload = {
+      sub: targetUser.id,
+      phone: targetUser.phone,
+      role: targetUser.role,
+      isImpersonated: true,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
+      expiresIn: '15m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'some_super_secret_refresh_key_min_32_characters',
+      expiresIn: '7d',
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: targetUser.id,
+        phone: targetUser.phone,
+        phone_masked: targetUser.phone_masked,
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+        kvkk_consent: targetUser.kvkk_consent,
+        isImpersonated: true,
+      },
     };
   }
 }

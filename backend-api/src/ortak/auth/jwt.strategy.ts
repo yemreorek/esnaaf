@@ -30,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: user.email,
       role: user.role,
       kvkk_consent: user.kvkk_consent,
+      isImpersonated: payload.isImpersonated || false,
     };
   }
 }

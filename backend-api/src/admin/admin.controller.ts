@@ -101,6 +101,16 @@ export class AdminController {
   }
 
   /**
+   * Kullanıcı paneli ön izleme (Login As / Impersonate) token üretimi
+   * POST /api/admin/users/:id/impersonate
+   */
+  @Post('users/:id/impersonate')
+  @HttpCode(HttpStatus.OK)
+  async impersonateUser(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.adminService.impersonateUser(id, user.email);
+  }
+
+  /**
    * Onay bekleyen hizmet verenler listesi (onay kuyruğu - eski rota)
    * GET /api/admin/hizmetveren/onay-kuyrugu
    */

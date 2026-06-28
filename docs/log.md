@@ -2,6 +2,19 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-28 feat | Admin Paneli - "Kullanıcı Paneli Ön İzleme ve Taklit Etme (Impersonation)" Sistemi
+
+- **Güvenlik Altyapısı (Backend):**
+  - JWT token payload'una `isImpersonated` bayrağı eklendi ve `JwtStrategy` ile `req.user`'a bağlandı.
+  - Global `JwtAuthGuard` içerisinde `handleRequest` ezilerek taklit modundaki kullanıcıların yazma istekleri (`POST`, `PUT`, `DELETE`, `PATCH`) `403 Forbidden` ile tamamen engellendi (Read-Only koruması).
+  - `@Public()` chat mesaj gönderim endpoint'inde taklit token'ları kontrol edilerek adminlerin taklit modunda AI ile sohbet etmesi de engellendi.
+  - `POST /api/admin/users/:id/impersonate` endpoint'i ve `impersonateUser` metodu eklendi. Yetkisiz erişimler engellendi ve taklit eylemi güvenlik denetimi için `AuditLog` tablosuna staff UUID'siyle birlikte kaydedildi.
+- **Arayüz Entegrasyonu (Frontend):**
+  - Müşteri (`app-musteri`) ve Hizmet Veren (`app-hizmetveren`) uygulamalarında mount sırasında query parametrelerinde (`token`, `impersonate=true`) gelen taklit token'ları yakalanıp local storage'a otomatik oturum açtırılarak URL temizlendi.
+  - Her iki dashboard'un en üstüne, ön izleme modunda olunduğunu belirten, yanıp sönen uyarı noktalı kırmızı **"Ön İzleme Modu"** uyarı şeritleri entegre edildi.
+  - Şeritteki "Ön İzlemeyi Kapat" butonuyla oturumların temizlenip sekmenin kapatılması sağlandı.
+  - Admin paneli Kullanıcı Detay kartına Lucide `Eye` ikonlu **"Ön İzle"** butonu eklenerek hedef portal sekmelerinin otomatik olarak taklit token'ıyla açılması tetiklendi.
+
 ## 2026-06-28 fix | Canlı Sohbet AI Bağlantı Hataları ve "Failed to fetch" Maskeleme
 
 - **Ön Yüz Hata Maskelemesi (`ChatScreen.tsx`):**

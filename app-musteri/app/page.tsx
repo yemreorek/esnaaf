@@ -388,6 +388,29 @@ export default function Home() {
 
   // Check if logged in on mount
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
+      const refreshParam = params.get('refresh');
+      const userParam = params.get('user');
+      const impersonateParam = params.get('impersonate');
+
+      if (tokenParam) {
+        localStorage.setItem('esnaaf_token', tokenParam);
+        if (refreshParam) {
+          localStorage.setItem('esnaaf_refresh_token', refreshParam);
+        }
+        if (userParam) {
+          localStorage.setItem('esnaaf_user', decodeURIComponent(userParam));
+        }
+        if (impersonateParam === 'true') {
+          localStorage.setItem('esnaaf_impersonated', 'true');
+        }
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     if (isLoggedIn()) {
       setIsClientLoggedIn(true);
       setClientUser(getAuthUser());

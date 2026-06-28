@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Req, Headers, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Req, Headers, HttpStatus, HttpCode, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
 import { Public } from '../../common/decorators';
+import { randomUUID } from 'crypto';
 
 @Controller()
 export class ChatController {
@@ -15,12 +16,13 @@ export class ChatController {
   @Post('ortak/chat/anonim/baslat')
   @HttpCode(HttpStatus.OK)
   async startAnonymousSession(
-    @Headers('x-session-id') sessionUuid?: string,
+    @Req() req: any,
+    @Headers('x-session-id') sessionIdHeader?: string,
     @Headers('authorization') authHeader?: string,
   ) {
-    console.log(`[ChatController] startAnonymousSession received x-session-id: ${sessionUuid}`);
-    
+    const sessionUuid = sessionIdHeader || randomUUID();
     let userId: string | null = null;
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.split(' ')[1];
@@ -28,8 +30,12 @@ export class ChatController {
           secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
         });
         userId = payload.sub;
+        if (payload.isImpersonated) {
+          throw new ForbiddenException('Ön izleme (taklit) modundayken bu işlemi gerçekleştiremezsiniz.');
+        }
         console.log(`[ChatController] Resolved userId ${userId} for startAnonymousSession`);
       } catch (err) {
+        if (err instanceof ForbiddenException) throw err;
         console.log('[ChatController] Invalid optional JWT in startAnonymousSession, processing as guest');
       }
     }
@@ -58,7 +64,11 @@ export class ChatController {
           secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
         });
         userId = payload.sub;
+        if (payload.isImpersonated) {
+          throw new ForbiddenException('Ön izleme (taklit) modundayken bu işlemi gerçekleştiremezsiniz.');
+        }
       } catch (err) {
+        if (err instanceof ForbiddenException) throw err;
         // Suppress validation error to support seamless anonymous fallback
         console.log('[Chat Controller] Invalid optional JWT, processing as guest');
       }

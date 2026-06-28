@@ -423,6 +423,22 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [justReviewedRequest, setJustReviewedRequest] = useState<any>(null);
+  const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsImpersonated(localStorage.getItem('esnaaf_impersonated') === 'true');
+    }
+  }, []);
+
+  const handleExitImpersonation = () => {
+    localStorage.removeItem("esnaaf_token");
+    localStorage.removeItem("esnaaf_refresh_token");
+    localStorage.removeItem("esnaaf_user");
+    localStorage.removeItem("esnaaf_impersonated");
+    window.close();
+    window.location.href = "/";
+  };
   const [mutualPhones, setMutualPhones] = useState<{ seekerPhone?: string; providerPhone?: string } | null>(null);
 
   // Notification states
@@ -1495,7 +1511,22 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col md:flex-row antialiased font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col antialiased font-sans select-none overflow-x-hidden">
+      {isImpersonated && (
+        <div className="bg-gradient-to-r from-red-800 to-rose-600 text-white text-xs font-bold py-2.5 px-6 flex justify-between items-center z-[9999] animate-fade-in shadow-md border-b border-red-900 w-full shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-ping"></span>
+            <span>Şu anda <strong>{user?.name || "Müşteri"}</strong> panelini ön izliyorsunuz (Taklit Modu).</span>
+          </div>
+          <button 
+            onClick={handleExitImpersonation}
+            className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider transition-all active:scale-95 cursor-pointer border border-white/20"
+          >
+            Ön İzlemeyi Kapat
+          </button>
+        </div>
+      )}
+      <div className="flex-1 flex flex-col md:flex-row w-full">
       
       {/* 🧭 SIDEBAR Navigation - Redesigned to match the exact mockup screenshot */}
       <aside className={`h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
@@ -4209,6 +4240,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           scrollbar-width: none;
         }
       `}} />
+    </div>
     </div>
   );
 }

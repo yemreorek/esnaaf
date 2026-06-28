@@ -663,6 +663,15 @@ export default function ProviderDashboard() {
   const [devOtpSuggested, setDevOtpSuggested] = useState('');
   const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
   const [password, setPassword] = useState('');
+  const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
+
+  const handleExitImpersonation = () => {
+    localStorage.removeItem("provider_token");
+    localStorage.removeItem("provider_phone");
+    localStorage.removeItem("provider_impersonated");
+    window.close();
+    window.location.href = "/";
+  };
 
   const isTabLocked = (tabName: typeof activeTab) => {
     return profile && !profile.isApproved && tabName !== 'belge-dogrulama' && tabName !== 'dashboard';
@@ -852,10 +861,14 @@ export default function ProviderDashboard() {
       const params = new URLSearchParams(window.location.search);
       const tokenParam = params.get('token');
       const phoneParam = params.get('phone');
+      const impersonateParam = params.get('impersonate');
       if (tokenParam) {
         localStorage.setItem('provider_token', tokenParam);
         if (phoneParam) {
           localStorage.setItem('provider_phone', phoneParam);
+        }
+        if (impersonateParam === 'true') {
+          localStorage.setItem('provider_impersonated', 'true');
         }
         // Clean up URL parameters
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -864,6 +877,9 @@ export default function ProviderDashboard() {
 
     const savedToken = localStorage.getItem('provider_token');
     const savedPhone = localStorage.getItem('provider_phone');
+    const savedImpersonated = localStorage.getItem('provider_impersonated') === 'true';
+    setIsImpersonated(savedImpersonated);
+
     if (savedToken) {
       setToken(savedToken);
       if (savedPhone) {
@@ -2318,7 +2334,22 @@ export default function ProviderDashboard() {
   }
 
   return (
-    <div className="bg-[#f8fafc] text-slate-900 min-h-screen flex antialiased font-sans select-none overflow-x-hidden">
+    <div className="bg-[#f8fafc] text-slate-900 min-h-screen flex flex-col antialiased font-sans select-none overflow-x-hidden">
+      {isImpersonated && (
+        <div className="bg-gradient-to-r from-red-800 to-rose-600 text-white text-xs font-bold py-2.5 px-6 flex justify-between items-center z-[9999] animate-fade-in shadow-md border-b border-red-900 w-full shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-ping"></span>
+            <span>Şu anda <strong>{profile?.companyName || profile?.name || "Hizmet Veren"}</strong> panelini ön izliyorsunuz (Taklit Modu).</span>
+          </div>
+          <button 
+            onClick={handleExitImpersonation}
+            className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider transition-all active:scale-95 cursor-pointer border border-white/20"
+          >
+            Ön İzlemeyi Kapat
+          </button>
+        </div>
+      )}
+      <div className="flex-1 flex w-full">
 
       
       {/* 🧭 Sidebar Menu matching the exact mockup */}
@@ -5353,6 +5384,7 @@ export default function ProviderDashboard() {
           scrollbar-width: none;
         }
       `}} />
+    </div>
     </div>
   );
 }
