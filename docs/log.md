@@ -2,6 +2,15 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-06-28 fix | Canlı Sohbet AI Bağlantı Hataları ve "Failed to fetch" Maskeleme
+
+- **Ön Yüz Hata Maskelemesi (`ChatScreen.tsx`):**
+  - Müşteri chat ekranında ağ kopması, yavaşlık veya sunucu hatası durumlarında sohbet balonunda ham `"Failed to fetch"` teknik hata mesajının görünmesi engellendi.
+  - Bu tür ağ hataları yakalanarak son kullanıcıya kibar ve açıklayıcı bir Türkçe yardım metni sunulması sağlandı.
+- **Backend Zaman Aşımı & Fail-Fast Optimizasyonu (`gemini.service.ts`):**
+  - Gemini API generateContent isteklerine `Promise.race` ile **12 saniyelik zaman aşımı (timeout)** kuralı entegre edildi.
+  - Böylece sunucunun aşırı yavaş API yanıtları nedeniyle Cloud Run/Load Balancer zaman aşımına girip bağlantıyı koparması önlendi. Sunucu 12 saniyede kontrollü bir biçimde diğer yedek modellere geçecek veya kontrollü 503 hatası dönerek ön yüzün bunu işlemesini sağlayacaktır.
+
 ## 2026-06-28 feat | Talep Otomatik Uzatma, Tekrar Yayınlama ve Anonim Rakip Teklif Analizi Entegrasyonu
 
 - **Talep Süresini Otomatik Uzatma:**

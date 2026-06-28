@@ -494,12 +494,19 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       }
     } catch (err: any) {
       console.error("Message send error:", err);
+      let errMsg = "Sistemimiz şu an yoğun veya bir bağlantı sorunu yaşandı. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.";
+      if (err.message && typeof err.message === 'string') {
+        const lowerMsg = err.message.toLowerCase();
+        if (!lowerMsg.includes("failed to fetch") && !lowerMsg.includes("fetch") && !lowerMsg.includes("networkerror") && !lowerMsg.includes("load failed")) {
+          errMsg = err.message;
+        }
+      }
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
           role: "assistant",
-          content: err.message || "Sistemimiz şu an yoğun, lütfen tekrar deneyiniz.",
+          content: errMsg,
         },
       ]);
     } finally {

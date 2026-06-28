@@ -165,15 +165,23 @@ export class GeminiService {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`[GeminiService] Calling generateContent with model: ${currentModel} (Attempt ${attempt}/${maxRetries})`);
-          const response = await this.ai.models.generateContent({
-            model: currentModel,
-            contents,
-            config: {
-              systemInstruction,
-              tools: this.getTools(),
-              temperature: options?.temperature !== undefined ? options.temperature : undefined,
-            },
-          });
+          
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout after 12 seconds')), 12000)
+          );
+
+          const response = await Promise.race([
+            this.ai.models.generateContent({
+              model: currentModel,
+              contents,
+              config: {
+                systemInstruction,
+                tools: this.getTools(),
+                temperature: options?.temperature !== undefined ? options.temperature : undefined,
+              },
+            }),
+            timeoutPromise,
+          ]) as any;
 
           return {
             text: response.text,
