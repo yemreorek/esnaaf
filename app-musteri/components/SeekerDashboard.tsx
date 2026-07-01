@@ -1264,7 +1264,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           });
           if (res.ok) {
             const result = await res.json();
-            showConfirm("Başarılı", "Talebiniz tekrar yayına alındı. Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi.", () => {});
+            showConfirm("Başarılı", "Talebiniz tekrar yayına alındı. Eski teklifler arşivlendi ve önceki hizmet verenlere bildirim gönderildi.", () => {});
             fetchRequests();
             if (result.job) {
               setSelectedRequest(result.job);
@@ -2721,7 +2721,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                     <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl px-5 py-3 flex items-center gap-2.5 w-full max-w-md animate-scale-up mb-2">
                                       <RefreshCw className="w-4 h-4 text-amber-600 flex-shrink-0" />
                                       <p className="text-amber-800 text-[11px] font-bold leading-relaxed text-left">
-                                        Bu talep yeniden yayınlandı. Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi. Güncel teklifler bekleniyor...
+                                        Bu talep yeniden yayınlandı. Eski teklifler arşivlendi ve önceki hizmet verenlere bildirim gönderildi. Güncel teklifler bekleniyor...
                                       </p>
                                     </div>
                                   )}
