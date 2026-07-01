@@ -4777,7 +4777,7 @@ export default function ProviderDashboard() {
                 </div>
 
                 {/* Right: Package catalog list */}
-                <div className="lg:col-span-2 bg-white border border-slate-150 p-6 rounded-[28px] shadow-sm flex flex-col justify-between gap-4">
+                <div className="lg:col-span-2 bg-white border border-slate-150 p-6 rounded-[28px] shadow-sm flex flex-col justify-start gap-5">
                   <div className="space-y-1">
                     <h3 className="font-extrabold text-slate-900 text-sm">Abonelik Paketleri</h3>
                     <p className="text-xs text-slate-400 font-semibold leading-relaxed">
@@ -4785,7 +4785,48 @@ export default function ProviderDashboard() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                  {/* Premium Benefit Showcase Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-y border-slate-100 py-5 my-1 bg-slate-50/50 rounded-2xl p-4">
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-black">%</span>
+                        Düşük Komisyon
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
+                        VIP pakette %5'e varan düşük komisyon oranlarıyla tamamladığınız her işten daha fazla kazanç elde edersiniz.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                          </svg>
+                        </span>
+                        Anında İlan Bildirimi
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
+                        Fırsatları gecikmeli (15 dk / 5 dk) görmek yerine anında (0 gecikme) bildirimle alarak ilk teklifi siz iletin.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <span className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-650">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </span>
+                        Ekstra Aktif İş Limiti
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
+                        Aynı anda yürütebileceğiniz aktif iş kapasitenizi (slot kilidini) 7 slot'a çıkararak iş hacminizi genişletin.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-1">
                     {availablePackages.map((pkg: any) => {
                       const isCurrent = subscriptionDetails?.subscription?.package_type === pkg.type;
                       return (
