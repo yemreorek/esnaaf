@@ -2,6 +2,23 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-01 feat | Tekrar Yayınla — Temiz Sayfa + Öncelikli Bildirim
+
+- **Arşivleme Sistemi (Backend):**
+  - `OfferStatus` enum'una `archived` durumu eklendi. Tekrar yayınlama sırasında eski talebin tüm teklifleri (pending, accepted, rejected) `archived` statüsüne alınıyor.
+  - `ServiceRequest` modeline `republished_from_id` (UUID, nullable) alanı eklendi — yeniden yayınlanan taleplerin orijinal taleple ilişkilendirilmesi sağlandı.
+  - Migration SQL oluşturuldu: `20260701000000_add_archived_status_and_republished_from_id`.
+- **Akıllı Bildirim (Backend):**
+  - `HV-TEKRAR` bildirim şablonu eklendi. Daha önce teklif veren ustalara "Daha önce teklif verdiğiniz iş yeniden yayınlandı" bildirimi gönderiliyor.
+  - `BildirimService` entegrasyonu ile `republish()` metodu, eski teklif veren her ustanın `user.id`'sine `HV-TEKRAR` bildirimi gönderiyor.
+- **Dağıtım Algoritması Önceliklendirmesi (Backend):**
+  - `talepler.processor.ts`'de `previousProviderIds` desteği eklendi. Tekrar yayınlanan işlerde önceki ustalar +30 puan bonus ve 0 dakika gecikme (anında bildirim) ile önceliklendirildi.
+- **Frontend (SeekerDashboard.tsx):**
+  - `Offer` interface'ine `archived` status eklendi.
+  - `RequestItem` interface'ine `republished_from_id` alanı eklendi.
+  - Republish sonrası `showConfirm` ile kullanıcıya "Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi" bilgisi gösteriliyor.
+  - Tekrar yayınlanan talepler için teklifler bekleniyor ekranında amber renkli "yeniden yayınlandı" bilgi notu eklendi.
+
 ## 2026-06-28 feat | Admin Paneli - "Kullanıcı Paneli Ön İzleme ve Taklit Etme (Impersonation)" Sistemi
 
 - **Güvenlik Altyapısı (Backend):**
