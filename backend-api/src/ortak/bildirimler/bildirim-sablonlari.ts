@@ -101,6 +101,11 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
     body: 'Yeni bir iş ilanı (eşleşen talep) geldi. Hemen detayları görün ve teklif verin.',
     channels: [NotifChannel.in_app, NotifChannel.push],
   },
+  'HV-TEKRAR': {
+    title: 'Daha Önce Teklif Verdiğiniz İş Yeniden Yayınlandı!',
+    body: 'Daha önce teklif verdiğiniz \'{kategori} — {ilce}\' işi yeniden yayınlandı. Güncel teklif vermek ister misiniz?',
+    channels: [NotifChannel.in_app, NotifChannel.push],
+  },
   'HV-02': {
     title: 'Teklifiniz Kabul Edildi!',
     body: 'Tebrikler! Teklifiniz kabul edildi. Müşteri bilgilerine hemen ulaşın.',

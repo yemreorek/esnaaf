@@ -28,6 +28,7 @@ enum OfferStatus {
   accepted
   rejected
   cancelled
+  archived
 }
 
 enum MessageType {
@@ -165,6 +166,7 @@ model ServiceRequest {
   created_by_provider Boolean          @default(false)
   direct_price        Decimal?         @db.Decimal(10, 2)
   direct_provider     ServiceProvider? @relation("DirectProviderRequests", fields: [direct_provider_id], references: [id], onDelete: SetNull)
+  republished_from_id   String?          @db.Uuid
 
   @@index([seeker_id, status])
   @@index([status, created_at(sort: Desc)])

@@ -77,7 +77,7 @@ interface Offer {
   price: number;
   description?: string;
   message?: string;
-  status: "pending" | "accepted" | "rejected" | "cancelled";
+  status: "pending" | "accepted" | "rejected" | "cancelled" | "archived";
   created_at: string | Date;
   provider: {
     id: string;
@@ -131,6 +131,7 @@ interface RequestItem {
     slug: string;
   };
   offers: Offer[];
+  republished_from_id?: string | null;
   seeker?: {
     id: string;
     name?: string;
@@ -1255,7 +1256,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   const handleRePublishRequest = async (id: string) => {
     showConfirm(
       "Talebi Tekrar Yayınla",
-      "Bu talebi aynı bilgilerle tekrar yayına almak istiyor musunuz?\nTalebiniz yeni bir talep gibi yayına alınacak ve esnaflara iletilecektir.",
+      "Bu talebi aynı bilgilerle tekrar yayına almak istiyor musunuz?\nEski teklifler arşivlenecek ve talebiniz yeni bir talep gibi yayına alınacaktır.",
       async () => {
         try {
           const res = await customFetch(`/api/musteri/talepler/${id}/tekrar-yayinla`, {
@@ -1263,7 +1264,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           });
           if (res.ok) {
             const result = await res.json();
-            alert("Talebiniz başarıyla tekrar yayına alındı!");
+            showConfirm("Başarılı", "Talebiniz tekrar yayına alındı. Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi.", () => {});
             fetchRequests();
             if (result.job) {
               setSelectedRequest(result.job);
@@ -1272,10 +1273,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
             }
           } else {
             const err = await res.json();
-            alert(err.error?.message || "Tekrar yayınlama işlemi başarısız.");
+            showConfirm("Hata", err.error?.message || "Tekrar yayınlama işlemi başarısız.", () => {});
           }
         } catch (err) {
-          alert("Bir hata oluştu.");
+          showConfirm("Hata", "Bir hata oluştu. Lütfen tekrar deneyin.", () => {});
         }
       }
     );
@@ -2716,6 +2717,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
                               {selectedRequest.status !== "cancelled" ? (
                                 <>
+                                  {selectedRequest.republished_from_id && (
+                                    <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl px-5 py-3 flex items-center gap-2.5 w-full max-w-md animate-scale-up mb-2">
+                                      <RefreshCw className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                      <p className="text-amber-800 text-[11px] font-bold leading-relaxed text-left">
+                                        Bu talep yeniden yayınlandı. Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi. Güncel teklifler bekleniyor...
+                                      </p>
+                                    </div>
+                                  )}
                                   <div className="relative w-12 h-12 flex items-center justify-center">
                                     {/* Premium Neon lime spinning loading loader */}
                                     <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#c8f252] animate-spin"></div>

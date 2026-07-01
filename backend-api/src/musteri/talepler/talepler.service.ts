@@ -8,6 +8,7 @@ import { CreateTalepDto } from './dto/create-talep.dto';
 import { decryptPhone } from '../../common/utils/phone.util';
 import { TaleplerProcessor } from './talepler.processor';
 import { AuthService } from '../../ortak/auth/auth.service';
+import { BildirimService } from '../../ortak/bildirimler/bildirim.service';
 import { getRequestExpiryInfo } from '../../hizmetveren/hizmetveren.service';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class TaleplerService {
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private taleplerProcessor: TaleplerProcessor,
     private authService: AuthService,
+    private bildirimService: BildirimService,
   ) {}
 
   /**
@@ -717,7 +719,8 @@ export class TaleplerService {
   }
 
   /**
-   * Süresi dolan veya iptal olan talebi aynı verilerle tekrar yayına alır
+   * Süresi dolan veya iptal olan talebi aynı verilerle tekrar yayına alır.
+   * "Temiz Sayfa" yaklaşımı: Eski teklifler arşivlenir, önceki ustalara öncelikli bildirim gönderilir.
    */
   async republish(seekerUserId: string, jobId: string) {
     // 1. Eski talebi getir
@@ -725,7 +728,13 @@ export class TaleplerService {
       where: { id: jobId },
       include: {
         category: true,
-        offers: true,
+        offers: {
+          include: {
+            provider: {
+              include: { user: true },
+            },
+          },
+        },
       },
     });
 
@@ -743,33 +752,41 @@ export class TaleplerService {
       throw new BadRequestException('Süresi dolmamış aktif bir talebi tekrar yayınlayamazsınız.');
     }
 
-    // 3. Eski talebi iptal et (veya statüsünü güncelle)
-    if (oldJob.status !== 'cancelled' && oldJob.status !== 'completed') {
-      await this.prisma.$transaction(async (tx) => {
+    // 3. Önceki teklif veren ustaların ID'lerini topla (bildirim için)
+    const previousProviderIds = oldJob.offers
+      .filter(o => o.status !== 'cancelled')
+      .map(o => o.provider_id);
+    const uniquePreviousProviderIds = [...new Set(previousProviderIds)];
+
+    // 4. Eski talebi iptal et ve TÜM teklifleri ARŞİVLE (Temiz Sayfa)
+    await this.prisma.$transaction(async (tx) => {
+      // Talep durumunu cancelled yap
+      if (oldJob.status !== 'cancelled' && oldJob.status !== 'completed') {
         await tx.serviceRequest.update({
           where: { id: jobId },
           data: { status: 'cancelled' },
         });
+      }
 
-        await tx.offer.updateMany({
-          where: {
-            job_id: jobId,
-            status: 'pending',
-          },
-          data: { status: 'cancelled' },
-        });
+      // Tüm teklifleri archived durumuna al (pending, accepted, rejected hepsi)
+      await tx.offer.updateMany({
+        where: {
+          job_id: jobId,
+          status: { in: ['pending', 'accepted', 'rejected'] },
+        },
+        data: { status: 'archived' },
       });
-      
-      // WebSocket ile odadaki taraflara iptal duyurusu yap
-      const room = `job_${jobId}`;
-      this.chatGateway.server?.to(room).emit('job_status_changed', {
-        jobId,
-        status: 'cancelled',
-        message: 'Talep tekrar yayınlanmak üzere kapatıldı.',
-      });
-    }
+    });
 
-    // 4. Yeni talebi oluştur
+    // WebSocket ile odadaki taraflara iptal duyurusu yap
+    const room = `job_${jobId}`;
+    this.chatGateway.server?.to(room).emit('job_status_changed', {
+      jobId,
+      status: 'cancelled',
+      message: 'Talep tekrar yayınlanmak üzere kapatıldı. Eski teklifler arşivlendi.',
+    });
+
+    // 5. Yeni talebi oluştur (republished_from_id ile izlenebilirlik)
     const newJob = await this.prisma.serviceRequest.create({
       data: {
         seeker_id: seekerUserId,
@@ -779,21 +796,49 @@ export class TaleplerService {
         is_direct: oldJob.is_direct,
         direct_provider_id: oldJob.direct_provider_id,
         created_by_provider: false,
+        republished_from_id: oldJob.id,
       },
       include: {
         category: true,
       },
     });
 
-    // 5. Akıllı Dağıtım Algoritmasını BullMQ kuyruğuna ekle (Asenkron)
-    await this.distributionQueue.add('distribute', { jobId: newJob.id });
-    this.logger.log(`[Kuyruğa Eklendi - Tekrar Yayınlama] Talep ${newJob.id} dağıtım kuyruğuna başarıyla eklendi.`);
+    // 6. Önceki ustalara öncelikli bildirim gönder (HV-TEKRAR)
+    const formData = oldJob.form_data as any;
+    const kategori = oldJob.category?.name || 'Hizmet';
+    const ilce = formData?.district || '';
 
-    // 6. Serverless Google Cloud Run Failsafe: Run distribution synchronously in the background thread immediately!
+    for (const providerId of uniquePreviousProviderIds) {
+      try {
+        const provider = await this.prisma.serviceProvider.findUnique({
+          where: { id: providerId },
+          include: { user: true },
+        });
+        if (provider?.user) {
+          await this.bildirimService.sendNotification(
+            provider.user.id,
+            'HV-TEKRAR',
+            { kategori, ilce },
+          );
+          this.logger.log(`[Tekrar Yayınlama Bildirimi] Usta ${provider.user.name} (${providerId}) bilgilendirildi.`);
+        }
+      } catch (err: any) {
+        this.logger.warn(`[Tekrar Yayınlama Bildirimi HATA] Usta ${providerId}: ${err.message}`);
+      }
+    }
+
+    // 7. Akıllı Dağıtım Algoritmasını BullMQ kuyruğuna ekle (Asenkron)
+    await this.distributionQueue.add('distribute', {
+      jobId: newJob.id,
+      previousProviderIds: uniquePreviousProviderIds,
+    });
+    this.logger.log(`[Kuyruğa Eklendi - Tekrar Yayınlama] Talep ${newJob.id} dağıtım kuyruğuna başarıyla eklendi. Önceki ${uniquePreviousProviderIds.length} usta öncelikli.`);
+
+    // 8. Serverless Google Cloud Run Failsafe: Run distribution synchronously in the background thread immediately!
     try {
       this.logger.log(`[Eşzamanlı Dağıtım Başladı - Tekrar Yayınlama] Failsafe tetikleniyor: Talep ${newJob.id}`);
       this.taleplerProcessor.handleDistribution({
-        data: { jobId: newJob.id },
+        data: { jobId: newJob.id, previousProviderIds: uniquePreviousProviderIds },
         queue: this.distributionQueue,
       } as any).catch(err => {
         this.logger.error(`Eşzamanlı dağıtım hatası: ${err.message}`, err.stack);
@@ -804,7 +849,7 @@ export class TaleplerService {
 
     return {
       success: true,
-      message: 'Talebiniz başarıyla tekrar yayına alındı.',
+      message: 'Talebiniz başarıyla tekrar yayına alındı. Eski teklifler arşivlendi ve önceki ustalara bildirim gönderildi.',
       job: newJob,
     };
   }

@@ -17,8 +17,8 @@ export class TaleplerProcessor {
   ) {}
 
   @Process('distribute')
-  async handleDistribution(job: Bull.Job<{ jobId: string; isFallback?: boolean }>) {
-    const { jobId, isFallback } = job.data;
+  async handleDistribution(job: Bull.Job<{ jobId: string; isFallback?: boolean; previousProviderIds?: string[] }>) {
+    const { jobId, isFallback, previousProviderIds } = job.data;
     this.logger.log(`[Dağıtım Başladı] Talep ID: ${jobId} (isFallback: ${!!isFallback})`);
 
     // 1. Talebi çek
@@ -232,6 +232,9 @@ export class TaleplerProcessor {
       // Yeni üye bonusu (ilk 30 gün ise +20)
       const newMemberBonus = daysActive <= 30 ? 20 : 0;
 
+      // Tekrar yayınlama bonusu: Daha önce teklif veren ustalar +30 puan
+      const republishBonus = (previousProviderIds && previousProviderIds.includes(provider.id)) ? 30 : 0;
+
       // Toplam skor (Sağlık Skoru entegrasyonuyla yeniden tasarlandı)
       const totalScore =
         packageScore * 0.30 +
@@ -239,7 +242,8 @@ export class TaleplerProcessor {
         ratingScore * 0.20 +
         proximityScore * 0.15 +
         tenureScore * 0.05 +
-        newMemberBonus;
+        newMemberBonus +
+        republishBonus;
 
       candidates.push({ provider, score: totalScore, healthScore, packageLevel });
     }
@@ -267,7 +271,10 @@ export class TaleplerProcessor {
 
       // Kademeli gecikme hesaplama (VIP 0dk, Standart 5dk, Basic 15dk)
       let delayMinutes = 0;
-      if (packageLevel.type === 'vip') {
+      if (previousProviderIds && previousProviderIds.includes(provider.id)) {
+        // Tekrar yayınlanan iş: Daha önce teklif veren ustalar anında görür
+        delayMinutes = 0;
+      } else if (packageLevel.type === 'vip') {
         delayMinutes = 0;
       } else if (packageLevel.type === 'standard') {
         delayMinutes = 5;
