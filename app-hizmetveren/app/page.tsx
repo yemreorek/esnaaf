@@ -595,6 +595,17 @@ export default function ProviderDashboard() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [submittingSubscription, setSubmittingSubscription] = useState(false);
 
+  // Card management states
+  const [savedCards, setSavedCards] = useState<any[]>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [newCardHolder, setNewCardHolder] = useState('');
+  const [newCardNo, setNewCardNo] = useState('');
+  const [newCardMonth, setNewCardMonth] = useState('');
+  const [newCardYear, setNewCardYear] = useState('');
+  const [addingCard, setAddingCard] = useState(false);
+  const [payingCommission, setPayingCommission] = useState(false);
+
   const [submittingAppointment, setSubmittingAppointment] = useState(false);
   const [appointmentModal, setAppointmentModal] = useState<{
     isOpen: boolean;
@@ -1646,6 +1657,8 @@ export default function ProviderDashboard() {
           const pkgsData = await pkgsRes.json();
           setAvailablePackages(pkgsData);
         }
+
+        fetchSavedCards(currentToken);
       } else if (tab === 'kayip_iptal') {
         const res = await fetch('/api/hizmetveren/teklifler/kayip-iptal', {
           headers: { 'Authorization': `Bearer ${currentToken}` },
@@ -1709,6 +1722,126 @@ export default function ProviderDashboard() {
     }
   };
 
+  const fetchSavedCards = async (currentToken = token) => {
+    if (!currentToken) return;
+    setLoadingCards(true);
+    try {
+      const res = await fetch('/api/hizmetveren/kartlar', {
+        headers: { 'Authorization': `Bearer ${currentToken}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSavedCards(data);
+      }
+    } catch (err: any) {
+      addLog(`Kartlar yüklenirken hata: ${err.message}`);
+    } finally {
+      setLoadingCards(false);
+    }
+  };
+
+  const handleAddCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    if (!newCardHolder || !newCardNo || !newCardMonth || !newCardYear) {
+      showAlert("Hata", "Lütfen tüm kart alanlarını doldurunuz.", "error");
+      return;
+    }
+    setAddingCard(true);
+    try {
+      const res = await fetch('/api/hizmetveren/kartlar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cardHolderName: newCardHolder,
+          cardNumber: newCardNo,
+          expireMonth: newCardMonth,
+          expireYear: newCardYear,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showAlert("Başarılı", "Kartınız güvenli bir şekilde kaydedildi.", "success");
+        setShowAddCardModal(false);
+        setNewCardHolder('');
+        setNewCardNo('');
+        setNewCardMonth('');
+        setNewCardYear('');
+        fetchSavedCards(token);
+      } else {
+        showAlert("Hata", data.error?.message || data.message || "Kart kaydedilemedi.", "error");
+      }
+    } catch (err: any) {
+      showAlert("Hata", "Kart kaydı sırasında bir ağ hatası oluştu.", "error");
+    } finally {
+      setAddingCard(false);
+    }
+  };
+
+  const handleDeleteCard = async (cardId: string) => {
+    if (!token) return;
+    if (!confirm("Bu ödeme kartını silmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch(`/api/hizmetveren/kartlar/${cardId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showAlert("Başarılı", "Kartınız başarıyla silindi.", "success");
+        fetchSavedCards(token);
+      } else {
+        showAlert("Hata", data.error?.message || "Kart silinemedi.", "error");
+      }
+    } catch (err) {
+      showAlert("Hata", "Bir ağ hatası oluştu.", "error");
+    }
+  };
+
+  const handleSetPrimaryCard = async (cardId: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/hizmetveren/kartlar/${cardId}/varsayilan`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showAlert("Başarılı", "Varsayılan ödeme kartınız güncellendi.", "success");
+        fetchSavedCards(token);
+      } else {
+        showAlert("Hata", data.error?.message || "Varsayılan kart güncellenemedi.", "error");
+      }
+    } catch (err) {
+      showAlert("Hata", "Bir ağ hatası oluştu.", "error");
+    }
+  };
+
+  const handlePayCommission = async () => {
+    if (!token) return;
+    setPayingCommission(true);
+    try {
+      const res = await fetch('/api/hizmetveren/abonelik/komisyon-ode', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showAlert("Başarılı", data.message || "Komisyon borcunuz başarıyla tahsil edilmiştir.", "success");
+        fetchTabDependencies('abonelik', token);
+      } else {
+        showAlert("Tahsilat Hatası", data.error?.message || data.message || "Ödeme alınamadı. Lütfen kart limitinizi ve bilgilerinizi kontrol edin.", "error");
+      }
+    } catch (err) {
+      showAlert("Hata", "Ödeme sırasında bir ağ hatası oluştu.", "error");
+    } finally {
+      setPayingCommission(false);
+    }
+  };
+
   const handleStartSubscription = async (packageType: string) => {
     if (!token) return;
     setSubmittingSubscription(true);
@@ -1728,8 +1861,8 @@ export default function ProviderDashboard() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        if (data.status === 'trial') {
-          showAlert("Başarılı", data.message || 'Deneme süreniz başarıyla başlatıldı!', "success");
+        if (data.status === 'trial' || data.status === 'active') {
+          showAlert("Başarılı", data.message || 'Aboneliğiniz başarıyla aktifleştirildi!', "success");
           setSelectedPackage(null);
           setValidatedCampaign(null);
           setCampaignCodeInput('');
@@ -4500,7 +4633,7 @@ export default function ProviderDashboard() {
                   </div>
 
                   {/* Commission Balance Card */}
-                  <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden h-[240px] shrink-0 text-left">
+                  <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[240px] shrink-0 text-left">
                     <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-rose-500/5 blur-xl"></div>
                     
                     <div className="space-y-1">
@@ -4515,16 +4648,130 @@ export default function ProviderDashboard() {
 
                     <div className="space-y-2 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-500">
                       <div className="flex justify-between">
-                        <span className="text-slate-400 font-bold">Sonraki Tahsilat:</span>
+                        <span className="text-slate-400 font-bold">Sonraki Otomatik Tahsilat:</span>
                         <span className="text-slate-800 font-mono font-bold">
                           {subscriptionDetails?.nextBillingDate
                             ? new Date(subscriptionDetails.nextBillingDate).toLocaleDateString('tr-TR')
-                            : '--.--.----'}
+                            : 'Pazar 21:00 UTC'}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 leading-relaxed mt-1.5 font-medium">
-                        Komisyonlar tamamlanan işler üzerinden hesaplanır ve her ayın 1'inde kayıtlı kartınızdan otomatik olarak tahsil edilir. Kendi müşterilerinizden (%0) ve sadık müşteri haklarınızdan (%0) doğan işlerde komisyon alınmaz.
+                        Komisyonlar tamamlanan işler üzerinden hesaplanır ve her Pazar günü 21:00 UTC (Pazartesi 00:00 TSİ) birincil kayıtlı kartınızdan otomatik olarak tahsil edilir. Kendi müşterilerinizden (%0) ve sadık müşteri işlerinden komisyon alınmaz.
                       </p>
+
+                      {subscriptionDetails?.unpaidCommission > 0 && (
+                        <div className="mt-3">
+                          {savedCards.some(c => c.is_primary) ? (
+                            <button
+                              onClick={handlePayCommission}
+                              disabled={payingCommission}
+                              className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border-none"
+                            >
+                              {payingCommission ? (
+                                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                              ) : null}
+                              {payingCommission ? 'Ödeniyor...' : 'Komisyonu Şimdi Öde'}
+                            </button>
+                          ) : (
+                            <div className="bg-rose-50 border border-rose-100 rounded-xl p-2.5 text-[10px] text-rose-700 font-bold leading-relaxed">
+                              ⚠️ Otomatik tahsilat ve teklif verebilmek için lütfen aşağıdan bir ödeme kartı kaydedin.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Ödeme Yönetimi Kartı */}
+                  <div className="bg-white border border-slate-150 rounded-[28px] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[260px] text-left">
+                    <div className="absolute top-[-30px] right-[-30px] w-24 h-24 rounded-full bg-slate-500/5 blur-xl"></div>
+                    
+                    <div className="w-full">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <rect width="22" height="16" x="1" y="4" rx="3" />
+                            <line x1="1" x2="23" y1="10" y2="10" />
+                          </svg>
+                          <span className="text-sm text-slate-800 font-extrabold tracking-tight">Ödeme Yönetimi</span>
+                        </div>
+                        <button
+                          onClick={() => setShowAddCardModal(true)}
+                          className="px-3 py-1.5 bg-[#c8f252] hover:bg-[#b5dc3e] text-slate-900 rounded-xl text-[10px] font-black tracking-tight cursor-pointer active:scale-95 transition-all flex items-center gap-1 border-none"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                            <line x1="12" x2="12" y1="5" y2="19" />
+                            <line x1="5" x2="19" y1="12" y2="12" />
+                          </svg>
+                          Yeni Kart Ekle
+                        </button>
+                      </div>
+
+                      {loadingCards ? (
+                        <div className="flex justify-center items-center py-10">
+                          <svg className="animate-spin h-6 w-6 text-[#c8f252]" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        </div>
+                      ) : savedCards.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 font-semibold text-xs leading-relaxed">
+                          Sistemde kayıtlı ödeme kartınız bulunmamaktadır. Komisyon tahsilatları ve paket alımları için lütfen yeni bir kart ekleyin.
+                        </div>
+                      ) : (
+                        <div className="space-y-3 mt-4 max-h-[220px] overflow-y-auto pr-1">
+                          {savedCards.map((card) => (
+                            <div key={card.id} className="border border-slate-100 rounded-2xl p-3.5 flex justify-between items-center bg-slate-50 hover:bg-slate-100/70 transition-colors">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                    card.card_brand.toLowerCase() === 'visa' 
+                                      ? 'bg-blue-500/10 border border-blue-500/20 text-blue-600' 
+                                      : 'bg-orange-500/10 border border-orange-500/20 text-orange-600'
+                                  }`}>
+                                    {card.card_brand}
+                                  </span>
+                                  <span className="text-xs font-mono font-bold text-slate-700">
+                                    •••• •••• •••• {card.last_four}
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[150px]">
+                                  {card.card_holder}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                {card.is_primary ? (
+                                  <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+                                    Birincil
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleSetPrimaryCard(card.id)}
+                                    className="text-[10px] text-slate-500 hover:text-slate-900 font-bold underline cursor-pointer bg-transparent border-none"
+                                  >
+                                    Birincil Yap
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => handleDeleteCard(card.id)}
+                                  className="text-slate-400 hover:text-red-500 transition-colors cursor-pointer bg-transparent border-none p-1"
+                                  title="Kartı Sil"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -5614,6 +5861,134 @@ export default function ProviderDashboard() {
         </div>
       )}
 
+
+      {/* Add Card Modal */}
+      {showAddCardModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-md w-full shadow-2xl animate-scale-up space-y-5 text-left relative">
+            <button
+              onClick={() => setShowAddCardModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-transparent border-none p-1 cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <line x1="18" x2="6" y1="6" y2="18" />
+                <line x1="6" x2="18" y1="6" y2="18" />
+              </svg>
+            </button>
+
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-slate-900 text-lg">Yeni Ödeme Kartı Ekle</h4>
+              <p className="text-slate-400 text-xs font-semibold leading-relaxed">
+                Kart bilgileriniz iyzico altyapısıyla şifrelenerek güvenle saklanır.
+              </p>
+            </div>
+
+            <form onSubmit={handleAddCard} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Kart Sahibi</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="AD SOYAD"
+                    value={newCardHolder}
+                    onChange={(e) => setNewCardHolder(e.target.value.toUpperCase())}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-slate-350 focus:outline-none rounded-xl text-xs font-bold text-slate-800 transition-colors uppercase"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Kart Numarası</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <rect width="22" height="16" x="1" y="4" rx="3" />
+                      <line x1="1" x2="23" y1="10" y2="10" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    maxLength={19}
+                    placeholder="0000 0000 0000 0000"
+                    value={newCardNo}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '');
+                      const formatted = v.replace(/(.{4})/g, '$1 ').trim();
+                      setNewCardNo(formatted);
+                    }}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-slate-350 focus:outline-none rounded-xl text-xs font-mono font-bold text-slate-800 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Son Kullanma Ayı</label>
+                  <select
+                    required
+                    value={newCardMonth}
+                    onChange={(e) => setNewCardMonth(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-slate-350 focus:outline-none rounded-xl text-xs font-bold text-slate-800 transition-colors"
+                  >
+                    <option value="">Ay Seçin</option>
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const m = String(i + 1).padStart(2, '0');
+                      return <option key={m} value={m}>{m}</option>;
+                    })}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Son Kullanma Yılı</label>
+                  <select
+                    required
+                    value={newCardYear}
+                    onChange={(e) => setNewCardYear(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-slate-350 focus:outline-none rounded-xl text-xs font-bold text-slate-800 transition-colors"
+                  >
+                    <option value="">Yıl Seçin</option>
+                    {Array.from({ length: 15 }, (_, i) => {
+                      const y = String(new Date().getFullYear() + i);
+                      return <option key={y} value={y}>{y}</option>;
+                    })}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddCardModal(false)}
+                  className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-slate-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={addingCard}
+                  className="flex-1 bg-[#4c630a] hover:bg-[#3d5008] text-white text-xs font-extrabold py-2.5 rounded-xl cursor-pointer transition-all active:scale-95 border border-transparent shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {addingCard ? (
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                  ) : null}
+                  {addingCard ? 'Kaydediliyor...' : 'Kartı Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes scaleUp {

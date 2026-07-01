@@ -1,9 +1,9 @@
-import { Controller, Post, Get, Body, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, HttpStatus, HttpCode, Param, Delete } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles, CurrentUser, Public } from '../../common/decorators';
 import { AbonelikService } from './abonelik.service';
-import { AbonelikBaslatDto, KampanyaDogrulaDto } from './dto/abonelik.dto';
+import { AbonelikBaslatDto, KampanyaDogrulaDto, AddCardDto } from './dto/abonelik.dto';
 
 @Controller()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -79,5 +79,57 @@ export class AbonelikController {
         value: validated.value,
       },
     };
+  }
+
+  /**
+   * Kartları Listele
+   * GET /api/hizmetveren/kartlar
+   */
+  @Roles('service_provider')
+  @Get('hizmetveren/kartlar')
+  async getSavedCards(@CurrentUser() user: any) {
+    return this.abonelikService.getSavedCards(user.id);
+  }
+
+  /**
+   * Kart Ekle
+   * POST /api/hizmetveren/kartlar
+   */
+  @Roles('service_provider')
+  @Post('hizmetveren/kartlar')
+  async addSavedCard(@CurrentUser() user: any, @Body() dto: AddCardDto) {
+    return this.abonelikService.addSavedCard(user.id, dto);
+  }
+
+  /**
+   * Kart Sil
+   * DELETE /api/hizmetveren/kartlar/:id
+   */
+  @Roles('service_provider')
+  @Delete('hizmetveren/kartlar/:id')
+  async deleteSavedCard(@CurrentUser() user: any, @Param('id') cardId: string) {
+    return this.abonelikService.deleteSavedCard(user.id, cardId);
+  }
+
+  /**
+   * Birincil Kart Yap
+   * POST /api/hizmetveren/kartlar/:id/varsayilan
+   */
+  @Roles('service_provider')
+  @Post('hizmetveren/kartlar/:id/varsayilan')
+  @HttpCode(HttpStatus.OK)
+  async setPrimaryCard(@CurrentUser() user: any, @Param('id') cardId: string) {
+    return this.abonelikService.setPrimaryCard(user.id, cardId);
+  }
+
+  /**
+   * Birikmiş Komisyon Borcunu Kayıtlı Kartla Öde
+   * POST /api/hizmetveren/abonelik/komisyon-ode
+   */
+  @Roles('service_provider')
+  @Post('hizmetveren/abonelik/komisyon-ode')
+  @HttpCode(HttpStatus.OK)
+  async payCommissionManually(@CurrentUser() user: any) {
+    return this.abonelikService.payCommissionManually(user.id);
   }
 }

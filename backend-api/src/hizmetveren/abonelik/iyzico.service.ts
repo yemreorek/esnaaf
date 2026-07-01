@@ -226,6 +226,201 @@ export class IyzicoService {
   }
 
   /**
+   * Kartı iyzico sistemine kaydeder (Card Storage)
+   */
+  async saveCard(providerId: string, email: string, cardDetails: { cardHolderName: string, cardNumber: string, expireMonth: string, expireYear: string }) {
+    if (!this.isProd || this.apiKey === 'mock-api-key') {
+      const { cardHolderName, cardNumber, expireMonth, expireYear } = cardDetails;
+      const cleanCardNum = cardNumber.replace(/\s+/g, '');
+      const binNumber = cleanCardNum.substring(0, 6);
+      const lastFour = cleanCardNum.substring(cleanCardNum.length - 4);
+      const cardBrand = cleanCardNum.startsWith('4') ? 'Visa' : cleanCardNum.startsWith('5') ? 'Mastercard' : 'Troy';
+
+      this.logger.log(`[IYZICO MOCK] Saving card for Provider: ${providerId}, Brand: ${cardBrand}`);
+      return {
+        status: 'success',
+        cardUserKey: `mock_user_key_${Date.now()}`,
+        cardToken: `mock_token_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        cardBrand,
+        cardAssociation: cardBrand,
+        cardFamily: 'EsnaafCard',
+        binNumber,
+        lastFour,
+      };
+    }
+
+    try {
+      const requestBody = {
+        locale: 'tr',
+        conversationId: providerId,
+        externalId: providerId,
+        email,
+        card: {
+          cardHolderName: cardDetails.cardHolderName,
+          cardNumber: cardDetails.cardNumber.replace(/\s+/g, ''),
+          expireMonth: cardDetails.expireMonth,
+          expireYear: cardDetails.expireYear,
+        }
+      };
+
+      const response = await fetch(`${this.baseUrl}/cardstorage/card`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.generateHeaders(requestBody, '/cardstorage/card'),
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      if (data.status !== 'success') {
+        throw new Error(data.errorMessage || 'Kart iyzico sistemine kaydedilemedi.');
+      }
+
+      return {
+        status: 'success',
+        cardUserKey: data.cardUserKey,
+        cardToken: data.cardToken,
+        cardBrand: data.cardBrand,
+        cardAssociation: data.cardAssociation,
+        cardFamily: data.cardFamily,
+        binNumber: data.binNumber,
+        lastFour: data.cardToken ? cardDetails.cardNumber.replace(/\s+/g, '').substring(cardDetails.cardNumber.replace(/\s+/g, '').length - 4) : '0000',
+      };
+    } catch (error) {
+      this.logger.error('iyzico saveCard hatası:', error.message);
+      throw new Error(`Kart kaydedilemedi. Hata: ${error.message}`);
+    }
+  }
+
+  /**
+   * Kartı iyzico sisteminden siler
+   */
+  async deleteCard(providerId: string, cardUserKey: string, cardToken: string) {
+    if (!this.isProd || this.apiKey === 'mock-api-key') {
+      this.logger.log(`[IYZICO MOCK] Deleting card with token: ${cardToken} for user: ${cardUserKey}`);
+      return { status: 'success' };
+    }
+
+    try {
+      const requestBody = {
+        locale: 'tr',
+        conversationId: providerId,
+        cardUserKey,
+        cardToken,
+      };
+
+      const response = await fetch(`${this.baseUrl}/cardstorage/card/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.generateHeaders(requestBody, '/cardstorage/card/delete'),
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      if (data.status !== 'success') {
+        throw new Error(data.errorMessage || 'Kart iyzico sisteminden silinemedi.');
+      }
+
+      return data;
+    } catch (error) {
+      this.logger.error('iyzico deleteCard hatası:', error.message);
+      throw new Error(`Kart silinemedi. Hata: ${error.message}`);
+    }
+  }
+
+  /**
+   * Kayıtlı karttan ödeme alır
+   */
+  async chargeCard(providerId: string, cardUserKey: string, cardToken: string, amount: number, paymentType: 'commission' | 'subscription') {
+    if (!this.isProd || this.apiKey === 'mock-api-key') {
+      this.logger.log(`[IYZICO MOCK] Charging card. UserKey: ${cardUserKey}, Token: ${cardToken}, Amount: ${amount} TL, Type: ${paymentType}`);
+      // Simulating minor failure condition if amount is exactly 9999 TL for test cases
+      if (amount === 9999) {
+        throw new Error('Yetersiz bakiye (Mock Error)');
+      }
+      return {
+        status: 'success',
+        paymentId: `mock_pay_id_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      };
+    }
+
+    try {
+      const requestBody = {
+        locale: 'tr',
+        conversationId: providerId,
+        price: amount.toString(),
+        paidPrice: amount.toString(),
+        currency: 'TRY',
+        paymentCard: {
+          cardUserKey,
+          cardToken,
+        },
+        buyer: {
+          id: providerId,
+          name: 'Provider',
+          surname: 'User',
+          gsmNumber: '+905320000000',
+          email: 'partner@esnaaf.com',
+          identityNumber: '11111111111',
+          registrationAddress: 'Kadikoy',
+          ip: '127.0.0.1',
+          city: 'Istanbul',
+          country: 'Turkey',
+          zipCode: '34710',
+        },
+        shippingAddress: {
+          contactName: 'Esnaaf Provider',
+          city: 'Istanbul',
+          country: 'Turkey',
+          address: 'Kadikoy',
+          zipCode: '34710',
+        },
+        billingAddress: {
+          contactName: 'Esnaaf Provider',
+          city: 'Istanbul',
+          country: 'Turkey',
+          address: 'Kadikoy',
+          zipCode: '34710',
+        },
+        basketItems: [
+          {
+            id: `pay_${paymentType}_${Date.now()}`,
+            name: paymentType === 'commission' ? 'Weekly Commission Payment' : 'Subscription Fee',
+            category1: 'Service Platform Fee',
+            itemType: 'VIRTUAL',
+            price: amount.toString(),
+          }
+        ]
+      };
+
+      const response = await fetch(`${this.baseUrl}/payment/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.generateHeaders(requestBody, '/payment/auth'),
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      if (data.status !== 'success') {
+        throw new Error(data.errorMessage || 'Ödeme tahsil edilemedi.');
+      }
+
+      return {
+        status: 'success',
+        paymentId: data.paymentId,
+      };
+    } catch (error) {
+      this.logger.error('iyzico chargeCard hatası:', error.message);
+      throw new Error(`Ödeme tahsilatı başarısız. Hata: ${error.message}`);
+    }
+  }
+
+  /**
    * iyzico API istekleri için Authorization başlığı üretir (IYZWSv2)
    */
   private generateHeaders(body: any, uri: string): Record<string, string> {

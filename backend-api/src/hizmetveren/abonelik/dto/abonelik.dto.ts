@@ -20,3 +20,20 @@ export class KampanyaDogrulaDto {
   @IsNotEmpty({ message: 'Paket tipi gereklidir.' })
   packageType: PackageType;
 }
+export class AddCardDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Kart sahibinin adı soyadı gereklidir.' })
+  cardHolderName: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Kart numarası gereklidir.' })
+  cardNumber: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Son kullanma ayı gereklidir.' })
+  expireMonth: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Son kullanma yılı gereklidir.' })
+  expireYear: string;
+}

@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { IyzicoService } from './iyzico.service';
-import { AbonelikBaslatDto } from './dto/abonelik.dto';
+import { AbonelikBaslatDto, AddCardDto } from './dto/abonelik.dto';
 import { PackageType, SubscriptionStatus, PaymentStatus, AlarmLevel, DisputeStatus, JobCompletionStatus } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bull';
@@ -228,7 +228,96 @@ export class AbonelikService {
       }
     }
 
-    // 5. iyzico Checkout Formunu başlat
+    // 5. Birincil kayıtlı kartı var mı? Varsa doğrudan karttan çekerek hemen aktifleştirebiliriz!
+    const primaryCard = await this.prisma.savedCard.findFirst({
+      where: { provider_id: provider.id, is_primary: true },
+    });
+
+    if (primaryCard && finalPrice > 0) {
+      try {
+        const chargeRes = await this.iyzicoService.chargeCard(
+          provider.id,
+          primaryCard.card_user_key,
+          primaryCard.card_token,
+          finalPrice,
+          'subscription'
+        );
+
+        if (chargeRes.status === 'success') {
+          // Aboneliği doğrudan aktif et
+          const subscription = await this.prisma.subscription.upsert({
+            where: { provider_id: provider.id },
+            create: {
+              provider_id: provider.id,
+              package_type: dto.packageType,
+              status: SubscriptionStatus.active,
+              started_at: new Date(),
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            },
+            update: {
+              package_type: dto.packageType,
+              status: SubscriptionStatus.active,
+              started_at: new Date(),
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            },
+          });
+
+          // Ödeme kaydı
+          await this.prisma.payment.create({
+            data: {
+              subscription_id: subscription.id,
+              amount: finalPrice,
+              status: PaymentStatus.success,
+              iyzico_payment_id: chargeRes.paymentId,
+              attempt_count: 1,
+              paid_at: new Date(),
+            }
+          });
+
+          // Kotasını yenile
+          const monthYear = new Date().toISOString().substring(0, 7);
+          await this.prisma.providerMonthlyQuota.upsert({
+            where: { provider_id_month_year: { provider_id: provider.id, month_year: monthYear } },
+            create: {
+              provider_id: provider.id,
+              month_year: monthYear,
+              accepted_count: 0,
+              monthly_limit: pkg.quota,
+              reset_at: subscription.expires_at,
+            },
+            update: {
+              monthly_limit: pkg.quota,
+            },
+          });
+
+          // Kampanya kullanımı kaydet
+          if (campaign) {
+            await this.prisma.campaignUsage.create({
+              data: {
+                campaign_id: campaign.id,
+                provider_id: provider.id,
+                subscription_id: subscription.id,
+                discount_amount: pkg.price - finalPrice,
+              },
+            });
+            await this.prisma.campaign.update({
+              where: { id: campaign.id },
+              data: { used_count: { increment: 1 } },
+            });
+          }
+
+          return {
+            success: true,
+            status: 'active',
+            message: `${pkg.name} aboneliğiniz kayıtlı kartınızdan tahsil edilerek başarıyla aktifleştirildi.`,
+          };
+        }
+      } catch (err) {
+        this.logger.error(`Direct saved card payment failed for provider ${provider.id}: ${err.message}. Falling back to Checkout Form.`);
+      }
+    }
+
+    // 6. iyzico Checkout Formunu başlat
     const callbackUrl = `http://localhost:3005/api/webhooks/iyzico/callback?providerId=${provider.id}&packageType=${dto.packageType}&campaignId=${campaign ? campaign.id : ''}&discount=${pkg.price - finalPrice}`;
     const checkoutRes = await this.iyzicoService.createCheckoutForm(
       provider.id,
@@ -690,5 +779,414 @@ export class AbonelikService {
     }
 
     this.logger.log(`Successfully reset quotas for ${resetCount} providers for month ${monthYear}.`);
+  }
+
+  /**
+   * Kartları Listele (Hizmet Veren)
+   */
+  async getSavedCards(userId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: userId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    return this.prisma.savedCard.findMany({
+      where: { provider_id: provider.id },
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        card_holder: true,
+        card_brand: true,
+        card_association: true,
+        card_family: true,
+        bin_number: true,
+        last_four: true,
+        is_primary: true,
+        created_at: true,
+      }
+    });
+  }
+
+  /**
+   * Kart Ekle (Hizmet Veren)
+   */
+  async addSavedCard(userId: string, dto: AddCardDto) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: userId },
+      include: { user: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    // iyzico Card Storage'a kaydet
+    const iyzicoRes = await this.iyzicoService.saveCard(
+      provider.id,
+      provider.user.email || 'partner@esnaaf.com',
+      dto
+    );
+
+    // Daha önce kart var mı? Yoksa bu kartı primary yapacağız
+    const existingCardsCount = await this.prisma.savedCard.count({
+      where: { provider_id: provider.id },
+    });
+    const isPrimary = existingCardsCount === 0;
+
+    // Eğer bu kart primary ise ve daha önce kartlar varsa, diğerlerinin primary durumunu kaldır
+    if (isPrimary) {
+      await this.prisma.savedCard.updateMany({
+        where: { provider_id: provider.id },
+        data: { is_primary: false },
+      });
+    }
+
+    const savedCard = await this.prisma.savedCard.create({
+      data: {
+        provider_id: provider.id,
+        card_holder: dto.cardHolderName,
+        card_brand: iyzicoRes.cardBrand,
+        card_association: iyzicoRes.cardAssociation,
+        card_family: iyzicoRes.cardFamily,
+        card_user_key: iyzicoRes.cardUserKey,
+        card_token: iyzicoRes.cardToken,
+        bin_number: iyzicoRes.binNumber,
+        last_four: iyzicoRes.lastFour,
+        is_primary: isPrimary,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Kartınız başarıyla kaydedildi.',
+      card: savedCard,
+    };
+  }
+
+  /**
+   * Kart Sil (Hizmet Veren)
+   */
+  async deleteSavedCard(userId: string, cardId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: userId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const card = await this.prisma.savedCard.findUnique({
+      where: { id: cardId },
+    });
+    if (!card || card.provider_id !== provider.id) {
+      throw new NotFoundException('Kart bulunamadı.');
+    }
+
+    // iyzico'dan sil
+    await this.iyzicoService.deleteCard(provider.id, card.card_user_key, card.card_token);
+
+    // Veritabanından sil
+    await this.prisma.savedCard.delete({
+      where: { id: cardId },
+    });
+
+    // Eğer silinen kart primary ise ve başka kartlar varsa, en yeni kartı primary yap
+    if (card.is_primary) {
+      const remainingCard = await this.prisma.savedCard.findFirst({
+        where: { provider_id: provider.id },
+        orderBy: { created_at: 'desc' },
+      });
+      if (remainingCard) {
+        await this.prisma.savedCard.update({
+          where: { id: remainingCard.id },
+          data: { is_primary: true },
+        });
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Kartınız başarıyla silindi.',
+    };
+  }
+
+  /**
+   * Birincil Kart Yap (Hizmet Veren)
+   */
+  async setPrimaryCard(userId: string, cardId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: userId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const card = await this.prisma.savedCard.findUnique({
+      where: { id: cardId },
+    });
+    if (!card || card.provider_id !== provider.id) {
+      throw new NotFoundException('Kart bulunamadı.');
+    }
+
+    // Diğerlerini pasif et
+    await this.prisma.savedCard.updateMany({
+      where: { provider_id: provider.id },
+      data: { is_primary: false },
+    });
+
+    // Seçileni aktif et
+    const updated = await this.prisma.savedCard.update({
+      where: { id: cardId },
+      data: { is_primary: true },
+    });
+
+    return {
+      success: true,
+      message: 'Varsayılan ödeme kartınız güncellendi.',
+      card: updated,
+    };
+  }
+
+  /**
+   * Haftalık Komisyon Otomatik Tahsilat Cron Görevi
+   * Her Pazar günü saat 21:00 UTC (Türkiye saatiyle Pazartesi 00:00) çalışır.
+   */
+  @Cron('0 21 * * 0')
+  async weeklyCommissionBilling() {
+    this.logger.log('--- STARTING WEEKLY COMMISSION AUTO-BILLING CRON ---');
+    const providers = await this.prisma.serviceProvider.findMany({
+      include: {
+        user: true,
+      },
+    });
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const provider of providers) {
+      try {
+        // Ustanın ödenmemiş komisyon borçlarını hesapla
+        const unpaidCompletions = await this.prisma.jobCompletion.findMany({
+          where: {
+            provider_id: provider.id,
+            status: 'completed',
+            offer: {
+              commission_paid: false,
+            },
+          },
+          include: {
+            offer: {
+              include: {
+                job: true
+              }
+            },
+          },
+        });
+
+        if (unpaidCompletions.length === 0) continue;
+
+        let totalUnpaidCommission = 0;
+        for (const c of unpaidCompletions) {
+          const price = c.provider_declared_amount ? Number(c.provider_declared_amount) : Number(c.offer.price);
+          const rate = c.offer.commission_rate ? Number(c.offer.commission_rate) : 0;
+          totalUnpaidCommission += (price * rate) / 100;
+        }
+
+        if (totalUnpaidCommission <= 0) continue;
+
+        // Ustanın birincil ödeme kartını bul
+        const primaryCard = await this.prisma.savedCard.findFirst({
+          where: { provider_id: provider.id, is_primary: true },
+        });
+
+        if (!primaryCard) {
+          this.logger.warn(`No primary card found for Provider: ${provider.id}. Commission of ₺${totalUnpaidCommission} could not be billed.`);
+          // HV-71: Ödeme Hatası / Kart Yok Bildirimi Logla
+          await this.prisma.notificationLog.create({
+            data: {
+              user_id: provider.user_id,
+              event_code: 'HV-71',
+              channel: 'in_app',
+              status: 'sent',
+              payload: {
+                title: 'Haftalık Komisyon Tahsilat Hatası',
+                body: `Birikmiş ₺${totalUnpaidCommission.toFixed(2)} komisyon borcunuz, sistemde kayıtlı kart bulunamadığından tahsil edilemedi. Lütfen bir kart kaydediniz.`,
+                level: 'yellow',
+              },
+              sent_at: new Date(),
+              delivered_at: new Date(),
+            }
+          });
+          failCount++;
+          continue;
+        }
+
+        // Karttan çekim yap
+        const chargeRes = await this.iyzicoService.chargeCard(
+          provider.id,
+          primaryCard.card_user_key,
+          primaryCard.card_token,
+          totalUnpaidCommission,
+          'commission'
+        );
+
+        if (chargeRes.status === 'success') {
+          // Komisyonları ödendi olarak işaretle
+          const offerIds = unpaidCompletions.map(c => c.offer.id);
+          await this.prisma.offer.updateMany({
+            where: { id: { in: offerIds } },
+            data: { commission_paid: true },
+          });
+
+          // Abone tablosundan aktif bir abonelik varsa ilişkili payment at
+          const activeSub = await this.prisma.subscription.findUnique({
+            where: { provider_id: provider.id },
+          });
+
+          if (activeSub) {
+            await this.prisma.payment.create({
+              data: {
+                subscription_id: activeSub.id,
+                amount: totalUnpaidCommission,
+                status: PaymentStatus.success,
+                iyzico_payment_id: chargeRes.paymentId,
+                attempt_count: 1,
+                paid_at: new Date(),
+              }
+            });
+          }
+
+          // HV-70: Ödeme Başarılı Bildirimi
+          await this.prisma.notificationLog.create({
+            data: {
+              user_id: provider.user_id,
+              event_code: 'HV-70',
+              channel: 'in_app',
+              status: 'sent',
+              payload: {
+                title: 'Komisyon Tahsilatı Başarılı',
+                body: `Haftalık birikmiş ₺${totalUnpaidCommission.toFixed(2)} komisyon tutarı kayıtlı kartınızdan başarıyla tahsil edilmiştir.`,
+                level: 'info',
+              },
+              sent_at: new Date(),
+              delivered_at: new Date(),
+            }
+          });
+
+          successCount++;
+        }
+      } catch (err) {
+        this.logger.error(`Weekly commission billing failed for provider ${provider.id}: ${err.message}`);
+        // HV-72: Tahsilat Hatası Bildirimi
+        await this.prisma.notificationLog.create({
+          data: {
+            user_id: provider.user_id,
+            event_code: 'HV-72',
+            channel: 'in_app',
+            status: 'sent',
+            payload: {
+              title: 'Haftalık Komisyon Tahsilat Hatası',
+              body: `Birikmiş komisyon borcunuz kayıtlı kartınızdan tahsil edilirken hata oluştu: ${err.message}. Lütfen kartınızı güncelleyin.`,
+              level: 'red',
+            },
+            sent_at: new Date(),
+            delivered_at: new Date(),
+          }
+        });
+        failCount++;
+      }
+    }
+
+    this.logger.log(`Weekly Commission billing job finished. Success: ${successCount}, Failures: ${failCount}`);
+  }
+
+  /**
+   * Birikmiş Komisyonları Manuel Öde (Hizmet Veren)
+   */
+  async payCommissionManually(userId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: userId },
+      include: { user: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const unpaidCompletions = await this.prisma.jobCompletion.findMany({
+      where: {
+        provider_id: provider.id,
+        status: 'completed',
+        offer: {
+          commission_paid: false,
+        },
+      },
+      include: {
+        offer: true,
+      },
+    });
+
+    if (unpaidCompletions.length === 0) {
+      throw new BadRequestException('Ödenmemiş komisyon borcunuz bulunmamaktadır.');
+    }
+
+    let totalUnpaidCommission = 0;
+    for (const c of unpaidCompletions) {
+      const price = c.provider_declared_amount ? Number(c.provider_declared_amount) : Number(c.offer.price);
+      const rate = c.offer.commission_rate ? Number(c.offer.commission_rate) : 0;
+      totalUnpaidCommission += (price * rate) / 100;
+    }
+
+    if (totalUnpaidCommission <= 0) {
+      throw new BadRequestException('Ödenecek komisyon tutarı sıfırdır.');
+    }
+
+    const primaryCard = await this.prisma.savedCard.findFirst({
+      where: { provider_id: provider.id, is_primary: true },
+    });
+
+    if (!primaryCard) {
+      throw new BadRequestException('Kayıtlı bir ödeme kartı bulunamadı. Lütfen önce kart ekleyin.');
+    }
+
+    // Karttan çekim yap
+    const chargeRes = await this.iyzicoService.chargeCard(
+      provider.id,
+      primaryCard.card_user_key,
+      primaryCard.card_token,
+      totalUnpaidCommission,
+      'commission'
+    );
+
+    if (chargeRes.status === 'success') {
+      const offerIds = unpaidCompletions.map(c => c.offer.id);
+      await this.prisma.offer.updateMany({
+        where: { id: { in: offerIds } },
+        data: { commission_paid: true },
+      });
+
+      const activeSub = await this.prisma.subscription.findUnique({
+        where: { provider_id: provider.id },
+      });
+
+      if (activeSub) {
+        await this.prisma.payment.create({
+          data: {
+            subscription_id: activeSub.id,
+            amount: totalUnpaidCommission,
+            status: PaymentStatus.success,
+            iyzico_payment_id: chargeRes.paymentId,
+            attempt_count: 1,
+            paid_at: new Date(),
+          }
+        });
+      }
+
+      return {
+        success: true,
+        message: `₺${totalUnpaidCommission.toFixed(2)} tutarındaki birikmiş komisyon borcunuz başarıyla tahsil edilmiştir.`,
+      };
+    } else {
+      throw new BadRequestException('Ödeme tahsil edilemedi.');
+    }
   }
 }

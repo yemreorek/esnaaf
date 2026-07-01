@@ -129,6 +129,7 @@ model ServiceProvider {
   reviews_received  Review[]               @relation("ProviderReviews")
   favorited_by      FavoriteProvider[]     @relation("ProviderFavoritedBy")
   direct_requests   ServiceRequest[]       @relation("DirectProviderRequests")
+  saved_cards       SavedCard[]
 
   @@map("service_providers")
   @@index([city])
@@ -707,4 +708,24 @@ model FavoriteProvider {
   @@index([seeker_id])
   @@index([provider_id])
   @@map("favorite_providers")
+}
+
+model SavedCard {
+  id               String          @id @default(uuid()) @db.Uuid
+  provider_id      String          @db.Uuid
+  provider         ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  card_holder      String
+  card_brand       String          // Visa, Mastercard, Troy, vb.
+  card_association String?
+  card_family      String?
+  card_user_key    String          // iyzico cardUserKey
+  card_token       String          // iyzico cardToken
+  bin_number       String          // İlk 6 hane
+  last_four        String          // Son 4 hane
+  is_primary       Boolean         @default(true)
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+
+  @@map("saved_cards")
+  @@index([provider_id, is_primary])
 }
