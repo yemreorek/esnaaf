@@ -3680,55 +3680,115 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     </header>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Sol kolon: Usta Arama & Ekleme */}
-                      <div className="lg:col-span-1 bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-5 text-left h-fit">
-                        <h4 className="font-extrabold text-slate-850 text-sm">Esnaaf ID ile Usta Bul</h4>
-                        <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                          Ustanızın Esnaaf ID'sini (Örn: ESN-K3T9X) girerek favori listenize doğrudan ekleyebilirsiniz.
-                        </p>
-                        
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Örn: ESN-K3T9X"
-                            value={searchEsnaafId}
-                            onChange={(e) => setSearchEsnaafId(e.target.value.toUpperCase())}
-                            className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
-                          />
-                          <button
-                            onClick={handleSearchUsta}
-                            disabled={isSearching}
-                            className="bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-400 text-xs font-black px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
-                          >
-                            {isSearching ? "Aranıyor..." : "Ara"}
-                          </button>
+                      {/* Sol kolon: Eşleşme ID Kartı & Usta Arama */}
+                      <div className="lg:col-span-1 space-y-6">
+                        {/* Esnaaf ID & QR Kod Kartı */}
+                        <div className="bg-slate-900 p-6 rounded-[28px] border border-slate-800 shadow-md hover:shadow-lg transition-all flex flex-col justify-between text-white relative overflow-hidden min-h-[160px]">
+                          {/* Decorative glow */}
+                          <div className="absolute top-[-30px] right-[-30px] w-20 h-20 rounded-full bg-[#c8f252]/10 blur-xl"></div>
+                          
+                          <div className="flex justify-between items-start z-10 gap-3">
+                            <div className="text-left space-y-1">
+                              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest font-mono">Kolay Eşleşme ID</span>
+                              <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all font-mono">
+                                {esnaafId || 'Yükleniyor...'}
+                              </div>
+                              <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
+                                Hizmet veren (esnaf) bu ID'yi kendi panelinde "Sadık Müşterilerim" bölümüne ekleyerek sizinle özel komisyon avantajıyla eşleşebilir.
+                              </p>
+                            </div>
+                            {/* Visual QR Code Mockup */}
+                            <div className="w-16 h-16 bg-white p-1.5 rounded-xl shrink-0 flex flex-col gap-0.5 justify-between items-center relative shadow-md">
+                              <div className="grid grid-cols-5 gap-0.5 w-full h-full">
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-200 rounded-sm"></div>
+                                <div className="bg-slate-900 rounded-sm"></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-bold z-10">
+                            <span>Esnaaf ID Kartım</span>
+                            <span className="text-[#c8f252]">Aktif</span>
+                          </div>
                         </div>
 
-                        {searchError && (
-                          <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-200">
-                            {searchError}
-                          </div>
-                        )}
-
-                        {searchResult && (
-                          <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col gap-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <span className="block text-xs font-extrabold text-slate-800">{searchResult.name}</span>
-                                <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
-                              </div>
-                              <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
-                                Usta
-                              </span>
-                            </div>
+                        {/* Usta Arama & Ekleme */}
+                        <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-5 text-left h-fit">
+                          <h4 className="font-extrabold text-slate-850 text-sm">Esnaaf ID ile Usta Bul</h4>
+                          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                            Ustanızın Esnaaf ID'sini (Örn: ESN-K3T9X) girerek favori listenize doğrudan ekleyebilirsiniz.
+                          </p>
+                          
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Örn: ESN-K3T9X"
+                              value={searchEsnaafId}
+                              onChange={(e) => setSearchEsnaafId(e.target.value.toUpperCase())}
+                              className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                            />
                             <button
-                              onClick={() => handleAddUsta(searchResult.esnaaf_id)}
-                              className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-900 font-bold text-xs py-2 rounded-xl"
+                              onClick={handleSearchUsta}
+                              disabled={isSearching}
+                              className="bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-400 text-xs font-black px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
                             >
-                              Favorilerime Ekle
+                              {isSearching ? "Aranıyor..." : "Ara"}
                             </button>
                           </div>
-                        )}
+
+                          {searchError && (
+                            <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-200">
+                              {searchError}
+                            </div>
+                          )}
+
+                          {searchResult && (
+                            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col gap-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="block text-xs font-extrabold text-slate-800">{searchResult.name}</span>
+                                  <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
+                                </div>
+                                <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
+                                  Usta
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handleAddUsta(searchResult.esnaaf_id)}
+                                className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-900 font-bold text-xs py-2 rounded-xl"
+                              >
+                                Favorilerime Ekle
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Sağ kolon: Favori Ustalar & Onay Bekleyen Talepler */}

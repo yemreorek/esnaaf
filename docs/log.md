@@ -2,6 +2,13 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-01 feat | Hizmet Alan Portalı - Esnaaf ID & QR Eşleşme Kartı
+
+- **Arayüz Geliştirmesi (app-musteri):**
+  - Müşterinin (Hizmet Alan) kendi Esnaaf ID'sini görebilmesi ve usta uygulamasına QR/ID ile eşleşebilmesi için Favoriler sekmesinin sol sütununa lüks antrasit renkli **Esnaaf ID & QR Kod Eşleşme Kartı** entegre edildi.
+  - Kart üzerinde `esnaafId` dinamik olarak listelenecek şekilde bağlandı ve açıklama metni usta tarafındaki sadık müşteri eşleşme süreciyle uyumlu hale getirildi.
+  - Proje derleme (`npx tsc --noEmit`) testi sıfır hata ile tamamlandı.
+
 ## 2026-07-01 feat | Tekrar Yayınla — Temiz Sayfa + Öncelikli Bildirim
 
 - **Arşivleme Sistemi (Backend):**
