@@ -3672,10 +3672,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                   <div className="space-y-8 animate-scale-up text-left">
                     <header>
                       <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
-                        Favori Ustalarım
+                        Favori Hizmet Verenlerim
                       </h2>
                       <p className="text-slate-400 text-xs mt-1 font-semibold leading-relaxed">
-                        Güvendiğiniz ustaları ekleyin, doğrudan teklif isteyin ve sadık müşteri isteklerini onaylayın.
+                        Güvendiğiniz hizmet verenleri ekleyin, doğrudan teklif isteyin ve sadık müşteri isteklerini onaylayın.
                       </p>
                     </header>
 
@@ -3739,11 +3739,11 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           </div>
                         </div>
 
-                        {/* Usta Arama & Ekleme */}
+                        {/* Hizmet Veren Arama & Ekleme */}
                         <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm flex flex-col gap-5 text-left h-fit">
-                          <h4 className="font-extrabold text-slate-850 text-sm">Esnaaf ID ile Usta Bul</h4>
+                          <h4 className="font-extrabold text-slate-850 text-sm">Esnaaf ID ile Hizmet Veren Bul</h4>
                           <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                            Ustanızın Esnaaf ID'sini (Örn: ESN-K3T9X) girerek favori listenize doğrudan ekleyebilirsiniz.
+                            Hizmet vereninizin Esnaaf ID'sini (Örn: ESN-K3T9X) girerek favori listenize doğrudan ekleyebilirsiniz.
                           </p>
                           
                           <div className="flex gap-2">
@@ -3777,7 +3777,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                   <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
                                 </div>
                                 <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
-                                  Usta
+                                  Hizmet Veren
                                 </span>
                               </div>
                               <button
@@ -3791,17 +3791,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                         </div>
                       </div>
 
-                      {/* Sağ kolon: Favori Ustalar & Onay Bekleyen Talepler */}
+                      {/* Sağ kolon: Favori Hizmet Verenler & Onay Bekleyen Talepler */}
                       <div className="lg:col-span-2 space-y-6">
                         {/* Onay Bekleyen Sadık Müşteri İstekleri */}
                         {loyaltyRequests.length > 0 && (
                           <div className="bg-amber-50/50 border border-amber-100 rounded-[28px] p-6 shadow-inner space-y-4">
-                            <h3 className="font-extrabold text-amber-900 text-sm">Onay Bekleyen Sadık Usta Bağlantıları</h3>
+                            <h3 className="font-extrabold text-amber-900 text-sm">Onay Bekleyen Sadık Hizmet Veren Bağlantıları</h3>
                             <div className="space-y-3">
                               {loyaltyRequests.map((req) => (
                                 <div key={req.id} className="bg-white border border-amber-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
                                   <div className="text-left">
-                                    <span className="block text-xs font-extrabold text-slate-800">{req.provider?.user?.name || "Usta"}</span>
+                                    <span className="block text-xs font-extrabold text-slate-800">{req.provider?.user?.name || "Hizmet Veren"}</span>
                                     <span className="block text-[9px] text-slate-400 font-bold">ID: {req.provider?.user?.esnaaf_id}</span>
                                   </div>
                                   <div className="flex gap-2">
@@ -3824,9 +3824,9 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           </div>
                         )}
 
-                        {/* Favori Ustalar Listesi */}
+                        {/* Favori Hizmet Verenler Listesi */}
                         <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm space-y-4 text-left">
-                          <h3 className="font-extrabold text-slate-800 text-sm">Kayıtlı Favori Ustalarım</h3>
+                          <h3 className="font-extrabold text-slate-800 text-sm">Kayıtlı Favori Hizmet Verenlerim</h3>
                           
                           {favorites.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3866,7 +3866,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             </div>
                           ) : (
                             <div className="text-center py-12 text-slate-400 text-xs font-semibold">
-                              Henüz favori ustanız bulunmamaktadır. Esnaaf ID arama kutusundan ekleme yapabilirsiniz.
+                              Henüz favori hizmet vereniniz bulunmamaktadır. Esnaaf ID arama kutusundan ekleme yapabilirsiniz.
                             </div>
                           )}
                         </div>
@@ -3881,10 +3881,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     <div className="bg-white rounded-[28px] border border-slate-100 p-6 max-w-md w-full shadow-2xl animate-scale-up space-y-5 text-left">
                       <div>
                         <h4 className="font-extrabold text-slate-900 text-sm">
-                          {directRequestProvider.user?.name} Ustaya Özel İş Talebi
+                          {directRequestProvider.user?.name} Adlı Hizmet Verene Özel İş Talebi
                         </h4>
                         <p className="text-slate-400 text-xs mt-0.5">
-                          Bu talep genel havuzda yayınlanmayacak, sadece bu ustaya iletilecektir.
+                          Bu talep genel havuzda yayınlanmayacak, sadece bu hizmet verene iletilecektir.
                         </p>
                       </div>
 
