@@ -8,9 +8,10 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve alty
   - Eski tek satırlı arama kutusu kaldırıldı; yerine Claude/ChatGPT arayüzünü anımsatan çok satırlı (`textarea`) geniş ve modern bir **AI Sohbet Kutusu** yerleştirildi.
   - İçerik placeholder metni: *"Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Ev Temizliği, Boya Badana...)"* olarak güncellendi.
   - Alt satıra ek seçenekler için sol tarafa `+` (Kategorileri Gör) butonu ve sağ tarafa AI sürüm etiketi (`Esnaaf AI v2.5`), **Sesle Anlat (Mikrofon)** butonu ve modern **Talebi Gönder** butonu yerleştirildi.
-- **Sesli Komut Entegrasyonu (Speech to Text):**
-  - HTML5 native **Web Speech API** (`SpeechRecognition`) entegre edildi. 
-  - Mikrofon butonuna tıklandığında ses kaydı başlatılır, tarayıcıda kırmızı/rose renkte pulse animasyonlu dinleme efekti gösterilir ve kullanıcının konuştuğu Türkçe kelimeler anlık olarak metin kutusuna eklenir. Dinleme tamamlandığında veya tekrar tıklandığında kayıt durdurulur.
+- **Sesli Komut Entegrasyonu & Anlık Geri Bildirim (Speech to Text):**
+  - HTML5 native **Web Speech API** (`SpeechRecognition`) entegre edildi. `interimResults = true` ve `continuous = true` parametreleri etkinleştirilerek kullanıcının konuştuğu kelimeler **anlık olarak, gerçek zamanlı şekilde** metin kutusuna yazılmaya başlandı.
+  - Mikrofon butonuna tıklandığında ses kaydı başlatılır, tarayıcıda kırmızı/rose renkte pulse animasyonlu dinleme efekti gösterilir.
+  - Sistemin dinleme yaptığını ve ses algıladığını görsel olarak hissettirmek için mikrofonun hemen yanına **bouncing animasyonlu 5 barlı "Ses Dalga Efekti" (Sound Waveform Visualizer)** entegre edildi. Dinleme bittiğinde animasyon ve mikrofon aktif durumu otomatik olarak kapanmaktadır.
 - **Build & Deploy:** Frontend `npm run build` ve TypeScript doğrulaması tamamlanarak değişiklikler GitHub `main` branch'ine pushlandı.
 
 ## 2026-07-02 fix | "Sistemimiz Yoğun" Hatası Kesin Çözüm — 3 Katmanlı Dayanıklılık
