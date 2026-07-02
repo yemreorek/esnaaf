@@ -582,7 +582,6 @@ export default function Home() {
 
           {/* Popular services list */}
           <div className="flex flex-wrap justify-center items-center gap-2.5 text-xs text-slate-550 font-semibold z-10 pt-2">
-            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Popüler:</span>
             {["ev temizliği", "boya badana", "nakliyat", "su tesisatı"].map((pop, idx) => (
               <button
                 key={idx}
