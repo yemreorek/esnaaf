@@ -527,6 +527,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim()) return;
 
+    // Stop speech recognition on message send to reset speech session history
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    baseTextRef.current = "";
+
     if (currentStep === "confirm_form" && (messageText.toLowerCase().includes("onayla") || messageText.toLowerCase() === "evet" || messageText.toLowerCase() === "doğru") && !kvkkChecked) {
       alert("Lütfen devam etmeden önce KVKK Aydınlatma Metni'ni onaylayın.");
       return;

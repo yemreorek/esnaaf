@@ -441,6 +441,10 @@ export default function Home() {
   };
 
   const handleSend = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    baseTextRef.current = "";
     handleStartChat(inputValue);
   };
 
