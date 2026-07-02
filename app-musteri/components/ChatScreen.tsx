@@ -232,8 +232,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      const newHeight = Math.min(textarea.scrollHeight, 120);
+      const newHeight = Math.min(textarea.scrollHeight, 200);
       textarea.style.height = `${newHeight}px`;
+      
+      // Auto-scroll to the bottom of the textarea so the latest words are always visible
+      textarea.scrollTop = textarea.scrollHeight;
     }
   }, [inputVal]);
 
@@ -1449,7 +1452,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             }}
             placeholder="Mesajınızı buraya yazın..."
             disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
-            className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400 max-h-[120px] overflow-y-auto min-h-[36px]"
+            className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400 max-h-[200px] overflow-y-auto min-h-[36px]"
           />
           {/* Sound Wave Visualizer when recording in chat */}
           {isListening && (
