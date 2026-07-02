@@ -8,9 +8,10 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve alty
   - Chat mesaj yazma barının sağ tarafına, gönder butonunun yanına entegre **Mikrofon** butonu eklendi.
   - Mikrofon aktif olduğunda seslerin gerçek zamanlı metne dönüştürülmesi sağlandı ve mikrofonun yanına **bouncing animasyonlu 5 barlı "Ses Dalga Göstergesi"** eklenerek dinleme yapıldığı görselleştirildi.
   - **Duraklama ve Düşünme Düzeltmesi:** Konuşma esnasında kullanıcının duraklayıp düşünmesi durumunda, önceki konuşulan cümlelerin silinmesi/üzerine yazılması sorunu giderildi. SpeechRecognition döngüsü `event.resultIndex` yerine `0` başlangıç indeksiyle çalıştırılarak tüm kayıt oturumu boyunca ses geçmişinin kümülatif olarak biriktirilmesi sağlandı.
-- **Dinamik Yükselen Mesaj Giriş Alanı (Auto-Grow Textarea):**
+- **Dinamik Yükselen ve Otomatik Kayan Mesaj Giriş Alanı (Auto-Grow & Auto-Scroll Textarea):**
   - Canlı sohbet (`ChatScreen.tsx`) mesaj yazma alanındaki tek satır sınırlaması kaldırıldı. Kullanıcı klavyeyle yazdıkça veya sesle konuştukça metin kutusunun **yukarıya doğru otomatik olarak genişlemesi (auto-grow)** sağlandı.
-  - Yükseklik değeri `scrollHeight` ile dinamik hesaplanıp maksimum `120px` sınırına kadar genişletildi. Maksimum sınırdan sonra iç kaydırma (`overflow-y-auto`) aktif hale getirildi.
+  - Yükseklik değeri `scrollHeight` ile dinamik hesaplanıp maksimum **`200px`** sınırına (yaklaşık 8-10 satır) kadar genişletildi.
+  - **Otomatik Aşağı Kaydırma (Auto-Scroll):** Metin uzadıkça veya sesle konuşmaya devam ettikçe, en son söylenen kelimelerin daima görünür kalması için textarea scroll barı **otomatik olarak en aşağıya (`scrollTop = scrollHeight`) kaydırılacak** şekilde güncellendi.
   - Giriş barı esnek hizalama düzeni (`items-end`) olarak güncellenerek, metin yükseldikçe butonların (Mikrofon ve Gönder) en altta sabit kalması ve arayüz estetiğinin bozulmaması sağlandı.
 - **Yapay Zeka Yanıtlarını Seslendirme (Text-to-Speech) Kaldırılması:**
   - Kullanıcı talebi doğrultusunda yapay zeka yanıtlarının yanında yer alan sesli okuma ("Seslendir / Durdur") düğmesi ve Text-to-Speech kütüphane bağlantıları temizlendi.
