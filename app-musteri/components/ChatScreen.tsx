@@ -251,7 +251,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         recognition.onresult = (event: any) => {
           let interimTranscript = "";
           let finalTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
+          for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
               finalTranscript += event.results[i][0].transcript + " ";
             } else {
@@ -1057,36 +1057,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   <p className="whitespace-pre-line">{msg.content}</p>
                 )}
 
-                {!isUser && !msg.isStreaming && (
-                  <div className="flex justify-end mt-1.5 pt-1.5 border-t border-slate-100/50">
-                    <button
-                      onClick={() => toggleSpeech(msg.id, msg.content)}
-                      title={playingMessageId === msg.id ? "Sesi Durdur" : "Seslendir"}
-                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
-                        playingMessageId === msg.id
-                          ? "bg-rose-50 border-rose-200 text-rose-600 font-bold animate-pulse"
-                          : "bg-slate-50 border-slate-150 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-                      }`}
-                    >
-                      {playingMessageId === msg.id ? (
-                        <>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <rect x="4" y="4" width="16" height="16" rx="2" />
-                          </svg>
-                          Durdur
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                          </svg>
-                          Seslendir
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
+
 
                 {/* SUMMARY CARD IN THE SOHBET FLOW */}
                 {msg.collected_data && currentStep === "confirm_form" && msg.id === [...messages].reverse().find(m => m.collected_data)?.id && (
