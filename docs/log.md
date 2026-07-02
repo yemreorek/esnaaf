@@ -2,6 +2,36 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-02 fix | "Sistemimiz Yoğun" Hatası Kesin Çözüm — 3 Katmanlı Dayanıklılık
+
+- **Sorun:** Canlı sohbette kullanıcılar "Sistemimiz yoğun. Lütfen birkaç dakika sonra tekrar deneyin." hatası alıyordu. Gemini AI timeout/rate-limit durumlarında sohbet akışı tamamen kesiliyordu.
+
+- **Katman 1 — Gemini Servisi Güçlendirmesi (`gemini.service.ts`):**
+  - Timeout 12s → **20s** artırıldı (Gemini Flash function calling sürelerine uyum).
+  - Geçersiz fallback model `gemini-pro-latest` kaldırıldı, yerine **`gemini-2.0-flash`** eklendi.
+  - Retry sayısı model başına 2 → **3** çıkarıldı.
+  - Lineer backoff (1s, 2s) → **Exponential backoff (2s, 4s, 8s)** geçildi.
+  - Tüm denemeler için **45 saniye global timeout** eklendi.
+  - Transient hata tespitine `500/INTERNAL/Timeout` eklendi.
+
+- **Katman 2 — Chat Servisi Deterministic Fallback (`chat.service.ts`) [KRİTİK]:**
+  - `catch` bloğundaki `throw new HttpException('Sistemimiz yoğun...')` **tamamen kaldırıldı**.
+  - Gemini başarısız olduğunda, mevcut adıma (`state.step`) göre **deterministic fallback yanıtlar** üretiliyor:
+    - `greeting/category_detection` → Deterministik kategori tespiti + soru
+    - `collecting_details` → Mevcut soruya cevap kaydet + sonraki soru
+    - `ask_name/ask_phone/otp_verification/confirm_form` → Uygun deterministic yanıt
+  - Fallback'in kendisi bile başarısız olursa son çare olarak "Talebinizi işliyoruz. Lütfen mesajınızı tekrar gönderiniz." dönüyor.
+  - **Sonuç: Kullanıcıya ASLA hata gösterilmiyor.**
+
+- **Katman 3 — Frontend Otomatik Retry (`ChatScreen.tsx`):**
+  - 503/502/504 hatalarında **3 saniye arayla max 2 kez otomatik retry** eklendi.
+  - Network hatalarında da aynı mekanizma aktif.
+  - Retry sırasında kullanıcıya "Yanıt hazırlanıyor, lütfen bekleyin..." mesajı gösteriliyor.
+  - "Sistemimiz şu an yoğun" hata mesajı frontend'den de kaldırıldı.
+  - Başarılı retry sonrası bekleme mesajları otomatik temizleniyor.
+
+- **Build & Deploy:** Backend `nest build` ✅ | Frontend `next build` ✅ | Git push ✅
+
 ## 2026-07-01 feat | Hizmet Alan Portalı - Esnaaf ID & QR Eşleşme Kartı
 
 - **Arayüz Geliştirmesi (app-musteri):**
