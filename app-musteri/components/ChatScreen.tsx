@@ -227,6 +227,16 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     };
   }, []);
 
+  // Auto-grow textarea height dynamically based on content (Speech to Text or Typing)
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      const newHeight = Math.min(textarea.scrollHeight, 120);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [inputVal]);
+
   // Speech Recognition (Speech-to-Text) Handler
   const startSpeechRecognition = () => {
     if (typeof window !== "undefined") {
@@ -1411,7 +1421,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
       {/* Bottom Fixed Chat Input Bar */}
       <footer className="w-full border-t border-slate-100 bg-white px-3 md:px-4 pt-3 shrink-0 z-50 shadow-sm" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 8px), 12px)' }}>
-        <div className="w-full md:max-w-[720px] md:mx-auto flex items-center gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
+        <div className="w-full md:max-w-[720px] md:mx-auto flex items-end gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -1439,7 +1449,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             }}
             placeholder="Mesajınızı buraya yazın..."
             disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
-            className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400"
+            className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400 max-h-[120px] overflow-y-auto min-h-[36px]"
           />
           {/* Sound Wave Visualizer when recording in chat */}
           {isListening && (
