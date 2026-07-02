@@ -212,6 +212,111 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     });
   };
 
+  // Speech & Voice States (Adım 29)
+  const [isListening, setIsListening] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const baseTextRef = useRef("");
+
+  // Clean up speech synthesis on screen close or unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Speech Recognition (Speech-to-Text) Handler
+  const startSpeechRecognition = () => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Tarayıcınız ses tanıma özelliğini desteklemiyor. Google Chrome veya Edge kullanabilirsiniz.");
+        return;
+      }
+
+      if (!recognitionRef.current) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.lang = "tr-TR";
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+          let interimTranscript = "";
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + " ";
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+          const addition = finalTranscript + interimTranscript;
+          setInputVal(
+            baseTextRef.current
+              ? baseTextRef.current.trim() + " " + addition.trim()
+              : addition.trim()
+          );
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Speech recognition error", event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+
+      if (isListening) {
+        recognitionRef.current.stop();
+      } else {
+        baseTextRef.current = inputVal;
+        recognitionRef.current.start();
+      }
+    }
+  };
+
+  // Text-to-Speech (SpeechSynthesis) Handler
+  const toggleSpeech = (msgId: string, text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      if (playingMessageId === msgId) {
+        window.speechSynthesis.cancel();
+        setPlayingMessageId(null);
+      } else {
+        window.speechSynthesis.cancel();
+
+        // Clean markdown symbols for cleaner voice pronunciation
+        const cleanText = text.replace(/[*#_`~]/g, "");
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = "tr-TR";
+
+        utterance.onend = () => {
+          setPlayingMessageId(null);
+        };
+        utterance.onerror = () => {
+          setPlayingMessageId(null);
+        };
+
+        setPlayingMessageId(msgId);
+        window.speechSynthesis.speak(utterance);
+      }
+    } else {
+      alert("Tarayıcınız ses seslendirme özelliğini desteklemiyor.");
+    }
+  };
+
 
 
   // Lock body scroll when chat is open (prevents background scrolling on mobile)
@@ -952,6 +1057,37 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   <p className="whitespace-pre-line">{msg.content}</p>
                 )}
 
+                {!isUser && !msg.isStreaming && (
+                  <div className="flex justify-end mt-1.5 pt-1.5 border-t border-slate-100/50">
+                    <button
+                      onClick={() => toggleSpeech(msg.id, msg.content)}
+                      title={playingMessageId === msg.id ? "Sesi Durdur" : "Seslendir"}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
+                        playingMessageId === msg.id
+                          ? "bg-rose-50 border-rose-200 text-rose-600 font-bold animate-pulse"
+                          : "bg-slate-50 border-slate-150 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {playingMessageId === msg.id ? (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <rect x="4" y="4" width="16" height="16" rx="2" />
+                          </svg>
+                          Durdur
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                          </svg>
+                          Seslendir
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
                 {/* SUMMARY CARD IN THE SOHBET FLOW */}
                 {msg.collected_data && currentStep === "confirm_form" && msg.id === [...messages].reverse().find(m => m.collected_data)?.id && (
                   <div className="mt-4 p-4.5 bg-slate-50 border border-slate-200/80 rounded-[20px] flex flex-col gap-3.5 shadow-inner">
@@ -1334,6 +1470,41 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
             className="flex-1 bg-transparent border-0 outline-none text-slate-800 font-semibold text-sm p-2 resize-none leading-relaxed focus:ring-0 disabled:text-slate-400"
           />
+          {/* Sound Wave Visualizer when recording in chat */}
+          {isListening && (
+            <div className="flex items-end gap-[3px] h-4 px-1 select-none shrink-0" title="Mikrofonunuz dinleniyor...">
+              <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-1 origin-bottom"></span>
+              <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-2 origin-bottom"></span>
+              <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-3 origin-bottom"></span>
+              <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-4 origin-bottom"></span>
+              <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-5 origin-bottom"></span>
+            </div>
+          )}
+
+          {/* Microphone Button (Speech to Text) */}
+          <button
+            onClick={startSpeechRecognition}
+            disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
+            title={isListening ? "Dinlemeyi Durdur" : "Sesle Anlat"}
+            className={`w-10 h-10 rounded-[12px] border flex items-center justify-center cursor-pointer transition-all active:scale-95 shrink-0 bg-transparent ${
+              isListening
+                ? "border-rose-300 bg-rose-50/50 text-rose-600 animate-pulse"
+                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-500"
+            }`}
+          >
+            {isListening ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="6" height="6" rx="1" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            )}
+          </button>
+
           <button
             onClick={handleSend}
             disabled={!inputVal.trim() || isLoading || currentStep === "confirm_form" || currentStep === "completed"}
