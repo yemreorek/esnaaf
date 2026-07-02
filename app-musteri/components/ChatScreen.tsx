@@ -1435,7 +1435,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             ref={textareaRef}
             rows={1}
             value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
+            onChange={(e) => {
+              setInputVal(e.target.value);
+              if (isListening && recognitionRef.current) {
+                recognitionRef.current.stop();
+              }
+            }}
             onFocus={() => {
               // When user taps the input and keyboard opens on mobile,
               // wait for the keyboard animation to finish, then scroll

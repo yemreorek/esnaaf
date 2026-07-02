@@ -625,7 +625,12 @@ export default function Home() {
             <textarea
               ref={searchInputRef}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                if (isListening && recognitionRef.current) {
+                  recognitionRef.current.stop();
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
