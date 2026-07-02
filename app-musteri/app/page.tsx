@@ -165,9 +165,57 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("marketplace"); // Marketplace highlighted in mockup
   const [notification, setNotification] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   // Scroll targets refs
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Speech Recognition Handler
+  const startSpeechRecognition = () => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Tarayıcınız ses tanıma özelliğini desteklemiyor. Google Chrome veya Edge kullanabilirsiniz.");
+        return;
+      }
+
+      if (!recognitionRef.current) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = "tr-TR";
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInputValue((prev) => (prev ? prev + " " + transcript : transcript));
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Speech recognition error", event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+
+      if (isListening) {
+        recognitionRef.current.stop();
+      } else {
+        recognitionRef.current.start();
+      }
+    }
+  };
 
   // Transition States for Chat Interaction
   const [activeView, setActiveView] = useState<"home" | "chat" | "dashboard">("home");
@@ -553,30 +601,84 @@ export default function Home() {
             </p>
           </div>
 
-          {/* AI Search Box */}
-          <div className="w-full max-w-2xl glass-input rounded-[24px] p-2 pl-5 shadow-[0_15px_35px_rgba(0,0,0,0.04)] focus-within:ring-4 focus-within:ring-[#c8f252]/20 transition-all duration-300 mb-6">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-slate-400 shrink-0 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <input
-                ref={searchInputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSend();
-                }}
-                className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-sm placeholder-slate-450 focus:ring-0 p-0"
-                placeholder="Hangi hizmete ihtiyacınız var? (Örn: Ev temizliği, boya badana...)"
-                type="text"
-              />
+          {/* Premium AI Chat Box */}
+          <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-[28px] p-4 shadow-[0_15px_40px_rgba(0,0,0,0.03)] focus-within:ring-4 focus-within:ring-[#c8f252]/10 focus-within:border-slate-300 transition-all duration-300 mb-6 flex flex-col gap-2.5">
+            <textarea
+              ref={searchInputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={2}
+              className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-sm placeholder-slate-400 focus:ring-0 p-0 resize-none min-h-[60px] scrollbar-none"
+              placeholder="Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Ev Temizliği, Boya Badana...)"
+            />
+
+            <div className="flex justify-between items-center w-full pt-2 border-t border-slate-100/80">
+              {/* Left: Category Picker Modal Trigger */}
               <button
-                onClick={handleSend}
-                disabled={!inputValue.trim()}
-                className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shrink-0 active:scale-95 disabled:opacity-40 cursor-pointer shadow-md"
+                onClick={() => setIsModalOpen(true)}
+                title="Tüm Kategorileri Gör"
+                className="w-8 h-8 rounded-full border border-slate-150 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 cursor-pointer transition-all active:scale-95 bg-transparent"
               >
-                Ara & Başla
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <line x1="12" x2="12" y1="5" y2="19" />
+                  <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
               </button>
+
+              {/* Right: AI Version & Actions */}
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                  Esnaaf AI v2.5
+                </span>
+
+                {/* Microphone Button (Speech to Text) */}
+                <button
+                  onClick={startSpeechRecognition}
+                  title={isListening ? "Dinlemeyi Durdur" : "Sesle Anlat"}
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer transition-all active:scale-95 bg-transparent ${
+                    isListening
+                      ? "border-rose-300 bg-rose-50/50 text-rose-600 animate-pulse"
+                      : "border-slate-150 hover:border-slate-300 hover:bg-slate-50 text-slate-500"
+                  }`}
+                >
+                  {isListening ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <rect x="9" y="3" width="6" height="12" rx="3" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Send Button */}
+                <button
+                  onClick={handleSend}
+                  disabled={!inputValue.trim()}
+                  title="Talebi Başlat"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-95 border-none ${
+                    inputValue.trim()
+                      ? "bg-[#c8f252] text-slate-900 shadow-sm"
+                      : "bg-slate-100 text-slate-350 cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
