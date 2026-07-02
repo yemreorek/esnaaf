@@ -167,6 +167,7 @@ export default function Home() {
   const [notification, setNotification] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const baseTextRef = useRef("");
 
   // Scroll targets refs
   const searchInputRef = useRef<HTMLTextAreaElement>(null);
@@ -184,17 +185,30 @@ export default function Home() {
 
       if (!recognitionRef.current) {
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.lang = "tr-TR";
-        recognition.interimResults = false;
+        recognition.interimResults = true;
 
         recognition.onstart = () => {
           setIsListening(true);
         };
 
         recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setInputValue((prev) => (prev ? prev + " " + transcript : transcript));
+          let interimTranscript = "";
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + " ";
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+          const addition = finalTranscript + interimTranscript;
+          setInputValue(
+            baseTextRef.current
+              ? baseTextRef.current.trim() + " " + addition.trim()
+              : addition.trim()
+          );
         };
 
         recognition.onerror = (event: any) => {
@@ -212,6 +226,7 @@ export default function Home() {
       if (isListening) {
         recognitionRef.current.stop();
       } else {
+        baseTextRef.current = inputValue;
         recognitionRef.current.start();
       }
     }
@@ -636,6 +651,17 @@ export default function Home() {
                 <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
                   Esnaaf AI v2.5
                 </span>
+
+                {/* Sound Wave Visualizer when recording */}
+                {isListening && (
+                  <div className="flex items-end gap-[3px] h-4 px-1.5 select-none shrink-0" title="Mikrofonunuz dinleniyor...">
+                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-1 origin-bottom"></span>
+                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-2 origin-bottom"></span>
+                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-3 origin-bottom"></span>
+                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-4 origin-bottom"></span>
+                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-5 origin-bottom"></span>
+                  </div>
+                )}
 
                 {/* Microphone Button (Speech to Text) */}
                 <button
@@ -1466,6 +1492,15 @@ export default function Home() {
         .animate-slide-up {
           animation: slideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        @keyframes soundWave {
+          0%, 100% { transform: scaleY(0.3); }
+          50% { transform: scaleY(1); }
+        }
+        .animate-sound-wave-1 { animation: soundWave 0.8s ease-in-out infinite; }
+        .animate-sound-wave-2 { animation: soundWave 0.5s ease-in-out infinite 0.15s; }
+        .animate-sound-wave-3 { animation: soundWave 0.7s ease-in-out infinite 0.3s; }
+        .animate-sound-wave-4 { animation: soundWave 0.6s ease-in-out infinite 0.1s; }
+        .animate-sound-wave-5 { animation: soundWave 0.8s ease-in-out infinite 0.2s; }
       `}} />
     </div>
   );
