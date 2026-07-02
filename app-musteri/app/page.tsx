@@ -580,19 +580,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Popular services list */}
-          <div className="flex flex-wrap justify-center items-center gap-2.5 text-xs text-slate-550 font-semibold z-10 pt-2">
-            {["ev temizliği", "boya badana", "nakliyat", "su tesisatı"].map((pop, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectCategory(pop.charAt(0).toUpperCase() + pop.slice(1))}
-                className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 text-slate-655 hover:text-[#719600] transition-all cursor-pointer font-bold tracking-tight shadow-xs"
-              >
-                {pop}
-              </button>
-            ))}
-          </div>
-
           {/* Down Arrow Indicator & App Downloads */}
           <div className="pt-8 flex flex-col items-center gap-6">
             <a href="#categories-section" className="w-11 h-11 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 flex items-center justify-center text-slate-650 hover:text-slate-900 shadow-sm transition-colors cursor-pointer animate-bounce">
