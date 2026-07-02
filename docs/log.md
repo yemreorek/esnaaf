@@ -2,6 +2,16 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-02 feat | Canlı Sohbet AI Sohbet Modülüne Ses Entegrasyonu (Speech-to-Text & Text-to-Speech)
+
+- **Ses Kaydı / Speech-to-Text (`ChatScreen.tsx`):**
+  - Chat mesaj yazma barının sağ tarafına, gönder butonunun yanına entegre **Mikrofon** butonu eklendi.
+  - Mikrofon aktif olduğunda seslerin gerçek zamanlı metne dönüştürülmesi sağlandı ve mikrofonun yanına **bouncing animasyonlu 5 barlı "Ses Dalga Göstergesi"** eklenerek dinleme yapıldığı görselleştirildi.
+- **Yapay Zeka Yanıtlarını Seslendirme / Text-to-Speech (`ChatScreen.tsx`):**
+  - AI (assistant) mesaj balonlarının altına temiz markdown parse mantığına sahip **"Seslendir / Durdur"** butonu entegre edildi.
+  - Tarayıcının yerleşik `speechSynthesis` API'si üzerinden seslendirme sağlandı. Ekran kapatıldığında veya çalan ses durdurulmak istendiğinde anında sesin kesilmesi kontrolü yazıldı.
+- **Derleme & Dağıtım:** TypeScript ve Next.js production build (`npm run build`) kontrolleri tamamlanarak kodlar GitHub `main` branch'ine gönderildi.
+
 ## 2026-07-02 fix | Onayla Sonsuz Döngü Düzeltmesi & Canlı DB Şema Senkronizasyonu
 
 - **Sorun:** Kullanıcı "Onayla" butonuna bastığında talep tamamlanmıyor, aynı onay paneli sürekli tekrar gösteriliyordu.
