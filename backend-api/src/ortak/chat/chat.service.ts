@@ -1495,8 +1495,81 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           fallbackResponse = 'Lütfen telefonunuza gönderilen 6 haneli doğrulama kodunu girin.';
 
         } else if (state.step === 'confirm_form') {
-          // Onay adımı da deterministic
-          fallbackResponse = 'Talebinizi onaylamak için "Onayla" butonuna basabilir veya düzeltmek istediğiniz bilgiyi belirtebilirsiniz.';
+          // Onay adımında Gemini hatası — gerçek job oluşturma mantığını çalıştır
+          if (message.toLowerCase().includes('onayla') || message.toLowerCase().includes('evet') || message.toLowerCase().includes('doğru')) {
+            try {
+              const categoryName = this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
+              let category = await this.prisma.category.findUnique({
+                where: { name: categoryName },
+              });
+              if (!category) {
+                category = await this.prisma.category.findFirst();
+              }
+              if (!category) {
+                fallbackResponse = 'Hizmet kategorisi bulunamadı. Lütfen tekrar deneyin.';
+              } else {
+                const phone = state.collected_data.phone;
+                if (!phone) {
+                  fallbackResponse = 'Telefon numaranız doğrulanmamış. Lütfen tekrar deneyin.';
+                } else {
+                  const seeker = await this.prisma.user.findFirst({
+                    where: { phone: encryptPhone(phone) },
+                  });
+                  if (!seeker) {
+                    fallbackResponse = 'Müşteri kaydı bulunamadı. Lütfen tekrar deneyin.';
+                  } else {
+                    const sendToFavoritesOnly = message.toLowerCase().includes('favori') || message.toLowerCase().includes('favorite');
+                    const job = await this.prisma.serviceRequest.create({
+                      data: {
+                        seeker_id: seeker.id,
+                        category_id: category.id,
+                        form_data: sanitizeObjectForWin1254({
+                          ...state.collected_data,
+                          details: this.generateRequestSummary(state.collected_data),
+                          name: state.collected_data.name || 'Misafir Kullanıcı',
+                          city: state.collected_data.city || 'Adana',
+                          district: state.collected_data.district || 'Seyhan',
+                          sendToFavoritesOnly: sendToFavoritesOnly,
+                        }),
+                        status: 'pending',
+                      },
+                    });
+
+                    createdJobId = job.id;
+                    await this.redis.incr(`ab_test:sessions:completed:${state.ab_variant || 'control'}`);
+
+                    // Distribute to providers
+                    try {
+                      await this.distributionQueue.add('distribute', { jobId: job.id });
+                      console.log(`[ChatService Fallback] Successfully enqueued job ${job.id} to distribution queue`);
+                    } catch (distErr: any) {
+                      console.error(`[ChatService Fallback] Distribution enqueue failed: ${distErr.message}`);
+                    }
+
+                    fallbackStep = 'completed';
+                    fallbackResponse = `Tebrikler! Talebiniz başarıyla gönderildi. 15 dakika içinde burada veya hesabınızda taleplerinizi inceleyebilir, teklifleri değerlendirebilir veya onaylayabilirsiniz.`;
+
+                    // Hemen return et — completed state ve jobId ile
+                    state.step = 'completed';
+                    state.messages.push({ role: 'assistant', content: fallbackResponse });
+                    await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+                    await this.trackTokens(sessionKey, tokensUsed);
+                    return {
+                      step: 'completed',
+                      responseMessage: fallbackResponse,
+                      collected_data: state.collected_data,
+                      jobId: job.id,
+                    };
+                  }
+                }
+              }
+            } catch (confirmErr: any) {
+              console.error('[ChatService Fallback] confirm_form job creation failed:', confirmErr.message);
+              fallbackResponse = 'Talebiniz oluşturulurken bir sorun oluştu. Lütfen tekrar "Onayla" butonuna basın.';
+            }
+          } else {
+            fallbackResponse = 'Talebinizi onaylamak için "Onayla" butonuna basabilir veya düzeltmek istediğiniz bilgiyi belirtebilirsiniz.';
+          }
 
         } else {
           fallbackResponse = 'Size nasıl yardımcı olabilirim? Lütfen ihtiyacınızı belirtin.';
