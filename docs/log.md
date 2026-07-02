@@ -2,6 +2,16 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-02 fix | Onayla Sonsuz Döngü Düzeltmesi — confirm_form Fallback Job Oluşturma
+
+- **Sorun:** Kullanıcı "Onayla" butonuna bastığında talep tamamlanmıyor, aynı onay paneli sürekli tekrar gösteriliyordu.
+- **Kök Neden:** Gemini AI hata verdiğinde catch bloğundaki deterministic fallback, `confirm_form` adımı için sadece "Onayla butonuna basın" mesajı döndürüyordu — **veritabanında job oluşturMUYORDU**. Bu nedenle kullanıcı her "Onayla" dediğinde aynı paneli görüyordu (sonsuz döngü).
+- **Çözüm (`chat.service.ts` catch bloğu):**
+  - `confirm_form` fallback case'ine **gerçek `serviceRequest.create()` mantığı** eklendi.
+  - Kullanıcı "Onayla" dediğinde: kategori bulunur → seeker bulunur → DB'de talep oluşturulur → dağıtım kuyruğuna eklenir → step `completed`'a geçer → `jobId` ile döner.
+  - Fallback'te de distribution queue'ya ekleme ve hata durumunda console.error loglaması var.
+- **Build:** Backend `nest build` ✅ sıfır hata.
+
 ## 2026-07-02 feat | Landing Page Premium AI Sohbet Kutusu ve Sesli Komut (Speech Recognition)
 
 - **AI Sohbet Arayüzü & Tipografi Tasarımı (`app-musteri/app/page.tsx`):**
