@@ -2,13 +2,15 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
-## 2026-07-02 fix | Onayla Sonsuz Döngü Düzeltmesi — confirm_form Fallback Job Oluşturma
+## 2026-07-02 fix | Onayla Sonsuz Döngü Düzeltmesi & Canlı DB Şema Senkronizasyonu
 
 - **Sorun:** Kullanıcı "Onayla" butonuna bastığında talep tamamlanmıyor, aynı onay paneli sürekli tekrar gösteriliyordu.
-- **Kök Neden:** Gemini AI hata verdiğinde catch bloğundaki deterministic fallback, `confirm_form` adımı için sadece "Onayla butonuna basın" mesajı döndürüyordu — **veritabanında job oluşturMUYORDU**. Bu nedenle kullanıcı her "Onayla" dediğinde aynı paneli görüyordu (sonsuz döngü).
-- **Çözüm (`chat.service.ts` catch bloğu):**
+- **Kök Nedenler:**
+  1. Gemini AI hata verdiğinde catch bloğundaki deterministic fallback, `confirm_form` adımı için sadece "Onayla butonuna basın" mesajı döndürüyordu — **veritabanında job oluşturMUYORDU**. Bu nedenle kullanıcı her "Onayla" dediğinde aynı paneli görüyordu (sonsuz döngü).
+  2. Son güncellemelerle eklenen `republished_from_id` kolonu ve `SavedCard` tablosu canlı veritabanında (GCP Cloud SQL) senkronize edilmemişti. Bu nedenle `prisma.serviceRequest.create()` çağrısı veritabanı seviyesinde hata fırlatarak çökmeye neden oluyordu.
+- **Çözüm:**
   - `confirm_form` fallback case'ine **gerçek `serviceRequest.create()` mantığı** eklendi.
-  - Kullanıcı "Onayla" dediğinde: kategori bulunur → seeker bulunur → DB'de talep oluşturulur → dağıtım kuyruğuna eklenir → step `completed`'a geçer → `jobId` ile döner.
+  - Canlı GCP Cloud SQL (`esnaaf-db-prod`) IP yetkilendirmesi güncellenerek `prisma db push` komutu yerel olarak çalıştırıldı. Canlı veritabanı şeması ve tabloları güncel Prisma şemasıyla **%100 eşitlendi.**
   - Fallback'te de distribution queue'ya ekleme ve hata durumunda console.error loglaması var.
 - **Build:** Backend `nest build` ✅ sıfır hata.
 
