@@ -2,14 +2,14 @@
 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
-## 2026-07-02 feat | Canlı Sohbet AI Sohbet Modülüne Ses Entegrasyonu (Speech-to-Text & Text-to-Speech)
+## 2026-07-02 feat | Canlı Sohbet AI Sohbet Modülüne Ses Entegrasyonu (Speech-to-Text)
 
-- **Ses Kaydı / Speech-to-Text (`ChatScreen.tsx`):**
+- **Ses Kaydı / Speech-to-Text (`ChatScreen.tsx` & `page.tsx`):**
   - Chat mesaj yazma barının sağ tarafına, gönder butonunun yanına entegre **Mikrofon** butonu eklendi.
   - Mikrofon aktif olduğunda seslerin gerçek zamanlı metne dönüştürülmesi sağlandı ve mikrofonun yanına **bouncing animasyonlu 5 barlı "Ses Dalga Göstergesi"** eklenerek dinleme yapıldığı görselleştirildi.
-- **Yapay Zeka Yanıtlarını Seslendirme / Text-to-Speech (`ChatScreen.tsx`):**
-  - AI (assistant) mesaj balonlarının altına temiz markdown parse mantığına sahip **"Seslendir / Durdur"** butonu entegre edildi.
-  - Tarayıcının yerleşik `speechSynthesis` API'si üzerinden seslendirme sağlandı. Ekran kapatıldığında veya çalan ses durdurulmak istendiğinde anında sesin kesilmesi kontrolü yazıldı.
+  - **Duraklama ve Düşünme Düzeltmesi:** Konuşma esnasında kullanıcının duraklayıp düşünmesi durumunda, önceki konuşulan cümlelerin silinmesi/üzerine yazılması sorunu giderildi. SpeechRecognition döngüsü `event.resultIndex` yerine `0` başlangıç indeksiyle çalıştırılarak tüm kayıt oturumu boyunca ses geçmişinin kümülatif olarak biriktirilmesi sağlandı. Bu düzeltme hem ana sayfadaki AI arama kutusuna hem de canlı sohbet (`ChatScreen`) alanına uygulandı.
+- **Yapay Zeka Yanıtlarını Seslendirme (Text-to-Speech) Kaldırılması:**
+  - Kullanıcı talebi doğrultusunda yapay zeka yanıtlarının yanında yer alan sesli okuma ("Seslendir / Durdur") düğmesi ve Text-to-Speech kütüphane bağlantıları temizlendi.
 - **Derleme & Dağıtım:** TypeScript ve Next.js production build (`npm run build`) kontrolleri tamamlanarak kodlar GitHub `main` branch'ine gönderildi.
 
 ## 2026-07-02 fix | Onayla Sonsuz Döngü Düzeltmesi & Canlı DB Şema Senkronizasyonu
