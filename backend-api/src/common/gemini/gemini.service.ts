@@ -151,23 +151,36 @@ export class GeminiService {
     // Build fallback list of models to try if the primary is overloaded
     const modelsToTry = [modelToUse];
     if (modelToUse.includes('flash')) {
+      modelsToTry.push('gemini-2.0-flash');
       modelsToTry.push('gemini-2.5-pro');
-      modelsToTry.push('gemini-pro-latest');
     } else {
       modelsToTry.push('gemini-2.5-flash');
-      modelsToTry.push('gemini-pro-latest');
+      modelsToTry.push('gemini-2.0-flash');
     }
 
     let lastError: any = null;
+    const globalStart = Date.now();
+    const GLOBAL_TIMEOUT = 45000; // Tüm denemeler için max 45 saniye
 
     for (const currentModel of modelsToTry) {
-      const maxRetries = 2;
+      // Global timeout kontrolü
+      if (Date.now() - globalStart > GLOBAL_TIMEOUT) {
+        console.warn(`[GeminiService] Global timeout (${GLOBAL_TIMEOUT}ms) reached. Stopping retries.`);
+        break;
+      }
+
+      const maxRetries = 3;
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        // Global timeout kontrolü (her attempt öncesi)
+        if (Date.now() - globalStart > GLOBAL_TIMEOUT) {
+          break;
+        }
+
         try {
           console.log(`[GeminiService] Calling generateContent with model: ${currentModel} (Attempt ${attempt}/${maxRetries})`);
           
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout after 12 seconds')), 12000)
+            setTimeout(() => reject(new Error('Timeout after 20 seconds')), 20000)
           );
 
           const response = await Promise.race([
@@ -183,6 +196,9 @@ export class GeminiService {
             timeoutPromise,
           ]) as any;
 
+          const elapsed = Date.now() - globalStart;
+          console.log(`[GeminiService] Success with ${currentModel} in ${elapsed}ms (Attempt ${attempt})`);
+
           return {
             text: response.text,
             functionCalls: response.functionCalls || null,
@@ -195,25 +211,29 @@ export class GeminiService {
           const isTransient = 
             status === 503 || 
             status === 429 || 
+            status === 500 ||
             errMsg.includes('high demand') || 
             errMsg.includes('UNAVAILABLE') || 
             errMsg.includes('RESOURCE_EXHAUSTED') ||
-            errMsg.includes('quota');
+            errMsg.includes('INTERNAL') ||
+            errMsg.includes('quota') ||
+            errMsg.includes('Timeout');
 
           if (isTransient && attempt < maxRetries) {
-            const delay = attempt * 1000; // 1s, 2s backoff
-            console.warn(`[GeminiService] Transient error detected on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+            const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s exponential backoff
+            console.warn(`[GeminiService] Transient error on ${currentModel} (${status || errMsg}). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
             await new Promise((resolve) => setTimeout(resolve, delay));
             continue;
           }
 
-          console.warn(`[GeminiService] Model ${currentModel} failed with error: ${errMsg}. Trying next fallback model if available...`);
+          console.warn(`[GeminiService] Model ${currentModel} failed: ${errMsg}. Trying next fallback...`);
           break; // Break the attempt loop to try the next model in modelsToTry
         }
       }
     }
 
-    console.error('[GeminiService] All models in fallback list failed.', lastError);
+    const totalElapsed = Date.now() - globalStart;
+    console.error(`[GeminiService] All models failed after ${totalElapsed}ms.`, lastError?.message);
     throw lastError || new Error('Gemini Service failed after trying all fallback models.');
   }
 }

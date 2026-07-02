@@ -437,17 +437,76 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
     }
 
     try {
-      const response = await customFetch("/api/musteri/chat/mesaj", {
-        method: "POST",
-        body: JSON.stringify({ message: apiMessage }),
-      });
+      // Otomatik retry mekanizması: 503/network hatalarında max 2 kez tekrar dene
+      const MAX_RETRIES = 2;
+      let lastErr: any = null;
+      let data: any = null;
 
-      if (!response.ok) {
-        const errorData = await safeJsonParse(response, "Mesaj iletilemedi.");
-        throw new Error(errorData.error?.message || "Mesaj iletilemedi.");
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const response = await customFetch("/api/musteri/chat/mesaj", {
+            method: "POST",
+            body: JSON.stringify({ message: apiMessage }),
+          });
+
+          if (!response.ok) {
+            const status = response.status;
+            // 503 hatalarında retry
+            if ((status === 503 || status === 502 || status === 504) && attempt < MAX_RETRIES) {
+              console.warn(`[ChatScreen] Sunucu ${status} döndü. ${attempt + 1}/${MAX_RETRIES} tekrar deneniyor...`);
+              // Kullanıcıya bekleme mesajı göster (sadece ilk retry'da)
+              if (attempt === 0) {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: `retry-wait-${Date.now()}`,
+                    role: "assistant",
+                    content: "Yanıt hazırlanıyor, lütfen bekleyin...",
+                    isRetryWait: true,
+                  },
+                ]);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              continue;
+            }
+            const errorData = await safeJsonParse(response, "Mesaj iletilemedi.");
+            throw new Error(errorData.error?.message || "Mesaj iletilemedi.");
+          }
+
+          data = await safeJsonParse(response, "Mesaj iletilemedi.");
+          // Retry beklemesi varsa kaldır
+          setMessages((prev) => prev.filter((m) => !(m as any).isRetryWait));
+          break; // Başarılı, döngüden çık
+        } catch (retryErr: any) {
+          lastErr = retryErr;
+          const isNetworkErr = retryErr.message && (
+            retryErr.message.toLowerCase().includes("failed to fetch") ||
+            retryErr.message.toLowerCase().includes("networkerror") ||
+            retryErr.message.toLowerCase().includes("load failed")
+          );
+          if (isNetworkErr && attempt < MAX_RETRIES) {
+            console.warn(`[ChatScreen] Ağ hatası. ${attempt + 1}/${MAX_RETRIES} tekrar deneniyor...`);
+            if (attempt === 0) {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: `retry-wait-${Date.now()}`,
+                  role: "assistant",
+                  content: "Bağlantı kontrol ediliyor, lütfen bekleyin...",
+                  isRetryWait: true,
+                },
+              ]);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            continue;
+          }
+          throw retryErr; // Son deneme de başarısızsa üst catch'e ilet
+        }
       }
 
-      const data = await safeJsonParse(response, "Mesaj iletilemedi.");
+      if (!data) {
+        throw lastErr || new Error("Mesaj iletilemedi.");
+      }
 
       // Simulated typing delay for "humanized" feel (2 seconds optimum)
       const duration = Date.now() - startTime;
@@ -494,7 +553,9 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       }
     } catch (err: any) {
       console.error("Message send error:", err);
-      let errMsg = "Sistemimiz şu an yoğun veya bir bağlantı sorunu yaşandı. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.";
+      // Retry bekleme mesajlarını temizle
+      setMessages((prev) => prev.filter((m) => !(m as any).isRetryWait));
+      let errMsg = "Bağlantıda bir sorun yaşandı. Lütfen internet bağlantınızı kontrol edip mesajınızı tekrar gönderin.";
       if (err.message && typeof err.message === 'string') {
         const lowerMsg = err.message.toLowerCase();
         if (!lowerMsg.includes("failed to fetch") && !lowerMsg.includes("fetch") && !lowerMsg.includes("networkerror") && !lowerMsg.includes("load failed")) {

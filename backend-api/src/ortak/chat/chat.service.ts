@@ -1407,27 +1407,123 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         throw error;
       }
       
-      console.error('Chat Service Gemini Active Agent Timeout/Error:', error);
+      console.error('[ChatService] Gemini AI error — switching to deterministic fallback:', error instanceof Error ? error.message : error);
       
-      await this.chatRetryQueue.add(
-        'process-retry',
-        {
-          userId,
-          sessionId,
-          message,
-          attempt: 1,
-          timestamp: new Date(),
-        },
-        {
-          attempts: 3,
-          backoff: 30000,
-        },
-      );
+      // ─── DETERMINISTIC GRACEFUL FALLBACK ─────────────────────────────
+      // Gemini başarısız olduğunda kullanıcıya ASLA hata gösterme.
+      // Mevcut adıma göre deterministic (AI'sız) yanıt üret ve akışı sürdür.
+      let fallbackResponse = '';
+      let fallbackStep = state.step;
 
-      throw new HttpException(
-        'Sistemimiz yoğun. Lütfen birkaç dakika sonra tekrar deneyin.',
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
+      try {
+        if (state.step === 'greeting' || state.step === 'category_detection') {
+          // Deterministik kategori tespiti dene
+          const detection = await this.detectCategory(filteredMessage);
+          if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
+            state.collected_data.categorySlug = detection.categorySlug;
+            fallbackStep = 'collecting_details';
+            const nextQ = this.getNextQuestion(state);
+            fallbackResponse = nextQ
+              ? `${detection.categoryName} talebiniz için detayları alalım.\n\n${nextQ.question}`
+              : `${detection.categoryName} talebiniz için birkaç bilgi almam gerekiyor. Hangi ilçedesiniz?`;
+          } else {
+            fallbackStep = 'category_detection';
+            fallbackResponse = 'Size nasıl yardımcı olabilirim? Ev temizliği, boya badana, nakliyat, su tesisatı, elektrik tesisatı veya ev tadilat gibi konularda talep oluşturabilirsiniz. Lütfen ihtiyacınızı belirtin.';
+          }
+
+        } else if (state.step === 'collecting_details') {
+          // Mevcut soruya cevabı kaydet ve sonraki soruyu sor
+          const currentQ = this.getNextQuestion(state);
+          if (currentQ) {
+            const parsedVal = currentQ.parse(message);
+            if (parsedVal) {
+              state.collected_data[currentQ.key] = parsedVal;
+            } else {
+              state.collected_data[currentQ.key] = message.trim();
+            }
+            if (currentQ.key === 'district') {
+              const loc = this.parseLocation(message);
+              if (loc.city) state.collected_data.city = loc.city;
+              if (loc.district) state.collected_data.district = loc.district;
+            }
+          }
+          const nextQ = this.getNextQuestion(state);
+          if (nextQ) {
+            fallbackResponse = nextQ.question;
+          } else {
+            if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
+              state.collected_data.hasAskedDetails = true;
+              fallbackStep = 'ask_name';
+              fallbackResponse = 'Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?';
+            } else {
+              fallbackStep = 'ask_details';
+              fallbackResponse = this.generatePromptForCategory(state.collected_data.categorySlug || null);
+            }
+          }
+
+        } else if (state.step === 'ask_details') {
+          state.collected_data.details = message.trim() || state.collected_data.details || 'Detay belirtilmedi.';
+          state.collected_data.hasAskedDetails = true;
+          fallbackStep = 'ask_name';
+          fallbackResponse = 'Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?';
+
+        } else if (state.step === 'ask_name') {
+          const name = message.trim();
+          if (name.length >= 2) {
+            state.collected_data.name = name;
+            fallbackStep = 'ask_phone';
+            fallbackResponse = `Memnun oldum ${name}! Talebinizin doğrulanması için telefon numaranızı alabilir miyim? (Örn: 05321234567)`;
+          } else {
+            fallbackResponse = 'Lütfen adınızı ve soyadınızı girin.';
+          }
+
+        } else if (state.step === 'ask_phone') {
+          try {
+            const normalized = normalizePhone(message);
+            state.collected_data.phone = normalized;
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await this.redis.set(`otp:${normalized}`, JSON.stringify({ code: otpCode, attempts: 0 }), 'EX', 300);
+            console.log(`[OTP Fallback] Phone: ${normalized} | Code: ${otpCode}`);
+            fallbackStep = 'otp_verification';
+            fallbackResponse = `Telefonunuza 6 haneli doğrulama kodu gönderdik (Geliştirme için: ${otpCode}). Lütfen bu kodu girin:`;
+          } catch (e) {
+            fallbackResponse = 'Geçerli bir telefon numarası giriniz. (Örn: 0532 123 4567)';
+          }
+
+        } else if (state.step === 'otp_verification') {
+          // OTP doğrulaması zaten deterministic — sadece Gemini error'dan buraya düşerse tekrar çağır
+          fallbackResponse = 'Lütfen telefonunuza gönderilen 6 haneli doğrulama kodunu girin.';
+
+        } else if (state.step === 'confirm_form') {
+          // Onay adımı da deterministic
+          fallbackResponse = 'Talebinizi onaylamak için "Onayla" butonuna basabilir veya düzeltmek istediğiniz bilgiyi belirtebilirsiniz.';
+
+        } else {
+          fallbackResponse = 'Size nasıl yardımcı olabilirim? Lütfen ihtiyacınızı belirtin.';
+        }
+
+        // Durumu güncelle ve kaydet
+        state.step = fallbackStep;
+        state.messages.push({ role: 'assistant', content: fallbackResponse });
+        await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+        await this.trackTokens(sessionKey, tokensUsed);
+
+        return {
+          step: state.step,
+          responseMessage: fallbackResponse,
+          collected_data: state.collected_data,
+        };
+
+      } catch (fallbackError) {
+        // Fallback'in kendisi de başarısız olduysa (Redis/DB hatası gibi durumlarda),
+        // son çare olarak basit ama kullanıcı dostu bir yanıt dön
+        console.error('[ChatService] Deterministic fallback also failed:', fallbackError instanceof Error ? fallbackError.message : fallbackError);
+        return {
+          step: state.step,
+          responseMessage: 'Talebinizi işliyoruz. Lütfen mesajınızı tekrar gönderiniz.',
+          collected_data: state.collected_data,
+        };
+      }
     }
   }
 
