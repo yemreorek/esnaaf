@@ -4,9 +4,11 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve alty
 
 ## 2026-07-02 feat | Landing Page Premium AI Sohbet Kutusu ve Sesli Komut (Speech Recognition)
 
-- **AI Sohbet Arayüzü Tasarımı (`app-musteri/app/page.tsx`):**
+- **AI Sohbet Arayüzü & Tipografi Tasarımı (`app-musteri/app/page.tsx`):**
   - Eski tek satırlı arama kutusu kaldırıldı; yerine Claude/ChatGPT arayüzünü anımsatan çok satırlı (`textarea`) geniş ve modern bir **AI Sohbet Kutusu** yerleştirildi.
   - İçerik placeholder metni: *"Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Ev Temizliği, Boya Badana...)"* olarak güncellendi.
+  - Mobil cihazlarda çok büyük durmasını engellemek amacıyla placeholder yazı boyutu **mobile için `11px` (`text-[11px]`)**, masaüstü için **`13px`** olarak duyarlı (responsive) hale getirildi. 
+  - Yazı estetiğini artırmak için kalın (`font-semibold`) olan varsayılan stil placeholder için daha ince ve modern **`font-medium`** ve yumuşak gri **`text-slate-400/80`** rengiyle güncellendi. Giriş yapılan normal yazı ise kalın (`font-semibold`) ve responsive (`text-[13px]` -> `sm:text-sm`) olarak korundu.
   - Alt satıra ek seçenekler için sol tarafa `+` (Kategorileri Gör) butonu ve sağ tarafa AI sürüm etiketi (`Esnaaf AI v2.5`), **Sesle Anlat (Mikrofon)** butonu ve modern **Talebi Gönder** butonu yerleştirildi.
 - **Sesli Komut Entegrasyonu & Anlık Geri Bildirim (Speech to Text):**
   - HTML5 native **Web Speech API** (`SpeechRecognition`) entegre edildi. `interimResults = true` ve `continuous = true` parametreleri etkinleştirilerek kullanıcının konuştuğu kelimeler **anlık olarak, gerçek zamanlı şekilde** metin kutusuna yazılmaya başlandı.
