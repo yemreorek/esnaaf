@@ -629,7 +629,7 @@ export default function Home() {
                 }
               }}
               rows={2}
-              className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-sm placeholder-slate-400 focus:ring-0 p-0 resize-none min-h-[60px] scrollbar-none"
+              className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-[13px] sm:text-sm placeholder:text-[11px] sm:placeholder:text-[13px] placeholder:font-medium placeholder:text-slate-400/80 focus:ring-0 p-0 resize-none min-h-[60px] scrollbar-none"
               placeholder="Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Ev Temizliği, Boya Badana...)"
             />
 
