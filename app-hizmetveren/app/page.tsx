@@ -3887,9 +3887,9 @@ export default function ProviderDashboard() {
                 <div className="flex flex-col gap-4 w-full">
                   {completedJobs.length > 0 ? (
                     completedJobs.map((cj) => (
-                      <div key={cj.id} className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div key={cj.id} className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full overflow-hidden">
                         {/* Sol Bölüm: Kategori, Müşteri ve İş Bilgisi */}
-                        <div className="flex-grow space-y-2 text-left">
+                        <div className="flex-grow min-w-0 w-full md:w-auto space-y-2 text-left">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-[#4c630a] text-[10px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
                               {cj.job.categoryName}
@@ -3899,19 +3899,19 @@ export default function ProviderDashboard() {
                             </span>
                             {!cj.is_direct && Number(cj.commission_rate) === 0 && (
                               <span className="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider flex items-center gap-1 shadow-sm shadow-emerald-100">
-                                🌟 Sadık Müşteri Hediyesi (%0 Komisyon)
+                                🌟 <span className="hidden sm:inline">Sadık Müşteri Hediyesi (%0 Komisyon)</span><span className="sm:hidden">Sadık Müşteri (%0)</span>
                               </span>
                             )}
                             {cj.is_direct && (
                               <span className="bg-amber-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                                Doğrudan İş (%0 Komisyon)
+                                <span className="hidden sm:inline">Doğrudan İş (%0 Komisyon)</span><span className="sm:hidden">Doğrudan İş (%0)</span>
                               </span>
                             )}
                           </div>
                           <div className="text-xs space-y-1 text-slate-600 font-semibold">
                             <div><strong className="text-slate-800">Müşteri:</strong> {cj.job.name}</div>
                             <div><strong className="text-slate-800">Konum:</strong> {cj.job.district}</div>
-                            <div className="text-slate-500 font-medium max-w-lg truncate"><strong className="text-slate-800 font-semibold font-mono">Detay:</strong> {cj.job.details}</div>
+                            <div className="text-slate-500 font-medium break-words mt-1 leading-relaxed"><strong className="text-slate-800 font-semibold font-mono">Detay:</strong> {cj.job.details}</div>
                           </div>
                         </div>
 
