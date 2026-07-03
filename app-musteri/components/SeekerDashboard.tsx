@@ -1955,13 +1955,29 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                               ) : (
                                 <div className="flex items-center gap-2 self-end md:self-center">
                                   {getRequestExpiryInfo(req.created_at, Date.now(), req.offers).isExpired ? (
-                                    <button 
-                                      onClick={() => handleRePublishRequest(req.id)}
-                                      className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-[#b2db42] flex items-center gap-1.5"
-                                    >
-                                      <RefreshCw className="w-3.5 h-3.5" />
-                                      Tekrar Yayınla
-                                    </button>
+                                    <>
+                                      {offerCount > 0 && (
+                                        <button 
+                                          onClick={() => setSelectedRequest(req)}
+                                          className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 text-xs font-black py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm border border-transparent flex items-center gap-1"
+                                        >
+                                          Teklifleri Gör ({offerCount})
+                                        </button>
+                                      )}
+                                      <button 
+                                        onClick={() => handleRePublishRequest(req.id)}
+                                        className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm flex items-center gap-1.5"
+                                      >
+                                        <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                                        Tekrar Yayınla
+                                      </button>
+                                      <button 
+                                        onClick={() => handleCancelRequest(req.id)}
+                                        className="bg-white hover:bg-red-50 text-red-500 hover:text-red-700 border border-slate-200 hover:border-red-100 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                                      >
+                                        İptal Et
+                                      </button>
+                                    </>
                                   ) : (
                                     <>
                                       <button 
