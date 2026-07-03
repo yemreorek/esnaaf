@@ -674,6 +674,14 @@ export class ChatService {
         const systemInstruction = `
 Sen Türkiye'nin en büyük hizmet pazarı olan Esnaaf platformunun akıllı, samimi ve son derece yardımcı yapay zeka asistanısın. Müşterilerin hizmet taleplerini almak, eksik detayları toplamak ve talebi oluşturmak için onlara rehberlik ediyorsun. Aynı zamanda platform hakkında detaylı bilgi verebilen, kategorilere hâkim ve müşteriye en iyi deneyimi sunmaya odaklı bir dijital danışmansın.
 
+### 🧠 AKILLI HAFIZA VE SOHBET AKIŞ KURALLARI (KESİN KURAL)
+1. **Hafıza ve Bilgi Koruma**: Bir bilgiyi kullanıcıdan konuşmanın herhangi bir yerinde bir kez aldıysan (Örn: Ad, soyad, konum/ilçe, oda sayısı, metrekare veya diğer detaylar), o bilgiyi hafızana kaydet ve bir daha kesinlikle sorma! Kullanıcı "Adım Emre" dediyse, sonraki mesajda "Memnun oldum Emre Bey, soyadınızı da alabilir miyim?" diyebilirsin ama "Adınız neydi?" diye sıfırdan soramazsın.
+2. **Doğal ve Akıcı İletişim**: Sohbeti robotik şablonlarla değil, bir insan gibi doğal ve akıcı yürüt. Kullanıcının bir önceki mesajdaki yanıtlarını referans alarak akıllı çıkarımlar yap.
+3. **Adım Adım Bilgi Toplama Sırası**:
+   - **Aşama 1 (Detay Toplama)**: Önce hizmetin detaylarını öğren (Örn: Kaç metrekare? İşlem türü ne? Malzeme kimden?). Bu aşamada asla isim/telefon sorma.
+   - **Aşama 2 (Konum)**: Detaylar netleştikten sonra hizmetin yapılacağı konumu/ilçeyi al.
+   - **Aşama 3 (Teklif ve İletişim)**: Konum ve detaylar netleştikten sonra, teklif toplamak için en son aşamada ad-soyad ve telefon numarası iste.
+
 ### ℹ️ GENEL SORULAR VE BİLGİLENDİRME (YAPAY ZEKA ÖĞRETİSİ)
 Müşteri Esnaaf platformu hakkında genel sorular (Örn: "sistem nasıl çalışır?", "ücretli mi?", "komisyon alıyor musunuz?", "güvenli mi?", "iletişim bilgileri nedir?", "teklif nasıl alınır?", "iptal edebilir miyim?", "ödeme nasıl yapılır?" vb.) sorduğunda veya şehir/kategori bazlı usta istatistiklerini sorguladığında (Örn: "Adana'da kaç boyacı var?", "İstanbul'da temizlikçi var mı?"):
 1. KESİNLİKLE doğrudan talep açma adımlarına (konum, detay, isim, telefon sorma) ZORLAMA!
@@ -1815,7 +1823,6 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
     
     if (slug === 'boya-badana') {
       return [
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
         {
           key: 'metrekare',
           question: 'Boyanacak alan yaklaşık kaç metrekare?',
@@ -1835,24 +1842,24 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
             if (text.includes('beyaz')) return 'beyaz';
             return match ? match[0] : null;
           }
-        }
+        },
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
       ];
     }
-
+ 
     if (slug === 'su-tesisati') {
       return [
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
         {
           key: 'sorunTuru',
           question: 'Yaşadığınız tesisat sorunu tam olarak nedir (sızıntı, tıkanıklık, musluk/rezervuar değişimi vb.)?',
           parse: (msg) => this.parseSorunTuru(msg)
-        }
+        },
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
       ];
     }
-
+ 
     if (slug === 'kombi-klima') {
       return [
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
         {
           key: 'cihazTuru',
           question: 'Hangi cihaz için hizmet istiyorsunuz (Kombi mi, Klima mı)?',
@@ -1873,13 +1880,13 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           key: 'adet',
           question: 'Hizmet alınacak cihaz adeti nedir?',
           parse: (msg) => this.parseAdet(msg)
-        }
+        },
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
       ];
     }
-
+ 
     if (slug === 'ev-temizligi') {
       return [
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
         {
           key: 'daireTipi',
           question: 'Temizlenecek ev kaç odalı (örn: 1+1, 2+1, 3+1)?',
@@ -1889,18 +1896,13 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           key: 'siflik',
           question: 'Temizlik sıklığı nedir (Tek seferlik mi, haftalık mı, aylık mı)?',
           parse: (msg) => this.parseSiflik(msg)
-        }
+        },
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
       ];
     }
-
+ 
     if (slug === 'nakliyat') {
       return [
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
-        {
-          key: 'destinationDistrict',
-          question: 'Eşyaların taşınacağı varış ilçesini (örn. Seyhan, Çukurova) yazar mısınız?',
-          parse: (msg) => this.parseLocation(msg).district
-        },
         {
           key: 'daireTipi',
           question: 'Taşınacak evinizin oda sayısı nedir (örn: 2+1, 3+1)?',
@@ -1910,10 +1912,16 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           key: 'paketlemeHizmeti',
           question: 'Paketleme hizmeti istiyor musunuz (Usta mı paketlesin yoksa eşyalar hazır mı)?',
           parse: (msg) => this.parsePaketlemeHizmeti(msg)
+        },
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'destinationDistrict',
+          question: 'Eşyaların taşınacağı varış ilçesini (örn. Seyhan, Çukurova) yazar mısınız?',
+          parse: (msg) => this.parseLocation(msg).district
         }
       ];
     }
-
+ 
     return [
       { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
     ];
