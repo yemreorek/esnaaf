@@ -2109,7 +2109,8 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     <h3 className="font-black text-slate-800 text-base pl-1">Son Taleplerim</h3>
 
                     <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.01)] overflow-hidden">
-                      <div className="overflow-x-auto">
+                      {/* Desktop Table View */}
+                      <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-xs font-semibold text-slate-700">
                           <thead>
                             <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 text-[10px] font-bold tracking-wider uppercase text-left">
@@ -2245,9 +2246,127 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 </td>
                               </tr>
                             ))}
-
                           </tbody>
                         </table>
+                      </div>
+
+                      {/* Mobile List View */}
+                      <div className="block md:hidden divide-y divide-slate-100">
+                        {/* Real requests mobile cards */}
+                        {requests.map((req) => (
+                          <div 
+                            key={req.id} 
+                            onClick={() => setSelectedRequest(req)} 
+                            className="p-4.5 hover:bg-slate-50/40 transition-colors flex flex-col gap-3.5 cursor-pointer text-left"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-3">
+                                {renderCategoryIcon(req.category?.slug)}
+                                <div className="flex flex-col">
+                                  <span className="font-extrabold text-slate-800 text-sm">{req.category?.name || "Hizmet"}</span>
+                                  <span className="text-[9px] font-bold text-slate-400 mt-0.5">{`#TR-${req.id.substring(0, 5).toUpperCase()}`}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-bold font-mono">
+                                {new Date(req.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between items-center pt-0.5">
+                              {/* Offers */}
+                              {req.offers?.length > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="flex -space-x-1.5 overflow-hidden">
+                                    {req.offers.slice(0, 3).map((off, oIdx) => (
+                                      <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-950 border border-white flex items-center justify-center font-bold text-[8px] select-none">
+                                        {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <span className="text-[10px] text-slate-700 font-extrabold">{`${req.offers.length} Teklif`}</span>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 font-bold text-[10px]">0 Teklif</span>
+                              )}
+
+                              {/* Status Badge */}
+                              {req.status === "pending" || req.status === "distributed" ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="bg-[#c8f252]/20 text-[#4c630a] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                                    {`${req.offers?.length || 0} TEKLİF`}
+                                  </span>
+                                  <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                                    İncele
+                                  </span>
+                                </div>
+                              ) : req.status === "completed" ? (
+                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-100/50 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider font-mono">
+                                  TAMAMLANDI
+                                </span>
+                              ) : req.status === "cancelled" ? (
+                                <span className="bg-rose-50 text-rose-800 border border-rose-100/50 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider font-mono">
+                                  İPTAL EDİLDİ
+                                </span>
+                              ) : (
+                                <span className="bg-slate-100 text-slate-650 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider font-mono">
+                                  BEKLEMEDE
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Fallback mockup mobile cards */}
+                        {MOCK_PAST_REQUESTS_MOCKUP.map((row) => (
+                          <div 
+                            key={row.id} 
+                            onClick={() => alert("Bu mockup verisidir. Gerçek teklif akışlarını görmek için lütfen anasayfadan yeni bir canlı talep oluşturun!")} 
+                            className="p-4.5 hover:bg-slate-50/40 transition-colors flex flex-col gap-3.5 cursor-pointer text-left"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-3">
+                                {renderCategoryIcon(row.icon)}
+                                <div className="flex flex-col">
+                                  <span className="font-extrabold text-slate-800 text-sm">{row.title}</span>
+                                  <span className="text-[9px] font-bold text-slate-400 mt-0.5">{row.code}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-bold font-mono">{row.date}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center pt-0.5">
+                              {/* Offers */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex -space-x-1.5 overflow-hidden">
+                                  <div className="w-5 h-5 rounded-full bg-slate-900 border border-white text-white flex items-center justify-center font-bold text-[8px]">🧑‍🔧</div>
+                                  <div className="w-5 h-5 rounded-full bg-[#c8f252] border border-white text-slate-950 flex items-center justify-center font-bold text-[8px]">👷</div>
+                                  <div className="w-5 h-5 rounded-full bg-slate-500 border border-white text-white flex items-center justify-center font-bold text-[8px]">+2</div>
+                                </div>
+                                <span className="text-[10px] text-slate-700 font-extrabold">{row.offersCount}</span>
+                              </div>
+
+                              {/* Status Badge */}
+                              {row.status === "6 TEKLİF" ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="bg-[#c8f252]/20 text-[#4c630a] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                                    {row.status}
+                                  </span>
+                                  <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                                    İncele
+                                  </span>
+                                </div>
+                              ) : row.status === "TAMAMLANDI" ? (
+                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-100/50 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider font-mono">
+                                  {row.status}
+                                </span>
+                              ) : (
+                                <span className="bg-slate-100 text-slate-650 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider font-mono">
+                                  {row.status}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       {/* Footer table links */}
