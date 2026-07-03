@@ -316,6 +316,58 @@ export class ChatService {
           state.step = 'ask_name';
         }
 
+        // Phone extraction logic (Aşama 3)
+        const phoneRegex = /(?:0\s*5|5)\d{2}\s*\d{3}\s*\d{2}\s*\d{2}/;
+        const phoneMatch = message.match(phoneRegex);
+        if (phoneMatch && (state.step === 'ask_name' || state.step === 'ask_phone')) {
+          try {
+            const rawPhone = phoneMatch[0];
+            const normalized = normalizePhone(rawPhone);
+            state.collected_data.phone = normalized;
+            
+            // Try to extract name if not present
+            if (!state.collected_data.name) {
+              const beforePhone = message.split(rawPhone)[0].trim();
+              const cleanedName = this.cleanName(beforePhone);
+              if (cleanedName.length >= 2 && !/\d/.test(cleanedName) && !/^(?:evet|hayır|hayir|yok|tamam|ok|iptal|onayla|onaylıyorum)$/i.test(cleanedName)) {
+                state.collected_data.name = cleanedName;
+              }
+            }
+
+            if (state.collected_data.name) {
+              const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+              await this.redis.set(`otp:${normalized}`, JSON.stringify({ code: otpCode, attempts: 0 }), 'EX', 300);
+
+              console.log(`\n==================================================`);
+              console.log(`[OTP Simulated via Chat Interceptor] Phone: ${normalized} | Code: ${otpCode}`);
+              console.log(`==================================================\n`);
+
+              state.step = 'otp_verification';
+              responseMessage = `Telefonunuza 6 haneli doğrulama kodu gönderdik (Geliştirme için: ${otpCode}). Lütfen bu kodu girin:`;
+              state.messages.push({ role: 'assistant', content: responseMessage });
+              await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+              await this.trackTokens(sessionKey, tokensUsed);
+              return {
+                step: 'otp_verification',
+                responseMessage,
+                collected_data: state.collected_data,
+              };
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        if (state.step === 'ask_name') {
+          const rawName = message.trim();
+          const cleanedName = this.cleanName(rawName);
+          const isValidName = cleanedName.length >= 2 && !/\d/.test(cleanedName) && !/^(?:evet|hayır|hayir|yok|tamam|ok|iptal|onayla|onaylıyorum)$/i.test(cleanedName);
+          if (isValidName) {
+            state.collected_data.name = cleanedName;
+            state.step = 'ask_phone';
+          }
+        }
+
         if (state.step === 'otp_verification') {
           const phone = state.collected_data.phone;
           if (!phone) {
@@ -2381,5 +2433,25 @@ ${prompt}
       city: normalizedCity || 'Tüm Şehirler',
       category: categorySlug ? this.getCategoryName(categorySlug) : 'Tüm Kategoriler'
     };
+  }
+
+  private cleanName(msg: string): string {
+    let name = msg.trim();
+    // Remove common introduction/noise patterns (case-insensitive)
+    name = name.replace(/^(?:benim\s+)?(?:adım|ismim)\s+(?:yazabilirsiniz\s+)?/i, '');
+    name = name.replace(/^(?:ben\s+)/i, '');
+    name = name.replace(/^(?:adım|ismim)\s+/i, '');
+    name = name.replace(/^(?:benim\s+)/i, '');
+    
+    // Remove phone-related noise at the end/middle
+    name = name.replace(/\b(?:telefonum|telefonu|telefon|numaram|numarası|numara|cep|gsm|mobil|no|tel)\b/gi, '');
+    name = name.replace(/[,.:;-]/g, ' '); // replace punctuation with spaces
+    
+    // Capitalize first letters and clean spaces
+    return name.split(/\s+/)
+      .filter(w => w.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+      .trim();
   }
 }
