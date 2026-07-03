@@ -1,7 +1,23 @@
 # Esnaaf Geliştirme Günlüğü (log.md)
-
+ 
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
-
+ 
+## 2026-07-03 feat | Canlı Sohbet Dinamik Yönlendirme & Güvenli İsim/Telefon Kesicileri & Müşteri Paneli Buton Revizyonu
+ 
+- **Tek Ajan + Dinamik Yönlendirme (Prompt-Switching) Mimarı:**
+  - `chat.service.ts` dosyasındaki devasa statik kategori uzmanlık yönergeleri kaldırıldı ve yeni oluşturulan [sector-prompts.config.ts](file:///c:/Users/HaTicEmRe/OneDrive/Masaüstü/esnaaf/backend-api/src/ortak/chat/sector-prompts.config.ts) dosyasına taşındı.
+  - Gemini çağrısı öncesinde tespit edilen aktif kategori slug'ına göre ilgili sektör SOP/yönergesi dinamik olarak yüklenip `systemInstruction` ile birleştirilecek şekilde dinamik prompt motoru entegre edildi.
+  - Sektör tespiti yapılmadığı durumlarda, genel bilgi/SSS tespiti ve kategori belirlemeye yönelik dinamik kılavuz devreye alındı.
+- **Güvenli İsim/Telefon Kesicileri (Interceptors) ve Gelişmiş Türkçe İsim Temizleyici:**
+  - Kullanıcı isim ve telefon adımlarında numarasını yazdığında veya iki bilgiyi beraber girdiğinde (Örn: *"Ben Hakan, numaram 508555..."*), backend tarafında regex ile telefon yakalanıp otomatik OTP doğrulamasına geçilmesi ve SMS gönderilmesi sağlandı. Bu sayede Gemini'ın numara formatı nedeniyle şaşırması/döngüye girmesi engellendi.
+  - `cleanName` metodu tamamen Türkçe karakter setine (`tr-TR` locale) duyarlı hale getirildi. Cümle içindeki tüm giriş kalıpları (`benim`, `ben`, `ismim`, `adım`, `adı`) ve soyad kalıpları (`soyadım`, `soyadı`, `soyisim`) elenerek isim-soyadın talep özetinde düzgün (Örn: `Hakan Tarlan`) listelenmesi garanti altına alındı.
+- **Müşteri Paneli Süresi Dolan İşlerde Üçlü Buton Akışı & Etiket İyileştirmesi:**
+  - Süresi dolmuş aktif iş kartlarında eğer en az 1 teklif varsa, sadece "Tekrar Yayınla" butonu yerine yan yana **`Teklifleri Gör (X)`**, **`Tekrar Yayınla`** ve **`İptal Et`** butonları listelenmeye başlandı. Böylece kullanıcının teklifleri görmeden kazayla tekrar yayınlaması engellendi.
+  - Süresi dolan iş kartında teklif varsa kırmızı renkli `TEKLİFE KAPATILDI (SÜRE DOLANLAR)` etiketi yerine, yeşil renkli **`X Teklif Alındı`** etiketi gösterildi. Teklif yoksa eski kırmızı etiket korundu.
+- **Derleme & Entegrasyon Testleri:**
+  - `backend-api` NestJS derlemesi ve `app-musteri` Next.js derlemesi sıfır hata ile tamamlandı.
+  - `test-gemini-agent-e2e.ts` entegrasyon testlerinin tamamı başarıyla yeşil sonuçlandı ve kodlar `main` branch'ine pushlanarak otomatik olarak canlıya dağıtıldı.
+ 
 ## 2026-07-02 feat | Canlı Sohbet AI Sohbet Modülüne Ses Entegrasyonu (Speech-to-Text)
 
 - **Ses Kaydı / Speech-to-Text (`ChatScreen.tsx` & `page.tsx`):**

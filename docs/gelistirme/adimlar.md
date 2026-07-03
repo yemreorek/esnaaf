@@ -37,6 +37,8 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 26** | **Sadık Müşteri & Doğrudan İş** | 5 haneli Esnaaf ID ve dinamik QR kod eşleşmesi, çift taraflı onay mekanizması, usta doğrudan iş kartı oluşturma ve müşteriye özel doğrudan iş ilanı akışları | **✅ Tamamlandı** |
 | **Adım 27** | **Açık Kapı Komisyon Modeli** | Kendi müşterisiyle iş tamamlayan ustanın havuzdan kazanacağı ilk işin %0 komisyonlu olması ve tamamlanan iş kartlarında komisyon gösterimi | **✅ Tamamlandı** |
 | **Adım 28** | **Aylık Komisyon Tahsilatı** | Birikmiş komisyon hesaplama, gelecek faturalama tarihi ve usta paneli abonelik sekmesi entegrasyonları | **✅ Tamamlandı** |
+| **Adım 29** | **Ses Entegrasyonu (Speech-to-Text)** | Canlı chat ve landing sayfasında Web Speech API entegrasyonu, bouncing animasyonlu dalga efekti, klavyeyle elle düzeltme yapıldığı an dikteyi otomatik durdurma ve tampon bellek yarış durumu çözümleri | **✅ Tamamlandı** |
+| **Adım 30** | **Dinamik Yönlendirme & Kesiciler** | Tek Ajan + Dinamik Prompt Değişimi (`sector-prompts.config.ts`), PII regex isim/telefon kesicileri ve Türkçe-locale duyarlı isim temizleme (`cleanName`) algoritması. Müşteri paneli süresi dolan işlerde `Teklifleri Gör (X)`, `Tekrar Yayınla` ve `İptal Et` butonları akışı | **✅ Tamamlandı** |
 
 ---
 
@@ -794,6 +796,23 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 
 - **Birikmiş Bakiye Hesaplama:**
   - Ustanın henüz ödemediği komisyon tutarları (`unpaidCommission`) toplanarak bir sonraki ayın 1'i faturalama tarihiyle birlikte usta paneli abonelik sekmesinde gösterildi.
+
+## 🛠️ Adım 29 Geliştirme Detayları (Ses Entegrasyonu)
+
+- **Sesle Anlat (Speech-to-Text):**
+  - Müşteri Canlı Sohbet (`ChatScreen.tsx`) ve ana sayfa arama kutusuna anlık ses tanıma (`SpeechRecognition`) entegre edildi. Dinleme sırasında pulse animasyonlu mikrofon ve 5 barlı bouncing "Ses Dalga Efekti" gösterildi.
+  - Kullanıcı konuşma esnasında duraklayıp düşündüğünde veya klavyeyle elle düzenlemeye başladığı an dikteyi durdurarak metnin eski haline dönmesini / silinmesini önleyen asenkron koruma mekanizmaları uygulandı.
+
+## 🛠️ Adım 30 Geliştirme Detayları (Dinamik Yönlendirme & Kesiciler)
+
+- **Dinamik Prompt-Switching:**
+  - Gemini'ye gönderilen kategori bazlı sistem talimatları modüler hale getirilerek `sector-prompts.config.ts` dosyasına taşındı. Aktif kategoriye göre promptlar dinamik olarak birleştirilip Gemini'ye iletildi.
+- **İsim-Telefon Kesicileri (Interceptors):**
+  - Kullanıcı konuşurken telefon numarası girdiğinde bunu yakalayan deterministik regex kesicileri eklendi. Böylece yapay zeka döngüye girmeden doğrudan OTP SMS'i tetiklenir.
+  - `cleanName` fonksiyonu `tr-TR` locale duyarlı hale getirilerek cümlelerdeki gürültü kelimeleri ("İsmim", "Soyadım") başarıyla elendi ve özet tabloda temiz isimlerin görünmesi sağlandı.
+- **Müşteri Paneli Buton Akışı:**
+  - Süresi dolmuş işlerde en az 1 teklif varsa `Teklifleri Gör (X)`, `Tek Tekrar Yayınla` ve `İptal Et` butonlarının yan yana gösterilmesi sağlandı. Durum etiketine yeşil renkli "X Teklif Alındı" ibaresi yansıtıldı.
+
 
 
 
