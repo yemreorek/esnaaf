@@ -3032,6 +3032,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-red-100 text-red-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
                                         İptal Edildi
                                       </span>
+                                    ) : (selectedRequest?.status === "completed" || selectedRequest?.job_completions?.some(jc => jc.status === "completed" || jc.status === "disputed")) ? (
+                                      <span className="flex-1 text-center text-[10px] md:text-xs font-extrabold bg-rose-50 text-rose-600 border border-rose-100/50 py-2.5 rounded-xl uppercase tracking-wider">
+                                        Kabul Edilmedi
+                                      </span>
                                     ) : selectedRequest?.status === "cancelled" ? (
                                       <button
                                         disabled
