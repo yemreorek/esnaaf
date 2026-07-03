@@ -666,6 +666,30 @@ export default function ProviderDashboard() {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
   const [notificationsDropdownOpen, setNotificationsDropdownOpen] = useState<boolean>(false);
 
+  const notificationsDropdownRef = useRef<HTMLDivElement>(null);
+  const messagesDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        notificationsDropdownRef.current && 
+        !notificationsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsDropdownOpen(false);
+      }
+      if (
+        messagesDropdownRef.current && 
+        !messagesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setUnreadDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Completion modal states
   const [completingJob, setCompletingJob] = useState<any | null>(null);
   const [declarePrice, setDeclarePrice] = useState<string>('');
@@ -2838,7 +2862,7 @@ export default function ProviderDashboard() {
             </div>
 
             {/* Notifications Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={notificationsDropdownRef}>
               <button 
                 onClick={toggleNotificationsDropdown}
                 className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl relative cursor-pointer group"
@@ -2894,7 +2918,7 @@ export default function ProviderDashboard() {
             </div>
 
             {/* Messages Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={messagesDropdownRef}>
               <button
                 onClick={toggleMessagesDropdown}
                 className="text-slate-400 hover:text-slate-855 transition-colors p-2 hover:bg-slate-50 rounded-xl cursor-pointer relative"

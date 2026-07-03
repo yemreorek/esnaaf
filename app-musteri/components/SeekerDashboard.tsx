@@ -447,6 +447,23 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        notifDropdownRef.current && 
+        !notifDropdownRef.current.contains(event.target as Node)
+      ) {
+        setNotifDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Esnaaf Loyalty & Direct Request states
   const [esnaafId, setEsnaafId] = useState<string>("");
   const [favorites, setFavorites] = useState<any[]>([]);
@@ -1712,7 +1729,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
           <div className="flex items-center gap-4">
 
-            <div className="relative">
+            <div className="relative" ref={notifDropdownRef}>
               <button 
                 onClick={() => {
                   setNotifDropdownOpen(!notifDropdownOpen);
