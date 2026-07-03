@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import Image from "next/image";
 import { io, Socket } from "socket.io-client";
 import { customFetch, logout, getAuthUser } from "../lib/session";
@@ -2817,24 +2817,30 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           ) : (
                             <div className="space-y-4">
                               {selectedRequest.offers?.map((offer, oIdx) => (
-                                <div
-                                  key={offer.id}
-                                  className={`border ${offer.status === "accepted" ? "border-emerald-300 bg-emerald-50/10 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.03)]" : (offer.status === "cancelled" && offer.cancelled_by === "service_provider") ? "border-red-200 bg-red-50/10 shadow-[0_10px_25px_-5px_rgba(239,68,68,0.02)]" : "border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)]"} p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 animate-scale-up`}
-                                >
+                                <Fragment key={offer.id}>
+                                  {/* Modern Separator Header */}
+                                  <div className="flex items-center gap-3 pt-3.5 pb-1.5 text-left animate-scale-up">
+                                    <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-900 text-[#c8f252] text-xs font-black border border-slate-800 shadow-sm font-mono shrink-0">
+                                      {oIdx + 1}
+                                    </span>
+                                    <span className="text-slate-800 font-extrabold text-xs md:text-sm uppercase tracking-wider font-sans">
+                                      {oIdx + 1}. TEKLİF
+                                    </span>
+                                    <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent"></div>
+                                  </div>
+
+                                  <div
+                                    className={`border ${offer.status === "accepted" ? "border-emerald-300 bg-emerald-50/10 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.03)]" : (offer.status === "cancelled" && offer.cancelled_by === "service_provider") ? "border-red-200 bg-red-50/10 shadow-[0_10px_25px_-5px_rgba(239,68,68,0.02)]" : "border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)]"} p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 animate-scale-up`}
+                                  >
                                   <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
                                       <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-sm select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
                                         {offer.provider.user.name ? offer.provider.user.name.charAt(0) : "U"}
                                       </span>
                                       <div className="flex flex-col">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="font-extrabold text-xs md:text-sm text-slate-800">
-                                            {offer.provider.user.name}
-                                          </span>
-                                          <span className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-slate-800 uppercase tracking-wider font-mono shrink-0">
-                                            {oIdx + 1}. TEKLİF
-                                          </span>
-                                        </div>
+                                        <span className="font-extrabold text-xs md:text-sm text-slate-800">
+                                          {offer.provider.user.name}
+                                        </span>
                                         <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
                                           Profesyonel Esnaf
                                         </span>
@@ -2978,7 +2984,8 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                     )}
                                   </div>
                                 </div>
-                              ))}
+                              </Fragment>
+                            ))}
                             </div>
                           )}
                         </div>
