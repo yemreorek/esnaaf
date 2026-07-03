@@ -168,6 +168,7 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const baseTextRef = useRef("");
+  const isListeningRef = useRef(false);
 
   // Scroll targets refs
   const searchInputRef = useRef<HTMLTextAreaElement>(null);
@@ -191,9 +192,11 @@ export default function Home() {
 
         recognition.onstart = () => {
           setIsListening(true);
+          isListeningRef.current = true;
         };
 
         recognition.onresult = (event: any) => {
+          if (!isListeningRef.current) return;
           let interimTranscript = "";
           let finalTranscript = "";
           for (let i = 0; i < event.results.length; ++i) {
@@ -214,10 +217,12 @@ export default function Home() {
         recognition.onerror = (event: any) => {
           console.error("Speech recognition error", event.error);
           setIsListening(false);
+          isListeningRef.current = false;
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          isListeningRef.current = false;
         };
 
         recognitionRef.current = recognition;
@@ -442,6 +447,7 @@ export default function Home() {
 
   const handleSend = () => {
     if (recognitionRef.current) {
+      isListeningRef.current = false;
       recognitionRef.current.stop();
     }
     baseTextRef.current = "";
@@ -628,6 +634,7 @@ export default function Home() {
               onChange={(e) => {
                 setInputValue(e.target.value);
                 if (isListening && recognitionRef.current) {
+                  isListeningRef.current = false;
                   recognitionRef.current.stop();
                 }
               }}

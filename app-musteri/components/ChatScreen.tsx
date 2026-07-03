@@ -217,6 +217,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const baseTextRef = useRef("");
+  const isListeningRef = useRef(false);
 
   // Clean up speech synthesis on screen close or unmount
   useEffect(() => {
@@ -259,9 +260,11 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
         recognition.onstart = () => {
           setIsListening(true);
+          isListeningRef.current = true;
         };
 
         recognition.onresult = (event: any) => {
+          if (!isListeningRef.current) return;
           let interimTranscript = "";
           let finalTranscript = "";
           for (let i = 0; i < event.results.length; ++i) {
@@ -282,10 +285,12 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         recognition.onerror = (event: any) => {
           console.error("Speech recognition error", event.error);
           setIsListening(false);
+          isListeningRef.current = false;
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          isListeningRef.current = false;
         };
 
         recognitionRef.current = recognition;
@@ -529,6 +534,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
     // Stop speech recognition on message send to reset speech session history
     if (recognitionRef.current) {
+      isListeningRef.current = false;
       recognitionRef.current.stop();
     }
     baseTextRef.current = "";
@@ -1438,6 +1444,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             onChange={(e) => {
               setInputVal(e.target.value);
               if (isListening && recognitionRef.current) {
+                isListeningRef.current = false;
                 recognitionRef.current.stop();
               }
             }}
