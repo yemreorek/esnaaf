@@ -290,106 +290,6 @@ export class ChatService {
         }
         
         // A. Transactional Steps (Secure, deterministic verification/creation)
-        if (state.step === 'ask_details') {
-          const detailMsg = message.trim();
-          const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
-          const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
-          
-          if (isReferredBack) {
-            const previousUserMsgs = state.messages.slice(0, -1)
-              .filter(m => m.role === 'user' && m.content.trim().length >= 15)
-              .map(m => m.content.trim());
-            
-            if (previousUserMsgs.length > 0) {
-              state.collected_data.details = previousUserMsgs[previousUserMsgs.length - 1];
-            } else if (!state.collected_data.details) {
-              state.collected_data.details = 'Detay belirtilmedi.';
-            }
-          } else if (!isNo) {
-            state.collected_data.details = detailMsg;
-          } else {
-            state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
-          }
-          state.collected_data.hasAskedDetails = true;
-          state.step = 'ask_name';
-          
-          responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
-          state.messages.push({ role: 'assistant', content: responseMessage });
-          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-          await this.trackTokens(sessionKey, tokensUsed);
-          return {
-            step: 'ask_name',
-            responseMessage,
-            collected_data: state.collected_data,
-          };
-        }
-
-        if (state.step === 'ask_name') {
-          // If the message contains a phone number, let Gemini handle it so it can call sendOTP tool with both name and phone
-          const hasPhonePattern = /(?:\+?90|\b0)?\s*5\d{2}\s*\d{3}\s*\d{2}\s*\d{2}\b/.test(message);
-          
-          // Check if the last assistant message actually asked for the name/isim.
-          // If not, it means we are in a conversational clarification/correction loop, so we should bypass the strict name capture
-          // and let Gemini handle the conversation.
-          const assistantMessages = state.messages.filter(m => m.role === 'assistant');
-          const lastAssistantMsg = assistantMessages[assistantMessages.length - 1]?.content || '';
-          const askedForName = /(?:adın|adınız|soyadın|soyadınız|ismin|isminiz|adınızı|soyadınızı|adım|isminiz nedir)/i.test(lastAssistantMsg);
-          
-          const name = message.trim();
-          const isChoice = /^(?:yks|lise|evet|hayır|hayir|tyt|ayt|lgs|ok|tamam|okey|yok|var)$/i.test(name);
-          
-          if (askedForName && !isChoice && !hasPhonePattern) {
-            if (name.length < 2) {
-              throw new BadRequestException('Lütfen geçerli bir ad girin.');
-            }
-            state.collected_data.name = name;
-            state.step = 'ask_phone';
-            responseMessage = `Memnun oldum ${name}! Talebinizin doğrulanması için telefon numaranızı alabilir miyim? (Örn: 05321234567)`;
-            state.messages.push({ role: 'assistant', content: responseMessage });
-            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-            await this.trackTokens(sessionKey, tokensUsed);
-            return {
-              step: 'ask_phone',
-              responseMessage,
-              collected_data: state.collected_data,
-            };
-          }
-        }
-
-        if (state.step === 'ask_phone') {
-          try {
-            const normalized = normalizePhone(message);
-            state.collected_data.phone = normalized;
-
-            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-            await this.redis.set(`otp:${normalized}`, JSON.stringify({ code: otpCode, attempts: 0 }), 'EX', 300);
-
-            console.log(`\n==================================================`);
-            console.log(`[OTP Simulated via Gemini Active Agent] Phone: ${normalized} | Code: ${otpCode}`);
-            console.log(`==================================================\n`);
-
-            state.step = 'otp_verification';
-            responseMessage = `Telefonunuza 6 haneli doğrulama kodu gönderdik (Geliştirme için: ${otpCode}). Lütfen bu kodu girin:`;
-            state.messages.push({ role: 'assistant', content: responseMessage });
-            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-            await this.trackTokens(sessionKey, tokensUsed);
-            return {
-              step: 'otp_verification',
-              responseMessage,
-              collected_data: state.collected_data,
-            };
-          } catch (e) {
-            responseMessage = 'Geçerli bir telefon numarası giriniz. (Örn: 0532 123 4567)';
-            state.messages.push({ role: 'assistant', content: responseMessage });
-            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-            await this.trackTokens(sessionKey, tokensUsed);
-            return {
-              step: 'ask_phone',
-              responseMessage,
-              collected_data: state.collected_data,
-            };
-          }
-        }
 
         if (state.step === 'otp_verification') {
           const phone = state.collected_data.phone;
@@ -443,6 +343,7 @@ export class ChatService {
               responseMessage,
               collected_data: state.collected_data,
               sessionMigrated: true,
+              userId: user.id,
               user: { id: user.id, phone: user.phone_masked || user.phone, role: user.role, name: user.name, email: user.email },
             };
           } else {
@@ -642,7 +543,7 @@ export class ChatService {
                     const datePattern = /(?:ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar|gün|yarın|bugün|saat|\b\d{1,2}[:.]\d{2}\b|\b\d{1,2}\.\d{1,2}\b)/i;
                     canParse = datePattern.test(message);
                   } else if (q.key === 'renkTip') {
-                    const paintPattern = /(?:renk|boya|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i;
+                    const paintPattern = /(?:\brenk\b|\bboya\b|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i;
                     canParse = paintPattern.test(message);
                   } else if (q.key === 'katAsansor') {
                     const movingPattern = /(?:kat|asansör|merdiven|giriş|yüksek|villa|müstakil)/i;
@@ -1887,6 +1788,33 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
     };
 
     const qText = districtQuestions[slug] || 'Hizmetin verileceği ilçeyi (örn. Seyhan, Çukurova) yazar mısınız?';
+    
+    if (slug === 'boya-badana') {
+      return [
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'metrekare',
+          question: 'Boyanacak alan yaklaşık kaç metrekare?',
+          parse: (msg) => this.parseMetrekare(msg)
+        },
+        {
+          key: 'tur',
+          question: 'İç cephe mi dış cephe mi boyanacak?',
+          parse: (msg) => this.parseBoyaTuru(msg)
+        },
+        {
+          key: 'renkTip',
+          question: 'Tercih ettiğiniz boya markası veya renk var mı?',
+          parse: (msg) => {
+            const text = msg.toLowerCase();
+            const match = text.match(/(?:\brenk\b|\bboya\b|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i);
+            if (text.includes('beyaz')) return 'beyaz';
+            return match ? match[0] : null;
+          }
+        }
+      ];
+    }
+
     return [
       { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
     ];
