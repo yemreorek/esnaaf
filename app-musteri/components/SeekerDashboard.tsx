@@ -1884,13 +1884,13 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
                                         Teklife Kapatıldı (4 Teklif Sınırı)
                                       </span>
-                                    ) : getRequestExpiryInfo(req.created_at).isExpired ? (
+                                    ) : getRequestExpiryInfo(req.created_at).isExpired && offerCount === 0 ? (
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
                                         Teklife Kapatıldı (Süre Dolanlar)
                                       </span>
                                     ) : (
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        {!req.is_direct && !req.offers?.some((o: any) => o.status === "accepted") && (
+                                        {!req.is_direct && !req.offers?.some((o: any) => o.status === "accepted") && !getRequestExpiryInfo(req.created_at).isExpired && (
                                           <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100 flex items-center gap-1">
                                             <CountdownTimer createdAt={req.created_at} /> TEKLİFE KAPANACAK
                                           </span>
