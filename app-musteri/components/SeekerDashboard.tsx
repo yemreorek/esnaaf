@@ -2408,6 +2408,8 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       >
                         İptal Edildi
                       </button>
+                    ) : selectedRequest.status === "completed" || selectedRequest.job_completions?.some(jc => jc.status === "completed" || jc.status === "disputed") ? (
+                      null
                     ) : (
                       <button
                         onClick={() => handleCancelRequest(selectedRequest.id)}
