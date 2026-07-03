@@ -1529,6 +1529,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
       )}
       <div className="flex-1 flex flex-col md:flex-row w-full">
       
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          onClick={() => setMobileMenuOpen(false)} 
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300"
+        />
+      )}
+
       {/* 🧭 SIDEBAR Navigation - Redesigned to match the exact mockup screenshot */}
       <aside className={`h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
         
