@@ -522,6 +522,11 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   const [selectedProviderProfile, setSelectedProviderProfile] = useState<any>(null);
   const [loadingProviderProfile, setLoadingProviderProfile] = useState<boolean>(false);
 
+  const isAcceptedProviderProfile = selectedProviderProfile && selectedRequest?.offers?.some(o => o.status === 'accepted' && o.provider.id === selectedProviderProfile.id);
+  const acceptedPhone = isAcceptedProviderProfile 
+    ? (selectedRequest?.offers?.find(o => o.status === 'accepted' && o.provider.id === selectedProviderProfile.id)?.provider?.user?.phone_decrypted || mutualPhones?.providerPhone) 
+    : null;
+
   const fetchProviderProfile = async (providerId: string) => {
     setLoadingProviderProfile(true);
     try {
@@ -2986,6 +2991,26 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                     </div>
                                   )}
 
+                                  {offer.status === "accepted" && (
+                                    <div className="bg-emerald-50/35 border border-emerald-100 rounded-xl p-3 flex items-center justify-between text-left shadow-xs">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-emerald-600 text-xs">📞</span>
+                                        <div className="flex flex-col">
+                                          <span className="text-[9px] text-slate-400 font-bold uppercase">Esnaf Telefon Numarası</span>
+                                          <span className="text-xs font-black text-slate-800 font-mono">
+                                            {offer.provider?.user?.phone_decrypted || mutualPhones?.providerPhone || "Bilinmiyor"}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <a 
+                                        href={`tel:${offer.provider?.user?.phone_decrypted || mutualPhones?.providerPhone || ''}`}
+                                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] py-1.5 px-3.5 rounded-xl transition-all active:scale-95 shadow-sm"
+                                      >
+                                        Ara
+                                      </a>
+                                    </div>
+                                  )}
+
                                   <div className="flex items-center gap-2.5 w-full pt-1">
                                     <button 
                                       onClick={() => fetchProviderProfile(offer.provider.id)}
@@ -2997,6 +3022,16 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       ) : null}
                                       <span>Profili Gör</span>
                                     </button>
+
+                                    {offer.status === "accepted" && (
+                                      <a
+                                        href={`tel:${offer.provider?.user?.phone_decrypted || mutualPhones?.providerPhone || ''}`}
+                                        className="flex-1 bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 text-[10px] md:text-xs font-black py-2.5 rounded-xl cursor-pointer transition-all shadow-md shadow-[#c8f252]/20 active:scale-95 border border-transparent text-center flex items-center justify-center gap-1.5"
+                                      >
+                                        <span>Telefonla Ara</span>
+                                      </a>
+                                    )}
+
                                     {offer.status === "accepted" ? (
                                       <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
                                         Kabul Edildi
@@ -4174,9 +4209,9 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                   {/* Masked phone and action buttons */}
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-sm">
                     <a 
-                      href={`tel:${selectedProviderProfile.phone_masked}`}
+                      href={`tel:${acceptedPhone || selectedProviderProfile.phone_masked}`}
                       onClick={(e) => {
-                        if (selectedProviderProfile.phone_masked.includes("*")) {
+                        if (!acceptedPhone && selectedProviderProfile.phone_masked.includes("*")) {
                           e.preventDefault();
                           alert("Telefon numarasını aramak için öncelikle ustanın teklifini kabul etmelisiniz.");
                         }
