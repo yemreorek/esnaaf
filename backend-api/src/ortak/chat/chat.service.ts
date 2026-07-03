@@ -291,6 +291,30 @@ export class ChatService {
         
         // A. Transactional Steps (Secure, deterministic verification/creation)
 
+        if (state.step === 'ask_details') {
+          const detailMsg = message.trim();
+          const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
+          const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
+          
+          if (isReferredBack) {
+            const previousUserMsgs = state.messages.slice(0, -1)
+              .filter(m => m.role === 'user' && m.content.trim().length >= 15)
+              .map(m => m.content.trim());
+            
+            if (previousUserMsgs.length > 0) {
+              state.collected_data.details = previousUserMsgs[previousUserMsgs.length - 1];
+            } else if (!state.collected_data.details) {
+              state.collected_data.details = 'Detay belirtilmedi.';
+            }
+          } else if (!isNo) {
+            state.collected_data.details = detailMsg;
+          } else {
+            state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
+          }
+          state.collected_data.hasAskedDetails = true;
+          state.step = 'ask_name';
+        }
+
         if (state.step === 'otp_verification') {
           const phone = state.collected_data.phone;
           if (!phone) {
@@ -1811,6 +1835,81 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
             if (text.includes('beyaz')) return 'beyaz';
             return match ? match[0] : null;
           }
+        }
+      ];
+    }
+
+    if (slug === 'su-tesisati') {
+      return [
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'sorunTuru',
+          question: 'Yaşadığınız tesisat sorunu tam olarak nedir (sızıntı, tıkanıklık, musluk/rezervuar değişimi vb.)?',
+          parse: (msg) => this.parseSorunTuru(msg)
+        }
+      ];
+    }
+
+    if (slug === 'kombi-klima') {
+      return [
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'cihazTuru',
+          question: 'Hangi cihaz için hizmet istiyorsunuz (Kombi mi, Klima mı)?',
+          parse: (msg) => this.parseCihazTuru(msg)
+        },
+        {
+          key: 'islemTuru',
+          question: 'Yapılacak işlem nedir (Bakım, Arıza Onarım, Montaj / Demontaj)?',
+          parse: (msg) => {
+            const text = msg.toLowerCase();
+            if (text.includes('bakım') || text.includes('bakim')) return 'Bakım';
+            if (text.includes('arıza') || text.includes('ariza') || text.includes('bozuk') || text.includes('çalışmıyor')) return 'Arıza Onarım';
+            if (text.includes('montaj') || text.includes('kurulum') || text.includes('söküm') || text.includes('demontaj')) return 'Montaj / Demontaj';
+            return null;
+          }
+        },
+        {
+          key: 'adet',
+          question: 'Hizmet alınacak cihaz adeti nedir?',
+          parse: (msg) => this.parseAdet(msg)
+        }
+      ];
+    }
+
+    if (slug === 'ev-temizligi') {
+      return [
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'daireTipi',
+          question: 'Temizlenecek ev kaç odalı (örn: 1+1, 2+1, 3+1)?',
+          parse: (msg) => this.parseDaireTipi(msg)
+        },
+        {
+          key: 'siflik',
+          question: 'Temizlik sıklığı nedir (Tek seferlik mi, haftalık mı, aylık mı)?',
+          parse: (msg) => this.parseSiflik(msg)
+        }
+      ];
+    }
+
+    if (slug === 'nakliyat') {
+      return [
+        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
+        {
+          key: 'destinationDistrict',
+          question: 'Eşyaların taşınacağı varış ilçesini (örn. Seyhan, Çukurova) yazar mısınız?',
+          parse: (msg) => this.parseLocation(msg).district
+        },
+        {
+          key: 'daireTipi',
+          question: 'Taşınacak evinizin oda sayısı nedir (örn: 2+1, 3+1)?',
+          parse: (msg) => this.parseDaireTipi(msg)
+        },
+        {
+          key: 'paketlemeHizmeti',
+          question: 'Paketleme hizmeti istiyor musunuz (Usta mı paketlesin yoksa eşyalar hazır mı)?',
+          parse: (msg) => this.parsePaketlemeHizmeti(msg)
         }
       ];
     }
