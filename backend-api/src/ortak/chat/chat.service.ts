@@ -8,6 +8,7 @@ import { ChatGateway } from './chat.gateway';
 import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phone.util';
 import { GeminiService } from '../../common/gemini/gemini.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
+import { SECTOR_PROMPTS } from './sector-prompts.config';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -713,102 +714,6 @@ Aşağıdaki kurallara hiçbir koşulda aykırı davranma:
 - Sohbet dışı konularda (siyaset, din, spor, magazin, teknoloji haberleri vb.) tartışmaya girme. Nazikçe konuyu hizmet talebine yönlendir.
 - Küfür, hakaret veya uygunsuz dil karşısında sakin kal ve profesyonel ol; "Size daha iyi yardımcı olabilmem için hizmet talebinize odaklanmamız daha iyi olacaktır" tarzında yönlendir.
 
-### 📚 KATEGORİ BAZLI UZMANLIK BİLGİSİ
-Müşteriye kategoriye özel rehberlik ve bilgi vermek için aşağıdaki uzmanlık bilgilerini kullan. Detay toplama aşamasında bu bilgileri referans alarak müşteriye yardımcı sorular sor:
-
-**Ev Temizliği:**
-- Standart temizlik (2+1 daire): Yaklaşık 3-4 saat sürer. Fiyatlar evin büyüklüğüne ve temizlik kapsamına göre değişir.
-- Detaylı/Derin temizlik: Ütü, buzdolabı içi, fırın temizliği, dolap içleri dahildir ve daha uzun sürer.
-- Ek hizmetler: Perde yıkama, cam silimi, balkon yıkama gibi ek işlemler ayrıca fiyatlandırılabilir.
-- Müşteriye sor: Kaç odalı ev? Tek seferlik mi periyodik mi? Özel temizlik beklentisi var mı?
-
-**Boya Badana:**
-- 1 odanın boyası ortalama 1-2 gün sürebilir; komple daire boyası birkaç gün alabilir.
-- İç cephe ve dış cephe boyası farklıdır; dış cephe hava koşullarına bağlıdır.
-- Boya markası ve renk tercihi, ustanın fiyat teklifini önemli ölçüde etkiler.
-- Müşteriye sor: Kaç oda? İç boya mı dış boya mı? Tahmini metrekare? Boya markası/renk tercihi var mı?
-
-**Nakliyat / Ev Taşıma:**
-- Asansörlü binalarda taşıma daha hızlı ve ekonomiktir.
-- Sigortalı nakliye seçeneği mutlaka sorulmalıdır.
-- Ambalajlama hizmeti (koli, streç, balon) ek ücretli olabilir.
-- Müşteriye sor: Çıkış/varış ilçeleri, kat ve asansör bilgisi, daire tipi (1+1, 2+1, 3+1), taşınma tarihi.
-
-**Su Tesisatı:**
-- Acil kaçaklar hemen müdahale gerektirir; ustalar genellikle aynı gün gelebilir.
-- Tıkanıklık, sızıntı, musluk değişimi ve boru döşeme farklı uzmanlıklar gerektirebilir.
-- Müşteriye sor: Sorun türü (kaçak, tıkanıklık, arıza)? Acil mi? Hangi ilçede?
-
-**Elektrik Tesisatı:**
-- Priz/anahtar montajı, sigorta arızası, kablo çekimi farklı işlerdir.
-- Elektrik arızalarında güvenlik çok önemlidir; yetkili/sertifikalı usta tercihi önerilir.
-- Müşteriye sor: İş türü (arıza onarım, yeni tesisat, montaj)? Acil mi?
-
-**Ev Tadilat:**
-- Kapsamlı tadilat (mutfak, banyo, komple) birkaç hafta sürebilir.
-- Kısmi tadilat (duvar yıkma, bölme, alçıpan) daha kısa sürer.
-- Müşteriye sor: Tadilat kapsamı (mutfak, banyo, komple)? Tahmini metrekare?
-
-**Halı & Koltuk Yıkama:**
-- Halı boyutuna ve koltuk sayısına göre fiyat değişir.
-- Yerinde yıkama (evde) ve fabrikada yıkama seçenekleri vardır.
-- Müşteriye sor: Kaç parça halı/koltuk? Yerinde mi fabrikada mı yıkansın? Leke/kir durumu?
-
-**İnşaat Sonrası Temizlik:**
-- İnşaat/tadilat sonrası toz ve moloz temizliği ağır iştir; profesyonel ekipman gerektirir.
-- Müşteriye sor: İnşaat mı tadilat sonrası mı? Tahmini alan? Ne zaman bitiyor?
-
-**Fayans & Parke Döşeme:**
-- Fayans ve parke farklı uzmanlıklardır; mutfak/banyo fayansı, salon parkesi gibi.
-- Müşteriye sor: Fayans mı parke mi? Söküm var mı? Tahmini metrekare?
-
-**Haşere & Böcek İlaçlama:**
-- Hamamböceği, fare, tahta kurusu, bit gibi haşereler farklı ilaçlama yöntemleri gerektirir.
-- İlaçlama sonrası 2-4 saat evi havalandırmak gerekir.
-- Müşteriye sor: Haşere türü? Ev mi iş yeri mi? Kaç metrekare alan?
-
-**Kombi & Klima Bakımı:**
-- Kombi bakımı yılda en az 1 kez yapılmalıdır (kış öncesi idealdir).
-- Klima gaz dolumu 2-3 yılda bir gerekebilir; klima temizliği mevsim başında önerilir.
-- Marka ve model bilgisi, doğru yedek parça hazırlığı için önemlidir.
-- Müşteriye sor: Cihaz türü (kombi/klima)? Marka/model? İşlem türü (bakım, arıza, montaj)?
-
-**Mantolama & Dış Cephe:**
-- Dış cephe mantolama enerji tasarrufu sağlar; bina/daire bazında farklılık gösterir.
-- Müşteriye sor: Bina mı daire mi? Kaçıncı kat? Tahmini alan?
-
-**Marangoz & Mobilya Montajı:**
-- Mutfak dolabı, gardırop, raf, masa gibi işler farklı beceriler gerektirir.
-- Müşteriye sor: Ne tür mobilya? Montaj mı, tamir mi, özel imalat mı?
-
-**Özel Ders:**
-- İlkokul, ortaokul, lise ve üniversite düzeylerinde farklı branşlar mevcuttur.
-- Online veya yüz yüze tercihi sorulmalıdır.
-- Müşteriye sor: Branş/ders? Öğrenci seviyesi? Online mı yüz yüze mi?
-
-**Cam Balkon & PVC Pencere:**
-- Cam balkon ve PVC pencere farklı ihtiyaçlardır.
-- Müşteriye sor: Cam mı PVC mi? Kaç adet pencere/balkon? Ölçü bilgisi?
-
-**Ofis & İş Yeri Temizliği:**
-- Ofis temizliği genellikle mesai sonrası veya hafta sonu tercih edilir.
-- Müşteriye sor: Ofis büyüklüğü? Periyodik mi tek seferlik mi? Temizlik saati tercihi?
-
-**Doğalgaz Tesisatı:**
-- Doğalgaz projelendirme, kombi montajı ve petek döşeme gibi uzmanlık dalları vardır.
-- Müşteriye sor: İş türü (proje, montaj, tamir)? Yeni bina mı mevcut mu?
-
-**İç Mimar & Dekorasyon:**
-- Mekân tasarımı, 3D görselleştirme ve uygulama farklı aşamalardır.
-- Müşteriye sor: Hangi mekân (ev, ofis, dükkan)? Sadece tasarım mı, uygulama dahil mi?
-
-**Fotoğrafçı:**
-- Düğün, nişan, ürün, portre, emlak gibi farklı fotoğraf türleri vardır.
-- Müşteriye sor: Çekim türü? Tarih ve saat? Kaç saatlik çekim?
-
-**Organizasyon & Etkinlik:**
-- Düğün, nişan, doğum günü, sünnet, mezuniyet gibi farklı etkinlik türleri vardır.
-- Müşteriye sor: Etkinlik türü? Tahmini kişi sayısı? Tarih? Mekân tercihi?
 
 ### 💡 AKILLI ÖNERİLER (CROSS-SELL)
 Talep tamamlandıktan sonra (onay aşamasında veya tamamlama mesajında), müşteriye SADECE ilgili ve mantıklı ek hizmet önerisi sun:
@@ -929,10 +834,13 @@ Müşterinin talebine göre 'detectCategory' fonksiyonunu çağırırken YALNIZC
 Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı olsun. Giriş veya geçiş cümlelerinde "harika", "çok iyi", "süper" gibi övgü veya gereksiz ünlem kelimeleri kullanma. Doğrudan müşterinin problemini çözmeye yönelik sorular sor ve talebi hızlıca tamamlamaya odaklan. Müşteriye güven ver ama abartma — doğal ve profesyonel bir ton kullan.
 `;
 
+        const sectorPrompt = this.getSectorPrompt(state.collected_data.categorySlug || null);
+        const finalSystemInstruction = `${systemInstruction}\n\n${sectorPrompt}`;
+
         const start = Date.now();
         const geminiRes = await this.geminiService.generateResponse(
           state.messages,
-          systemInstruction,
+          finalSystemInstruction,
           { modelName: state.ab_model, temperature: state.ab_temp }
         );
         const latency = Date.now() - start;
@@ -2350,6 +2258,33 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
       default:
         return 'ustalarımızın';
     }
+  }
+
+  private getSectorPrompt(slug: string | null): string {
+    if (!slug) {
+      return `
+### 🗺️ KATEGORİ TESPİT AŞAMASI:
+Müşteri henüz almak istediği hizmeti belirtmedi. Görevin, müşterinin hangi kategoride hizmet almak istediğini anlamak ve 'detectCategory' aracını çağırmaktır. Müşteri platformdaki şu ana kategorilerden birini seçebilir:
+- Ev Temizliği
+- Boya Badana
+- Nakliyat / Ev Taşıma
+- Su Tesisatı
+- Elektrik Tesisatı
+- Kombi Klima Bakımı
+- Özel Ders
+- Fotoğrafçılık
+Müşterinin sorusu genel veya bilgi almaya yönelik ise doğrudan SSS kurallarına göre cevap ver.
+`;
+    }
+    const prompt = SECTOR_PROMPTS[slug];
+    if (!prompt) return '';
+
+    return `
+### 📚 KATEGORİ BAZLI UZMANLIK BİLGİSİ
+Müşteriye kategoriye özel rehberlik ve bilgi vermek için aşağıdaki uzmanlık bilgilerini kullan. Detay toplama aşamasında bu bilgileri referans alarak müşteriye yardımcı sorular sor:
+
+${prompt}
+`;
   }
 
   private generatePromptForCategory(slug: string | null): string {
