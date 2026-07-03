@@ -1622,17 +1622,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
             <span>Teklif Karşılaştırma</span>
           </button>
 
-          <button
-            onClick={() => { setActiveTab("mesajlar"); setSelectedRequest(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-xs cursor-pointer transition-all ${
-              activeTab === "mesajlar"
-                ? "bg-[#c8f252] text-slate-900 shadow-sm font-black"
-                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-            }`}
-          >
-            <MessageSquare className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
-            <span>Mesajlaşma</span>
-          </button>
+
 
           <button
             onClick={() => { setActiveTab("puanlama"); setSelectedRequest(null); setMobileMenuOpen(false); }}
@@ -3006,23 +2996,6 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                         <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
                                       ) : null}
                                       <span>Profili Gör</span>
-                                    </button>
-                                    <button 
-                                      disabled={selectedRequest?.status === "cancelled"}
-                                      onClick={() => {
-                                        if (selectedRequest) {
-                                          setActiveChat({
-                                            jobId: selectedRequest.id,
-                                            offerId: offer.id,
-                                            providerName: offer.provider.user.name,
-                                            providerId: offer.provider.id
-                                          });
-                                          setActiveTab("mesajlar");
-                                        }
-                                      }}
-                                      className="flex-1 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 text-[10px] md:text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50"
-                                    >
-                                      Mesaj Gönder
                                     </button>
                                     {offer.status === "accepted" ? (
                                       <span className="flex-1 text-center text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-800 py-2.5 rounded-xl uppercase tracking-wider font-mono">
