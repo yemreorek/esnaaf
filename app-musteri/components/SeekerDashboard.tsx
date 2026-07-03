@@ -1560,10 +1560,10 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
       )}
 
       {/* 🧭 SIDEBAR Navigation - Redesigned to match the exact mockup screenshot */}
-      <aside className={`h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
+      <aside className={`h-[100dvh] max-h-[100dvh] md:h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-4 md:py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
         
         {/* Unified brand Logo with subtitle exactly matching mockup style */}
-        <div className="mb-8 px-2 flex flex-col items-start gap-1 justify-between relative h-16 w-full">
+        <div className="mb-4 md:mb-8 px-2 flex flex-col items-start gap-1 justify-between relative h-16 w-full">
           <div className="flex items-center w-48 h-10 relative">
             <a className="absolute left-[-20px] top-1/2 -translate-y-1/2 flex items-center" href="#" onClick={() => { setActiveTab("tekliflerim"); setSelectedRequest(null); }}>
               <img 

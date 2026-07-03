@@ -2560,11 +2560,10 @@ export default function ProviderDashboard() {
         />
       )}
 
-      {/* 🧭 Sidebar Menu matching the exact mockup */}
-      <nav className={`h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
+      <nav className={`h-[100dvh] max-h-[100dvh] md:h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100/80 flex flex-col py-4 md:py-6 px-4 z-50 transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:flex shrink-0`}>
         
         {/* Brand Header */}
-        <div className="mb-6 px-2 flex justify-between items-center h-16 relative">
+        <div className="mb-4 md:mb-6 px-2 flex justify-between items-center h-16 relative">
           <div className="flex items-center w-48 h-10 relative">
             <a className="absolute left-[-20px] top-1/2 -translate-y-1/2 flex items-center" href="#">
               <img 
@@ -2581,7 +2580,7 @@ export default function ProviderDashboard() {
         </div>
 
         {/* Circular Profile Card with status checkmark */}
-        <div className="flex items-center gap-3 mb-6 p-3 rounded-2xl bg-[#f8fafc] border border-slate-100 shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
+        <div className="flex items-center gap-3 mb-4 md:mb-6 p-3 rounded-2xl bg-[#f8fafc] border border-slate-100 shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
           <div className="relative w-10 h-10 shrink-0">
             <img
               src={profile?.profilePhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"}
