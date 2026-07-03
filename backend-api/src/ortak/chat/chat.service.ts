@@ -2436,22 +2436,27 @@ ${prompt}
   }
 
   private cleanName(msg: string): string {
-    let name = msg.trim();
-    // Remove common introduction/noise patterns (case-insensitive)
-    name = name.replace(/^(?:benim\s+)?(?:adım|ismim)\s+(?:yazabilirsiniz\s+)?/i, '');
-    name = name.replace(/^(?:ben\s+)/i, '');
-    name = name.replace(/^(?:adım|ismim)\s+/i, '');
-    name = name.replace(/^(?:benim\s+)/i, '');
+    const lower = msg.toLocaleLowerCase('tr-TR');
+    const cleanStr = lower.replace(/[,.:;\-_!?()\"']/g, ' ');
     
-    // Remove phone-related noise at the end/middle
-    name = name.replace(/\b(?:telefonum|telefonu|telefon|numaram|numarası|numara|cep|gsm|mobil|no|tel)\b/gi, '');
-    name = name.replace(/[,.:;-]/g, ' '); // replace punctuation with spaces
+    const noiseWords = new Set([
+      'benim', 'ben', 'ismim', 'ismimiz', 'adı', 'adım', 'adınız', 'isminiz', 
+      'adımı', 'ismini', 'ad', 'isim', 'soyadım', 'soyadı', 'soyadınız', 
+      'soyisminiz', 'soyisim', 'soyad', 'soyadımı', 'soyismini', 
+      'yazabilirsiniz', 'yaz', 'yazın', 'kaydedin', 'olsun', 'merhaba', 
+      'selam', 'hitap', 'edebilirsiniz', 'et', 've', 'cep', 'telefon', 
+      'telefonu', 'telefonum', 'numarası', 'numaram', 'numara', 'gsm', 'mobil'
+    ]);
     
-    // Capitalize first letters and clean spaces
-    return name.split(/\s+/)
-      .filter(w => w.length > 0)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-      .trim();
+    const words = cleanStr.split(/\s+/);
+    const cleanedWords = words
+      .filter(w => w.length > 0 && !noiseWords.has(w))
+      .map(word => {
+        const firstChar = word.charAt(0).toLocaleUpperCase('tr-TR');
+        const rest = word.slice(1).toLocaleLowerCase('tr-TR');
+        return firstChar + rest;
+      });
+      
+    return cleanedWords.join(' ').trim();
   }
 }
