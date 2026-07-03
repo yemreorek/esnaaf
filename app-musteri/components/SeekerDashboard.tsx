@@ -2816,7 +2816,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             </div>
                           ) : (
                             <div className="space-y-4">
-                              {selectedRequest.offers?.map((offer) => (
+                              {selectedRequest.offers?.map((offer, oIdx) => (
                                 <div
                                   key={offer.id}
                                   className={`border ${offer.status === "accepted" ? "border-emerald-300 bg-emerald-50/10 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.03)]" : (offer.status === "cancelled" && offer.cancelled_by === "service_provider") ? "border-red-200 bg-red-50/10 shadow-[0_10px_25px_-5px_rgba(239,68,68,0.02)]" : "border-[#c8f252] hover:border-[#b5e639] bg-slate-50/20 shadow-[0_10px_25px_-5px_rgba(200,242,82,0.05)]"} p-5 rounded-[24px] flex flex-col gap-4 transition-all duration-200 animate-scale-up`}
@@ -2827,9 +2827,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                         {offer.provider.user.name ? offer.provider.user.name.charAt(0) : "U"}
                                       </span>
                                       <div className="flex flex-col">
-                                        <span className="font-extrabold text-xs md:text-sm text-slate-800">
-                                          {offer.provider.user.name}
-                                        </span>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="font-extrabold text-xs md:text-sm text-slate-800">
+                                            {offer.provider.user.name}
+                                          </span>
+                                          <span className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-slate-800 uppercase tracking-wider font-mono shrink-0">
+                                            {oIdx + 1}. TEKLİF
+                                          </span>
+                                        </div>
                                         <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
                                           Profesyonel Esnaf
                                         </span>
