@@ -130,6 +130,7 @@ export class TaleplerService {
             provider: {
               include: {
                 user: true,
+                subscription: true,
               },
             },
           },
@@ -179,6 +180,7 @@ export class TaleplerService {
             provider: {
               include: {
                 user: true,
+                subscription: true,
               },
             },
           },
@@ -437,11 +439,11 @@ export class TaleplerService {
     const COMMISSION_RATES: Record<string, number> = {
       basic: 10,
       standard: 7,
-      premium: 5,
+      premium: 7,
       vip: 5,
     };
 
-    let commissionRate = 10; // Varsayılan/Fallback oranı %10
+    let commissionRate = 20; // Varsayılan/Fallback oranı %20 (Ücretsiz üye)
     let updateOpenDoorToFalse = false;
 
     if (offer.job.is_direct) {

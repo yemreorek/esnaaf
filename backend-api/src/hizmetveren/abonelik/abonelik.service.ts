@@ -31,7 +31,7 @@ export class AbonelikService {
         commissionRate: 10,
         activeJobsLimit: 3,
         name: 'Basic Paket (Düşük)', 
-        description: 'Aylık 5.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %10 İş Sonu Komisyonu. Aynı anda en fazla 3 aktif iş (Kapasite Kilidi). Normal Dağıtım (15 dk gecikmeli).' 
+        description: 'Aylık 5.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %10 İş Sonu Komisyonu. Aynı anda en fazla 3 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
       },
       { 
         type: PackageType.standard, 
@@ -40,7 +40,7 @@ export class AbonelikService {
         commissionRate: 7,
         activeJobsLimit: 5,
         name: 'Standart Paket (Orta)', 
-        description: 'Aylık 10.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %7 İş Sonu Komisyonu. Aynı anda en fazla 5 aktif iş (Kapasite Kilidi). Hızlı Dağıtım (5 dk gecikmeli).' 
+        description: 'Aylık 10.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %7 İş Sonu Komisyonu. Aynı anda en fazla 5 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
       },
       { 
         type: PackageType.vip, 
@@ -49,7 +49,7 @@ export class AbonelikService {
         commissionRate: 5,
         activeJobsLimit: 7,
         name: 'VIP Paket (Yüksek)', 
-        description: 'Aylık 20.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %5 İş Sonu Komisyonu. Aynı anda en fazla 7 aktif iş (Kapasite Kilidi). Anlık Dağıtım ve Güvenilir Uzman Rozeti.' 
+        description: 'Aylık 20.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %5 İş Sonu Komisyonu. Aynı anda en fazla 7 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
       },
     ];
   }

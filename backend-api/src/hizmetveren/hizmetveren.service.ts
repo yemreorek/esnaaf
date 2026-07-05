@@ -36,6 +36,12 @@ export class HizmetverenService {
       throw new NotFoundException('Hizmet veren profili bulunamadı.');
     }
 
+    const quota = await this.getQuotaStatus(providerUserId);
+    const isLocked = quota.packageName === 'Ücretsiz (Freemium)' && quota.used >= 1;
+    if (isLocked) {
+      return [];
+    }
+
     // 2. Bu ustaya dağıtılmış response_time kayıtlarını al
     const responseTimes = await this.prisma.responseTime.findMany({
       where: { 
@@ -133,20 +139,20 @@ export class HizmetverenService {
     }
 
     // Dynamic Capacity limits based on subscription package:
-    let capacityLimit = 3; // default basic fallback
-    let packageName = 'Basic (Düşük)';
+    let capacityLimit = 1; // default free fallback
+    let packageName = 'Ücretsiz (Freemium)';
 
     if (provider.subscription && ['active', 'trial', 'admin_trial'].includes(provider.subscription.status)) {
       const pType = provider.subscription.package_type;
       if (pType === 'vip') {
         capacityLimit = 7;
-        packageName = 'VIP (Yüksek)';
+        packageName = 'VIP Paket (Yüksek)';
       } else if (pType === 'standard' || pType === 'premium') {
         capacityLimit = 5;
-        packageName = 'Standart (Orta)';
-      } else {
+        packageName = 'Standart Paket (Orta)';
+      } else if (pType === 'basic') {
         capacityLimit = 3;
-        packageName = 'Basic (Düşük)';
+        packageName = 'Basic Paket (Düşük)';
       }
     }
 
@@ -207,7 +213,7 @@ export class HizmetverenService {
     // 1. Hizmet veren kontrolü
     const provider = await this.prisma.serviceProvider.findUnique({
       where: { user_id: providerUserId },
-      include: { user: true },
+      include: { user: true, subscription: true },
     });
 
     if (!provider) {
@@ -254,15 +260,7 @@ export class HizmetverenService {
       throw new BadRequestException(`Bu talebin ${label} süresi dolmuş ve teklif girişine kapanmıştır.`);
     }
 
-    if (offerCount === 3) {
-      const isBasicPkg = quota.packageName.includes('Basic');
-      const totalJobs = provider.total_jobs || 0;
-      const isNewcomer = totalJobs < 5 || !provider.avg_rating;
 
-      if (!isBasicPkg && !isNewcomer) {
-        throw new BadRequestException('Bu talebe maksimum limit olan 3 genel teklif verilmiştir. Kalan son slot yeni başlayan veya Basic paket sahibi ustalarımız için ayrılmıştır.');
-      }
-    }
 
     // 4. Bu ustaya dağıtılmış mı kontrolü
     const rt = await this.prisma.responseTime.findFirst({
@@ -323,6 +321,10 @@ export class HizmetverenService {
       providerId: provider.id,
       providerName: provider.user.name || 'Hizmet Veren',
       providerRating: provider.avg_rating ? Number(provider.avg_rating) : 4.0,
+      providerSubscription: provider.subscription ? {
+        status: provider.subscription.status,
+        package_type: provider.subscription.package_type,
+      } : null,
     });
 
     this.logger.log(`[Teklif Verildi] Usta ${provider.user.name} tarafından Talep ${dto.jobId}'ye ${dto.price} TL teklif verildi.`);

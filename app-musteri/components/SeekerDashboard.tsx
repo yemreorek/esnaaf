@@ -87,6 +87,10 @@ interface Offer {
       phone_masked: string;
       phone_decrypted?: string;
     };
+    subscription?: {
+      status: string;
+      package_type: string;
+    } | null;
   };
   appointment_at?: string | Date | null;
   started_at?: string | Date | null;
@@ -150,6 +154,16 @@ interface RequestItem {
   }[];
   reviews?: any[];
 }
+
+const isPaidProvider = (offer: any) => {
+  const sub = offer.provider?.subscription;
+  const activeStatuses = ['active', 'trial', 'admin_trial'];
+  if (sub && activeStatuses.includes(sub.status)) {
+    const pType = sub.package_type || sub.packageType;
+    return ['basic', 'standard', 'vip'].includes(pType);
+  }
+  return false;
+};
 
 interface SeekerDashboardProps {
   initialJobId?: string | null;
@@ -1003,7 +1017,11 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           user: {
             name: offer.provider.name,
             phone_masked: offer.provider.phone_masked || "",
-          }
+          },
+          subscription: offer.providerSubscription ? {
+            status: offer.providerSubscription.status,
+            package_type: offer.providerSubscription.package_type,
+          } : null,
         }
       };
 
@@ -2816,8 +2834,19 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             </div>
                           ) : (
                             <div className="space-y-4">
-                              {selectedRequest.offers?.map((offer, oIdx) => (
-                                <Fragment key={offer.id}>
+                              {(() => {
+                                const sortedOffers = [...(selectedRequest.offers || [])].sort((a, b) => {
+                                  const aPaid = isPaidProvider(a);
+                                  const bPaid = isPaidProvider(b);
+                                  if (aPaid && !bPaid) return -1;
+                                  if (!aPaid && bPaid) return 1;
+                                  
+                                  const aTime = new Date(a.created_at || 0).getTime();
+                                  const bTime = new Date(b.created_at || 0).getTime();
+                                  return aTime - bTime;
+                                });
+                                return sortedOffers.map((offer, oIdx) => (
+                                  <Fragment key={offer.id}>
                                   {/* Modern Separator Header */}
                                   <div className="flex items-center gap-3 pt-3.5 pb-1.5 text-left animate-scale-up">
                                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-900 text-[#c8f252] text-xs font-black border border-slate-800 shadow-sm font-mono shrink-0">
@@ -2841,9 +2870,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                         <span className="font-extrabold text-xs md:text-sm text-slate-800">
                                           {offer.provider.user.name}
                                         </span>
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                                          Profesyonel Esnaf
-                                        </span>
+                                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                          <span className="text-[10px] text-slate-400 font-bold uppercase">
+                                            Profesyonel Esnaf
+                                          </span>
+                                          {isPaidProvider(offer) && (
+                                            <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-emerald-200">
+                                              <span>✔️</span>
+                                              <span>VIP / Onaylı Üye</span>
+                                            </span>
+                                          )}
+                                        </div>
                                         <div className="flex items-center gap-1 mt-1">
                                           <div className="flex items-center gap-0.5">
                                             {Array.from({ length: 5 }).map((_, i) => {
@@ -2985,7 +3022,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                   </div>
                                 </div>
                               </Fragment>
-                            ))}
+                            ))})()}
                             </div>
                           )}
                         </div>

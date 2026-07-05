@@ -269,32 +269,8 @@ export class TaleplerProcessor {
         providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
       }
 
-      // Kademeli gecikme hesaplama (VIP 0dk, Standart 5dk, Basic 15dk)
+      // Sistemdeki tüm gecikme süreleri kaldırılmıştır. Herkes anında görür (0 dakika gecikmeyle).
       let delayMinutes = 0;
-      if (previousProviderIds && previousProviderIds.includes(provider.id)) {
-        // Tekrar yayınlanan iş: Daha önce teklif veren ustalar anında görür
-        delayMinutes = 0;
-      } else if (packageLevel.type === 'vip') {
-        delayMinutes = 0;
-      } else if (packageLevel.type === 'standard') {
-        delayMinutes = 5;
-      } else {
-        delayMinutes = 15;
-      }
-
-      // Son 24 saatte iş kazandıysa +3 dk ek gecikme (Winner Cooldown)
-      const hasWonRecently = await this.prisma.acceptedOffer.findFirst({
-        where: {
-          provider_id: provider.id,
-          accepted_at: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          },
-        },
-      });
-
-      if (hasWonRecently) {
-        delayMinutes += 3;
-      }
 
       // Test modunda süreleri saniyeye indirge
       let delayMs = delayMinutes * 60 * 1000;

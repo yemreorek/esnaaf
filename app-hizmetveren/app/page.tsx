@@ -2213,7 +2213,16 @@ export default function ProviderDashboard() {
       }
 
       addLog(`Teklif başarıyla gönderildi! Teklif ID: ${data.offer?.id}`);
-      showAlert('Başarılı', 'Teklifiniz başarıyla müşteriye iletildi!', 'success');
+      const isFree = quota && quota.packageName.includes('Ücretsiz');
+      if (isFree) {
+        showAlert(
+          'Tebrikler!',
+          'Teklifiniz anında müşteriye iletildi! Ancak sistemde Ücretli Aboneliğe sahip olan esnaflar teklif verdiğinde sıralamada otomatik olarak üzerinize geçecektir. Müşterinin dikkatini ilk sırada çekmek ve VIP Rozetiyle teklifinizin kabul edilme şansını artırmak için paketinizi yükseltin!',
+          'info'
+        );
+      } else {
+        showAlert('Başarılı', 'Teklifiniz başarıyla müşteriye iletildi!', 'success');
+      }
       
       setJobs((prev) => prev.filter((j) => j.id !== activeJob.id));
       setActiveJob(null);
@@ -3429,8 +3438,62 @@ export default function ProviderDashboard() {
             </div>
           )}
 
-          {activeTab === 'firsatlar' && (
-            <>
+          {activeTab === 'firsatlar' && (() => {
+            const isLocked = quota && quota.packageName.includes('Ücretsiz') && quota.used >= 1;
+            if (isLocked) {
+              return (
+                <div className="bg-slate-50 border border-red-200/60 rounded-[32px] p-8 md:p-12 text-center shadow-lg max-w-xl mx-auto my-6 space-y-6 animate-scale-up">
+                  <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto text-red-600 border border-red-200 animate-pulse">
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-red-600 font-extrabold text-lg md:text-xl uppercase tracking-wider">
+                      ⚠️ LİMİTE ULAŞTINIZ: SİSTEM GEÇİCİ OLARAK KİLİTLENDİ
+                    </h3>
+                    <p className="text-slate-700 text-xs md:text-sm font-semibold leading-relaxed">
+                      Şu anda aktif 1 adet işiniz bulunmaktadır. Ücretsiz paket limiti nedeniyle, yeni açılan canlı ilanlar şu an size gösterilmemektedir.
+                    </p>
+                    <p className="text-slate-500 text-xs font-medium leading-relaxed bg-white border border-slate-100 p-3 rounded-2xl">
+                      🚀 <strong>Aynı Anda Daha Fazla İş Alın:</strong> Canlı ilan akışının hiç kesilmemesi, aynı anda 3 ila 7 işe teklif verip yönetebilmek ve %20 olan komisyon oranınızı %5'e kadar düşürmek için hemen paketinizi yükseltin!
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => handleTabClick('abonelik')}
+                    className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
+                  >
+                    Şimdi Aboneliğini Yükselt
+                  </button>
+                </div>
+              );
+            }
+            return (
+              <>
+                {quota && quota.packageName.includes('Ücretsiz') && quota.used === 0 && (
+                  <div className="bg-[#c8f252]/10 border border-[#c8f252]/40 rounded-2xl p-4 text-left space-y-2.5 animate-scale-up mb-6">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#4c630a] text-sm">⚡</span>
+                      <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
+                        CANLI İLAN AKIŞI AKTİF!
+                      </h4>
+                    </div>
+                    <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                      İşinizi başarıyla tamamladınız. Yeni ilanları şu an anlık (0 dakika gecikmeyle) görüyorsunuz! Hızlıca teklif verip yeni bir iş kapabilirsiniz.
+                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-[#c8f252]/20">
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        ℹ️ Unutmayın: Ücretsiz pakette kazanabileceğiniz maksimum anlık aktif iş limiti 1 adettir ve bu işten %20 komisyon kesilir.
+                      </span>
+                      <button 
+                        onClick={() => handleTabClick('abonelik')}
+                        className="text-xs font-black text-slate-900 underline hover:text-slate-750 transition-colors shrink-0 whitespace-nowrap"
+                      >
+                        Paketleri Karşılaştır →
+                      </button>
+                    </div>
+                  </div>
+                )}
               {/* Dashboard Title & Overview Banner */}
               <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -3507,7 +3570,7 @@ export default function ProviderDashboard() {
                 )}
               </div>
             </>
-          )}
+          ); })()}
 
           {activeTab === 'teklifler' && (
             <div className="space-y-6 animate-scale-up text-left">
@@ -4767,7 +4830,7 @@ export default function ProviderDashboard() {
                         Anında İlan Bildirimi
                       </div>
                       <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                        Fırsatları gecikmeli (15 dk / 5 dk) görmek yerine anında (0 gecikme) bildirimle alarak ilk teklifi siz iletin.
+                        Yeni gelen tüm talepleri anında (0 dakika gecikmeyle) görerek ilk teklifinizi gecikmeden iletin.
                       </p>
                     </div>
 
@@ -4815,10 +4878,10 @@ export default function ProviderDashboard() {
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Komisyon Oranı: %{pkg.commissionRate}</span>
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Aktif İş Limiti: {pkg.activeJobsLimit} Slot</span>
                               <span className="block text-[9px] text-slate-500 font-medium">
-                                ✓ Dağıtım Hızı: {pkg.type === 'vip' ? 'Anında (0 Gecikme)' : pkg.type === 'standard' ? 'Hızlı (5 dk Gecikmeli)' : 'Normal (15 dk Gecikmeli)'}
+                                ✓ Dağıtım Hızı: Anında (0 Dk)
                               </span>
                               <span className="block text-[9px] text-slate-500 font-medium">
-                                ✓ 4. Slot Erişimi: {pkg.type === 'basic' ? 'Ayrıcalıklı Slot Açık' : 'Yeni Ustaya Rezerve'}
+                                ✓ 4. Slot Erişimi: Herkese Açık (Sınırsız)
                               </span>
                             </div>
                           </div>
@@ -4865,16 +4928,16 @@ export default function ProviderDashboard() {
                         <span>Aktif İş Limiti:</span>
                         <span className="font-extrabold text-slate-800">{selectedPackage.activeJobsLimit} Slot</span>
                       </div>
-                      <div className="flex justify-between">
+                       <div className="flex justify-between">
                         <span>Dağıtım Hızı:</span>
                         <span className="font-extrabold text-slate-800">
-                          {selectedPackage.type === 'vip' ? 'Anında (0 Gecikme)' : selectedPackage.type === 'standard' ? 'Hızlı (5 dk Gecikmeli)' : 'Normal (15 dk Gecikmeli)'}
+                          Anında (0 Dk)
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>4. Slot Ayrıcalığı:</span>
                         <span className="font-extrabold text-slate-800">
-                          {selectedPackage.type === 'basic' ? 'Var (Slot Açık)' : 'Yok (Yeni Ustaya Rezerve)'}
+                          Var (Sınırsız)
                         </span>
                       </div>
                       <div className="flex justify-between">
