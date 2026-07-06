@@ -4849,7 +4849,7 @@ export default function ProviderDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-1">
                     {availablePackages.map((pkg: any) => {
                       const isCurrent = pkg.type === 'free'
                         ? (!subscriptionDetails?.subscription || !['active', 'trial', 'admin_trial'].includes(subscriptionDetails?.subscription?.status))
