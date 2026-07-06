@@ -25,13 +25,22 @@ export class AbonelikService {
   async getPackages() {
     return [
       { 
+        type: 'free', 
+        price: 0, 
+        quota: null, 
+        commissionRate: 20,
+        activeJobsLimit: 1,
+        name: 'Ücretsiz Paket (Freemium)', 
+        description: 'Aylık 0 ₺ | Komisyon: %20 | Aktif İş Limiti (Kapasite): 1 | Rozet: Yok' 
+      },
+      { 
         type: PackageType.basic, 
         price: 5000, 
         quota: null, 
         commissionRate: 10,
         activeJobsLimit: 3,
         name: 'Basic Paket (Düşük)', 
-        description: 'Aylık 5.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %10 İş Sonu Komisyonu. Aynı anda en fazla 3 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
+        description: 'Aylık 5.000 ₺ | Komisyon: %10 | Aktif İş Limiti (Kapasite): 3 | Rozet: VIP / Onaylı Üye ✔️' 
       },
       { 
         type: PackageType.standard, 
@@ -40,7 +49,7 @@ export class AbonelikService {
         commissionRate: 7,
         activeJobsLimit: 5,
         name: 'Standart Paket (Orta)', 
-        description: 'Aylık 10.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %7 İş Sonu Komisyonu. Aynı anda en fazla 5 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
+        description: 'Aylık 10.000 ₺ | Komisyon: %7 | Aktif İş Limiti (Kapasite): 5 | Rozet: VIP / Onaylı Üye ✔️' 
       },
       { 
         type: PackageType.vip, 
@@ -49,7 +58,7 @@ export class AbonelikService {
         commissionRate: 5,
         activeJobsLimit: 7,
         name: 'VIP Paket (Yüksek)', 
-        description: 'Aylık 20.000 TL Sabit Ücret. Sınırsız Teklif Hakkı. %5 İş Sonu Komisyonu. Aynı anda en fazla 7 aktif iş (Kapasite Kilidi). VIP / Onaylı Üye Rozeti.' 
+        description: 'Aylık 20.000 ₺ | Komisyon: %5 | Aktif İş Limiti (Kapasite): 7 | Rozet: VIP / Onaylı Üye ✔️' 
       },
     ];
   }
@@ -397,14 +406,14 @@ export class AbonelikService {
     }
 
     // Dynamic Capacity limits based on subscription package:
-    let capacityLimit = 3; // default basic fallback
+    let capacityLimit = 1; // default free fallback
     if (provider.subscription && ['active', 'trial', 'admin_trial'].includes(provider.subscription.status)) {
       const pType = provider.subscription.package_type;
       if (pType === 'vip') {
         capacityLimit = 7;
       } else if (pType === 'standard' || pType === 'premium') {
         capacityLimit = 5;
-      } else {
+      } else if (pType === 'basic') {
         capacityLimit = 3;
       }
     }

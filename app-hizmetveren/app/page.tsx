@@ -4849,20 +4849,26 @@ export default function ProviderDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1">
                     {availablePackages.map((pkg: any) => {
-                      const isCurrent = subscriptionDetails?.subscription?.package_type === pkg.type;
+                      const isCurrent = pkg.type === 'free'
+                        ? (!subscriptionDetails?.subscription || !['active', 'trial', 'admin_trial'].includes(subscriptionDetails?.subscription?.status))
+                        : (subscriptionDetails?.subscription?.package_type === pkg.type && ['active', 'trial', 'admin_trial'].includes(subscriptionDetails?.subscription?.status));
+                      
                       return (
                         <div 
                           key={pkg.type}
                           onClick={() => {
-                            if (!isCurrent) {
+                            if (isCurrent) return;
+                            if (pkg.type === 'free') {
+                              handleCancelSubscription();
+                            } else {
                               setSelectedPackage(pkg);
                               setValidatedCampaign(null);
                               setCampaignCodeInput('');
                             }
                           }}
-                          className={`border rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col justify-between gap-4 h-[250px] ${
+                          className={`border rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col justify-between gap-4 h-[260px] ${
                             isCurrent
                               ? 'bg-slate-50 border-slate-200 opacity-60 pointer-events-none'
                               : selectedPackage?.type === pkg.type
@@ -4872,7 +4878,9 @@ export default function ProviderDashboard() {
                         >
                           <div>
                             <span className="block text-[10px] text-slate-450 font-black uppercase tracking-wider">{pkg.name}</span>
-                            <span className="block text-2xl font-black text-slate-900 tracking-tight mt-2">₺{pkg.price.toLocaleString('tr-TR')}</span>
+                            <span className="block text-2xl font-black text-slate-900 tracking-tight mt-2">
+                              {pkg.price === 0 ? 'Ücretsiz' : `₺${pkg.price.toLocaleString('tr-TR')}`}
+                            </span>
                             <div className="mt-2 space-y-0.5 text-left border-t border-slate-100 pt-2">
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Teklif Hakkı: Sınırsız</span>
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Komisyon Oranı: %{pkg.commissionRate}</span>
@@ -4897,7 +4905,7 @@ export default function ProviderDashboard() {
                                 : 'bg-slate-900 hover:bg-slate-800 text-white'
                             }`}
                           >
-                            {isCurrent ? 'Aktif' : selectedPackage?.type === pkg.type ? 'Seçildi' : 'Seç'}
+                            {isCurrent ? 'Aktif' : selectedPackage?.type === pkg.type ? 'Seçildi' : pkg.type === 'free' ? 'Geçiş Yap' : 'Seç'}
                           </button>
                         </div>
                       );
