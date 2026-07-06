@@ -318,9 +318,11 @@ export class HizmetverenService {
       id: result.id,
       price: Number(result.price),
       description: result.message || '',
+      created_at: result.created_at,
       providerId: provider.id,
       providerName: provider.user.name || 'Hizmet Veren',
       providerRating: provider.avg_rating ? Number(provider.avg_rating) : 4.0,
+      providerIsApproved: provider.is_approved,
       providerSubscription: provider.subscription ? {
         status: provider.subscription.status,
         package_type: provider.subscription.package_type,

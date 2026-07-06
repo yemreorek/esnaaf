@@ -354,9 +354,15 @@ export class TaleplerProcessor {
             id: offer.id,
             price: Number(offer.price),
             description: offer.message,
+            created_at: offer.created_at,
             providerId: provider.id,
             providerName: provider.user.name,
             providerRating: Number(provider.avg_rating || 4.8),
+            providerIsApproved: provider.is_approved,
+            providerSubscription: provider.subscription ? {
+              status: provider.subscription.status,
+              package_type: provider.subscription.package_type,
+            } : null,
           });
           
           this.logger.log(`[OTONOM TEKLİF] Canlı veritabanı teklifi oluşturuldu: ${provider.user.name} -> ${offer.price} TL`);

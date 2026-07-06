@@ -82,6 +82,7 @@ interface Offer {
   provider: {
     id: string;
     avg_rating?: number | string;
+    is_approved?: boolean;
     user: {
       name: string;
       phone_masked: string;
@@ -1007,20 +1008,22 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
     socket.on("new_offer", (offer: any) => {
       console.log("[Dashboard WS] New offer received:", offer);
       const newOfferObj: Offer = {
-        id: offer.offerId,
+        id: offer.offerId || offer.id,
         price: offer.price,
         description: offer.description,
         status: "pending",
         created_at: offer.created_at || new Date().toISOString(),
         provider: {
-          id: offer.provider.id,
+          id: offer.provider?.id || offer.providerId,
+          avg_rating: offer.provider?.avg_rating || offer.providerRating || 4.8,
+          is_approved: offer.provider?.is_approved !== undefined ? offer.provider.is_approved : (offer.providerIsApproved !== undefined ? offer.providerIsApproved : true),
           user: {
-            name: offer.provider.name,
-            phone_masked: offer.provider.phone_masked || "",
+            name: offer.provider?.user?.name || offer.providerName || "Hizmet Veren",
+            phone_masked: offer.provider?.user?.phone_masked || offer.providerPhoneMasked || "",
           },
-          subscription: offer.providerSubscription ? {
-            status: offer.providerSubscription.status,
-            package_type: offer.providerSubscription.package_type,
+          subscription: offer.provider?.subscription || offer.providerSubscription ? {
+            status: offer.provider?.subscription?.status || offer.providerSubscription?.status,
+            package_type: offer.provider?.subscription?.package_type || offer.providerSubscription?.package_type,
           } : null,
         }
       };
@@ -1029,7 +1032,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
         prev.map((req) => {
           if (req.id === offer.jobId) {
             // Avoid duplicate offers in state
-            const exists = (req.offers || []).some(o => o.id === offer.offerId);
+            const exists = (req.offers || []).some(o => o.id === (offer.offerId || offer.id));
             if (exists) return req;
             
             const updatedOffers = [...(req.offers || []), newOfferObj];
@@ -2874,12 +2877,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                           <span className="text-[10px] text-slate-400 font-bold uppercase">
                                             Profesyonel Esnaf
                                           </span>
-                                          {isPaidProvider(offer) && (
+                                          {isPaidProvider(offer) ? (
                                             <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-emerald-200">
                                               <span>✔️</span>
-                                              <span>VIP / Onaylı Üye</span>
+                                              <span>VIP Üye</span>
                                             </span>
-                                          )}
+                                          ) : (offer.provider?.is_approved && (
+                                            <span className="inline-flex items-center gap-0.5 bg-sky-50 text-sky-700 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-sky-200">
+                                              <span>✔️</span>
+                                              <span>Onaylı Üye</span>
+                                            </span>
+                                          ))}
                                         </div>
                                         <div className="flex items-center gap-1 mt-1">
                                           <div className="flex items-center gap-0.5">
