@@ -37,7 +37,7 @@ export class HizmetverenService {
     }
 
     const quota = await this.getQuotaStatus(providerUserId);
-    const isLocked = quota.packageName === 'Ücretsiz (Freemium)' && quota.used >= 1;
+    const isLocked = quota.used >= quota.limit;
     if (isLocked) {
       return [];
     }

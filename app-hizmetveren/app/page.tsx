@@ -3439,32 +3439,71 @@ export default function ProviderDashboard() {
           )}
 
           {activeTab === 'firsatlar' && (() => {
-            const isLocked = quota && quota.packageName.includes('Ücretsiz') && quota.used >= 1;
+            const isLocked = quota && quota.limit !== null && quota.used >= quota.limit;
             if (isLocked) {
+              const isFree = quota.packageName.includes('Ücretsiz') || quota.limit === 1;
               return (
-                <div className="bg-slate-50 border border-red-200/60 rounded-[32px] p-8 md:p-12 text-center shadow-lg max-w-xl mx-auto my-6 space-y-6 animate-scale-up">
-                  <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto text-red-600 border border-red-200 animate-pulse">
+                <div className={`border rounded-[32px] p-8 md:p-12 text-center shadow-lg max-w-xl mx-auto my-6 space-y-6 animate-scale-up ${
+                  isFree ? 'bg-rose-50 border-rose-200 text-rose-950' : 'bg-amber-50 border-amber-200 text-amber-950'
+                }`}>
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border animate-pulse ${
+                    isFree ? 'bg-rose-100 border-rose-200 text-rose-600' : 'bg-amber-100 border-amber-200 text-amber-600'
+                  }`}>
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </div>
                   <div className="space-y-3">
-                    <h3 className="text-red-600 font-extrabold text-lg md:text-xl uppercase tracking-wider">
-                      ⚠️ LİMİTE ULAŞTINIZ: SİSTEM GEÇİCİ OLARAK KİLİTLENDİ
+                    <h3 className={`font-black text-lg md:text-xl uppercase tracking-wider ${isFree ? 'text-rose-700' : 'text-amber-700'}`}>
+                      {isFree ? '⚠️ LİMİTE ULAŞTINIZ: YENİ FIRSATLAR KİLİTLENDİ' : `⚠️ KAPASİTE LİMİTİNE ULAŞTINIZ (${quota.packageName.toUpperCase()})`}
                     </h3>
-                    <p className="text-slate-700 text-xs md:text-sm font-semibold leading-relaxed">
-                      Şu anda aktif 1 adet işiniz bulunmaktadır. Ücretsiz paket limiti nedeniyle, yeni açılan canlı ilanlar şu an size gösterilmemektedir.
-                    </p>
-                    <p className="text-slate-500 text-xs font-medium leading-relaxed bg-white border border-slate-100 p-3 rounded-2xl">
-                      🚀 <strong>Aynı Anda Daha Fazla İş Alın:</strong> Canlı ilan akışının hiç kesilmemesi, aynı anda 3 ila 7 işe teklif verip yönetebilmek ve %20 olan komisyon oranınızı %5'e kadar düşürmek için hemen paketinizi yükseltin!
-                    </p>
+                    
+                    {isFree ? (
+                      <>
+                        <p className="text-slate-800 text-xs md:text-sm font-bold leading-relaxed">
+                          Şu anda <strong className="text-rose-700">Ücretsiz (Freemium)</strong> pakette aktif 1 adet kazanılmış işiniz bulunmaktadır.
+                        </p>
+                        <p className="text-slate-650 text-xs font-semibold leading-relaxed bg-white/80 border border-rose-100 p-4 rounded-2xl text-left">
+                          📢 <strong>Sistem Nasıl Çalışır?</strong>
+                          <br />
+                          Ücretsiz pakette aynı anda en fazla 1 aktif iş yürütebilirsiniz. Kazanmış olduğunuz bu işi tamamlayıp, <strong>"Tamamlanan İşler"</strong> sekmesinden müşteri ile ücret teyidini bitirdikten sonra, kilit otomatik olarak kalkacak ve yeni canlı fırsat ilanları tekrar listelenmeye başlayacaktır.
+                        </p>
+                        <p className="text-rose-900 text-xs font-bold leading-relaxed bg-rose-100/40 p-3.5 rounded-2xl border border-rose-200/50">
+                          🔥 <strong>İlanları Kaçırmayın!</strong> Siz işinizi tamamlayana kadar, <strong>diğer tüm ücretli paketteki rakipleriniz</strong> yeni gelen işleri anında görüp tekliflerini vermeye devam ediyor! Canlı ilan akışının hiç kesilmemesi için hemen paketinizi yükseltebilirsiniz.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-slate-800 text-xs md:text-sm font-bold leading-relaxed">
+                          Yürütebileceğiniz maksimum aktif iş kapasiteniz olan <strong className={isFree ? 'text-rose-700' : 'text-amber-700'}>{quota.limit} slot</strong> tamamen dolmuştur.
+                        </p>
+                        <p className="text-slate-650 text-xs font-semibold leading-relaxed bg-white/80 border border-amber-100 p-4 rounded-2xl text-left">
+                          📢 <strong>Sistem Nasıl Çalışır?</strong>
+                          <br />
+                          Mevcut işlerinizden en az birini tamamlayıp, <strong>"Tamamlanan İşler"</strong> sekmesinden müşteri teyidini tamamlayarak aktif slot sayınızı boşalttığınızda, gelen yeni fırsatlar anında tekrar akmaya başlayacaktır.
+                        </p>
+                        <p className="text-amber-900 text-xs font-bold leading-relaxed bg-amber-100/40 p-3.5 rounded-2xl border border-amber-200/50">
+                          🔥 <strong>Diğer Esnaflar Teklif Veriyor!</strong> Siz mevcut işlerinizi tamamlayıp yer açana kadar, <strong>diğer rakipleriniz</strong> bölgenizdeki yeni iş ilanlarına teklif vermeye kesintisiz devam etmektedir. İlanları rakiplerinize kaptırmamak için mevcut işlerinizi hızlıca tamamlayın veya bir üst pakete geçerek kapasite limitinizi genişletin!
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <button 
-                    onClick={() => handleTabClick('abonelik')}
-                    className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
-                  >
-                    Şimdi Aboneliğini Yükselt
-                  </button>
+                  
+                  {(!quota.packageName.includes('VIP') && quota.limit !== null && quota.limit < 7) ? (
+                    <button 
+                      onClick={() => handleTabClick('abonelik')}
+                      className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
+                    >
+                      {isFree ? 'Şimdi Aboneliğini Yükselt & İlanları Gör' : 'Paketini Yükselt & Kapasiteyi Artır'}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => handleTabClick('kazanilanlar')}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
+                    >
+                      Mevcut Aktif İşleri Yönet
+                    </button>
+                  )}
                 </div>
               );
             }
