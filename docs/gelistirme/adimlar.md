@@ -39,6 +39,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 28** | **Aylık Komisyon Tahsilatı** | Birikmiş komisyon hesaplama, gelecek faturalama tarihi ve usta paneli abonelik sekmesi entegrasyonları | **✅ Tamamlandı** |
 | **Adım 29** | **Ses Entegrasyonu (Speech-to-Text)** | Canlı chat ve landing sayfasında Web Speech API entegrasyonu, bouncing animasyonlu dalga efekti, klavyeyle elle düzeltme yapıldığı an dikteyi otomatik durdurma ve tampon bellek yarış durumu çözümleri | **✅ Tamamlandı** |
 | **Adım 30** | **Dinamik Yönlendirme & Kesiciler** | Tek Ajan + Dinamik Prompt Değişimi (`sector-prompts.config.ts`), PII regex isim/telefon kesicileri ve Türkçe-locale duyarlı isim temizleme (`cleanName`) algoritması. Müşteri paneli süresi dolan işlerde `Teklifleri Gör (X)`, `Tekrar Yayınla` ve `İptal Et` butonları akışı | **✅ Tamamlandı** |
+| **Adım 31** | **Yeni Abonelik & Sıralama** | Gecikme süreleri kaldırılmış yeni 1 Ücretsiz + 3 Ücretli (Basic, Standard, VIP) paket mimarisi, teklif önceliklendirme sıralama algoritması, ücretsiz esnaf aktif iş limit kilidi (State A/B) ve upsell uyarıları | **✅ Tamamlandı** |
 
 ---
 
@@ -812,6 +813,22 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   - `cleanName` fonksiyonu `tr-TR` locale duyarlı hale getirilerek cümlelerdeki gürültü kelimeleri ("İsmim", "Soyadım") başarıyla elendi ve özet tabloda temiz isimlerin görünmesi sağlandı.
 - **Müşteri Paneli Buton Akışı:**
   - Süresi dolmuş işlerde en az 1 teklif varsa `Teklifleri Gör (X)`, `Tek Tekrar Yayınla` ve `İptal Et` butonlarının yan yana gösterilmesi sağlandı. Durum etiketine yeşil renkli "X Teklif Alındı" ibaresi yansıtıldı.
+
+## 🛠️ Adım 31 Geliştirme Detayları (Yeni Abonelik & Teklif Önceliklendirme)
+
+- **Yeni Paket Kuralları ve Komisyonlar:**
+  - Tüm paketlerdeki ve ücretsiz üyelerdeki gecikme süreleri kaldırıldı (gecikme 0 dk).
+  * 4. teklif slot kilidi tamamen yürürlükten kaldırıldı, herkes serbestçe 4. slot teklifi verebilir.
+  * Paket yapıları güncellendi: Ücretsiz (%20 komisyon, 1 aktif kapasite), Basic (5.000 ₺, %10 komisyon, 3 aktif kapasite, VIP rozeti), Standard (10.000 ₺, %7 komisyon, 5 aktif kapasite, VIP rozeti), VIP (20.000 ₺, %5 komisyon, 7 aktif kapasite, VIP rozeti).
+- **Müşteri Paneli Dinamik Teklif Sıralama:**
+  - Gelen teklifler listelenirken ücretli pakete sahip esnaflar en üstte, ücretsiz esnaflar ise altta listelenecek şekilde sıralama algoritması yazıldı. Gruplar kendi içinde kronolojik sıralanır.
+  * Ücretli üyelerin teklif kartlarında "VIP / Onaylı Üye ✔️" rozeti gösterildi.
+- **Ücretsiz Üye Kapasite Kilitleri (State A/B):**
+  - Ücretsiz esnaflar 1 aktif iş kazandığında backend `getGelenIsler` boş döner. Ön yüzde ise "Gelen Fırsatlar" sekmesinde kilit ekranı (State A) gösterilir. İş bittiğinde kilit kalkar ve canlı fırsat bandı (State B) gösterilir.
+  * Teklif gönderildiğinde upsell showAlert bildirimi eklendi.
+- **Test ve Canlıya Geçiş:**
+  - NestJS backend ve her iki Next.js web arayüzünün build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak GCP Cloud Run üzerinde canlıya alındı. Simülatör testi için Adana konumunda 8 adet deneme esnaf hesabı (`+905550000001` - `+905550000008`) seed edildi.
+
 
 
 

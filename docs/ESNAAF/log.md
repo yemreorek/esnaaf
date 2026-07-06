@@ -10,6 +10,13 @@ Kronolojik sırayla wiki üzerinde yapılan tüm değişikliklerin kaydı.
 
 ---
 
+## 2026-07-05 build | Adım 31 tamamlandı - Yeni Abonelik & Teklif Önceliklendirme
+
+- **Yeni Abonelik Paketleri ve Komisyon Oranları**: Platformdaki tüm gecikme süreleri ve 4. slot kilit kuralı kaldırılarak tüm esnafların ilanları anında görmesi sağlandı. Yeni paket yetkileri: Ücretsiz (%20 komisyon, 1 aktif iş limiti), Basic (5.000 ₺, %10 komisyon, 3 aktif iş limiti), Standard (10.000 ₺, %7 komisyon, 5 aktif iş limiti), VIP (20.000 ₺, %5 komisyon, 7 aktif iş limiti) olarak yeniden inşa edildi.
+- **Müşteri Paneli Teklif Sıralama Algoritması**: Teklifler listelenirken ücretli paket sahiplerinin teklifleri en üstte, ücretsiz üyelerin teklifleri en altta olacak şekilde sıralama güncellendi. Ücretli teklif kartlarına "VIP / Onaylı Üye ✔️" rozeti entegre edildi.
+- **Ücretsiz Üye Limit Kilidi (State A/B)**: Ücretsiz üyeler 1 aktif iş kazandığında yeni fırsat akışı kilitlenip (State A) uyarı ekranı gösterilir; iş tamamlandığında kilit açılarak (State B) canlı akış bilgilendirme bandı gösterilir. Teklif gönderildiğinde upsell uyarısı eklendi.
+- **Test ve Canlıya Dağıtım**: Backend, müşteri ve esnaf Next.js arayüzlerinin build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak GCP Cloud Run üzerinde canlıya alındı. Simülatör testi için Adana konumunda 8 adet deneme esnaf hesabı seeded yapıldı.
+
 ## 2026-06-23 build | Adım 25 tamamlandı - AI Öğretisi & Akıllı Sohbet (Yapay Zeka Öğretisi)
 
 - **Genel Soru Algılama & Failsafe Bypass**: Canlı sohbet robotunda kullanıcıların platform ücretleri, komisyon oranları, platformun çalışma şekli ve güvenlik kontrolleri gibi sorular sorduğunda doğrudan konum ve telefon sorma adımlarına zorlanmasını engellemek için `isGeneralOrInformationalQuery` metodu eklendi. İlk mesajda boyacı gibi kategori kelimeleri geçtiğinde doğrudan talep formuna yönlendiren "Hybrid Deterministic Category Failsafe" mekanizması, eğer mesaj genel bilgi/sorgulama içeriyorsa bypass edilecek şekilde güncellendi.
