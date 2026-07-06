@@ -3509,30 +3509,116 @@ export default function ProviderDashboard() {
             }
             return (
               <>
-                {quota && quota.packageName.includes('Ücretsiz') && quota.used === 0 && (
-                  <div className="bg-[#c8f252]/10 border border-[#c8f252]/40 rounded-2xl p-4 text-left space-y-2.5 animate-scale-up mb-6">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#4c630a] text-sm">⚡</span>
-                      <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
-                        CANLI İLAN AKIŞI AKTİF!
-                      </h4>
-                    </div>
-                    <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                      İşinizi başarıyla tamamladınız. Yeni ilanları şu an anlık (0 dakika gecikmeyle) görüyorsunuz! Hızlıca teklif verip yeni bir iş kapabilirsiniz.
-                    </p>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-[#c8f252]/20">
-                      <span className="text-[10px] text-slate-500 font-medium">
-                        ℹ️ Unutmayın: Ücretsiz pakette kazanabileceğiniz maksimum anlık aktif iş limiti 1 adettir ve bu işten %20 komisyon kesilir.
-                      </span>
-                      <button 
-                        onClick={() => handleTabClick('abonelik')}
-                        className="text-xs font-black text-slate-900 underline hover:text-slate-750 transition-colors shrink-0 whitespace-nowrap"
-                      >
-                        Paketleri Karşılaştır →
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {quota && (() => {
+                  const isFree = quota.packageName.includes('Ücretsiz') || quota.limit === 1;
+                  const isBasic = quota.packageName.includes('Basic');
+                  const isStandard = quota.packageName.includes('Standart') || quota.packageName.includes('Standard');
+                  const isVip = quota.packageName.includes('VIP');
+
+                  if (isFree && quota.used === 0) {
+                    return (
+                      <div className="bg-[#c8f252]/10 border border-[#c8f252]/40 rounded-3xl p-5 text-left space-y-3.5 animate-scale-up mb-6 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#4c630a] text-sm">⚡</span>
+                          <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
+                            CANLI İLAN AKIŞI AKTİF!
+                          </h4>
+                        </div>
+                        <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                          Tebrikler! Yeni ilanları şu an anlık (0 dakika gecikmeyle) görüyorsunuz. Hızlıca teklif verip yeni bir iş kapabilirsiniz.
+                        </p>
+                        <div className="bg-red-50 border border-red-200/80 p-4 rounded-2xl text-red-950 font-extrabold text-[11px] leading-relaxed shadow-[0_2px_8px_rgba(239,68,68,0.02)]">
+                          🚨 <strong>DİKKAT EDİLMESİ GEREKENLER (ÜCRETSİZ LİMİTİ):</strong>
+                          <br />
+                          Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi 1 adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %20 komisyon tahsil edilir. İlanların hiç kapanmaması için paketinizi yükseltebilirsiniz.
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button 
+                            onClick={() => handleTabClick('abonelik')}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs py-2 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                          >
+                            Paketleri Karşılaştır & Aboneliğe Geç →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (isBasic && quota.limit !== null && quota.used < quota.limit) {
+                    return (
+                      <div className="bg-blue-50/50 border border-blue-100 rounded-3xl p-5 text-left space-y-3.5 animate-scale-up mb-6 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-blue-700 text-sm">💎</span>
+                          <h4 className="text-blue-700 font-extrabold text-xs uppercase tracking-wider">
+                            BASİC ÜYELİK AKTİF (KAPASİTE: {quota.used}/{quota.limit})
+                          </h4>
+                        </div>
+                        <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                          Basic paket ile aynı anda en fazla 3 aktif iş yürütebilir ve %10 komisyon oranıyla çalışırsınız.
+                        </p>
+                        <div className="bg-white/80 border border-blue-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
+                          🚀 <strong>DAHA FAZLA İLAN VE DÜŞÜK KOMİSYON AVANTAJI:</strong>
+                          <br />
+                          Standart pakete geçerek kapasitenizi 5 aktif işe çıkarıp komisyonunuzu %7'ye düşürebilirsiniz. Veya VIP pakete geçerek 7 aktif iş kapasitesi, %5 en düşük komisyon oranı ve tekliflerinizin müşteriye daima en üst sırada gösterilmesini sağlayan <strong>VIP rozeti</strong> elde edebilirsiniz!
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button 
+                            onClick={() => handleTabClick('abonelik')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-2 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                          >
+                            Paketini Yükselt & VIP/Standart Ol →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (isStandard && quota.limit !== null && quota.used < quota.limit) {
+                    return (
+                      <div className="bg-indigo-50/50 border border-indigo-150 rounded-3xl p-5 text-left space-y-3.5 animate-scale-up mb-6 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-indigo-700 text-sm">👑</span>
+                          <h4 className="text-indigo-700 font-extrabold text-xs uppercase tracking-wider">
+                            STANDART ÜYELİK AKTİF (KAPASİTE: {quota.used}/{quota.limit})
+                          </h4>
+                        </div>
+                        <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                          Standart paket ile aynı anda en fazla 5 aktif iş yürütebilir ve %7 komisyon oranıyla çalışırsınız.
+                        </p>
+                        <div className="bg-white/80 border border-indigo-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
+                          🏆 <strong>EN YÜKSEK PREMİUM AVANTAJ (VIP ÜYELİK):</strong>
+                          <br />
+                          VIP pakete geçiş yaparak kapasitenizi maksimum sınır olan 7 aktif işe yükseltebilir, komisyon oranınızı en düşük oran olan %5'e düşürebilirer ve tekliflerinize eklenen VIP rozeti ile rakiplerinizin daima önünde listelenme avantajını elde edebilirsiniz!
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button 
+                            onClick={() => handleTabClick('abonelik')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs py-2 px-4 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
+                          >
+                            VIP Üyeliğe Geçiş Yap →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (isVip && quota.limit !== null && quota.used < quota.limit) {
+                    return (
+                      <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-3xl p-5 text-left space-y-2 animate-scale-up mb-6 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#4c630a] text-sm">✨</span>
+                          <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
+                            VIP ÜYELİK AKTİF (KAPASİTE: {quota.used}/{quota.limit})
+                          </h4>
+                        </div>
+                        <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                          Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Aynı anda 7 aktif iş kapasitesi, %5 en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               {/* Dashboard Title & Overview Banner */}
               <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
