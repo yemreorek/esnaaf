@@ -3521,7 +3521,7 @@ export default function ProviderDashboard() {
                         <div className="flex items-center gap-2">
                           <span className="text-[#4c630a] text-sm">⚡</span>
                           <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
-                            CANLI İLAN AKIŞI AKTİF!
+                            ÜCRETSİZ ÜYELİK AKTİF (KAPASİTE: {quota.used}/{quota.limit})
                           </h4>
                         </div>
                         <p className="text-slate-700 text-xs font-semibold leading-relaxed">
