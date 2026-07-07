@@ -443,7 +443,7 @@ export class TaleplerService {
       vip: 5,
     };
 
-    let commissionRate = 20; // Varsayılan/Fallback oranı %20 (Ücretsiz üye)
+    let commissionRate = 10; // Varsayılan/Fallback oranı %10 (Ücretsiz üye)
     let updateOpenDoorToFalse = false;
 
     if (offer.job.is_direct) {

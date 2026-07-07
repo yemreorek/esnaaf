@@ -3530,7 +3530,7 @@ export default function ProviderDashboard() {
                         <div className="bg-red-50 border border-red-200/80 p-4 rounded-2xl text-red-950 font-extrabold text-[11px] leading-relaxed shadow-[0_2px_8px_rgba(239,68,68,0.02)]">
                           🚨 <strong>DİKKAT EDİLMESİ GEREKENLER (ÜCRETSİZ LİMİTİ):</strong>
                           <br />
-                          Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi 1 adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %20 komisyon tahsil edilir. İlanların hiç kapanmaması için paketinizi yükseltebilirsiniz.
+                          Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi 1 adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %10 komisyon tahsil edilir. İlanların hiç kapanmaması için paketinizi yükseltebilirsiniz.
                         </div>
                         <div className="flex justify-end pt-1">
                           <button 

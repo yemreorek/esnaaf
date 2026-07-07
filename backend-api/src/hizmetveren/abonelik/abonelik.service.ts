@@ -28,10 +28,10 @@ export class AbonelikService {
         type: 'free', 
         price: 0, 
         quota: null, 
-        commissionRate: 20,
+        commissionRate: 10,
         activeJobsLimit: 1,
         name: 'Ücretsiz Paket (Freemium)', 
-        description: 'Aylık 0 ₺ | Komisyon: %20 | Aktif İş Limiti (Kapasite): 1 | Rozet: Yok' 
+        description: 'Aylık 0 ₺ | Komisyon: %10 | Aktif İş Limiti (Kapasite): 1 | Rozet: Yok' 
       },
       { 
         type: PackageType.basic, 
