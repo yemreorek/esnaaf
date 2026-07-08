@@ -19,6 +19,7 @@ import { TamamlamaMusteriModule } from './musteri/tamamlama/tamamlama-musteri.mo
 import { AbonelikModule } from './hizmetveren/abonelik/abonelik.module';
 import { BildirimModule } from './ortak/bildirimler/bildirim.module';
 import { StorageModule } from './common/storage/storage.module';
+import { OpenAIModule } from './common/openai/openai.module';
 import { ReviewModule } from './ortak/reviews/review.module';
 import { ReferralModule } from './ortak/referral/referral.module';
 import { FavoriteModule } from './ortak/favorites/favorite.module';
@@ -63,6 +64,9 @@ import { AppService } from './app.service';
 
     // Storage Module
     StorageModule,
+
+    // OpenAI Fallback Module
+    OpenAIModule,
 
     // Review Module
     ReviewModule,

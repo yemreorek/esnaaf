@@ -7,6 +7,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { ChatGateway } from './chat.gateway';
 import { normalizePhone, encryptPhone, maskPhone } from '../../common/utils/phone.util';
 import { GeminiService } from '../../common/gemini/gemini.service';
+import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
 
@@ -70,6 +71,7 @@ export class ChatService {
     @InjectQueue('chat-retry') private chatRetryQueue: Bull.Queue,
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private geminiService: GeminiService,
+    private openaiService: OpenAIService,
   ) {}
 
   /**
@@ -890,11 +892,28 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         const finalSystemInstruction = `${systemInstruction}\n\n${sectorPrompt}`;
 
         const start = Date.now();
-        const geminiRes = await this.geminiService.generateResponse(
-          state.messages,
-          finalSystemInstruction,
-          { modelName: state.ab_model, temperature: state.ab_temp }
-        );
+        let aiRes: any = null;
+        try {
+          aiRes = await this.geminiService.generateResponse(
+            state.messages,
+            finalSystemInstruction,
+            { modelName: state.ab_model, temperature: state.ab_temp }
+          );
+        } catch (geminiErr: any) {
+          console.warn(`[ChatService] Gemini failed: ${geminiErr.message}. Falling back to OpenAI (GPT-4o-mini)...`);
+          if (this.openaiService.isAvailable()) {
+            aiRes = await this.openaiService.generateResponse(
+              state.messages,
+              finalSystemInstruction,
+              { temperature: state.ab_temp }
+            );
+          } else {
+            throw geminiErr; // Bubble up to deterministic fallback
+          }
+        }
+        
+        const geminiRes = aiRes;
+        
         const latency = Date.now() - start;
         await this.redis.incrby(`ab_test:latency:total:${state.ab_variant || 'control'}`, latency);
         await this.redis.incr(`ab_test:latency:count:${state.ab_variant || 'control'}`);
@@ -1294,13 +1313,12 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         collected_data: state.collected_data,
         ...(createdJobId && { jobId: createdJobId }),
       };
-
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       
-      console.error('[ChatService] Gemini AI error — switching to deterministic fallback:', error instanceof Error ? error.message : error);
+      console.error('[ChatService] AI error — switching to deterministic fallback:', error instanceof Error ? error.message : error);
       
       // ─── DETERMINISTIC GRACEFUL FALLBACK ─────────────────────────────
       // Gemini başarısız olduğunda kullanıcıya ASLA hata gösterme.
