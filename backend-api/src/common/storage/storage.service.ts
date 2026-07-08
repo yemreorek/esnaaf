@@ -6,34 +6,23 @@ import * as os from 'os';
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
-  private s3Client: any;
-  private isS3Configured = false;
+  private storageClient: any;
+  private isGcsConfigured = false;
+  private bucketName: string | undefined;
 
   constructor() {
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const bucket = process.env.AWS_S3_BUCKET;
-
-    if (accessKeyId && secretAccessKey && bucket) {
-      try {
-        const { S3Client } = require('@aws-sdk/client-s3');
-        this.s3Client = new S3Client({
-          region: process.env.AWS_REGION || 'eu-central-1',
-          credentials: {
-            accessKeyId,
-            secretAccessKey,
-          },
-        });
-        this.isS3Configured = true;
-        this.logger.log('S3 Storage client initialized successfully.');
-      } catch (err) {
-        this.logger.warn(
-          'AWS SDK is not installed. Falling back to local Mock Storage.',
-        );
-      }
-    } else {
-      this.logger.log(
-        'AWS S3 credentials not fully configured. Using local Mock Storage.',
+    this.bucketName = process.env.GCS_BUCKET_NAME || 'esnaaf-uploads';
+    
+    try {
+      // Lazy load to prevent crash if not installed
+      const { Storage } = require('@google-cloud/storage');
+      // In GCP Cloud Run, default credentials are automatically used.
+      this.storageClient = new Storage();
+      this.isGcsConfigured = true;
+      this.logger.log('Google Cloud Storage client initialized successfully.');
+    } catch (err) {
+      this.logger.warn(
+        'GCS SDK is not installed or failed to init. Falling back to local Mock Storage.',
       );
     }
   }
@@ -44,28 +33,27 @@ export class StorageService {
   ): Promise<{ uploadUrl: string; downloadUrl: string; isMock: boolean }> {
     const uniqueFilename = `${Date.now()}-${filename}`;
 
-    if (this.isS3Configured) {
+    if (this.isGcsConfigured && this.bucketName) {
       try {
-        const { PutObjectCommand } = require('@aws-sdk/client-s3');
-        const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+        const bucket = this.storageClient.bucket(this.bucketName);
+        const file = bucket.file(uniqueFilename);
+        
+        // Expiration in milliseconds
+        const expires = Date.now() + (Number(process.env.GCS_PRESIGNED_URL_EXPIRES) || 900) * 1000;
 
-        const bucket = process.env.AWS_S3_BUCKET;
-        const region = process.env.AWS_REGION || 'eu-central-1';
-        const command = new PutObjectCommand({
-          Bucket: bucket,
-          Key: uniqueFilename,
-          ContentType: contentType,
-        });
+        const options = {
+          version: 'v4' as const,
+          action: 'write' as const,
+          expires: expires,
+          contentType: contentType,
+        };
 
-        const expires = Number(process.env.S3_PRESIGNED_URL_EXPIRES) || 900;
-        const uploadUrl = await getSignedUrl(this.s3Client, command, {
-          expiresIn: expires,
-        });
-        const downloadUrl = `https://${bucket}.s3.${region}.amazonaws.com/${uniqueFilename}`;
+        const [uploadUrl] = await file.getSignedUrl(options);
+        const downloadUrl = `https://storage.googleapis.com/${this.bucketName}/${uniqueFilename}`;
 
         return { uploadUrl, downloadUrl, isMock: false };
       } catch (err) {
-        this.logger.error('Failed to generate S3 presigned URL, falling back to mock:', err);
+        this.logger.error('Failed to generate GCS presigned URL, falling back to mock:', err);
       }
     }
 

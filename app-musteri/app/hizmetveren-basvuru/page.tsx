@@ -10,7 +10,7 @@ const CITIES = {
   "İzmir": ["Karşıyaka", "Konak", "Bornova", "Buca", "Çiğli", "Karabağlar", "Gaziemir", "Balçova"]
 };
 
-const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<string> => {
+const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -41,18 +41,46 @@ const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
           
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-          resolve(compressedBase64);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else resolve(file);
+          }, 'image/jpeg', quality);
         } catch (e) {
-          resolve(dataUrl);
+          resolve(file);
         }
       };
       img.onerror = () => {
-        resolve(dataUrl);
+        resolve(file);
       };
     };
     reader.onerror = (err) => reject(err);
   });
+};
+
+const uploadToGCS = async (file: File | Blob, originalName: string): Promise<string> => {
+  try {
+    const res = await fetch("/api/ortak/upload/presigned-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filename: originalName,
+        contentType: file.type || "image/jpeg"
+      })
+    });
+    const data = await res.json();
+    if (!data.uploadUrl) throw new Error("Upload URL bulunamadı");
+    
+    await fetch(data.uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type || "image/jpeg" }
+    });
+    
+    return data.downloadUrl;
+  } catch (error) {
+    console.error("GCS Upload Error:", error);
+    throw error;
+  }
 };
 
 export default function HizmetVerenBasvuru() {
@@ -204,8 +232,9 @@ export default function HizmetVerenBasvuru() {
     setErrorMessage("");
 
     try {
-      const base64 = await compressImage(file, 800, 800, 0.7);
-      setFormData((prev) => ({ ...prev, profilePhoto: base64 }));
+      const blob = await compressImage(file, 800, 800, 0.7);
+      const url = await uploadToGCS(blob, file.name);
+      setFormData((prev) => ({ ...prev, profilePhoto: url }));
     } catch (err) {
       console.error(err);
       setErrorMessage("Profil fotoğrafı işlenirken bir hata oluştu.");
@@ -230,8 +259,9 @@ export default function HizmetVerenBasvuru() {
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const base64 = await compressImage(file, 800, 800, 0.7);
-        urls.push(base64);
+        const blob = await compressImage(file, 800, 800, 0.7);
+        const url = await uploadToGCS(blob, file.name);
+        urls.push(url);
       }
 
       setFormData((prev) => ({
