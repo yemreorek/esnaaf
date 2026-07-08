@@ -40,6 +40,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 29** | **Ses Entegrasyonu (Speech-to-Text)** | Canlı chat ve landing sayfasında Web Speech API entegrasyonu, bouncing animasyonlu dalga efekti, klavyeyle elle düzeltme yapıldığı an dikteyi otomatik durdurma ve tampon bellek yarış durumu çözümleri | **✅ Tamamlandı** |
 | **Adım 30** | **Dinamik Yönlendirme & Kesiciler** | Tek Ajan + Dinamik Prompt Değişimi (`sector-prompts.config.ts`), PII regex isim/telefon kesicileri ve Türkçe-locale duyarlı isim temizleme (`cleanName`) algoritması. Müşteri paneli süresi dolan işlerde `Teklifleri Gör (X)`, `Tekrar Yayınla` ve `İptal Et` butonları akışı | **✅ Tamamlandı** |
 | **Adım 31** | **Yeni Abonelik & Sıralama** | Gecikme süreleri kaldırılmış yeni 1 Ücretsiz + 3 Ücretli (Basic, Standard, VIP) paket mimarisi, teklif önceliklendirme sıralama algoritması, ücretsiz esnaf aktif iş limit kilidi (State A/B) ve upsell uyarıları | **✅ Tamamlandı** |
+| **Adım 32** | **Pasif Panel & Onay Otomasyonu** | Hizmet veren kayıt sonrası kısıtlı oturum (pasif panel modu), `active` hesap durum kısıtlayıcı koruyucu (`ActiveAccountGuard`), karşılama modalı, sabit top uyarı şeridi, aksiyon kesiciler ve 4'lü admin onay bildirim otomasyonu zinciri (FCM, SMS, Email) | **✅ Tamamlandı** |
 
 ---
 
@@ -828,6 +829,29 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Teklif gönderildiğinde upsell showAlert bildirimi eklendi.
 - **Test ve Canlıya Geçiş:**
   - NestJS backend ve her iki Next.js web arayüzünün build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak GCP Cloud Run üzerinde canlıya alındı. Simülatör testi için Adana konumunda 8 adet deneme esnaf hesabı (`+905550000001` - `+905550000008`) seed edildi.
+
+---
+
+## 🛠️ Adım 32 Geliştirme Detayları (Pasif Panel & Onay Otomasyonu)
+
+- **Backend Yetki & DB Değişiklikleri:**
+  * `schema.prisma` veritabanı şemasına `AccountStatus` enumu (`pending_approval`, `active`, `suspended`) ve esnaflar için `account_status` kolonu (varsayılan: `pending_approval`) eklendi.
+  * Ustanın aktif/onaylı olmadığını denetleyen ve 403 hata kodu dönen `ActiveAccountGuard` yazıldı; `getGelenIsler`, `createOffer` ve `createMessage` API uçlarına uygulandı.
+  * `JwtStrategy` ve `getProfile` geliştirilerek `accountStatus` claim ve veri akışına entegre edildi.
+- **Admin Onay Otomasyon Zinciri:**
+  * Admin panelinde esnaf onaylandığında durumunun `active` yapılması sağlandı.
+  * Durum değiştiği an tetiklenen 4'lü transactional bildirim zinciri oluşturuldu: FCM push bildirimi (`HV-14`), onay SMS'i (`HV-14-SMS`) ve detaylı onay e-postası (`HV-14-EMAIL`).
+- **Kayıt Sonrası Yönlendirme & Giriş Alert'ı:**
+  * Seeker uygulaması başvuru ekranında kayıt tamamlandığında esnafın ana sayfaya fırlatılması akışı iptal edildi; doğrudan esnaf paneli kök dizinindeki `/?registered=true` adresine yönlendirilmesi sağlandı.
+  * Giriş sayfasında `registered` parametresi algılandığında beliren turuncu bilgi paneli eklendi.
+- **Kısıtlı Usta Paneli (Pasif Mod):**
+  * **Welcoming Modal:** Esnaf pasif hesabı ile ilk defa giriş yaptığında beliren ve platformu tanıtan, kapatılabilir kurumsal Karşılama Modalı eklendi (`is_first_passive_login` ile sadece 1 kez gösterilir).
+  * **Sticky Warning Banner:** Panelin en üstünde yer alan ve kullanıcı gezindikçe kaybolmayan sabit turuncu şerit eklendi.
+  * **İşlevsel Kesiciler (Aksiyon Blokajı):** Pasif esnaf teklif vermeye veya doğrudan iş oluşturmaya çalıştığında ön yüzde işlem durdurulup uyarı alert'i gösterilmesi sağlandı.
+- **Canlı Veritabanı Eşitleme (Migration):**
+  * GCP Cloud SQL veritabanı dış ağ yetkilendirmesi güncellenerek `prisma db push` ile canlı veritabanı şeması sorunsuz eşitlendi.
+  * Tüm uygulamalar hata vermeden derlendi ve test edildi.
+
 
 
 

@@ -1,7 +1,31 @@
 # Esnaaf Geliştirme Günlüğü (log.md)
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
- 
+ ## 2026-07-08 feat | Hizmet Veren Kayıt Pasif Modu & Admin Onay Otomasyonu & Görsel Yükleme Base64 Sıkıştırması
+
+- **Fotoğraf Yükleme EROFS & Kırık Görsel Çözümü:**
+  - Cloud Run'ın durumsuz ve geçici `/tmp` dosya sistemi kısıtlamalarını çözmek için yerel disk yüklemesi kaldırıldı.
+  * Müşteri uygulamasında (`app-musteri`) seçilen profil ve çalışma resimlerini HTML5 Canvas kullanarak 800x800 çözünürlüğe ve %70 JPEG kalitesine sıkıştıran `compressImage` aracı geliştirildi. Resimler doğrudan base64 formatında (`data:image/jpeg;base64,...`) veritabanına kaydedildi.
+  * NestJS backend-api `main.ts` içinde JSON ve urlencoded istek boyutu limiti **10MB** seviyesine çıkartılarak büyük base64 isteklerinin alınması sağlandı.
+- **Veritabanı Hesap Durum Yönetimi:**
+  - `schema.prisma` veritabanı şemasına `AccountStatus` enumu (`pending_approval`, `active`, `suspended`) ve esnaflar için `account_status` kolonu eklendi.
+  * `prisma db push` komutu ile canlı GCP Cloud SQL veritabanı şeması sorunsuz eşitlendi.
+- **Kısıtlı Auth Middleware (Guard):**
+  - Pasif durumdaki (`pending_approval`) esnafların canlı ilanları çekmesini, teklif vermesini ve mesaj atmasını engelleyen `ActiveAccountGuard` yazıldı ve ilgili controller uçlarına uygulandı.
+  * `JwtStrategy` ve `getProfile` servisleri güncellenerek esnafın onay/pasif durum bilgisi JWT payload ve profil akışına eklendi.
+- **Admin Onay Otomasyon Zinciri:**
+  - Admin esnafı onayladığı an durumunun `active` yapılması sağlandı.
+  * FCM Push Bildirimi (`HV-14`), Onay SMS'i (`HV-14-SMS`) ve Onay E-postası (`HV-14-EMAIL`) otomatik tetiklenen zincir olarak kurgulandı.
+- **Kayıt Sonrası Yönlendirme ve Giriş Alert'ı:**
+  - Esnaf kaydı bittiğinde ana sayfaya fırlatılma akışı iptal edildi; esnaf panelinin kök dizinine (`/?registered=true`) yönlendirildi.
+  * Giriş sayfasında `registered` parametresini algılayıp gösteren turuncu bilgi paneli eklendi.
+- **Hizmet Veren Paneli Pasif Mod Geliştirmeleri:**
+  - **Component A (Karşılama Modalı):** Pasif esnafın ilk girişinde açılan ve kısıtlamaları/paneli gezip öğrenebileceğini bildiren kurumsal Karşılama Modalı eklendi (`is_first_passive_login` flag ile sadece 1 kez açılır).
+  - **Component B (Sabit Durum Şeridi):** Panelde gezinirken kaybolmayan sabit turuncu uyarı şeridi eklendi.
+  - **Component C (İşlevsel Kısıtlamalar):** Pasif esnaf teklif vermeye veya doğrudan iş kartı oluşturmaya çalıştığında işlem ön yüzde kesilerek uyarı fırlatılması sağlandı.
+- **Derleme ve Canlıya Geçiş:**
+  - NestJS backend ve her iki Next.js web arayüzünün build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak GCP Cloud Run üzerinde canlıya alındı.
+
 ## 2026-07-03 feat | Canlı Sohbet Dinamik Yönlendirme & Güvenli İsim/Telefon Kesicileri & Müşteri Paneli Buton Revizyonu
  
 - **Tek Ajan + Dinamik Yönlendirme (Prompt-Switching) Mimarı:**
