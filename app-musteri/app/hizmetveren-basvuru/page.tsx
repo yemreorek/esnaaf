@@ -295,7 +295,7 @@ export default function HizmetVerenBasvuru() {
             providerBaseUrl = "http://localhost:3001";
           }
         }
-        window.location.href = `${providerBaseUrl}/login?registered=true`;
+        window.location.href = `${providerBaseUrl}/?registered=true`;
       }, 4000);
     } catch (err: any) {
       setErrorMessage(err.message || "Başvuru gönderilirken bir hata oluştu.");
