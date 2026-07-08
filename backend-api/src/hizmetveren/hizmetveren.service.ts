@@ -1698,46 +1698,25 @@ export function getRequestExpiryInfo(
 ) {
   const createdDate = new Date(createdAt);
   
-  // Format parts timezone-independently using Intl.DateTimeFormat
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Istanbul',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    hour12: false
-  });
+  // Turkey is permanently UTC+3 (no daylight saving time since 2016)
+  // By adding 3 hours to the UTC timestamp, we can use UTC methods to get the correct local year, month, day, and hour.
+  const localTime = new Date(createdDate.getTime() + 3 * 60 * 60 * 1000);
   
-  const parts = formatter.formatToParts(createdDate);
-  const partVal = (type: string) => parts.find(p => p.type === type)?.value || '';
-  
-  const hour = parseInt(partVal('hour'), 10);
+  const hour = localTime.getUTCHours();
   const isNight = hour >= 18 || hour < 10;
   
   let initialExpiresTime = 0;
   let initialLabel = '30 dakikalık';
 
   if (isNight) {
-    const targetDate = new Date(createdDate);
+    const targetDate = new Date(localTime.getTime());
     if (hour >= 18) {
-      targetDate.setDate(targetDate.getDate() + 1);
+      targetDate.setUTCDate(targetDate.getUTCDate() + 1);
     }
     
-    // Format target date parts to get YYYY-MM-DD
-    const targetFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Europe/Istanbul',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour12: false
-    });
-    
-    const tParts = targetFormatter.formatToParts(targetDate);
-    const tPartVal = (type: string) => tParts.find(p => p.type === type)?.value || '';
-    
-    const tYear = tPartVal('year');
-    const tMonth = tPartVal('month').padStart(2, '0');
-    const tDay = tPartVal('day').padStart(2, '0');
+    const tYear = targetDate.getUTCFullYear();
+    const tMonth = (targetDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const tDay = targetDate.getUTCDate().toString().padStart(2, '0');
     
     // Construct exact ISO timestamp for 10:00 AM Turkey local time (UTC+3)
     const istanbul10AMIso = `${tYear}-${tMonth}-${tDay}T10:00:00+03:00`;

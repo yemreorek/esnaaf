@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 
 @Injectable()
 export class StorageService {
@@ -78,7 +79,7 @@ export class StorageService {
 
   // Helper method for local mock storage to save the file
   saveMockFile(filename: string, fileBuffer: Buffer): string {
-    const uploadDir = path.join(__dirname, '..', '..', '..', 'uploads');
+    const uploadDir = path.join(os.tmpdir(), 'esnaaf-uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -93,7 +94,7 @@ export class StorageService {
 
   // Read local mock file
   getMockFileStream(filename: string): fs.ReadStream {
-    const uploadDir = path.join(__dirname, '..', '..', '..', 'uploads');
+    const uploadDir = path.join(os.tmpdir(), 'esnaaf-uploads');
     const filePath = path.join(uploadDir, filename);
     if (!fs.existsSync(filePath)) {
       throw new Error('File not found');
