@@ -10,6 +10,51 @@ const CITIES = {
   "İzmir": ["Karşıyaka", "Konak", "Bornova", "Buca", "Çiğli", "Karabağlar", "Gaziemir", "Balçova"]
 };
 
+const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedBase64);
+        } catch (e) {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => {
+        resolve(dataUrl);
+      };
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function HizmetVerenBasvuru() {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
@@ -159,19 +204,11 @@ export default function HizmetVerenBasvuru() {
     setErrorMessage("");
 
     try {
-      const filename = `${Date.now()}_profile_${file.name.replace(/\s+/g, "_")}`;
-      const response = await fetch(`/api/storage/mock-upload?file=${encodeURIComponent(filename)}`, {
-        method: "PUT",
-        body: file,
-      });
-
-      if (!response.ok) throw new Error("Dosya yüklenemedi.");
-      const data = await response.json();
-      
-      setFormData((prev) => ({ ...prev, profilePhoto: data.url }));
+      const base64 = await compressImage(file, 800, 800, 0.7);
+      setFormData((prev) => ({ ...prev, profilePhoto: base64 }));
     } catch (err) {
       console.error(err);
-      setErrorMessage("Profil fotoğrafı yüklenirken bir hata oluştu.");
+      setErrorMessage("Profil fotoğrafı işlenirken bir hata oluştu.");
     } finally {
       setUploadingProfile(false);
     }
@@ -193,15 +230,8 @@ export default function HizmetVerenBasvuru() {
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const filename = `${Date.now()}_ref_${i}_${file.name.replace(/\s+/g, "_")}`;
-        const response = await fetch(`/api/storage/mock-upload?file=${encodeURIComponent(filename)}`, {
-          method: "PUT",
-          body: file,
-        });
-
-        if (!response.ok) throw new Error("Bir dosya yüklenemedi.");
-        const data = await response.json();
-        urls.push(data.url);
+        const base64 = await compressImage(file, 800, 800, 0.7);
+        urls.push(base64);
       }
 
       setFormData((prev) => ({
@@ -210,7 +240,7 @@ export default function HizmetVerenBasvuru() {
       }));
     } catch (err) {
       console.error(err);
-      setErrorMessage("Bazı referans fotoğrafları yüklenirken hata oluştu.");
+      setErrorMessage("Bazı referans fotoğrafları işlenirken hata oluştu.");
     } finally {
       setUploadingReferences(false);
     }

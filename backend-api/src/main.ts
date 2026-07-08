@@ -3,12 +3,17 @@ try { require('./instrument'); } catch (e) { /* Sentry not installed, skipping *
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 // Sentry is loaded dynamically to avoid build errors when not installed
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Set payload size limits to allow base64 uploaded files in JSON body (e.g. provider photos)
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ limit: '10mb', extended: true }));
 
   // 1. Security Headers (helmet)
   app.use(helmet());
