@@ -712,7 +712,7 @@ export default function ProviderDashboard() {
   const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
 
   const handleExitImpersonation = () => {
-    localStorage.removeItem("provider_token");
+    localStorage.removeItem("provider_is_logged_in");
     localStorage.removeItem("provider_phone");
     localStorage.removeItem("provider_impersonated");
     window.close();
@@ -912,7 +912,7 @@ export default function ProviderDashboard() {
       const phoneParam = params.get('phone');
       const impersonateParam = params.get('impersonate');
       if (tokenParam) {
-        localStorage.setItem('provider_token', tokenParam);
+        localStorage.setItem('provider_is_logged_in', 'true');
         if (phoneParam) {
           localStorage.setItem('provider_phone', phoneParam);
         }
@@ -924,7 +924,7 @@ export default function ProviderDashboard() {
       }
     }
 
-    const savedToken = localStorage.getItem('provider_token');
+    const savedToken = localStorage.getItem('provider_is_logged_in') ? 'active' : null;
     const savedPhone = localStorage.getItem('provider_phone');
     const savedImpersonated = localStorage.getItem('provider_impersonated') === 'true';
     setIsImpersonated(savedImpersonated);
@@ -1025,7 +1025,7 @@ export default function ProviderDashboard() {
       
       const accessToken = verifyData.accessToken;
       setToken(accessToken);
-      localStorage.setItem('provider_token', accessToken);
+      localStorage.setItem('provider_is_logged_in', 'true');
       localStorage.setItem('provider_phone', phoneNumber);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
       
@@ -1067,7 +1067,7 @@ export default function ProviderDashboard() {
       
       const accessToken = loginData.accessToken;
       setToken(accessToken);
-      localStorage.setItem('provider_token', accessToken);
+      localStorage.setItem('provider_is_logged_in', 'true');
       localStorage.setItem('provider_phone', phoneNumber);
       addLog(`Şifreli giriş başarılı! Jetonlar alındı.`);
       
@@ -1122,7 +1122,7 @@ export default function ProviderDashboard() {
       
       const accessToken = verifyData.accessToken;
       setToken(accessToken);
-      localStorage.setItem('provider_token', accessToken);
+      localStorage.setItem('provider_is_logged_in', 'true');
       localStorage.setItem('provider_phone', phone);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
       

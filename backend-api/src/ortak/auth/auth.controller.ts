@@ -1,5 +1,6 @@
-import { Controller, Post, Get, Body, Headers, UseGuards, Req, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, UseGuards, Req, Res, HttpStatus, HttpCode } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -13,6 +14,23 @@ import { Public } from '../../common/decorators';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  private setCookies(res: Response, tokens: { accessToken: string, refreshToken: string }) {
+    const isSecure = process.env.NODE_ENV !== 'development';
+    res.cookie('esnaaf_token', tokens.accessToken, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
+    res.cookie('esnaaf_refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'lax',
+      path: '/api/ortak/auth/refresh-token',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
+
   @Public()
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('otp/send')
@@ -24,15 +42,25 @@ export class AuthController {
   @Public()
   @Post('otp/verify')
   @HttpCode(HttpStatus.OK)
-  async verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+  async verifyOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.verifyOtp(dto);
+    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accessToken, refreshToken, ...rest } = result;
+    return rest;
   }
 
   @Public()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
-  async refreshTokens(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshTokens(dto);
+  async refreshTokens(@Req() req: any, @Res({ passthrough: true }) res: Response, @Body() dto: RefreshTokenDto) {
+    // Read from cookie first, fallback to body
+    const token = req.cookies?.esnaaf_refresh_token || dto.refreshToken;
+    const result = await this.authService.refreshTokens({ refreshToken: token });
+    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accessToken, refreshToken, ...rest } = result;
+    return rest;
   }
 
   @Public()
@@ -45,8 +73,29 @@ export class AuthController {
   @Public()
   @Post('provider-login')
   @HttpCode(HttpStatus.OK)
-  async providerLogin(@Body() dto: ProviderLoginDto) {
-    return this.authService.providerLogin(dto);
+  async providerLogin(@Body() dto: ProviderLoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.providerLogin(dto);
+    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accessToken, refreshToken, ...rest } = result;
+    return rest;
+  }
+
+  @Public()
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    const isSecure = process.env.NODE_ENV !== 'development';
+    res.clearCookie('esnaaf_token', { httpOnly: true, secure: isSecure, sameSite: 'lax' });
+    res.clearCookie('esnaaf_refresh_token', { httpOnly: true, secure: isSecure, sameSite: 'lax', path: '/api/ortak/auth/refresh-token' });
+    return { success: true, message: 'Logged out successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async getMe(@Req() req: any) {
+    return { user: req.user };
   }
 
   @Public()
@@ -70,4 +119,3 @@ export class AuthController {
     return this.authService.startAnonymousSession(sessionUuid);
   }
 }
-

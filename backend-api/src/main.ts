@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { json, urlencoded } from 'express';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 // Sentry is loaded dynamically to avoid build errors when not installed
@@ -23,6 +24,9 @@ async function bootstrap() {
     origin: (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:3001').split(',').map(s => s.trim()),
     credentials: true,
   });
+
+  // 2.5 Cookie Parser
+  app.use(cookieParser());
 
   // 3. Global Prefix (/api)
   app.setGlobalPrefix('api');

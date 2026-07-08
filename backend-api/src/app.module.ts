@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from 'throttler-storage-redis';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bull';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -32,13 +34,18 @@ import { AppService } from './app.service';
       isGlobal: true,
     }),
 
-    // Global Rate Limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: Number(process.env.THROTTLE_TTL) || 60000,
-        limit: Number(process.env.THROTTLE_LIMIT) || 100,
-      },
-    ]),
+    // Global Rate Limiting with Redis Storage
+    ThrottlerModule.forRootAsync({
+      useFactory: () => ({
+        throttlers: [
+          {
+            ttl: Number(process.env.THROTTLE_TTL) || 60000,
+            limit: Number(process.env.THROTTLE_LIMIT) || 100,
+          },
+        ],
+        storage: new ThrottlerStorageRedisService(process.env.REDIS_URL || 'redis://localhost:6379'),
+      }),
+    }),
 
     // Cron jobs
     ScheduleModule.forRoot(),
@@ -105,6 +112,12 @@ import { AppService } from './app.service';
     SeoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

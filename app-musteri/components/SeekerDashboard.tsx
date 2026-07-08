@@ -427,7 +427,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   }, []);
 
   const handleExitImpersonation = () => {
-    localStorage.removeItem("esnaaf_token");
+    localStorage.removeItem("esnaaf_is_logged_in");
     localStorage.removeItem("esnaaf_refresh_token");
     localStorage.removeItem("esnaaf_user");
     localStorage.removeItem("esnaaf_impersonated");

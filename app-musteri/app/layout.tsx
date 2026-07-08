@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import GlobalAlert from "../components/GlobalAlert";
+import FetchInterceptor from "./FetchInterceptor";
 
 export const metadata: Metadata = {
   title: "Esnaaf — Güvenilir Esnaf ve Hizmet Verenler",
@@ -32,10 +33,10 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" />
       </head>
       <body className="min-h-full flex flex-col" style={{ minHeight: '100dvh' }}>
+        <FetchInterceptor />
         {children}
         <GlobalAlert />
       </body>
     </html>
   );
 }
-

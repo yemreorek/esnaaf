@@ -36,14 +36,14 @@ export function getSessionId(): string {
 
 export function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
-  const token = localStorage.getItem('esnaaf_token');
-  return !!token && token !== 'undefined' && token !== 'null';
+  const user = localStorage.getItem('esnaaf_user');
+  return !!user && user !== 'undefined' && user !== 'null';
 }
 
 export function logout(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('esnaaf_token');
-  localStorage.removeItem('esnaaf_refresh_token');
+  // Trigger backend logout to clear cookies
+  fetch('/api/ortak/auth/logout', { method: 'POST', credentials: 'use-credentials' }).catch(console.error);
   localStorage.removeItem('esnaaf_user');
 }
 
@@ -66,13 +66,7 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
     headers.set('X-Session-ID', sessionId);
   }
 
-  // Inject Bearer token if logged in
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('esnaaf_token');
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
-  }
+  // We no longer set Authorization Bearer manually since we use HttpOnly cookies.
   
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
@@ -81,5 +75,6 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'use-credentials', // IMPORTANT: Send cookies
   });
 }

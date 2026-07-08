@@ -363,7 +363,7 @@ export default function Home() {
       }
 
       // Standard customer / admin role login
-      localStorage.setItem("esnaaf_token", data.accessToken);
+      localStorage.setItem("esnaaf_is_logged_in", 'true');
       localStorage.setItem("esnaaf_refresh_token", data.refreshToken);
       localStorage.setItem("esnaaf_user", JSON.stringify(data.user));
 
@@ -469,7 +469,7 @@ export default function Home() {
       const impersonateParam = params.get('impersonate');
 
       if (tokenParam) {
-        localStorage.setItem('esnaaf_token', tokenParam);
+        localStorage.setItem('esnaaf_is_logged_in', 'true');
         if (refreshParam) {
           localStorage.setItem('esnaaf_refresh_token', refreshParam);
         }
