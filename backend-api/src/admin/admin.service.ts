@@ -25,6 +25,7 @@ import {
   CallTaskResult as DbCallTaskResult 
 } from '@prisma/client';
 import { PERMISSION_MATRIX } from './permissions';
+import { BildirimService } from '../ortak/bildirimler/bildirim.service';
 
 @Injectable()
 export class AdminService {
@@ -32,6 +33,7 @@ export class AdminService {
     private prisma: PrismaService,
     private redis: RedisService,
     private jwtService: JwtService,
+    private bildirimService: BildirimService,
   ) {}
 
   /**
@@ -407,10 +409,20 @@ export class AdminService {
       data: {
         is_approved: true,
         approved_at: new Date(),
+        account_status: 'active',
       },
     });
 
     await this.redis.del(`provider:profile:v2:${provider.user_id}`);
+
+    // Real-time Event-Driven Notification chain (KURAL B, C, D)
+    try {
+      await this.bildirimService.sendNotification(provider.user_id, 'HV-14');
+      await this.bildirimService.sendNotification(provider.user_id, 'HV-14-SMS');
+      await this.bildirimService.sendNotification(provider.user_id, 'HV-14-EMAIL');
+    } catch (err) {
+      console.error('Error sending provider approval notifications:', err);
+    }
 
     console.log(`[HV-14 Notification] Provider approved: ${provider.user.name || 'N/A'} (Phone: ${decryptPhone(provider.user.phone)})`);
 

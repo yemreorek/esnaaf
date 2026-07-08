@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { ActiveAccountGuard } from '../common/guards/active-account.guard';
 import { Roles, CurrentUser } from '../common/decorators';
 import { HizmetverenService } from './hizmetveren.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
@@ -18,6 +19,7 @@ export class HizmetverenController {
    * GET /api/hizmetveren/gelen-isler
    */
   @Get('gelen-isler')
+  @UseGuards(ActiveAccountGuard)
   @HttpCode(HttpStatus.OK)
   async getGelenIsler(@CurrentUser() user: any) {
     return this.hizmetverenService.getGelenIsler(user.id);
@@ -38,6 +40,7 @@ export class HizmetverenController {
    * POST /api/hizmetveren/teklifler
    */
   @Post('teklifler')
+  @UseGuards(ActiveAccountGuard)
   @HttpCode(HttpStatus.CREATED)
   async createOffer(@CurrentUser() user: any, @Body() dto: CreateOfferDto) {
     return this.hizmetverenService.createOffer(user.id, dto);

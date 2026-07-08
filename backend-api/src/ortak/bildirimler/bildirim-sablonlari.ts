@@ -172,9 +172,19 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
     channels: [NotifChannel.in_app, NotifChannel.email],
   },
   'HV-14': {
-    title: 'Profiliniz Onaylandı!',
-    body: 'Tebrikler! Belgeleriniz onaylandı ve profiliniz yayına alındı.',
-    channels: [NotifChannel.in_app, NotifChannel.push, NotifChannel.email],
+    title: 'Hesabınız Onaylandı! 🎉',
+    body: 'esnaaf.com ailesine hoş geldiniz! Profiliniz başarıyla onaylandı. Hemen canlı ilanları inceleyebilir ve ilk teklifinizi vererek kazanmaya başlayabilirsiniz.',
+    channels: [NotifChannel.in_app, NotifChannel.push],
+  },
+  'HV-14-SMS': {
+    title: 'SMS',
+    body: 'Tebrikler! esnaaf.com başvurunuz onaylandı ve hesabınız aktif edildi. Hemen panele giriş yaparak canlı iş ilanlarına anında teklif vermeye başlayabilirsiniz: esnaaf.com/login',
+    channels: [NotifChannel.sms],
+  },
+  'HV-14-EMAIL': {
+    title: 'esnaaf.com Profiliniz Onaylandı! İş Havuzu Sizi Bekliyor 🚀',
+    body: 'Merhaba, esnaaf.com\'a yaptığınız başvuru ve yasal belgeleriniz başarıyla onaylanmıştır. Hesabınız şu andan itibaren tamamen aktif ve kısıtlamasızdır. Müşterilerimizin açtığı canlı ilanlara teklif vermek, profilinizi zenginleştirmek ve hemen kazanmaya başlamak için aşağıdaki bağlantıdan panelinize ulaşabilirsiniz.',
+    channels: [NotifChannel.email],
   },
   'HV-15': {
     title: 'Profil Onay Talebiniz Reddedildi',

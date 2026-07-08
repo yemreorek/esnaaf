@@ -71,6 +71,12 @@ enum StaffRole {
   rnd_staff
 }
 
+enum AccountStatus {
+  pending_approval
+  active
+  suspended
+}
+
 // ── MODELLER (Faz 1 - Aktif) ──────────────────────────────────────────────────
 
 model User {
@@ -116,6 +122,7 @@ model ServiceProvider {
   response_time_avg Int?
   is_approved       Boolean                @default(false)
   approved_at       DateTime?
+  account_status    AccountStatus          @default(pending_approval)
   open_door_right   Boolean                @default(false)
   subscription_id   String?                @db.Uuid
   city              String                 @default("Adana")

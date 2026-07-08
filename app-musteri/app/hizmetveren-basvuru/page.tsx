@@ -288,7 +288,14 @@ export default function HizmetVerenBasvuru() {
 
       setSuccessMessage(data.message || "Başvurunuz başarıyla alındı! Yönlendiriliyorsunuz...");
       setTimeout(() => {
-        window.location.href = "/";
+        let providerBaseUrl = "https://partner.esnaaf.com";
+        if (typeof window !== "undefined") {
+          const hostname = window.location.hostname;
+          if (hostname === "localhost" || hostname === "127.0.0.1") {
+            providerBaseUrl = "http://localhost:3001";
+          }
+        }
+        window.location.href = `${providerBaseUrl}/login?registered=true`;
       }, 4000);
     } catch (err: any) {
       setErrorMessage(err.message || "Başvuru gönderilirken bir hata oluştu.");

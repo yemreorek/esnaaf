@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Body, Param, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { ActiveAccountGuard } from '../../common/guards/active-account.guard';
 import { Roles, CurrentUser } from '../../common/decorators';
 import { MesajlarService } from './mesajlar.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -16,6 +17,7 @@ export class MesajlarController {
    * POST /api/ortak/mesajlar
    */
   @Post()
+  @UseGuards(ActiveAccountGuard)
   @HttpCode(HttpStatus.CREATED)
   async createMessage(@CurrentUser() user: any, @Body() dto: CreateMessageDto) {
     return this.mesajlarService.createMessage(user.id, dto);

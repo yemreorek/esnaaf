@@ -434,6 +434,7 @@ export class HizmetverenService {
         city: provider.city || 'Adana',
         serviceDistricts: provider.service_districts || [],
         isApproved: provider.is_approved,
+        accountStatus: provider.account_status,
         identityDocument: onboardingData.identityDocument || '',
         taxPlateDocument: onboardingData.taxPlateDocument || '',
         companyType: onboardingData.companyType || '',

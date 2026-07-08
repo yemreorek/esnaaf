@@ -470,7 +470,18 @@ export default function ProviderDashboard() {
   const [logMessages, setLogMessages] = useState<string[]>([]);
   
   // Modal states
-  const [activeJob, setActiveJob] = useState<any | null>(null);
+  const [activeJob, setActiveJobState] = useState<any | null>(null);
+  const setActiveJob = (job: any | null) => {
+    if (job && profile && profile.accountStatus === 'pending_approval') {
+      showAlert(
+        "Özellik Kısıtlı",
+        "Bu özellik sadece onaylı hizmet verenlere açıktır. Hesabınızın onaylanma süreci devam etmektedir.",
+        "info"
+      );
+      return;
+    }
+    setActiveJobState(job);
+  };
   const [offerPrice, setOfferPrice] = useState<string>('');
   const [offerMessage, setOfferMessage] = useState<string>('');
   const [submittingOffer, setSubmittingOffer] = useState(false);
@@ -503,6 +514,20 @@ export default function ProviderDashboard() {
   const [providerKpiData, setProviderKpiData] = useState<any>(null);
   const [loadingProviderKpi, setLoadingProviderKpi] = useState<boolean>(false);
   const [providerKpiSelectedCategorySlug, setProviderKpiSelectedCategorySlug] = useState<string>('');
+
+  // Passive Account states
+  const [showPassiveAlert, setShowPassiveAlert] = useState<boolean>(false);
+  const [isFirstPassiveLoginModalOpen, setIsFirstPassiveLoginModalOpen] = useState<boolean>(false);
+  const [registeredSuccessAlert, setRegisteredSuccessAlert] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("registered") === "true") {
+        setRegisteredSuccessAlert(true);
+      }
+    }
+  }, []);
   
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; val: number; label: string } | null>(null);
   const [offersList, setOffersList] = useState<any[]>([]);
@@ -695,6 +720,9 @@ export default function ProviderDashboard() {
   };
 
   const isTabLocked = (tabName: typeof activeTab) => {
+    if (profile && profile.accountStatus === 'pending_approval') {
+      return false; // Allow passive users to browse all tabs!
+    }
     return profile && !profile.isApproved && tabName !== 'belge-dogrulama' && tabName !== 'dashboard';
   };
 
@@ -1217,8 +1245,19 @@ export default function ProviderDashboard() {
         setEditDistricts(profileData.serviceDistricts ? profileData.serviceDistricts.join(', ') : '');
         setEditBio(profileData.bio || '');
         addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
-        if (!profileData.isApproved) {
+        if (profileData.accountStatus === 'pending_approval') {
+          setActiveTab('dashboard');
+          setShowPassiveAlert(true);
+          const hasSeenModal = localStorage.getItem('is_first_passive_login');
+          if (!hasSeenModal) {
+            setIsFirstPassiveLoginModalOpen(true);
+            localStorage.setItem('is_first_passive_login', 'true');
+          }
+        } else if (!profileData.isApproved) {
           setActiveTab('belge-dogrulama');
+          setShowPassiveAlert(false);
+        } else {
+          setShowPassiveAlert(false);
         }
       }
 
@@ -1355,6 +1394,14 @@ export default function ProviderDashboard() {
   const handleCreateDirectJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!directRequestCustomer) return;
+    if (profile && profile.accountStatus === 'pending_approval') {
+      showAlert(
+        "Özellik Kısıtlı",
+        "Bu özellik sadece onaylı hizmet verenlere açıktır. Hesabınızın onaylanma süreci devam etmektedir.",
+        "info"
+      );
+      return;
+    }
     setIsSubmittingDirectJob(true);
     try {
       const res = await fetch('/api/hizmetveren/dogrudan-is-karti', {
@@ -1913,6 +1960,15 @@ export default function ProviderDashboard() {
     e.preventDefault();
     if (!activeChat || !newMessageText.trim() || !token) return;
 
+    if (profile && profile.accountStatus === 'pending_approval') {
+      showAlert(
+        "Özellik Kısıtlı",
+        "Bu özellik sadece onaylı hizmet verenlere açıktır. Hesabınızın onaylanma süreci devam etmektedir.",
+        "info"
+      );
+      return;
+    }
+
     const text = newMessageText.trim();
     setNewMessageText("");
 
@@ -2294,6 +2350,13 @@ export default function ProviderDashboard() {
               Esnaf yönetim paneline giriş yapın, yeni iş fırsatlarını kaçırmayın.
             </p>
           </div>
+
+          {registeredSuccessAlert && (
+            <div className="mb-5 bg-amber-50 border border-amber-200 text-amber-850 rounded-2xl p-4 text-xs font-bold leading-relaxed text-left relative animate-scale-up">
+              <span className="block mb-1 font-extrabold text-[13px] text-amber-900">🎉 Başvurunuz Alındı!</span>
+              Başvurunuz ve belgeleriniz başarıyla alındı! Esnaaf platformunu hemen keşfetmek için az önce belirlediğiniz giriş bilgileriyle sisteme giriş yapabilirsiniz.
+            </div>
+          )}
 
           {loginError && (
             <div className="mb-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl p-4 text-xs font-bold leading-relaxed text-left">
@@ -2917,6 +2980,12 @@ export default function ProviderDashboard() {
             </div>
           </div>
         </header>
+
+        {showPassiveAlert && (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-semibold py-3.5 px-6 flex items-center justify-center gap-2 sticky top-16 z-30 animate-fade-in shadow-md w-full shrink-0 border-b border-orange-700/20 text-center">
+            <span>⚠️ HESABINIZ ONAY SÜRECİNDEDİR (PASİF MOD). Profiliniz ve belgeleriniz incelenirken sistemdeki ilanları göremez ve teklif veremezsiniz. Onay işlemi tamamlandığında tüm özellikler anında aktif olacaktır.</span>
+          </div>
+        )}
 
         <div className="p-6 md:p-8 space-y-8 z-10 flex-1 relative overflow-y-auto">
           {/* Switchable content based on activeTab */}
@@ -6162,6 +6231,36 @@ export default function ProviderDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🔒 Passive Mode Welcoming Modal (Component A) */}
+      {isFirstPassiveLoginModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-slate-100 animate-scale-up text-center space-y-6">
+            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 shadow-inner">
+              <Lock className="w-8 h-8" />
+            </div>
+            
+            <h3 className="font-extrabold text-slate-900 text-lg leading-snug">
+              🔒 HESABINIZ ŞU AN ONAY SÜRECİNDEDİR (PASİF MOD)
+            </h3>
+            
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Güvenlik, kalite ve adalet standartlarımız gereği, onay süreci tamamlanana kadar sistemdeki canlı ilanları göremez, yeni iş teklifleri alamaz ve teklif veremezsiniz. 
+            </p>
+            
+            <p className="text-xs text-[#4c630a] font-bold leading-relaxed bg-[#c8f252]/10 p-4 rounded-2xl">
+              Ancak bu süreçte esnaaf.com panelinizi özgürce gezebilir, menüleri ve sistemin işleyişini inceleyerek platformu tamamen öğrenebilirsiniz!
+            </p>
+            
+            <button
+              onClick={() => setIsFirstPassiveLoginModalOpen(false)}
+              className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl transition-all text-xs cursor-pointer shadow-md active:scale-95"
+            >
+              Anladım, Platformu Keşfet
+            </button>
           </div>
         </div>
       )}
