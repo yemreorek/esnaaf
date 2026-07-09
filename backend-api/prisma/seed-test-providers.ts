@@ -122,6 +122,7 @@ async function main() {
         total_jobs: 12,
         is_approved: true,
         approved_at: new Date(),
+        account_status: 'active',
         city: 'Adana',
         service_districts: ['Seyhan', 'Çukurova', 'Yüreğir'],
       },

@@ -121,6 +121,7 @@ export class TaleplerProcessor {
     const providers = await this.prisma.serviceProvider.findMany({
       where: {
         is_approved: true,
+        account_status: 'active',
         category_ids: {
           has: request.category_id,
         },
