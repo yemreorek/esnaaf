@@ -268,7 +268,7 @@ export class ChatService {
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
-            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
+            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
             state.step = 'collecting_details';
             
             // Immediately parse parameters for the newly detected category from the current user message
@@ -977,7 +977,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (call.name === 'detectCategory') {
             const { categorySlug } = call.args as any;
             state.collected_data.categorySlug = categorySlug;
-            await this.loadCategoryQuestions(state, categorySlug);
+            await this.loadCategoryQuestions(state, categorySlug, undefined);
             state.step = 'collecting_details';
 
             // Immediately parse parameters for the newly detected category from the current user message
@@ -1121,7 +1121,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
           state.collected_data.categorySlug = detection.categorySlug;
           state.collected_data.categoryName = detection.categoryName || undefined;
-          await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
+          await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
           
           const loc = this.parseLocation(message);
            if (loc.city) {
@@ -1460,7 +1460,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
-            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
+            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
             fallbackStep = 'collecting_details';
             const nextQ = this.getNextQuestion(state);
             fallbackResponse = nextQ
