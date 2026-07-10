@@ -293,8 +293,9 @@ export class ChatService {
         }
         
         // A. Transactional Steps (Secure, deterministic verification/creation)
+        const initialStep = state.step;
 
-        if (state.step === 'ask_details') {
+        if (initialStep === 'ask_details') {
           const detailMsg = message.trim();
           const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec)$/i.test(detailMsg);
           const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
@@ -360,7 +361,7 @@ export class ChatService {
           }
         }
 
-        if (state.step === 'ask_name') {
+        if (initialStep === 'ask_name') {
           const rawName = message.trim();
           const cleanedName = this.cleanName(rawName);
           const isValidName = cleanedName.length >= 2 && !/\d/.test(cleanedName) && !/^(?:evet|hayır|hayir|yok|tamam|ok|iptal|onayla|onaylıyorum)$/i.test(cleanedName);
@@ -370,7 +371,7 @@ export class ChatService {
           }
         }
 
-        if (state.step === 'otp_verification') {
+        if (initialStep === 'otp_verification') {
           const phone = state.collected_data.phone;
           if (!phone) {
             throw new BadRequestException('Telefon numarası bulunamadı.');
