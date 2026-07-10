@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Headers, UseGuards, Req, Res, HttpStatus, HttpCode } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
