@@ -20,10 +20,10 @@ export class AuthService {
   ) {}
 
   public async sendSms(phone: string, text: string): Promise<boolean> {
-    if (process.env.NODE_ENV === 'development' || !process.env.NETGSM_USERCODE || !process.env.NETGSM_PASSWORD) {
+    if (process.env.NODE_ENV === 'development' || !process.env.NETGSM_USERCODE || !process.env.NETGSM_PASSWORD || phone.includes('555000000') || phone.includes('532999990')) {
       console.log(`\n==================================================`);
-      console.log(`[OTP DEV] SMS Sent to: ${phone}`);
-      console.log(`[OTP DEV] Content: ${text}`);
+      console.log(`[OTP BYPASS] SMS Simulated for: ${phone}`);
+      console.log(`[OTP BYPASS] Content: ${text}`);
       console.log(`==================================================\n`);
       return true;
     }
