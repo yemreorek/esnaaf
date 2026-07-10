@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenAI, Type } from '@google/genai';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class IndustryExpertAgent {
@@ -93,7 +94,7 @@ Format örneği:
     const categories = await this.prisma.category.findMany({
       where: {
         questions_flow: {
-          equals: null,
+          equals: Prisma.AnyNull,
         },
       },
     });
