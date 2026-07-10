@@ -84,6 +84,7 @@ interface Message {
       rating: number;
     };
   };
+  options?: string[];
 }
 
 interface ChatScreenProps {
@@ -135,6 +136,25 @@ const FIELD_LABELS: Record<string, string> = {
   cateringDahil: 'Catering Durumu'
 };
 
+
+const CITY_DISTRICTS: Record<string, string[]> = {
+  'Adana': ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'],
+  'İstanbul': [
+    'Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 
+    'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 
+    'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 
+    'Bakırköy', 'Ataşehir', 'Beylikdüzü'
+  ],
+  'Ankara': [
+    'Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 
+    'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'
+  ],
+  'İzmir': [
+    'Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 
+    'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 
+    'Bayraklı', 'Urla'
+  ]
+};
 
 export function resolveCityFromDistrict(district?: any): string {
   if (!district || typeof district !== 'string') return 'İstanbul';
@@ -190,6 +210,10 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [isAddedToFavorites, setIsAddedToFavorites] = useState(false);
   const [sendToFavoritesOnlyChecked, setSendToFavoritesOnlyChecked] = useState(false);
   const [kvkkChecked, setKvkkChecked] = useState(true);
+
+  const [addressCity, setAddressCity] = useState("");
+  const [addressDistrict, setAddressDistrict] = useState("");
+  const [addressNeighborhood, setAddressNeighborhood] = useState("");
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -1082,6 +1106,20 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   <p className="whitespace-pre-line">{msg.content}</p>
                 )}
 
+                {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100/50">
+                    {msg.options.map((opt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => sendMessage(opt)}
+                        className="px-4 py-2 bg-slate-50 hover:bg-[#c8f252]/20 hover:border-[#c8f252] hover:text-slate-800 text-slate-600 text-sm font-semibold rounded-2xl border border-slate-200 transition-all duration-200 cursor-pointer text-left leading-tight"
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
 
 
                 {/* SUMMARY CARD IN THE SOHBET FLOW */}
@@ -1436,7 +1474,83 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
       {/* Bottom Fixed Chat Input Bar */}
       <footer className="w-full border-t border-slate-100 bg-white px-3 md:px-4 pt-3 shrink-0 z-50 shadow-sm" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 8px), 12px)' }}>
-        <div className="w-full md:max-w-[720px] md:mx-auto flex items-end gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
+        {currentStep === "ask_address" ? (
+          <div className="w-full md:max-w-[720px] md:mx-auto flex flex-col gap-3 p-2 bg-slate-50 rounded-[20px] border border-slate-200 animate-scale-up">
+            <select
+              value={addressCity}
+              onChange={(e) => { setAddressCity(e.target.value); setAddressDistrict(""); setAddressNeighborhood(""); }}
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold"
+            >
+              <option value="">İl Seçiniz</option>
+              {Object.keys(CITY_DISTRICTS).map(city => <option key={city} value={city}>{city}</option>)}
+            </select>
+            <select
+              value={addressDistrict}
+              onChange={(e) => { setAddressDistrict(e.target.value); setAddressNeighborhood(""); }}
+              disabled={!addressCity}
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+            >
+              <option value="">İlçe Seçiniz</option>
+              {addressCity && CITY_DISTRICTS[addressCity].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <input
+              type="text"
+              placeholder="Mahalle veya açık adres (Örn: Kızılay Mah.)"
+              value={addressNeighborhood}
+              onChange={(e) => setAddressNeighborhood(e.target.value)}
+              disabled={!addressDistrict}
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+            />
+            <button
+              onClick={() => {
+                const addr = JSON.stringify({ city: addressCity, district: addressDistrict, neighborhood: addressNeighborhood });
+                setInputVal(addr);
+                sendMessage(addr);
+              }}
+              disabled={!addressCity || !addressDistrict || !addressNeighborhood || isLoading}
+              className="w-full bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-955 disabled:text-slate-400 font-extrabold py-3 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex justify-center items-center gap-2"
+            >
+              {isLoading ? <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : 'Devam Et'}
+            </button>
+          </div>
+        ) : currentStep === "ask_name" ? (
+          <div className="w-full md:max-w-[720px] md:mx-auto flex flex-col gap-2 p-2 bg-slate-50 rounded-[20px] border border-slate-200 animate-scale-up">
+            <input
+              type="text"
+              placeholder="Adınız ve Soyadınız"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold"
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={inputVal.trim().length < 2 || isLoading}
+              className="w-full bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-955 disabled:text-slate-400 font-extrabold py-3 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex justify-center items-center gap-2"
+            >
+              {isLoading ? <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : 'Devam Et'}
+            </button>
+          </div>
+        ) : currentStep === "ask_phone" ? (
+          <div className="w-full md:max-w-[720px] md:mx-auto flex flex-col gap-2 p-2 bg-slate-50 rounded-[20px] border border-slate-200 animate-scale-up">
+            <input
+              type="tel"
+              placeholder="053X XXX XX XX"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold tracking-wide"
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={inputVal.trim().length < 10 || isLoading}
+              className="w-full bg-[#c8f252] hover:bg-[#b5e639] disabled:bg-slate-200 text-slate-955 disabled:text-slate-400 font-extrabold py-3 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 flex justify-center items-center gap-2"
+            >
+              {isLoading ? <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : 'Doğrulama Kodu Gönder'}
+            </button>
+          </div>
+        ) : (
+          <div className="w-full md:max-w-[720px] md:mx-auto flex items-end gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -1527,6 +1641,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             </svg>
           </button>
         </div>
+        )}
       </footer>
 
       {/* Beautiful Custom Confirm Modal */}

@@ -12,12 +12,13 @@ import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils
 import { SECTOR_PROMPTS } from './sector-prompts.config';
 
 interface SessionState {
-  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
+  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   collected_data: {
     categorySlug?: string;
     city?: string;
     district?: string;
+    neighborhood?: string;
     name?: string;
     phone?: string;
     details?: string;
@@ -74,19 +75,12 @@ export class ChatService {
     private openaiService: OpenAIService,
   ) {}
 
-  /**
-   * PII Filter: Strips names, phone numbers, T.C. IDs from user input before sending to OpenAI/Gemini
-   */
   private filterPii(text: string): string {
     let filtered = text;
-    // Sadece TC Kimlik Numaralarını sansürle (Gemini için gerekli değil ve hassas veri)
     filtered = filtered.replace(/\b[1-9]\d{10}\b/g, '[TC FILTERED]');
     return filtered;
   }
 
-  /**
-   * Checks if user has exceeded the daily token limit of 50K
-   */
   private async checkTokenLimit(sessionKey: string) {
     const today = new Date().toISOString().split('T')[0];
     const limitKey = `token_limit:${sessionKey}:${today}`;
@@ -97,24 +91,17 @@ export class ChatService {
     }
   }
 
-  /**
-   * Updates token usage count
-   */
   private async trackTokens(sessionKey: string, tokens: number) {
     const today = new Date().toISOString().split('T')[0];
     const limitKey = `token_limit:${sessionKey}:${today}`;
     await this.redis.incrby(limitKey, tokens);
-    await this.redis.expire(limitKey, 86400); // 24 hours
+    await this.redis.expire(limitKey, 86400); 
   }
 
-  /**
-   * Starts a new anonymous chat session in Redis
-   */
   async startAnonymousSession(sessionUuid?: string, userId?: string | null) {
     const uuid = sessionUuid || randomUUID();
     const sessionKey = userId ? `ai_session:${userId}:${uuid}` : `temp_session:${uuid}`;
 
-    // 1. Fetch A/B Test parameters from Redis
     const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-2.5-flash';
     const tempStr = await this.redis.get('ab_test:temperature');
     const temperature = tempStr ? parseFloat(tempStr) : 0.7;
@@ -141,9 +128,7 @@ export class ChatService {
       ab_temp,
     };
 
-    await this.redis.set(sessionKey, JSON.stringify(initialState), 'EX', userId ? 86400 : 7200); // 24 hours for logged in user, 2 hours for temp session
-
-    // Increment session start counter in Redis
+    await this.redis.set(sessionKey, JSON.stringify(initialState), 'EX', userId ? 86400 : 7200); 
     await this.redis.incr(`ab_test:sessions:total:${ab_variant}`);
 
     return {
@@ -153,9 +138,6 @@ export class ChatService {
     };
   }
 
-  /**
-   * Dynamically synchronizes state.step with collected data completeness
-   */
   private syncStep(state: SessionState) {
     if (!state.collected_data.categorySlug) {
       state.step = 'category_detection';
@@ -170,6 +152,11 @@ export class ChatService {
 
     if (!state.collected_data.hasAskedDetails) {
       state.step = 'ask_details';
+      return;
+    }
+
+    if (!state.collected_data.district || !state.collected_data.neighborhood) {
+      state.step = 'ask_address';
       return;
     }
 
@@ -258,6 +245,7 @@ export class ChatService {
     }
 
     let responseMessage = '';
+    let options: string[] = [];
     let createdJobId: string | undefined;
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
 
@@ -887,6 +875,16 @@ Müşterinin talebine göre 'detectCategory' fonksiyonunu çağırırken YALNIZC
       Talep onay aşamasına geldiğinde veya tamamlandıktan sonra, yukarıdaki AKILLI ÖNERİLER bölümündeki ilgili cross-sell önerisini SADECE BİR KEZ ve nazikçe sun. Müşteri istemezse ısrar etme.
 
 Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı olsun. Giriş veya geçiş cümlelerinde "harika", "çok iyi", "süper" gibi övgü veya gereksiz ünlem kelimeleri kullanma. Doğrudan müşterinin problemini çözmeye yönelik sorular sor ve talebi hızlıca tamamlamaya odaklan. Müşteriye güven ver ama abartma — doğal ve profesyonel bir ton kullan.
+
+### 📝 JSON YANIT FORMATI VE SEÇENEKLER (ÇOK ÖNEMLİ)
+Sistemimiz senin yanıtlarını JSON formatında beklemektedir. Sorduğun her soru için, kullanıcının tıklayarak hızlıca cevaplayabilmesi adına 2 ila 5 adet mantıklı, kısa seçenek (options) üretmelisin. Eğer sadece bilgi veriyorsan veya seçenek sunulamayacak bir durumsa \`options\` dizisini boş bırakabilirsin.
+Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalısın (başka hiçbir metin ekleme):
+\`\`\`json
+{
+  "responseMessage": "Senin müşteriye söyleyeceğin veya soracağın metin burada yer alacak.",
+  "options": ["Seçenek 1", "Seçenek 2", "Diğer"]
+}
+\`\`\`
 `;
 
         const sectorPrompt = this.getSectorPrompt(state.collected_data.categorySlug || null);
@@ -1016,7 +1014,26 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
             }
           }
         } else {
-          responseMessage = geminiRes.text || 'Size nasıl yardımcı olabilirim?';
+          if (geminiRes.text) {
+            try {
+              let cleanText = geminiRes.text.trim();
+              if (cleanText.startsWith('```json')) {
+                cleanText = cleanText.replace(/```json/gi, '').replace(/```/g, '').trim();
+              } else if (cleanText.startsWith('```')) {
+                cleanText = cleanText.replace(/```/g, '').trim();
+              }
+              const parsed = JSON.parse(cleanText);
+              responseMessage = parsed.responseMessage || cleanText;
+              if (Array.isArray(parsed.options)) {
+                options = parsed.options;
+              }
+            } catch (e: any) {
+              console.warn(`[ChatService] Failed to parse JSON from Gemini text: ${e.message}`);
+              responseMessage = geminiRes.text;
+            }
+          } else {
+            responseMessage = 'Size nasıl yardımcı olabilirim?';
+          }
           this.syncStep(state);
         }
 
@@ -1028,6 +1045,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           step: state.step,
           responseMessage,
           collected_data: state.collected_data,
+          options,
         };
       }
 
@@ -1109,8 +1127,8 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         } else {
           if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
             state.collected_data.hasAskedDetails = true;
-            state.step = 'ask_name';
-            responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+            state.step = 'ask_address';
+            responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
           } else {
             state.step = 'ask_details';
             responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
@@ -1138,8 +1156,20 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
         }
         state.collected_data.hasAskedDetails = true;
+        state.step = 'ask_address';
+        responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
+
+      } else if (state.step === 'ask_address') {
+        try {
+          const parsed = JSON.parse(message);
+          if (parsed.city) state.collected_data.city = parsed.city;
+          if (parsed.district) state.collected_data.district = parsed.district;
+          if (parsed.neighborhood) state.collected_data.neighborhood = parsed.neighborhood;
+        } catch (e) {
+          // If it's plain text, we can try to parse it, but UI will send JSON
+        }
         state.step = 'ask_name';
-        responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+        responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
 
       } else if (state.step === 'ask_name') {
         const name = message.trim();
@@ -1805,11 +1835,13 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         {
           key: 'metrekare',
           question: 'Boyanacak alan yaklaşık kaç metrekare?',
+          options: ['50 m2 altı', '50-100 m2', '100-150 m2', '150 m2 üstü'],
           parse: (msg) => this.parseMetrekare(msg)
         },
         {
           key: 'tur',
           question: 'İç cephe mi dış cephe mi boyanacak?',
+          options: ['İç Cephe', 'Dış Cephe', 'İkisi de'],
           parse: (msg) => this.parseBoyaTuru(msg)
         },
         {
@@ -1821,8 +1853,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
             if (text.includes('beyaz')) return 'beyaz';
             return match ? match[0] : null;
           }
-        },
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
+        }
       ];
     }
  
@@ -1832,8 +1863,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           key: 'sorunTuru',
           question: 'Yaşadığınız tesisat sorunu tam olarak nedir (sızıntı, tıkanıklık, musluk/rezervuar değişimi vb.)?',
           parse: (msg) => this.parseSorunTuru(msg)
-        },
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
+        }
       ];
     }
  
@@ -1859,8 +1889,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           key: 'adet',
           question: 'Hizmet alınacak cihaz adeti nedir?',
           parse: (msg) => this.parseAdet(msg)
-        },
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
+        }
       ];
     }
  
@@ -1869,14 +1898,15 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
         {
           key: 'daireTipi',
           question: 'Temizlenecek ev kaç odalı (örn: 1+1, 2+1, 3+1)?',
+          options: ['1+0 / 1+1', '2+1', '3+1', '4+1 ve üzeri'],
           parse: (msg) => this.parseDaireTipi(msg)
         },
         {
           key: 'siflik',
           question: 'Temizlik sıklığı nedir (Tek seferlik mi, haftalık mı, aylık mı)?',
+          options: ['Tek Seferlik', 'Haftada 1', 'İki Haftada 1', 'Ayda 1'],
           parse: (msg) => this.parseSiflik(msg)
-        },
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
+        }
       ];
     }
  
@@ -1892,7 +1922,6 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
           question: 'Paketleme hizmeti istiyor musunuz (Usta mı paketlesin yoksa eşyalar hazır mı)?',
           parse: (msg) => this.parsePaketlemeHizmeti(msg)
         },
-        { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district },
         {
           key: 'destinationDistrict',
           question: 'Eşyaların taşınacağı varış ilçesini (örn. Seyhan, Çukurova) yazar mısınız?',
@@ -1901,9 +1930,7 @@ Tamamen Türkçe konuş. Konuşma tarzın net, kısa, samimi ve çözüm odaklı
       ];
     }
  
-    return [
-      { key: 'district', question: qText, parse: (msg) => this.parseLocation(msg).district }
-    ];
+    return [];
   }
 
   private getNextQuestion(state: SessionState): any | null {
@@ -2479,3 +2506,4 @@ ${prompt}
     return cleanedWords.join(' ').trim();
   }
 }
+

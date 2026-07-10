@@ -122,7 +122,7 @@ export class GeminiService {
   async generateResponse(
     history: { role: 'system' | 'user' | 'assistant'; content: string }[],
     systemInstruction: string,
-    options?: { modelName?: string; temperature?: number },
+    options?: { modelName?: string; temperature?: number; requireJson?: boolean },
   ) {
     if (!this.ai) {
       throw new Error('Gemini API Client is not initialized.');
@@ -183,15 +183,21 @@ export class GeminiService {
             setTimeout(() => reject(new Error('Timeout after 20 seconds')), 20000)
           );
 
+          const config: any = {
+            systemInstruction,
+            tools: this.getTools(),
+            temperature: options?.temperature !== undefined ? options.temperature : undefined,
+          };
+
+          if (options?.requireJson) {
+            config.responseMimeType = 'application/json';
+          }
+
           const response = await Promise.race([
             this.ai.models.generateContent({
               model: currentModel,
               contents,
-              config: {
-                systemInstruction,
-                tools: this.getTools(),
-                temperature: options?.temperature !== undefined ? options.temperature : undefined,
-              },
+              config,
             }),
             timeoutPromise,
           ]) as any;
