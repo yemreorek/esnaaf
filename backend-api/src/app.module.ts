@@ -40,8 +40,8 @@ import { AppService } from './app.service';
       useFactory: () => ({
         throttlers: [
           {
-            ttl: Number(process.env.THROTTLE_TTL) || 60000,
-            limit: Number(process.env.THROTTLE_LIMIT) || 100,
+            ttl: 60000,
+            limit: 100, // Hardcoded to 100 because prod is incorrectly set to 3
           },
         ],
         storage: new ThrottlerStorageRedisService(process.env.REDIS_URL || 'redis://localhost:6379'),
