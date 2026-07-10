@@ -5,11 +5,11 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 
 const cookieExtractor = (req: any) => {
   let token = null;
-  if (req && req.cookies) {
-    token = req.cookies['esnaaf_token'];
-  }
-  if (!token && req.headers.authorization) {
+  if (req && req.headers.authorization) {
     token = req.headers.authorization.split(' ')[1];
+  }
+  if (!token && req && req.cookies) {
+    token = req.cookies['esnaaf_token'];
   }
   return token;
 };
