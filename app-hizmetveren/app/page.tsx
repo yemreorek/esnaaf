@@ -214,12 +214,14 @@ const OpportunityCard = ({
   token,
   renderMockupIcon,
   setActiveJob,
+  setRejectingJob,
   showAlert,
 }: {
   job: any;
   token?: string | null;
   renderMockupIcon: (type: string) => React.ReactNode;
   setActiveJob: (job: any) => void;
+  setRejectingJob?: (job: any) => void;
   showAlert?: (title: string, msg: string, type?: "success" | "error" | "info") => void;
 }) => {
   const [isExpired, setIsExpired] = useState<boolean>(
@@ -345,22 +347,32 @@ const OpportunityCard = ({
             {offersCount >= 4 ? "Teklife Kapandı (4/4)" : "Süre Doldu"}
           </button>
         ) : (
-          <button
-            onClick={() => {
-              if (!token) {
-                if (showAlert) {
-                  showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir Hizmet Veren seçerek giriş yapın!", "info");
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (setRejectingJob) setRejectingJob(job);
+              }}
+              className="border border-[#e2e8f0] text-slate-500 hover:bg-slate-50 font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              Reddet
+            </button>
+            <button
+              onClick={() => {
+                if (!token) {
+                  if (showAlert) {
+                    showAlert("Giriş Gerekli", "Müşteriye teklif iletmek için lütfen sağ üstten simüle bir Hizmet Veren seçerek giriş yapın!", "info");
+                  } else {
+                    alert("Lütfen önce giriş yapın!");
+                  }
                 } else {
-                  alert("Lütfen önce giriş yapın!");
+                  setActiveJob(job);
                 }
-              } else {
-                setActiveJob(job);
-              }
-            }}
-            className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
-          >
-            Teklif Ver
-          </button>
+              }}
+              className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer border border-transparent"
+            >
+              Teklif Ver
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -544,6 +556,13 @@ export default function ProviderDashboard() {
     reasonText: "",
   });
   const [submittingCancelJob, setSubmittingCancelJob] = useState<boolean>(false);
+
+  // Job Rejection states
+  const [rejectingJob, setRejectingJob] = useState<any | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>('');
+  const [rejectDetails, setRejectDetails] = useState<string>('');
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
+
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -2106,6 +2125,38 @@ export default function ProviderDashboard() {
         }
       }
     );
+  };
+
+  const handleRejectJob = async () => {
+    if (!token || !rejectingJob || !rejectReason) {
+      showAlert("Uyarı", "Lütfen reddetme nedenini seçin.", "error");
+      return;
+    }
+
+    setIsRejecting(true);
+    try {
+      const res = await fetch(`/api/hizmetveren/gelen-isler/${rejectingJob.id}/reddet`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: rejectReason, details: rejectDetails }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "İşlemi kaydederken bir hata oluştu.");
+      }
+
+      // Başarılı olduğunda ekranından kaldır
+      setJobs(prevJobs => prevJobs.filter(j => j.id !== rejectingJob.id));
+      setRejectingJob(null);
+      setRejectReason("");
+      setRejectDetails("");
+      showAlert("Başarılı", "İş fırsatı başarıyla reddedildi.", "success");
+    } catch (err: any) {
+      showAlert("Hata", err.message || "Bir hata oluştu.", "error");
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   const handleCancelJob = async () => {
@@ -3710,6 +3761,7 @@ export default function ProviderDashboard() {
                         token={token}
                         renderMockupIcon={renderMockupIcon}
                         setActiveJob={setActiveJob}
+                        setRejectingJob={setRejectingJob}
                         showAlert={showAlert}
                       />
                     ))
@@ -5871,7 +5923,112 @@ export default function ProviderDashboard() {
         </div>
       )}
 
-      {/* 🔴 İşi İptal Et Modalı */}
+      {/* 🔴 İşi İptal Et Modalı */}      {/* 🔴 Job Rejection Modal */}
+      {rejectingJob && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in text-left">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-up">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100">
+              <h3 className="font-extrabold text-xl text-slate-800 tracking-tight">Neden ilgilenmiyorsun?</h3>
+              <button 
+                onClick={() => {
+                  setRejectingJob(null);
+                  setRejectReason("");
+                  setRejectDetails("");
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6 flex flex-col gap-4">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  name="rejectReason"
+                  value="Hizmet (meslek) uygun değil"
+                  checked={rejectReason === "Hizmet (meslek) uygun değil"}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-5 h-5 accent-green-600 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Hizmet (meslek) uygun değil</span>
+              </label>
+              
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  name="rejectReason"
+                  value="Uzaklık çok fazla"
+                  checked={rejectReason === "Uzaklık çok fazla"}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-5 h-5 accent-green-600 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Uzaklık çok fazla</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  name="rejectReason"
+                  value="Detaylar yetersiz"
+                  checked={rejectReason === "Detaylar yetersiz"}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-5 h-5 accent-green-600 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Detaylar yetersiz</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  name="rejectReason"
+                  value="Talep ciddi değil"
+                  checked={rejectReason === "Talep ciddi değil"}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-5 h-5 accent-green-600 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Talep ciddi değil</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  name="rejectReason"
+                  value="Diğer"
+                  checked={rejectReason === "Diğer"}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-5 h-5 accent-green-600 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Diğer</span>
+              </label>
+
+              {rejectReason && (
+                <div className="mt-2 relative">
+                  <textarea
+                    placeholder="Sana en uygun iş fırsatlarını sunabilmemiz için lütfen bu işle neden ilgilenmediğini paylaş."
+                    className="w-full border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all resize-none h-28 bg-slate-50 focus:bg-white"
+                    maxLength={500}
+                    value={rejectDetails}
+                    onChange={(e) => setRejectDetails(e.target.value)}
+                  />
+                  <div className="text-[10px] font-bold text-slate-400 text-right mt-1">
+                    {rejectDetails.length}/500 karakter
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={handleRejectJob}
+                disabled={isRejecting || !rejectReason}
+                className="w-full mt-2 bg-[#22c55e] hover:bg-[#16a34a] text-white font-extrabold text-sm py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                {isRejecting ? "Gönderiliyor..." : "Gönder"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {cancelModal.isOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
