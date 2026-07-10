@@ -26,6 +26,22 @@ export class HizmetverenController {
   }
 
   /**
+   * Hizmet verenin gelen bir iş fırsatını reddetmesini sağlar
+   * POST /api/hizmetveren/gelen-isler/:id/reddet
+   */
+  @Post('gelen-isler/:id/reddet')
+  @UseGuards(ActiveAccountGuard)
+  @HttpCode(HttpStatus.OK)
+  async rejectJob(
+    @CurrentUser() user: any,
+    @Param('id') jobId: string,
+    @Body('reason') reason: string,
+    @Body('details') details?: string,
+  ) {
+    return this.hizmetverenService.rejectJob(user.id, jobId, reason, details);
+  }
+
+  /**
    * Hizmet verenin mevcut ay içindeki kota durumunu döndürür
    * GET /api/hizmetveren/kota
    */

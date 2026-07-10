@@ -525,6 +525,10 @@ model ResponseTime {
   response_duration_minutes Int?
   notified_sent             Boolean  @default(false)
 
+  is_rejected               Boolean  @default(false)
+  rejection_reason          String?
+  rejection_details         String?  @db.Text
+
   @@map("response_times")
   @@index([provider_id, notified_at(sort: Desc)])
   @@index([notified_sent, notified_at])

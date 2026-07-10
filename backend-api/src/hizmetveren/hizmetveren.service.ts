@@ -72,6 +72,10 @@ export class HizmetverenService {
         continue;
       }
 
+      if (rt.is_rejected) {
+        continue;
+      }
+
       if (job.offers.length > 0) {
         // Zaten teklif verilmiş
         continue;
@@ -350,6 +354,50 @@ export class HizmetverenService {
       success: true,
       message: 'Teklifiniz başarıyla iletildi.',
       offer: result,
+    };
+  }
+
+  /**
+   * Gelen işi reddetme (iptal etme) işlemi
+   */
+  async rejectJob(providerUserId: string, jobId: string, reason: string, details?: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    // Find the ResponseTime record representing the job opportunity
+    const responseTime = await this.prisma.responseTime.findFirst({
+      where: {
+        provider_id: provider.id,
+        job_id: jobId,
+      },
+    });
+
+    if (!responseTime) {
+      throw new NotFoundException('Bu iş için size gönderilmiş bir fırsat bulunamadı.');
+    }
+
+    if (responseTime.is_rejected) {
+      throw new BadRequestException('Bu iş fırsatını zaten reddettiniz.');
+    }
+
+    await this.prisma.responseTime.update({
+      where: { id: responseTime.id },
+      data: {
+        is_rejected: true,
+        rejection_reason: reason,
+        rejection_details: details,
+        responded_at: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'İş fırsatı başarıyla reddedildi.',
     };
   }
 
