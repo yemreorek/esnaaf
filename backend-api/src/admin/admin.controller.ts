@@ -16,7 +16,7 @@ import {
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles('admin', 'super_admin', 'quality_staff', 'finance_staff', 'ops_staff', 'sales_staff', 'executive')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
