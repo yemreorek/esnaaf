@@ -732,6 +732,7 @@ export default function ProviderDashboard() {
 
   const handleExitImpersonation = () => {
     localStorage.removeItem("provider_is_logged_in");
+    localStorage.removeItem("provider_access_token");
     localStorage.removeItem("provider_phone");
     localStorage.removeItem("provider_impersonated");
     window.close();
@@ -932,6 +933,7 @@ export default function ProviderDashboard() {
       const impersonateParam = params.get('impersonate');
       if (tokenParam) {
         localStorage.setItem('provider_is_logged_in', 'true');
+        localStorage.setItem('provider_access_token', tokenParam); // SAVE THE ACTUAL TOKEN
         if (phoneParam) {
           localStorage.setItem('provider_phone', phoneParam);
         }
@@ -943,18 +945,21 @@ export default function ProviderDashboard() {
       }
     }
 
-    const savedToken = localStorage.getItem('provider_is_logged_in') ? 'active' : null;
+    const savedTokenStatus = localStorage.getItem('provider_is_logged_in');
+    const savedActualToken = localStorage.getItem('provider_access_token');
     const savedPhone = localStorage.getItem('provider_phone');
     const savedImpersonated = localStorage.getItem('provider_impersonated') === 'true';
     setIsImpersonated(savedImpersonated);
 
-    if (savedToken) {
-      setToken(savedToken);
+    const tokenToUse = savedActualToken || (savedTokenStatus ? 'active' : null);
+
+    if (tokenToUse) {
+      setToken(tokenToUse);
       if (savedPhone) {
         setPhoneNumber(savedPhone);
         setSelectedPhone(savedPhone);
       }
-      loadDashboardData(savedToken);
+      loadDashboardData(tokenToUse);
     }
   }, []);
 
@@ -1045,6 +1050,7 @@ export default function ProviderDashboard() {
       const accessToken = verifyData.accessToken;
       setToken(accessToken);
       localStorage.setItem('provider_is_logged_in', 'true');
+      localStorage.setItem('provider_access_token', accessToken); // SAVE THE ACTUAL TOKEN
       localStorage.setItem('provider_phone', phoneNumber);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
       
@@ -1142,6 +1148,7 @@ export default function ProviderDashboard() {
       const accessToken = verifyData.accessToken;
       setToken(accessToken);
       localStorage.setItem('provider_is_logged_in', 'true');
+      localStorage.setItem('provider_access_token', accessToken); // SAVE THE ACTUAL TOKEN
       localStorage.setItem('provider_phone', phone);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
       
