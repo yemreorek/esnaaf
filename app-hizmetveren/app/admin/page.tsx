@@ -344,8 +344,13 @@ export default function AdminPortal() {
       if (token) {
         const decoded = decodeJwt(token);
         if (decoded) {
-          // First set a temp local match so UI doesn't flicker
-          const matchingStaff = defaultStaffList.find(s => s.phone_decrypted === decoded.phone || s.phone_masked === decoded.phone);
+          // First set a temp local match
+          const normalizedDecodedPhone = decoded.phone ? decoded.phone.replace(/\s+/g, '') : '';
+          const matchingStaff = staffList.find(s => 
+            (s.phone && s.phone.replace(/\s+/g, '') === normalizedDecodedPhone) || 
+            (s.phone_masked && s.phone_masked.replace(/\s+/g, '') === normalizedDecodedPhone) || 
+            (s.phone_decrypted && s.phone_decrypted.replace(/\s+/g, '') === normalizedDecodedPhone)
+          );
           const nameToUse = matchingStaff ? matchingStaff.name : (decoded.role === 'admin' ? 'Süper Admin' : 'Personel');
           const roleToUse = matchingStaff ? matchingStaff.role : decoded.role;
           
