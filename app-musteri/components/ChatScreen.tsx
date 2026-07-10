@@ -85,6 +85,7 @@ interface Message {
     };
   };
   options?: string[];
+  inputType?: string;
 }
 
 interface ChatScreenProps {
