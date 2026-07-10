@@ -12,6 +12,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Trust proxy so rate limiting works correctly behind Next.js / Load Balancers
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.getInstance().set('trust proxy', 1);
+
   // Set payload size limits to allow base64 uploaded files in JSON body (e.g. provider photos)
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
