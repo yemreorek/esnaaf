@@ -4,13 +4,23 @@ import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
 import { Public } from '../../common/decorators';
 import { randomUUID } from 'crypto';
+import { IndustryExpertAgent } from '../agent/industry-expert.agent';
 
 @Controller()
 export class ChatController {
   constructor(
     private chatService: ChatService,
     private jwtService: JwtService,
+    private industryExpertAgent: IndustryExpertAgent,
   ) {}
+
+  @Public()
+  @Post('admin/chat/backfill-questions')
+  @HttpCode(HttpStatus.OK)
+  async backfillQuestions() {
+    this.industryExpertAgent.backfillExistingCategories(); // Async fire and forget
+    return { success: true, message: 'Backfill process started in the background.' };
+  }
 
   @Public()
   @Post('ortak/chat/anonim/baslat')

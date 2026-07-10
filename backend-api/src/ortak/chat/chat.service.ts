@@ -10,12 +10,15 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
+import { PrismaService } from '../../common/prisma/prisma.service';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   collected_data: {
     categorySlug?: string;
+    categoryName?: string;
+    questions_flow?: any[];
     city?: string;
     district?: string;
     neighborhood?: string;
@@ -73,6 +76,7 @@ export class ChatService {
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private geminiService: GeminiService,
     private openaiService: OpenAIService,
+    private prisma: PrismaService,
   ) {}
 
   private filterPii(text: string): string {
@@ -246,6 +250,7 @@ export class ChatService {
 
     let responseMessage = '';
     let options: string[] = [];
+    let inputType: string | undefined;
     let createdJobId: string | undefined;
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
 
@@ -262,10 +267,12 @@ export class ChatService {
           const detection = await this.detectCategory(filteredMessage);
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
+            state.collected_data.categoryName = detection.categoryName || undefined;
+            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
             state.step = 'collecting_details';
             
             // Immediately parse parameters for the newly detected category from the current user message
-            const questions = this.getQuestionsForCategory(detection.categorySlug);
+            const questions = this.getQuestionsForCategory(detection.categorySlug, state);
             for (const q of questions) {
               if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
                 const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
@@ -597,7 +604,7 @@ export class ChatService {
           }
 
           if (state.collected_data.categorySlug) {
-            const questions = this.getQuestionsForCategory(state.collected_data.categorySlug);
+            const questions = this.getQuestionsForCategory(state.collected_data.categorySlug, state);
             for (const q of questions) {
               if (q.key !== 'district' && q.key !== 'destinationDistrict') {
                 const isCurrentQuestion = nextQ && nextQ.key === q.key;
@@ -669,6 +676,51 @@ export class ChatService {
             };
           }
         }
+        
+        // Strict State Machine Interceptors for Etap 2 (ask_details) and Etap 3 (ask_address)
+        if (state.step === 'ask_details') {
+          const detailMsg = message.trim();
+          const isNo = /^(?:hayır|hayir|yok|devam|devam et|istemiyorum|gerek yok|no|skip|geç|gec|atla)$/i.test(detailMsg);
+          const isReferredBack = /(?:az önce|yukarıda|daha önce|belirttim|yazdım|söyledim)/i.test(detailMsg);
+          
+          if (isReferredBack) {
+            const previousUserMsgs = state.messages.slice(0, -1)
+              .filter(m => m.role === 'user' && m.content.trim().length >= 15)
+              .map(m => m.content.trim());
+            
+            if (previousUserMsgs.length > 0) {
+              state.collected_data.details = previousUserMsgs[previousUserMsgs.length - 1];
+            } else if (!state.collected_data.details) {
+              state.collected_data.details = 'Detay belirtilmedi.';
+            }
+          } else if (!isNo) {
+            state.collected_data.details = detailMsg;
+          } else {
+            state.collected_data.details = state.collected_data.details || 'Detay belirtilmedi.';
+          }
+          state.collected_data.hasAskedDetails = true;
+          state.step = 'ask_address';
+          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return { step: 'ask_address', responseMessage, collected_data: state.collected_data };
+        } else if (state.step === 'ask_address') {
+          try {
+            const parsed = JSON.parse(message);
+            if (parsed.city) state.collected_data.city = parsed.city;
+            if (parsed.district) state.collected_data.district = parsed.district;
+            if (parsed.neighborhood) state.collected_data.neighborhood = parsed.neighborhood;
+          } catch (e) {
+             // Handle plain text gracefully if needed, but UI will send JSON
+          }
+          state.step = 'ask_name';
+          responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return { step: 'ask_name', responseMessage, collected_data: state.collected_data };
+        }
 
         // B2. Invoke Gemini model
         let assistantDirective = "";
@@ -686,7 +738,8 @@ export class ChatService {
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
 - Müşteriden şu eksik bilgiyi almalısın: **${nextQ.question}** (Parametre anahtarı: '${nextQ.key}').
-- Lütfen müşteriye bu soruyu tatlı ve doğal bir dille yönelt. Müşteri zaten bu bilgiyi vermişse ama sistem henüz kaydetmemişse, soruyu farklı bir şekilde teyit et veya doğrudan kaydetmesini sağla.
+- Lütfen müşteriye bu soruyu tatlı ve doğal bir dille yönelt. 
+- EĞER müşteri sorulan soru dışında serbest bir metin yazıp araya girdiyse (örn: "Usta sigortalı mı?"), önce onun sorusunu kısaca yanıtla, sonra kaldığın bu eksik soruyu ('${nextQ.question}') mutlaka tekrar sor!
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
 `;
           } else if (!state.collected_data.hasAskedDetails) {
@@ -924,10 +977,11 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (call.name === 'detectCategory') {
             const { categorySlug } = call.args as any;
             state.collected_data.categorySlug = categorySlug;
+            await this.loadCategoryQuestions(state, categorySlug);
             state.step = 'collecting_details';
 
             // Immediately parse parameters for the newly detected category from the current user message
-            const questions = this.getQuestionsForCategory(categorySlug);
+            const questions = this.getQuestionsForCategory(categorySlug, state);
             for (const q of questions) {
               if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
                 const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
@@ -1036,6 +1090,15 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             responseMessage = 'Size nasıl yardımcı olabilirim?';
           }
           this.syncStep(state);
+          
+          // Attach options and inputType if we are still collecting details and there's a next question
+          if (state.step === 'collecting_details') {
+            const nextQ = this.getNextQuestion(state);
+            if (nextQ && nextQ.options && options.length === 0) {
+              options = nextQ.options;
+              inputType = nextQ.inputType || 'single_choice';
+            }
+          }
         }
 
         state.messages.push({ role: 'assistant', content: responseMessage });
@@ -1047,6 +1110,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           responseMessage,
           collected_data: state.collected_data,
           options,
+          inputType,
         };
       }
 
@@ -1056,6 +1120,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         
         if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
           state.collected_data.categorySlug = detection.categorySlug;
+          state.collected_data.categoryName = detection.categoryName || undefined;
+          await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
           
           const loc = this.parseLocation(message);
            if (loc.city) {
@@ -1065,7 +1131,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             state.collected_data.district = loc.district;
           }
 
-          const questions = this.getQuestionsForCategory(detection.categorySlug);
+          const questions = this.getQuestionsForCategory(detection.categorySlug, state);
           const initialParsableKeys = [
             'district', 'destinationDistrict', 'daireTipi', 'metrekare', 'aciliyet', 
             'siflik', 'tur', 'butce', 'sorunTuru', 'isTuru', 'kapsam',
@@ -1085,7 +1151,10 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           const nextQ = this.getNextQuestion(state);
           if (nextQ) {
             responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
-            if (nextQ.options) options = nextQ.options;
+            if (nextQ.options) {
+              options = nextQ.options;
+              inputType = nextQ.inputType || 'single_choice';
+            }
           } else {
             state.step = 'ask_details';
             responseMessage = this.generatePromptForCategory(detection.categorySlug);
@@ -1126,7 +1195,10 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         const nextMissingQ = this.getNextQuestion(state);
         if (nextMissingQ) {
           responseMessage = nextMissingQ.question;
-          if (nextMissingQ.options) options = nextMissingQ.options;
+          if (nextMissingQ.options) {
+            options = nextMissingQ.options;
+            inputType = nextMissingQ.inputType || 'single_choice';
+          }
         } else {
           if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
             state.collected_data.hasAskedDetails = true;
@@ -1345,6 +1417,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         step: state.step,
         responseMessage,
         collected_data: state.collected_data,
+        options,
+        inputType,
         ...(createdJobId && { jobId: createdJobId }),
       };
     } catch (error) {
@@ -1366,6 +1440,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           const detection = await this.detectCategory(filteredMessage);
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
+            state.collected_data.categoryName = detection.categoryName || undefined;
+            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName);
             fallbackStep = 'collecting_details';
             const nextQ = this.getNextQuestion(state);
             fallbackResponse = nextQ
@@ -1809,7 +1885,44 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     return null;
   }
 
-  private getQuestionsForCategory(slug: string): any[] {
+  private async loadCategoryQuestions(state: SessionState, slug: string, name?: string) {
+    if (state.collected_data.questions_flow) return;
+    try {
+      const categoryName = name || state.collected_data.categoryName;
+      let category = null;
+      if (categoryName) {
+        category = await this.prisma.category.findUnique({ where: { name: categoryName } });
+      } else {
+        const partialName = slug.split('-').join(' ');
+        category = await this.prisma.category.findFirst({
+          where: { name: { contains: partialName, mode: 'insensitive' } }
+        });
+      }
+      
+      if (category && category.questions_flow) {
+        state.collected_data.questions_flow = category.questions_flow as any[];
+      }
+    } catch (e) {
+      console.error('[ChatService] Failed to load category questions:', e);
+    }
+  }
+
+  private getQuestionsForCategory(slug: string, state?: SessionState): any[] {
+    if (state?.collected_data?.questions_flow) {
+      // Map dynamic JSON back to internal format with a generic parser
+      return state.collected_data.questions_flow.map(q => ({
+        key: q.key,
+        question: q.question_text,
+        options: q.options,
+        inputType: q.input_type || 'single_choice',
+        parse: (msg: string) => {
+          // A generic parser that returns exact match if it exists in options, else trim
+          const text = msg.trim().toLowerCase();
+          const match = q.options.find(opt => opt.toLowerCase() === text);
+          return match || msg.trim();
+        }
+      }));
+    }
     const districtQuestions: Record<string, string> = {
       'ev-temizligi': 'Hizmetin verileceği ilçeyi (örn. Kadıköy, Şişli) yazar mısınız?',
       'boya-badana': 'Hizmetin verileceği ilçeyi (örn. Beşiktaş, Kadıköy) yazar mısınız?',
@@ -1941,7 +2054,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   private getNextQuestion(state: SessionState): any | null {
     const slug = state.collected_data.categorySlug;
     if (!slug) return null;
-    const questions = this.getQuestionsForCategory(slug);
+    const questions = this.getQuestionsForCategory(slug, state);
     for (const q of questions) {
       if (!state.collected_data[q.key]) {
         return q;

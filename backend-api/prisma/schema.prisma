@@ -148,6 +148,7 @@ model Category {
   name             String           @unique
   isActive         Boolean          @default(true)
   created_at       DateTime         @default(now())
+  questions_flow   Json?            @db.JsonB
   service_requests ServiceRequest[]
 
   @@map("categories")

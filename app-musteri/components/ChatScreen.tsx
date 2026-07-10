@@ -185,6 +185,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>("greeting");
   const [jobId, setJobId] = useState<string | null>(null);
+  const [selectedMultiOptions, setSelectedMultiOptions] = useState<string[]>([]);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -581,6 +582,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
     setIsLoading(true);
     setInputVal("");
+    setSelectedMultiOptions([]);
 
     const startTime = Date.now(); // Record start time to calculate typing delay
 
@@ -681,6 +683,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           role: "assistant",
           content: data.responseMessage,
           collected_data: data.collected_data,
+          options: data.options,
+          inputType: data.inputType,
           isStreaming: true,
         },
       ]);
@@ -1107,16 +1111,52 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                 )}
 
                 {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
-                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100/50">
-                    {msg.options.map((opt, idx) => (
+                  <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-slate-100/50">
+                    <div className="flex flex-wrap gap-2">
+                      {msg.options.map((opt, idx) => {
+                        const isSelected = selectedMultiOptions.includes(opt);
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              if (msg.inputType === 'multi_choice') {
+                                setSelectedMultiOptions(prev => 
+                                  prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
+                                );
+                              } else {
+                                sendMessage(opt);
+                              }
+                            }}
+                            className={`px-4 py-2 text-sm font-semibold rounded-2xl border transition-all duration-200 cursor-pointer text-left leading-tight ${
+                              isSelected 
+                                ? 'bg-[#c8f252] border-[#c8f252] text-slate-800 shadow-sm' 
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-[#c8f252]/20 hover:border-[#c8f252]'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {msg.inputType === 'multi_choice' && selectedMultiOptions.length > 0 && (
                       <button
-                        key={idx}
-                        onClick={() => sendMessage(opt)}
-                        className="px-4 py-2 bg-slate-50 hover:bg-[#c8f252]/20 hover:border-[#c8f252] hover:text-slate-800 text-slate-600 text-sm font-semibold rounded-2xl border border-slate-200 transition-all duration-200 cursor-pointer text-left leading-tight"
+                        onClick={() => sendMessage(selectedMultiOptions.join(', '))}
+                        className="self-end px-5 py-2 bg-slate-800 text-white font-semibold rounded-xl text-sm hover:bg-slate-700 transition-colors"
                       >
-                        {opt}
+                        Seçimi Tamamla
                       </button>
-                    ))}
+                    )}
+                  </div>
+                )}
+
+                {!msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep === "ask_details" && (
+                  <div className="mt-3 pt-3 border-t border-slate-100/50 flex justify-end">
+                    <button
+                      onClick={() => sendMessage("Detay yok")}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 text-xs font-semibold rounded-xl transition-colors"
+                    >
+                      Detay Eklemeden Geç
+                    </button>
                   </div>
                 )}
 
@@ -1548,6 +1588,10 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             >
               {isLoading ? <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : 'Doğrulama Kodu Gönder'}
             </button>
+          </div>
+        ) : ['greeting', 'category_detection', 'collecting_details'].includes(currentStep) ? (
+          <div className="w-full text-center py-4 text-slate-500 text-sm font-medium animate-pulse">
+            Lütfen yukarıdaki seçeneklerden birini belirleyerek devam edin.
           </div>
         ) : (
           <div className="w-full md:max-w-[720px] md:mx-auto flex items-end gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
