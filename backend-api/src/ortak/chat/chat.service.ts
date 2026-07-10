@@ -10,7 +10,6 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
-import { PrismaService } from '../../common/prisma/prisma.service';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
