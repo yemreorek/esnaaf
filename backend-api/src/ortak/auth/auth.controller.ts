@@ -45,9 +45,7 @@ export class AuthController {
   async verifyOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.verifyOtp(dto);
     this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { accessToken, refreshToken, ...rest } = result;
-    return rest;
+    return result;
   }
 
   @Public()
@@ -76,9 +74,7 @@ export class AuthController {
   async providerLogin(@Body() dto: ProviderLoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.providerLogin(dto);
     this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { accessToken, refreshToken, ...rest } = result;
-    return rest;
+    return result;
   }
 
   @Public()
