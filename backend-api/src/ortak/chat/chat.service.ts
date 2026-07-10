@@ -76,7 +76,6 @@ export class ChatService {
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private geminiService: GeminiService,
     private openaiService: OpenAIService,
-    private prisma: PrismaService,
   ) {}
 
   private filterPii(text: string): string {
