@@ -43,7 +43,7 @@ export function isLoggedIn(): boolean {
 export function logout(): void {
   if (typeof window === 'undefined') return;
   // Trigger backend logout to clear cookies
-  fetch('/api/ortak/auth/logout', { method: 'POST', credentials: 'use-credentials' }).catch(console.error);
+  fetch('/api/ortak/auth/logout', { method: 'POST', credentials: 'include' }).catch(console.error);
   localStorage.removeItem('esnaaf_user');
 }
 
@@ -75,6 +75,6 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
   return fetch(url, {
     ...options,
     headers,
-    credentials: 'use-credentials', // IMPORTANT: Send cookies
+    credentials: 'include', // IMPORTANT: Send cookies
   });
 }
