@@ -632,8 +632,8 @@ export class ChatService {
                   } else if (q.key === 'etkinlikTuru') {
                     const eventPattern = /(?:düğün|nişan|kına|doğum|sünnet|mezuniyet|etkinlik|organizasyon|çekim|foto|parti|konser)/i;
                     canParse = eventPattern.test(message);
-                  } else if (q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()')) {
-                    // Fallback for any other generic trim parser
+                  } else {
+                    // Fallback for any other generic parser
                     canParse = false;
                   }
                 }
@@ -1139,9 +1139,28 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           ];
           for (const q of questions) {
             if (initialParsableKeys.includes(q.key) && q.key !== 'district') {
-              const parsedVal = q.parse(message);
-              if (parsedVal) {
-                state.collected_data[q.key] = parsedVal;
+              let canParse = true;
+              if (q.key === 'tarih') {
+                canParse = /(?:ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar|gün|yarın|bugün|saat|\b\d{1,2}[:.]\d{2}\b|\b\d{1,2}\.\d{1,2}\b)/i.test(message);
+              } else if (q.key === 'renkTip') {
+                canParse = /(?:\brenk\b|\bboya\b|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i.test(message);
+              } else if (q.key === 'katAsansor') {
+                canParse = /(?:kat|asansör|merdiven|giriş|yüksek|villa|müstakil)/i.test(message);
+              } else if (q.key === 'camTipi') {
+                canParse = /(?:cam|ısıcam|konfor|çift|tek|temper|lamine|pvc|panjur)/i.test(message);
+              } else if (q.key === 'kombiDurumu') {
+                canParse = /(?:kombi|tesisat|proje|montaj|petek|boru)/i.test(message);
+              } else if (q.key === 'etkinlikTuru') {
+                canParse = /(?:düğün|nişan|kına|doğum|sünnet|mezuniyet|etkinlik|organizasyon|çekim|foto|parti|konser)/i.test(message);
+              } else {
+                canParse = false;
+              }
+
+              if (canParse) {
+                const parsedVal = q.parse(message);
+                if (parsedVal) {
+                  state.collected_data[q.key] = parsedVal;
+                }
               }
             }
           }
