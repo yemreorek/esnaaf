@@ -15,12 +15,14 @@ import {
   SaveAbTestConfigDto,
   CreateCampaignDto
 } from './dto/admin-users.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
 import { GraphSeederService, GraphKnowledgeBase } from './graph-seeder.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin', 'quality_staff', 'finance_staff', 'ops_staff', 'sales_staff', 'executive')
+@SkipThrottle()
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,

@@ -41,7 +41,7 @@ import { AppService } from './app.service';
         throttlers: [
           {
             ttl: 60000,
-            limit: 100, // Hardcoded to 100 because prod is incorrectly set to 3
+            limit: parseInt(process.env.THROTTLE_LIMIT || '1000', 10), // Limit artırıldı (Admin paneli için)
           },
         ],
         storage: new ThrottlerStorageRedisService(process.env.REDIS_URL || 'redis://localhost:6379'),
