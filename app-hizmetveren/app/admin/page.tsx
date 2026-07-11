@@ -262,8 +262,7 @@ export default function AdminPortal() {
     if (!currentUser) return false;
     
     // Super admin sees everything
-    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') if (tab === 'sectors' && ['super_admin', 'admin'].includes(role)) return true;
-    return true;
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true;
 
     // Check if user has permissions object loaded from backend
     if (currentUser.permissions) {
@@ -292,6 +291,8 @@ export default function AdminPortal() {
           return !!(perms.campaigns && perms.campaigns !== 'none');
         case 'auditlogs':
           return !!(perms.staff && perms.staff !== 'none'); // Audit logs under staff permission
+        case 'sectors':
+          return !!(perms.dashboard && perms.dashboard !== 'none');
         case 'abtest':
           return !!(perms.ab_test && perms.ab_test !== 'none');
         default:
@@ -3291,8 +3292,7 @@ ${callTaskNotes}`;
                       <tbody className="divide-y divide-slate-100">
                         {(() => {
                           const filtered = staffList.filter(st => {
-                            if (selectedStaffRoleFilter === 'all') if (tab === 'sectors' && ['super_admin', 'admin'].includes(role)) return true;
-    return true;
+                            if (selectedStaffRoleFilter === 'all') return true;
                             return st.role === selectedStaffRoleFilter;
                           });
 
