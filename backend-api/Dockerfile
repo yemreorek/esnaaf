@@ -19,4 +19,4 @@ COPY --from=builder /app/prisma ./prisma
 
 USER node
 EXPOSE 3000
-CMD ["sh", "-c", "if [ -f dist/src/main.js ]; then node dist/src/main.js; else node dist/main.js; fi"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && if [ -f dist/src/main.js ]; then node dist/src/main.js; else node dist/main.js; fi"]
