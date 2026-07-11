@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { BildirimModule } from '../ortak/bildirimler/bildirim.module';
+import { GraphSeederService } from './graph-seeder.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { BildirimModule } from '../ortak/bildirimler/bildirim.module';
     BildirimModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, GraphSeederService],
   exports: [AdminService],
 })
 export class AdminModule {}

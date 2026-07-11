@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../common/decorators';
@@ -14,11 +16,37 @@ import {
   CreateCampaignDto
 } from './dto/admin-users.dto';
 
+import { GraphSeederService, GraphKnowledgeBase } from './graph-seeder.service';
+
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin', 'quality_staff', 'finance_staff', 'ops_staff', 'sales_staff', 'executive')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly graphSeederService: GraphSeederService,
+  ) {}
+
+  /**
+   * Yeni Sektör Şeması Yükle (.json)
+   * POST /api/admin/graph/upload-json
+   */
+  @Post('graph/upload-json')
+  @UseInterceptors(FileInterceptor('file'))
+  @Roles('admin', 'super_admin') // Sadece yetkili adminler
+  async uploadGraphJson(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Dosya bulunamadı.');
+    }
+
+    try {
+      const fileContent = file.buffer.toString('utf-8');
+      const parsed: GraphKnowledgeBase = JSON.parse(fileContent);
+      return await this.graphSeederService.ingestGraphConfig(parsed);
+    } catch (error: any) {
+      throw new BadRequestException(`Geçersiz JSON formatı veya yükleme hatası: ${error.message}`);
+    }
+  }
 
   /**
    * Giriş yapan admin personelin profil ve yetki bilgilerini getirir

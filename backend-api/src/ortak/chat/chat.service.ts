@@ -10,7 +10,7 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
-import { GRAPH_CONFIG } from './graph-nodes.config';
+
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -149,7 +149,7 @@ export class ChatService {
       return;
     }
 
-    const nextQ = this.getNextQuestion(state);
+    const nextQ = (await this.getNextQuestion(state));
     if (nextQ) {
       state.step = 'collecting_details';
       return;
@@ -584,7 +584,7 @@ export class ChatService {
         if (state.step === 'collecting_details' || state.step === 'category_detection' || state.step === 'greeting') {
           const parsedLoc = this.parseLocation(message);
           const isMoving = state.collected_data.categorySlug === 'nakliyat';
-          const nextQ = this.getNextQuestion(state);
+          const nextQ = (await this.getNextQuestion(state));
 
           if (parsedLoc.district) {
             if (isMoving) {
@@ -608,7 +608,7 @@ export class ChatService {
             if (state.collected_data.is_graph_flow) {
               const nodeId = state.collected_data.current_node_id;
               if (nodeId && nodeId !== 'none') {
-                const node = GRAPH_CONFIG.nodes[nodeId];
+                const node = await this.prisma.graphNode.findUnique({ where: { id: nodeId }, include: { options: true } });
                 if (node) {
                    state.collected_data[nodeId] = message.trim();
 
@@ -688,7 +688,7 @@ export class ChatService {
         }
 
         // Deterministic transition to ask_details if all technical questions are answered
-        if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
+        if (state.collected_data.categorySlug && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
           if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
             state.collected_data.hasAskedDetails = true;
             state.step = 'ask_address';
@@ -773,7 +773,7 @@ export class ChatService {
 - Bu aşamada konum/ilçe dışında başka detay sorma. Müşteri zaten bir konum vermişse, onu kaydet ve sadece ne hizmeti istediğini öğrenmeye odaklan.
 `;
         } else {
-          const nextQ = this.getNextQuestion(state);
+          const nextQ = (await this.getNextQuestion(state));
           if (nextQ) {
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
@@ -1035,7 +1035,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               }
             }
 
-            const nextQ = this.getNextQuestion(state);
+            const nextQ = (await this.getNextQuestion(state));
             if (nextQ) {
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
               if (nextQ.options) options = nextQ.options;
@@ -1147,7 +1147,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           
           // Attach options and inputType if we are still collecting details and there's a next question
           if (state.step === 'collecting_details') {
-            const nextQ = this.getNextQuestion(state);
+            const nextQ = (await this.getNextQuestion(state));
             if (nextQ && nextQ.options && options.length === 0) {
               options = nextQ.options;
               inputType = nextQ.inputType || 'single_choice';
@@ -1226,7 +1226,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
           state.step = 'collecting_details';
           
-          const nextQ = this.getNextQuestion(state);
+          const nextQ = (await this.getNextQuestion(state));
           if (nextQ) {
             responseMessage = `${detection.categoryName} talebiniz için detayları alalım. \n\n${nextQ.question}`;
             if (nextQ.options) {
@@ -1244,7 +1244,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
       } else if (state.step === 'collecting_details') {
         const slug = state.collected_data.categorySlug || 'ev-temizligi';
-        const nextQ = this.getNextQuestion(state);
+        const nextQ = (await this.getNextQuestion(state));
         
         if (nextQ) {
           const parsedVal = nextQ.parse(message);
@@ -1270,7 +1270,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           }
         }
 
-        const nextMissingQ = this.getNextQuestion(state);
+        const nextMissingQ = (await this.getNextQuestion(state));
         if (nextMissingQ) {
           responseMessage = nextMissingQ.question;
           if (nextMissingQ.options) {
@@ -1521,7 +1521,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             state.collected_data.categoryName = detection.categoryName || undefined;
             await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
             fallbackStep = 'collecting_details';
-            const nextQ = this.getNextQuestion(state);
+            const nextQ = (await this.getNextQuestion(state));
             fallbackResponse = nextQ
               ? `${detection.categoryName} talebiniz için detayları alalım.\n\n${nextQ.question}`
               : `${detection.categoryName} talebiniz için birkaç bilgi almam gerekiyor. Kısaca bahseder misiniz?`;
@@ -1533,7 +1533,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
         } else if (state.step === 'collecting_details') {
           // Mevcut soruya cevabı kaydet ve sonraki soruyu sor
-          const currentQ = this.getNextQuestion(state);
+          const currentQ = (await this.getNextQuestion(state));
           if (currentQ) {
             const parsedVal = currentQ.parse(message);
             if (parsedVal) {
@@ -1547,7 +1547,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               if (loc.district) state.collected_data.district = loc.district;
             }
           }
-          const nextQ = this.getNextQuestion(state);
+          const nextQ = (await this.getNextQuestion(state));
           if (nextQ) {
             fallbackResponse = nextQ.question;
             if (nextQ.options) options = nextQ.options;
@@ -1685,7 +1685,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         let fallbackOptions: string[] = [];
         let fallbackInputType = 'single_choice';
         if (state.step === 'collecting_details') {
-          const nextQ = this.getNextQuestion(state);
+          const nextQ = (await this.getNextQuestion(state));
           if (nextQ && nextQ.options) {
             fallbackOptions = nextQ.options;
             fallbackInputType = nextQ.inputType || 'single_choice';
@@ -1979,7 +1979,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   private async initializeCategoryFlow(state: SessionState, slug: string, name?: string) {
-    const route = GRAPH_CONFIG.category_routes[slug];
+    const route = await this.prisma.graphCategoryRoute.findUnique({ where: { category_slug: slug } });
     if (route) {
       state.collected_data.current_node_id = route.start_node_id;
       state.collected_data.node_queue = [];
@@ -2190,7 +2190,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     ];
   }
 
-  private getNextQuestion(state: SessionState): any | null {
+  private async getNextQuestion(state: SessionState): any | null {
     if (state.collected_data.is_graph_flow) {
       let nodeId = state.collected_data.current_node_id;
 
@@ -2205,7 +2205,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
       if (!nodeId || nodeId === 'none') return null;
 
-      const node = GRAPH_CONFIG.nodes[nodeId];
+      const node = await this.prisma.graphNode.findUnique({ where: { id: nodeId }, include: { options: true } });
       if (!node) {
         console.warn(`[ChatService] Node ID ${nodeId} not found in GRAPH_CONFIG.`);
         return null;

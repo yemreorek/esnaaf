@@ -1,0 +1,89 @@
+{
+  "category_routes": {
+    "klima_servisi": { "start_node_id": "klima_ana_soru" },
+    "oto_klima_servisi": { "start_node_id": "oto_marka_sorusu" },
+    "boya-badana": { "start_node_id": "boya_badana_metrekare" },
+    "kombi-klima": { "start_node_id": "kombi_klima_cihaz_turu" }
+  },
+  "nodes": {
+    "klima_ana_soru": {
+      "question_text": "Hangisine ihtiyacın var?",
+      "input_type": "multi_choice",
+      "options": [
+        { "text": "Klima montajı", "next_node_id": "montaj_detay_sorusu" },
+        { "text": "Klima Gaz Dolumu", "next_node_id": "klima_gaz_dolum_tipi_sorusu" }
+      ]
+    },
+    "klima_gaz_dolum_tipi_sorusu": {
+      "question_text": "Gazı dolacak klima tipi nedir?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "İç mekan kliması", "next_node_id": "none" },
+        { "text": "Oto / araç kliması", "next_node_id": "oto_marka_sorusu" }
+      ]
+    },
+    "montaj_detay_sorusu": {
+      "question_text": "Klima montajında borulama dahil mi?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "Evet, her şey dahil", "next_node_id": "none" },
+        { "text": "Sadece cihaz montajı", "next_node_id": "none" }
+      ]
+    },
+    "oto_marka_sorusu": {
+      "question_text": "Araç markası nedir?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "Audi", "next_node_id": "none" },
+        { "text": "BMW", "next_node_id": "none" },
+        { "text": "Diğer", "next_node_id": "none" }
+      ]
+    },
+    "boya_badana_metrekare": {
+      "question_text": "Boyanacak alan yaklaşık kaç metrekare?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "50 m2 altı", "next_node_id": "boya_badana_tur" },
+        { "text": "50-100 m2", "next_node_id": "boya_badana_tur" },
+        { "text": "100-150 m2", "next_node_id": "boya_badana_tur" },
+        { "text": "150 m2 üstü", "next_node_id": "boya_badana_tur" }
+      ]
+    },
+    "boya_badana_tur": {
+      "question_text": "İç cephe mi dış cephe mi boyanacak?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "İç Cephe", "next_node_id": "boya_badana_renk" },
+        { "text": "Dış Cephe", "next_node_id": "boya_badana_renk" },
+        { "text": "İkisi de", "next_node_id": "boya_badana_renk" }
+      ]
+    },
+    "boya_badana_renk": {
+      "question_text": "Tercih ettiğiniz boya markası veya renk var mı?",
+      "input_type": "text",
+      "next_node_id": "none"
+    },
+    "kombi_klima_cihaz_turu": {
+      "question_text": "Hangi cihaz için hizmet istiyorsunuz?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "Kombi", "next_node_id": "kombi_klima_islem_turu" },
+        { "text": "Klima", "next_node_id": "klima_ana_soru" }
+      ]
+    },
+    "kombi_klima_islem_turu": {
+      "question_text": "Yapılacak işlem nedir?",
+      "input_type": "single_choice",
+      "options": [
+        { "text": "Bakım", "next_node_id": "kombi_klima_adet" },
+        { "text": "Arıza Onarım", "next_node_id": "kombi_klima_adet" },
+        { "text": "Montaj / Demontaj", "next_node_id": "kombi_klima_adet" }
+      ]
+    },
+    "kombi_klima_adet": {
+      "question_text": "Hizmet alınacak cihaz adeti nedir?",
+      "input_type": "text",
+      "next_node_id": "none"
+    }
+  }
+}

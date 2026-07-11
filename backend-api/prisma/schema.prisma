@@ -741,3 +741,39 @@ model SavedCard {
   @@map("saved_cards")
   @@index([provider_id, is_primary])
 }
+
+
+// ¦¦ GRAF TABANLI FORM MOTORU MODELLERÝ (Dinamic Sektör Aðacý) ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+
+model GraphCategoryRoute {
+  category_slug String @id
+  start_node_id String
+
+  @@map("graph_category_routes")
+}
+
+model GraphNode {
+  id            String             @id
+  question_text String
+  input_type    String             // 'single_choice', 'multi_choice', 'text' vb.
+  next_node_id  String?            // Fallback veya 'text' inputlarý için
+  options       GraphNodeOption[]
+  
+  created_at    DateTime           @default(now())
+  updated_at    DateTime           @updatedAt
+
+  @@map("graph_nodes")
+}
+
+model GraphNodeOption {
+  id           String    @id @default(uuid())
+  node_id      String
+  text         String
+  next_node_id String?   // Opsiyon seçildiðinde gidilecek node
+
+  node         GraphNode @relation(fields: [node_id], references: [id], onDelete: Cascade)
+
+  @@index([node_id])
+  @@map("graph_node_options")
+}
+
