@@ -29,8 +29,7 @@ export default function SectorManagementPage() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      
-      const res = await fetch('http://localhost:3005/api/admin/graph/upload-json', {
+      const res = await fetch('/api/admin/graph/upload-json', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
