@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import SectorManagementPage from './sektor-yonetimi/page';
 import { 
   ShieldAlert, 
   Users, 
@@ -21,7 +22,8 @@ import {
   Percent,
   Sliders,
   Award,
-  Check
+  Check,
+  FileJson
 } from 'lucide-react';
 
 interface Stats {
@@ -233,7 +235,7 @@ export default function AdminPortal() {
 
 
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs' | 'kpi'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'sectors' | 'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs' | 'kpi'>('dashboard');
   const [logMessages, setLogMessages] = useState<string[]>([]);
   
   // Simulated Logged-In User Profile and RBAC States
@@ -260,7 +262,8 @@ export default function AdminPortal() {
     if (!currentUser) return false;
     
     // Super admin sees everything
-    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') return true;
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') if (tab === 'sectors' && ['super_admin', 'admin'].includes(role)) return true;
+    return true;
 
     // Check if user has permissions object loaded from backend
     if (currentUser.permissions) {
@@ -1717,6 +1720,24 @@ ${callTaskNotes}`;
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5" />
                   <span>Bölgesel Raporlar / KPI</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </button>
+            )}
+
+            
+            {isTabAllowed('sectors') && (
+              <button
+                onClick={() => setActiveTab('sectors')}
+                className={`w-full text-left px-5 py-4 rounded-2xl font-black text-sm flex items-center justify-between transition-all border cursor-pointer ${
+                  activeTab === 'sectors'
+                    ? 'bg-[#c8f252] border-[#c8f252]/20 text-slate-955 font-extrabold shadow-sm shadow-[#c8f252]/10'
+                    : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <FileJson className="w-5 h-5" />
+                  <span>Sektör Yönetimi</span>
                 </div>
                 <ChevronRight className="w-4 h-4 opacity-50" />
               </button>
@@ -3270,7 +3291,8 @@ ${callTaskNotes}`;
                       <tbody className="divide-y divide-slate-100">
                         {(() => {
                           const filtered = staffList.filter(st => {
-                            if (selectedStaffRoleFilter === 'all') return true;
+                            if (selectedStaffRoleFilter === 'all') if (tab === 'sectors' && ['super_admin', 'admin'].includes(role)) return true;
+    return true;
                             return st.role === selectedStaffRoleFilter;
                           });
 
@@ -4949,6 +4971,14 @@ ${callTaskNotes}`;
       )}
 
 
+
+      
+      {/* SECTORS TAB */}
+      {activeTab === 'sectors' && (
+        <div className="animate-fade-in">
+          <SectorManagementPage />
+        </div>
+      )}
 
       {/* Custom Confirm Modal */}
       {confirmModal.isOpen && (
