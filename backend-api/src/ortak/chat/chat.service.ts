@@ -651,13 +651,13 @@ export class ChatService {
         if (state.collected_data.categorySlug && !this.getNextQuestion(state) && !state.collected_data.hasAskedDetails) {
           if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
             state.collected_data.hasAskedDetails = true;
-            state.step = 'ask_name';
-            responseMessage = `Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
+            state.step = 'ask_address';
+            responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
             state.messages.push({ role: 'assistant', content: responseMessage });
             await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
             await this.trackTokens(sessionKey, tokensUsed);
             return {
-              step: 'ask_name',
+              step: 'ask_address',
               responseMessage,
               collected_data: state.collected_data,
             };
@@ -1002,8 +1002,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               state.step = 'ask_details';
               responseMessage = this.generatePromptForCategory(categorySlug || null);
             } else {
-              state.step = 'ask_name';
-              responseMessage = 'Talebinizle ilgili tüm detaylar başarıyla kaydedildi. Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyim?';
+              state.step = 'ask_address';
+              responseMessage = 'Talebinizle ilgili detaylar başarıyla kaydedildi. Hizmetin verileceği konumu seçebilir misiniz?';
             }
           }
           else if (call.name === 'sendOTP') {
@@ -1500,8 +1500,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           } else {
             if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
               state.collected_data.hasAskedDetails = true;
-              fallbackStep = 'ask_name';
-              fallbackResponse = 'Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?';
+              fallbackStep = 'ask_address';
+              fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz?';
             } else {
               fallbackStep = 'ask_details';
               fallbackResponse = this.generatePromptForCategory(state.collected_data.categorySlug || null);
@@ -1511,8 +1511,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         } else if (state.step === 'ask_details') {
           state.collected_data.details = message.trim() || state.collected_data.details || 'Detay belirtilmedi.';
           state.collected_data.hasAskedDetails = true;
-          fallbackStep = 'ask_name';
-          fallbackResponse = 'Teşekkürler, notunuzu aldım. Hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?';
+          fallbackStep = 'ask_address';
+          fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz?';
 
         } else if (state.step === 'ask_name') {
           const name = message.trim();
