@@ -3837,6 +3837,12 @@ ${callTaskNotes}`;
                 )}
               </div>
             )}
+            {/* SECTORS TAB */}
+            {activeTab === 'sectors' && (
+              <div className="animate-fade-in">
+                <SectorManagementPage />
+              </div>
+            )}
           </section>
         </div>
       )}
@@ -4967,16 +4973,6 @@ ${callTaskNotes}`;
               </div>
             </form>
           </div>
-        </div>
-      )}
-
-
-
-      
-      {/* SECTORS TAB */}
-      {activeTab === 'sectors' && (
-        <div className="animate-fade-in">
-          <SectorManagementPage />
         </div>
       )}
 
