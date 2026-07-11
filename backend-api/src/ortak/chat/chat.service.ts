@@ -671,6 +671,8 @@ export class ChatService {
               step: 'ask_details',
               responseMessage,
               collected_data: state.collected_data,
+              options: this.getChecklistForCategory(state.collected_data.categorySlug || null),
+              inputType: 'multi_choice'
             };
           }
         }
@@ -1096,6 +1098,11 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               options = nextQ.options;
               inputType = nextQ.inputType || 'single_choice';
             }
+          } else if (state.step === 'ask_details') {
+            if (options.length === 0) {
+              options = this.getChecklistForCategory(state.collected_data.categorySlug || null);
+            }
+            inputType = 'multi_choice';
           }
         }
 
@@ -1621,10 +1628,25 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
         await this.trackTokens(sessionKey, tokensUsed);
 
+        let fallbackOptions: string[] = [];
+        let fallbackInputType = 'single_choice';
+        if (state.step === 'collecting_details') {
+          const nextQ = this.getNextQuestion(state);
+          if (nextQ && nextQ.options) {
+            fallbackOptions = nextQ.options;
+            fallbackInputType = nextQ.inputType || 'single_choice';
+          }
+        } else if (state.step === 'ask_details') {
+          fallbackOptions = this.getChecklistForCategory(state.collected_data.categorySlug || null);
+          fallbackInputType = 'multi_choice';
+        }
+
         return {
           step: state.step,
           responseMessage: fallbackResponse,
           collected_data: state.collected_data,
+          options: fallbackOptions,
+          inputType: fallbackInputType
         };
 
       } catch (fallbackError) {
@@ -2557,14 +2579,9 @@ ${prompt}
 
   private generatePromptForCategory(slug: string | null): string {
     const categoryName = this.getCategoryName(slug);
-    const checklist = this.getChecklistForCategory(slug);
     const providerNoun = this.getProviderNounForCategory(slug);
     
-    let text = `${categoryName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ${providerNoun} en doğru teklifi vermesini sağlayacaktır.\n\n`;
-    text += `*Fikir vermesi açısından şu detayları da açıklamanıza ekleyebilirsiniz:*\n`;
-    checklist.forEach((item, index) => {
-      text += `${index + 1}. ${item}\n`;
-    });
+    let text = `${categoryName} hizmeti için nasıl bir hizmet ve destek istiyorsunuz? Detaylı açıklama yapmanız ${providerNoun} en doğru teklifi vermesini sağlayacaktır.\n\nAşağıdaki seçeneklerden ilerleyebilir veya yazabilirsiniz:`;
     
     return text.trim();
   }
