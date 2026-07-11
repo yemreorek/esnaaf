@@ -36,7 +36,7 @@ export class AdminController {
   @Post('graph/upload-json')
   @UseInterceptors(FileInterceptor('file'))
   @Roles('admin', 'super_admin') // Sadece yetkili adminler
-  async uploadGraphJson(@UploadedFile() file: Express.Multer.File) {
+  async uploadGraphJson(@UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('Dosya bulunamadı.');
     }

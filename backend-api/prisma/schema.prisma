@@ -743,7 +743,7 @@ model SavedCard {
 }
 
 
-// ¦¦ GRAF TABANLI FORM MOTORU MODELLERÝ (Dinamic Sektör Aðacý) ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+// ï¿½ï¿½ GRAF TABANLI FORM MOTORU MODELLERï¿½ (Dinamic Sektï¿½r Aï¿½acï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 model GraphCategoryRoute {
   category_slug String @id
@@ -755,8 +755,13 @@ model GraphCategoryRoute {
 model GraphNode {
   id            String             @id
   question_text String
+  title         String?
+  description   String?
+  is_optional   Boolean            @default(false)
+  submit_action String?
+  notes         String?
   input_type    String             // 'single_choice', 'multi_choice', 'text' vb.
-  next_node_id  String?            // Fallback veya 'text' inputlarý için
+  next_node_id  String?            // Fallback veya 'text' inputlarï¿½ iï¿½in
   options       GraphNodeOption[]
   
   created_at    DateTime           @default(now())
@@ -769,7 +774,7 @@ model GraphNodeOption {
   id           String    @id @default(uuid())
   node_id      String
   text         String
-  next_node_id String?   // Opsiyon seçildiðinde gidilecek node
+  next_node_id String?   // Opsiyon seï¿½ildiï¿½inde gidilecek node
 
   node         GraphNode @relation(fields: [node_id], references: [id], onDelete: Cascade)
 

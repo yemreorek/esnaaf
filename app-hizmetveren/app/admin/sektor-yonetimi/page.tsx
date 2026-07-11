@@ -54,8 +54,8 @@ export default function SectorManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full">
+      <div className="max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Sektör ve Soru Yönetimi</h1>
         <p className="text-gray-600 mb-8">
           Sonsuz seviyeli karar ağacı altyapısına yeni hizmet akışları ekleyin veya mevcutları güncelleyin.

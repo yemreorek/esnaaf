@@ -1,0 +1,289 @@
+{
+  "service_category": "Temizlik Hizmetleri",
+  "version": "1.0",
+  "steps": {
+    "1": {
+      "step_id": "1",
+      "title": "Ana Sektör: Temizlik Hizmetleri",
+      "question": "Ne tür bir temizlik hizmetine ihtiyacınız var?",
+      "type": "single_select",
+      "options": [
+        { "label": "Ev Temizliği (Eşyalı/Yaşayan Ev)", "next_step": "2" },
+        { "label": "Boş Ev Temizliği (Taşınma Öncesi/Sonrası)", "next_step": "3" },
+        { "label": "Apartman / Bina Temizliği", "next_step": "4" },
+        { "label": "İnşaat Sonrası / Tadilat Sonrası Temizlik", "next_step": "5" },
+        { "label": "Cam Temizliği", "next_step": "6" }
+      ]
+    },
+    "2": {
+      "step_id": "2",
+      "title": "Ev Temizliği Detayı",
+      "question": "Evin büyüklüğü nedir?",
+      "description": "Evi detaylı temizleyip düzenliyoruz. Evindeki malzemeleri kullanarak yer ve cam silme, toz alma, çöp boşaltılması ve mutfak temizliği hizmetimiz kapsamında.",
+      "type": "single_select",
+      "options": [
+        { "label": "1+0", "next_step": "7" },
+        { "label": "1+1", "next_step": "7" },
+        { "label": "2+1", "next_step": "7" },
+        { "label": "3+1", "next_step": "7" },
+        { "label": "4+1", "next_step": "7" },
+        { "label": "5+1", "next_step": "7" },
+        { "label": "6+1 veya daha büyük", "next_step": "7" }
+      ]
+    },
+    "3": {
+      "step_id": "3",
+      "title": "Boş Ev Detayı",
+      "question": "Boş evin büyüklüğü nedir?",
+      "description": "Evi detaylı temizleyip düzenliyoruz. Evindeki malzemeleri kullanarak yer ve cam silme, toz alma, çöp boşaltılması ve mutfak temizliği hizmetimiz kapsamında.",
+      "type": "single_select",
+      "options": [
+        { "label": "1+0", "next_step": "3.1" },
+        { "label": "1+1", "next_step": "3.1" },
+        { "label": "2+1", "next_step": "3.1" },
+        { "label": "3+1", "next_step": "3.1" },
+        { "label": "4+1", "next_step": "3.1" },
+        { "label": "5+1", "next_step": "3.1" },
+        { "label": "6+1 veya daha büyük", "next_step": "3.1" }
+      ]
+    },
+    "3.1": {
+      "step_id": "3.1",
+      "title": "Boş Ev Sebebi",
+      "question": "Ev hangi sebepten dolayı boş?",
+      "type": "single_select",
+      "options": [
+        { "label": "Kiracı çıktı", "next_step": "7" },
+        { "label": "Sıfır ev", "next_step": "7" },
+        { "label": "Diğer", "next_step": "7" }
+      ]
+    },
+    "4": {
+      "step_id": "4",
+      "title": "Apartman Temizliği",
+      "question": "Apartman(lar)da toplam kaç daire var?",
+      "type": "single_select",
+      "options": [
+        { "label": "1-4", "next_step": "4.1" },
+        { "label": "5-9", "next_step": "4.1" },
+        { "label": "10-19", "next_step": "4.1" },
+        { "label": "20-29", "next_step": "4.1" },
+        { "label": "30-49", "next_step": "4.1" },
+        { "label": "50-99", "next_step": "4.1" },
+        { "label": "100+", "next_step": "4.1" }
+      ]
+    },
+    "4.1": {
+      "step_id": "4.1",
+      "title": "Apartman Temizlik Sıklığı",
+      "question": "Temizlik hangi sıklıkla yapılsın?",
+      "type": "single_select",
+      "options": [
+        { "label": "Haftada 2", "next_step": "4.2" },
+        { "label": "Haftalık", "next_step": "4.2" },
+        { "label": "2 Haftada 1", "next_step": "4.2" },
+        { "label": "Ayda 1", "next_step": "4.2" },
+        { "label": "Tek Sefer", "next_step": "4.2" }
+      ]
+    },
+    "4.2": {
+      "step_id": "4.2",
+      "title": "Çöp Durumu",
+      "question": "Çöp toplanmasını da istiyor musunuz?",
+      "type": "single_select",
+      "options": [
+        { "label": "Evet, çöp toplama yapılsın", "next_step": "4.3" },
+        { "label": "Hayır, çöp toplama istemiyorum", "next_step": "4.3" }
+      ]
+    },
+    "4.3": {
+      "step_id": "4.3",
+      "title": "Asansör Durumu",
+      "question": "Apartman(lar)da asansör var mı?",
+      "type": "single_select",
+      "options": [
+        { "label": "Evet, asansör var", "next_step": "END" },
+        { "label": "Hayır, asansör yok", "next_step": "END" }
+      ]
+    },
+    "5": {
+      "step_id": "5",
+      "title": "İnşaat Sonrası Detayı",
+      "question": "Kaç metrekare alan temizlenecek?",
+      "description": "En yakın seçeneği seçmeniz yeterli",
+      "type": "single_select",
+      "options": [
+        { "label": "50", "next_step": "5.1" },
+        { "label": "80", "next_step": "5.1" },
+        { "label": "100", "next_step": "5.1" },
+        { "label": "120", "next_step": "5.1" },
+        { "label": "150", "next_step": "5.1" },
+        { "label": "180", "next_step": "5.1" },
+        { "label": "200", "next_step": "5.1" },
+        { "label": "300", "next_step": "5.1" },
+        { "label": "500", "next_step": "5.1" },
+        { "label": "750", "next_step": "5.1" },
+        { "label": "1000 veya daha fazla", "next_step": "5.1" }
+      ]
+    },
+    "5.1": {
+      "step_id": "5.1",
+      "title": "Oda Sayısı",
+      "question": "Temizlenecek alan kaç oda + salon?",
+      "type": "single_select",
+      "options": [
+        { "label": "1+0", "next_step": "7" },
+        { "label": "1+1", "next_step": "7" },
+        { "label": "2+1", "next_step": "7" },
+        { "label": "3+1", "next_step": "7" },
+        { "label": "4+1", "next_step": "7" },
+        { "label": "5+1", "next_step": "7" },
+        { "label": "6+1 veya daha fazla", "next_step": "7" }
+      ]
+    },
+    "5.2": {
+      "step_id": "5.2",
+      "title": "İnşaat Alanı Durumu",
+      "question": "Temizlenecek alanın durumu nedir? (Birden fazla seçebilirsin)",
+      "type": "multi_select",
+      "options": [
+        { "label": "Boş ve eşya yok", "next_step": "END" },
+        { "label": "Boya badana / sıva yapıldı", "next_step": "END" },
+        { "label": "İnşaat pisliği var / sıfır ev / tadilat", "next_step": "END" },
+        { "label": "Pencerelerden etiket sökülecek", "next_step": "END" },
+        { "label": "Diğer", "next_step": "END" }
+      ]
+    },
+    "6": {
+      "step_id": "6",
+      "title": "Cam Temizliği Mekan Seçimi",
+      "question": "Camları temizlenecek mekan nedir?",
+      "type": "single_select",
+      "options": [
+        { "label": "Ev", "next_step": "6.1" },
+        { "label": "Bina dış cephe", "next_step": "6.2" },
+        { "label": "Mağaza", "next_step": "6.3" },
+        { "label": "Diğer", "next_step": "END" }
+      ]
+    },
+    "6.1": {
+      "step_id": "6.1",
+      "title": "Ev Cam Detayı",
+      "question": "Ne kadar büyük bir evin camları temizlenecek?",
+      "type": "single_select",
+      "options": [
+        { "label": "1 oda 1 salon", "next_step": "6.1.1" },
+        { "label": "2 oda 1 salon", "next_step": "6.1.1" },
+        { "label": "3 oda 1 salon", "next_step": "6.1.1" },
+        { "label": "4 oda 1 salon", "next_step": "6.1.1" },
+        { "label": "5 oda 1 salon veya daha büyük", "next_step": "6.1.1" }
+      ]
+    },
+    "6.1.1": {
+      "step_id": "6.1.1",
+      "title": "Balkon Tipi",
+      "question": "Evde hangi tip balkon var?",
+      "type": "single_select",
+      "options": [
+        { "label": "Açık balkon", "next_step": "END" },
+        { "label": "Cam balkon", "next_step": "END" },
+        { "label": "Fransız balkon", "next_step": "END" },
+        { "label": "Balkon yok", "next_step": "END" }
+      ]
+    },
+    "6.2": {
+      "step_id": "6.2",
+      "title": "Dış Cephe Detayı",
+      "question": "Dış cephe camı temizlenecek bina kaç katlı?",
+      "type": "single_select",
+      "options": [
+        { "label": "1", "next_step": "END" },
+        { "label": "2", "next_step": "END" },
+        { "label": "3", "next_step": "END" },
+        { "label": "4", "next_step": "END" },
+        { "label": "5", "next_step": "END" },
+        { "label": "6-7", "next_step": "END" },
+        { "label": "8-9", "next_step": "END" },
+        { "label": "10", "next_step": "END" },
+        { "label": "11+", "next_step": "END" }
+      ]
+    },
+    "6.3": {
+      "step_id": "6.3",
+      "title": "Mağaza Cam Detayı",
+      "question": "Temizlenecek cam alanı kaç metrekare?",
+      "type": "single_select",
+      "options": [
+        { "label": "5", "next_step": "END" },
+        { "label": "10", "next_step": "END" },
+        { "label": "20", "next_step": "END" },
+        { "label": "30", "next_step": "END" },
+        { "label": "50", "next_step": "END" },
+        { "label": "80", "next_step": "END" },
+        { "label": "100", "next_step": "END" },
+        { "label": "150", "next_step": "END" },
+        { "label": "200+", "next_step": "END" }
+      ]
+    },
+    "7": {
+      "step_id": "7",
+      "title": "Banyo Sayısı (Ortak Düğüm 1)",
+      "question": "Kaç banyo var?",
+      "description": "Banyolar da tertemiz olsun: Küvet, tuvalet, tezgah, lavabo, ayna ve cam silme, yer silme, toz alma ve çöp boşaltılması dahil.",
+      "type": "single_select",
+      "options": [
+        { "label": "1", "next_step": "8" },
+        { "label": "2", "next_step": "8" },
+        { "label": "3 veya daha fazla", "next_step": "8" }
+      ]
+    },
+    "8": {
+      "step_id": "8",
+      "title": "Temizlik Sıklığı (Ortak Düğüm 2)",
+      "question": "Temizlik hangi sıklıkla yapılsın?",
+      "type": "single_select",
+      "options": [
+        { "label": "Tek Sefer", "next_step": "8.1" },
+        { "label": "Haftalık Olarak", "next_step": "8.1" },
+        { "label": "2 Haftada Bir", "next_step": "8.1" },
+        { "label": "Diğer", "next_step": "8.1" }
+      ]
+    },
+    "8.1": {
+      "step_id": "8.1",
+      "title": "Süre Seçimi & Koşullu Yönlendirme",
+      "question": "Kaç saat temizlik yapılsın?",
+      "description": "Temizliği bu sürede bitirmeyi hedefleyeceğiz. Ekstra temizlik, ütü veya yemek yapılmasını istersen, süreyi uzat.",
+      "type": "conditional_router",
+      "notes": "Eğer ana kategoride 'Ev Temizliği' seçildiyse bu saat şıkları gösterilir ve '9' numaralı adıma gidilir. 'Boş Ev' seçildiyse doğrudan 'END' adımına, 'İnşaat Sonrası' seçildiyse doğrudan '5.2' adımına zıplatılır.",
+      "options": [
+        { "label": "4", "next_step": "9" },
+        { "label": "5", "next_step": "9" },
+        { "label": "6", "next_step": "9" },
+        { "label": "7", "next_step": "9" },
+        { "label": "8", "next_step": "9" }
+      ]
+    },
+    "9": {
+      "step_id": "9",
+      "title": "Evde Evcil Hayvan Durumu",
+      "question": "Evde köpek veya kedi var mı? (Birden fazla seçebilirsin)",
+      "type": "multi_select",
+      "options": [
+        { "label": "Köpek var", "next_step": "END" },
+        { "label": "Kedi var", "next_step": "END" },
+        { "label": "Diğer", "next_step": "END" },
+        { "label": "Hiçbiri Yok", "next_step": "END" }
+      ]
+    },
+    "END": {
+      "step_id": "END",
+      "title": "Kapanış ve Notlar",
+      "question": "İhtiyacın detayları veya bilmemiz gereken başka neler var?",
+      "type": "text_area_with_photo_upload",
+      "is_optional": true,
+      "submit_action": "save_and_proceed_to_global_steps",
+      "global_steps_notes": "Bu adımdan sonra tüm kategoriler için ortak olan standart Adres, Tarih/Zaman seçimi ve İletişim Bilgileri ekranları gelir."
+    }
+  }
+}
