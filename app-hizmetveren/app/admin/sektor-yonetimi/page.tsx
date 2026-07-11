@@ -43,7 +43,8 @@ export default function SectorManagementPage() {
         setMessage({ type: 'success', text: 'Sektör şeması başarıyla yüklendi ve sisteme entegre edildi!' });
         setFile(null);
       } else {
-        setMessage({ type: 'error', text: data.message || 'Yükleme başarısız oldu.' });
+        const errorMessage = data?.error?.message || data?.message || 'Yükleme başarısız oldu.';
+        setMessage({ type: 'error', text: errorMessage });
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Sunucuya bağlanılamadı. Lütfen tekrar deneyin.' });
