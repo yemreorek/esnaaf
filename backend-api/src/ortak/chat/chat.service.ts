@@ -10,6 +10,7 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
+import { GRAPH_CONFIG } from './graph-nodes.config';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -25,6 +26,8 @@ interface SessionState {
     phone?: string;
     details?: string;
     hasAskedDetails?: boolean;
+    current_node_id?: string | null;
+    node_queue?: string[];
     [key: string]: any;
   };
   token_count: number;
@@ -266,7 +269,7 @@ export class ChatService {
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
-            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
+            await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
             state.step = 'collecting_details';
             
             // Immediately parse parameters for the newly detected category from the current user message
@@ -602,44 +605,81 @@ export class ChatService {
           }
 
           if (state.collected_data.categorySlug) {
-            const questions = this.getQuestionsForCategory(state.collected_data.categorySlug, state);
-            for (const q of questions) {
-              if (q.key !== 'district' && q.key !== 'destinationDistrict') {
-                const isCurrentQuestion = nextQ && nextQ.key === q.key;
-                
-                // CRITICAL FIX: Free-text fields that use msg.trim() or similar generic parsers
-                // MUST ONLY be parsed if it's the active question OR if the message contains relevant keywords.
-                // Otherwise, they will greedily consume unrelated messages (e.g. date getting daireTipi).
-                let canParse = true;
-                if (!isCurrentQuestion) {
-                  if (q.key === 'tarih') {
-                    const datePattern = /(?:ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar|gün|yarın|bugün|saat|\b\d{1,2}[:.]\d{2}\b|\b\d{1,2}\.\d{1,2}\b)/i;
-                    canParse = datePattern.test(message);
-                  } else if (q.key === 'renkTip') {
-                    const paintPattern = /(?:\brenk\b|\bboya\b|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i;
-                    canParse = paintPattern.test(message);
-                  } else if (q.key === 'katAsansor') {
-                    const movingPattern = /(?:kat|asansör|merdiven|giriş|yüksek|villa|müstakil)/i;
-                    canParse = movingPattern.test(message);
-                  } else if (q.key === 'camTipi') {
-                    const glassPattern = /(?:cam|ısıcam|konfor|çift|tek|temper|lamine|pvc|panjur)/i;
-                    canParse = glassPattern.test(message);
-                  } else if (q.key === 'kombiDurumu') {
-                    const gasPattern = /(?:kombi|tesisat|proje|montaj|petek|boru)/i;
-                    canParse = gasPattern.test(message);
-                  } else if (q.key === 'etkinlikTuru') {
-                    const eventPattern = /(?:düğün|nişan|kına|doğum|sünnet|mezuniyet|etkinlik|organizasyon|çekim|foto|parti|konser)/i;
-                    canParse = eventPattern.test(message);
-                  } else {
-                    // Fallback for any other generic parser
-                    canParse = false;
-                  }
-                }
+            if (state.collected_data.is_graph_flow) {
+              const nodeId = state.collected_data.current_node_id;
+              if (nodeId && nodeId !== 'none') {
+                const node = GRAPH_CONFIG.nodes[nodeId];
+                if (node) {
+                   state.collected_data[nodeId] = message.trim();
 
-                if (canParse && (isCurrentQuestion || !state.collected_data[q.key])) {
-                  const val = q.parse(message);
-                  if (val) {
-                    state.collected_data[q.key] = val;
+                   if (node.input_type === 'single_choice') {
+                     const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === message.trim().toLowerCase());
+                     if (selectedOption) {
+                       state.collected_data.current_node_id = selectedOption.next_node_id || 'none';
+                     } else {
+                       state.collected_data.current_node_id = 'none';
+                     }
+                   } else if (node.input_type === 'multi_choice') {
+                     const selectedTexts = message.split(',').map(s => s.trim().toLowerCase());
+                     const nextNodeIds: string[] = [];
+                     for (const text of selectedTexts) {
+                       const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === text);
+                       if (selectedOption && selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {
+                          if (!nextNodeIds.includes(selectedOption.next_node_id)) {
+                             nextNodeIds.push(selectedOption.next_node_id);
+                          }
+                       }
+                     }
+                     if (nextNodeIds.length > 0) {
+                        state.collected_data.current_node_id = nextNodeIds.shift() || 'none';
+                        if (nextNodeIds.length > 0) {
+                           if (!state.collected_data.node_queue) state.collected_data.node_queue = [];
+                           state.collected_data.node_queue.push(...nextNodeIds);
+                        }
+                     } else {
+                        state.collected_data.current_node_id = 'none';
+                     }
+                   } else {
+                     state.collected_data.current_node_id = node.next_node_id || 'none';
+                   }
+                }
+              }
+            } else {
+              const questions = this.getQuestionsForCategory(state.collected_data.categorySlug, state);
+              for (const q of questions) {
+                if (q.key !== 'district' && q.key !== 'destinationDistrict') {
+                  const isCurrentQuestion = nextQ && nextQ.key === q.key;
+                  
+                  let canParse = true;
+                  if (!isCurrentQuestion) {
+                    if (q.key === 'tarih') {
+                      const datePattern = /(?:ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar|gün|yarın|bugün|saat|\b\d{1,2}[:.]\d{2}\b|\b\d{1,2}\.\d{1,2}\b)/i;
+                      canParse = datePattern.test(message);
+                    } else if (q.key === 'renkTip') {
+                      const paintPattern = /(?:\brenk\b|\bboya\b|beyaz|gri|siyah|yeşil|mavi|sarı|kırmızı|saten|silikon|astar|su baz|yağlı)/i;
+                      canParse = paintPattern.test(message);
+                    } else if (q.key === 'katAsansor') {
+                      const movingPattern = /(?:kat|asansör|merdiven|giriş|yüksek|villa|müstakil)/i;
+                      canParse = movingPattern.test(message);
+                    } else if (q.key === 'camTipi') {
+                      const glassPattern = /(?:cam|ısıcam|konfor|çift|tek|temper|lamine|pvc|panjur)/i;
+                      canParse = glassPattern.test(message);
+                    } else if (q.key === 'kombiDurumu') {
+                      const gasPattern = /(?:kombi|tesisat|proje|montaj|petek|boru)/i;
+                      canParse = gasPattern.test(message);
+                    } else if (q.key === 'etkinlikTuru') {
+                      const eventPattern = /(?:düğün|nişan|kına|doğum|sünnet|mezuniyet|etkinlik|organizasyon|çekim|foto|parti|konser)/i;
+                      canParse = eventPattern.test(message);
+                    } else {
+                      canParse = false;
+                    }
+                  }
+
+                  if (canParse && (isCurrentQuestion || !state.collected_data[q.key])) {
+                    const val = q.parse(message);
+                    if (val) {
+                      state.collected_data[q.key] = val;
+                    }
                   }
                 }
               }
@@ -977,7 +1017,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (call.name === 'detectCategory') {
             const { categorySlug } = call.args as any;
             state.collected_data.categorySlug = categorySlug;
-            await this.loadCategoryQuestions(state, categorySlug, undefined);
+            await this.initializeCategoryFlow(state, categorySlug, undefined);
             state.step = 'collecting_details';
 
             // Immediately parse parameters for the newly detected category from the current user message
@@ -1139,7 +1179,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
           state.collected_data.categorySlug = detection.categorySlug;
           state.collected_data.categoryName = detection.categoryName || undefined;
-          await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
+          await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
           
           const loc = this.parseLocation(message);
            if (loc.city) {
@@ -1478,7 +1518,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
-            await this.loadCategoryQuestions(state, detection.categorySlug, detection.categoryName || undefined);
+            await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
             fallbackStep = 'collecting_details';
             const nextQ = this.getNextQuestion(state);
             fallbackResponse = nextQ
@@ -1937,7 +1977,18 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     return null;
   }
 
-  private async loadCategoryQuestions(state: SessionState, slug: string, name?: string) {
+  private async initializeCategoryFlow(state: SessionState, slug: string, name?: string) {
+    const route = GRAPH_CONFIG.category_routes[slug];
+    if (route) {
+      state.collected_data.current_node_id = route.start_node_id;
+      state.collected_data.node_queue = [];
+      state.collected_data.is_graph_flow = true; // Flag for graph routing
+    } else {
+      await this.loadCategoryQuestionsLegacy(state, slug, name);
+    }
+  }
+
+  private async loadCategoryQuestionsLegacy(state: SessionState, slug: string, name?: string) {
     if (state.collected_data.questions_flow) return;
     try {
       const categoryName = name || state.collected_data.categoryName;
@@ -2139,6 +2190,35 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   private getNextQuestion(state: SessionState): any | null {
+    if (state.collected_data.is_graph_flow) {
+      let nodeId = state.collected_data.current_node_id;
+
+      if (!nodeId || nodeId === 'none') {
+        if (state.collected_data.node_queue && state.collected_data.node_queue.length > 0) {
+          nodeId = state.collected_data.node_queue.shift() || null;
+          state.collected_data.current_node_id = nodeId;
+        } else {
+          return null;
+        }
+      }
+
+      if (!nodeId || nodeId === 'none') return null;
+
+      const node = GRAPH_CONFIG.nodes[nodeId];
+      if (!node) {
+        console.warn(`[ChatService] Node ID ${nodeId} not found in GRAPH_CONFIG.`);
+        return null;
+      }
+
+      return {
+        key: nodeId,
+        question: node.question_text,
+        options: node.options ? node.options.map((o: any) => o.text) : [],
+        inputType: node.input_type || 'single_choice',
+        parse: (msg: string) => msg.trim()
+      };
+    }
+
     const slug = state.collected_data.categorySlug;
     if (!slug) return null;
     const questions = this.getQuestionsForCategory(slug, state);
