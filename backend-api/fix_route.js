@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { await prisma.graphCategoryRoute.upsert({ where: { category_slug: 'ev-temizligi' }, update: { start_node_id: '1' }, create: { category_slug: 'ev-temizligi', start_node_id: '1' } }); console.log('Fixed ev-temizligi route!'); } main().finally(() => prisma.$disconnect());

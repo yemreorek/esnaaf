@@ -135,6 +135,16 @@ export class GraphSeederService {
             start_node_id: routeData.start_node_id,
           },
         });
+        
+        // ALIAS MAPPING: Frontend 'Ev Temizliği' butonu ev-temizligi gönderdiği için ona da aynı düğümü atıyoruz.
+        if (categorySlug === 'temizlik-hizmetleri') {
+          await this.prisma.graphCategoryRoute.upsert({
+            where: { category_slug: 'ev-temizligi' },
+            update: { start_node_id: routeData.start_node_id },
+            create: { category_slug: 'ev-temizligi', start_node_id: routeData.start_node_id }
+          });
+        }
+
         this.logger.debug(`Upserted route for category: ${categorySlug}`);
       }
     }
