@@ -42,7 +42,36 @@ export class GraphSeederService {
     let category_routes = config.category_routes || {};
     let nodes = config.nodes || {};
 
-    if (config.steps) {
+    const rootKeys = Object.keys(config);
+    const possibleCategoryKey = rootKeys.find(k => k !== 'category_routes' && k !== 'nodes' && k !== 'service_category' && k !== 'steps' && typeof (config as any)[k] === 'object' && ((config as any)[k].steps || (config as any)[k].nodes));
+
+    if (possibleCategoryKey) {
+      this.logger.log(`Detected nested category format JSON for slug: ${possibleCategoryKey}`);
+      const categoryData = (config as any)[possibleCategoryKey];
+      const stepsObj = categoryData.steps || categoryData.nodes || {};
+      category_routes[possibleCategoryKey] = { start_node_id: categoryData.start_node_id || Object.keys(stepsObj)[0] || '1' };
+      
+      for (const [stepId, stepData] of Object.entries(stepsObj as Record<string, any>)) {
+        const inputType = stepData.type === 'single_select' ? 'single_choice' : 
+                          stepData.type === 'multi_select' ? 'multi_choice' : 
+                          stepData.type || stepData.input_type || 'text';
+                          
+        nodes[stepId] = {
+          question_text: stepData.question || stepData.question_text || '',
+          title: stepData.title || null,
+          description: stepData.description || null,
+          is_optional: stepData.is_optional || false,
+          submit_action: stepData.submit_action || null,
+          notes: stepData.notes || stepData.global_steps_notes || null,
+          input_type: inputType,
+          next_node_id: stepData.next_step || stepData.next_node_id || null,
+          options: stepData.options ? stepData.options.map((opt: any) => ({
+            text: opt.label || opt.text,
+            next_node_id: opt.next_step || opt.next_node_id
+          })) : []
+        };
+      }
+    } else if (config.steps) {
       this.logger.log(`Detected new 'steps' format JSON...`);
       nodes = {};
       category_routes = {};
@@ -53,7 +82,7 @@ export class GraphSeederService {
       
       const firstStepId = Object.keys(config.steps)[0] || '1';
       category_routes[catSlug] = { start_node_id: firstStepId };
-
+      
       for (const [stepId, stepData] of Object.entries(config.steps)) {
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
