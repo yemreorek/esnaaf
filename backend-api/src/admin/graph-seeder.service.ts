@@ -96,10 +96,10 @@ export class GraphSeederService {
           submit_action: stepData.submit_action || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: stepData.next_step || null,
+          next_node_id: stepData.next_step !== undefined && stepData.next_step !== null ? String(stepData.next_step) : null,
           options: stepData.options ? stepData.options.map((opt: any) => ({
             text: opt.label,
-            next_node_id: opt.next_step
+            next_node_id: opt.next_step !== undefined && opt.next_step !== null ? String(opt.next_step) : null
           })) : []
         };
       }
@@ -119,7 +119,7 @@ export class GraphSeederService {
             submit_action: nodeData.submit_action || null,
             notes: nodeData.notes || null,
             input_type: nodeData.input_type,
-            next_node_id: nodeData.next_node_id || null,
+            next_node_id: nodeData.next_node_id !== undefined && nodeData.next_node_id !== null ? String(nodeData.next_node_id) : null,
           },
           create: {
             id: nodeId,
@@ -130,7 +130,7 @@ export class GraphSeederService {
             submit_action: nodeData.submit_action || null,
             notes: nodeData.notes || null,
             input_type: nodeData.input_type,
-            next_node_id: nodeData.next_node_id || null,
+            next_node_id: nodeData.next_node_id !== undefined && nodeData.next_node_id !== null ? String(nodeData.next_node_id) : null,
           },
         });
 
@@ -145,7 +145,7 @@ export class GraphSeederService {
             data: nodeData.options.map(opt => ({
               node_id: nodeId,
               text: opt.text,
-              next_node_id: opt.next_node_id && opt.next_node_id !== 'none' ? opt.next_node_id : null,
+              next_node_id: opt.next_node_id !== undefined && opt.next_node_id !== null && String(opt.next_node_id) !== 'none' ? String(opt.next_node_id) : null,
             })),
           });
         }
