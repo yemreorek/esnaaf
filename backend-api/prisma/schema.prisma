@@ -782,3 +782,11 @@ model GraphNodeOption {
   @@map("graph_node_options")
 }
 
+model GraphUploadLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  file_name     String
+  category_slug String
+  uploaded_at   DateTime @default(now())
+
+  @@map("graph_upload_logs")
+}
