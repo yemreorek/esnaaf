@@ -155,9 +155,13 @@ export class ChatService {
       return;
     }
 
-    if (!state.collected_data.hasAskedDetails) {
-      state.step = 'ask_details';
-      return;
+    if (!state.collected_data.is_graph_flow) {
+      if (!state.collected_data.hasAskedDetails) {
+        state.step = 'ask_details';
+        return;
+      }
+    } else {
+      state.collected_data.hasAskedDetails = true;
     }
 
     if (!state.collected_data.district || !state.collected_data.neighborhood) {
@@ -701,15 +705,16 @@ export class ChatService {
           }
         }
 
-        // Deterministic transition to ask_details if all technical questions are answered
+        // Deterministic transition to ask_address if all technical questions are answered
         if (state.collected_data.categorySlug && !justDetectedCategory && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
-          state.step = 'ask_details';
-          responseMessage = `Harika! İhtiyacınızın detayları nelerdir? Bize bilmemiz gereken özel bir durumdan bahsetmek ister misiniz? (Yoksa 'hayır' diyebilirsiniz)`;
+          state.collected_data.hasAskedDetails = true;
+          state.step = 'ask_address';
+          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
           await this.trackTokens(sessionKey, tokensUsed);
           return {
-            step: 'ask_details',
+            step: 'ask_address',
             responseMessage,
             collected_data: state.collected_data,
           };
