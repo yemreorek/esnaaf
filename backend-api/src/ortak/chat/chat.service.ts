@@ -627,6 +627,8 @@ export class ChatService {
                       }
                    } else {
                       state.collected_data[nodeId] = message.trim();
+                      if (!state.collected_data.graph_labels) state.collected_data.graph_labels = {};
+                      state.collected_data.graph_labels[nodeId] = node.question;
 
                       if (node.input_type === 'single_choice') {
                         const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === cleanMsg);
@@ -2534,12 +2536,13 @@ Eğer kurala göre atlama YAPILMAMALI ve soru kullanıcıya sorulmalıysa SADECE
     };
 
     const keys = Object.keys(formData);
+    const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'devOtpCode', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels'];
+
     keys.forEach(key => {
-      // Skip operational or duplicate keys
-      if (["phone", "name", "categorySlug", "details", "sendToFavoritesOnly", "devOtpCode", "city"].includes(key)) {
+      if (ignoredKeys.includes(key)) {
         return;
       }
-      const label = labels[key] || key;
+      const label = formData.graph_labels?.[key] || labels[key] || key;
       const value = formData[key];
       if (value !== undefined && value !== null && value !== "") {
         lines.push(`• ${label}: ${value}`);
