@@ -262,6 +262,7 @@ export class ChatService {
     let createdJobId: string | undefined;
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
 
+    let justDetectedCategory = false;
     try {
       // ─── ACTIVE AGENT PATH (GEMINI FLASH) ───────────────────────────
       if (this.geminiService.isAvailable()) {
@@ -274,6 +275,7 @@ export class ChatService {
             !this.isGeneralOrInformationalQuery(message)) {
           const detection = await this.detectCategory(filteredMessage);
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
+            justDetectedCategory = true;
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
             await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
@@ -611,7 +613,7 @@ export class ChatService {
             state.collected_data.city = parsedLoc.city;
           }
 
-          if (state.collected_data.categorySlug) {
+          if (state.collected_data.categorySlug && !justDetectedCategory) {
             if (state.collected_data.is_graph_flow) {
               const nodeId = state.collected_data.current_node_id;
               if (nodeId && nodeId !== 'none') {
@@ -695,10 +697,10 @@ export class ChatService {
         }
 
         // Deterministic transition to ask_address if all technical questions are answered
-        if (state.collected_data.categorySlug && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
+        if (state.collected_data.categorySlug && !justDetectedCategory && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
           state.collected_data.hasAskedDetails = true;
           state.step = 'ask_address';
-          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz? [B1-EARLY-ELSE]`;
+          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
           await this.trackTokens(sessionKey, tokensUsed);
@@ -1037,7 +1039,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             } else {
               state.step = 'ask_address';
               state.collected_data.hasAskedDetails = true;
-              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz? [B3-TOOL-ELSE]';
+              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
             }
           }
           else if (call.name === 'sendOTP') {
@@ -1128,7 +1130,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           
           if (previousStep !== state.step) {
             if ((state.step as any) === 'ask_address' && !responseMessage.toLowerCase().includes('konum')) {
-              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz? [SYNC-STEP-OVERRIDE]';
+              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
             } else if ((state.step as any) === 'ask_name' && !responseMessage.toLowerCase().includes('adınız')) {
               responseMessage = 'Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?';
             } else if ((state.step as any) === 'ask_phone' && !responseMessage.toLowerCase().includes('telefon')) {
@@ -1552,7 +1554,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
               state.collected_data.hasAskedDetails = true;
               fallbackStep = 'ask_address';
-              fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz? [OFFLINE-FALLBACK]';
+              fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz?';
             } else {
               fallbackStep = 'ask_details';
               fallbackResponse = this.generatePromptForCategory(state.collected_data.categorySlug || null);
@@ -1563,7 +1565,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           state.collected_data.details = message.trim() || state.collected_data.details || 'Detay belirtilmedi.';
           state.collected_data.hasAskedDetails = true;
           fallbackStep = 'ask_address';
-          fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz? [OFFLINE-FALLBACK]';
+          fallbackResponse = 'Hizmetin verileceği konumu seçebilir misiniz?';
 
         } else if (state.step === 'ask_name') {
           const name = message.trim();
