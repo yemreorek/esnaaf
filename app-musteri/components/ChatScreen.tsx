@@ -1125,7 +1125,22 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     }}
                   />
                 ) : (
-                  <p className="whitespace-pre-line">{msg.content}</p>
+                  <p className="whitespace-pre-line">
+                    {(() => {
+                      if (isUser) {
+                        try {
+                          const contentTrimmed = msg.content.trim();
+                          if (contentTrimmed.startsWith('{') && contentTrimmed.includes('"city"')) {
+                            const parsed = JSON.parse(contentTrimmed);
+                            if (parsed.city && parsed.district) {
+                              return `${parsed.city}, ${parsed.district}${parsed.neighborhood ? `, ${parsed.neighborhood}` : ''}`;
+                            }
+                          }
+                        } catch (e) {}
+                      }
+                      return msg.content;
+                    })()}
+                  </p>
                 )}
 
                 {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
