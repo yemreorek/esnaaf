@@ -769,9 +769,13 @@ export class ChatService {
         } else {
           const nextQ = (await this.getNextQuestion(state));
           if (nextQ) {
+            const optionsText = nextQ.options && nextQ.options.length > 0 
+              ? `\n- Müşteriye sunman gereken SEÇENEKLER ŞUNLARDIR (bunların dışında seçenek uydurma): ${JSON.stringify(nextQ.options)}` 
+              : '';
+
             assistantDirective = `
 ### 🚨 ŞU ANKİ GÖREVİN:
-- Müşteriden şu eksik bilgiyi almalısın: **${nextQ.question}** (Parametre anahtarı: '${nextQ.key}').
+- Müşteriden şu eksik bilgiyi almalısın: **${nextQ.question}** (Parametre anahtarı: '${nextQ.key}').${optionsText}
 - Lütfen müşteriye bu soruyu tatlı ve doğal bir dille yönelt. 
 - EĞER müşteri sorulan soru dışında serbest bir metin yazıp araya girdiyse (örn: "Usta sigortalı mı?"), önce onun sorusunu kısaca yanıtla, sonra kaldığın bu eksik soruyu ('${nextQ.question}') mutlaka tekrar sor!
 - Bu aşamada asla isim, telefon veya onay isteme! Yalnızca bu eksik soruyu sor.
