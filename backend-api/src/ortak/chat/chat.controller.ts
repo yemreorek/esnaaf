@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Headers, HttpStatus, HttpCode, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Req, Headers, HttpStatus, HttpCode, ForbiddenException, Get } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
@@ -20,6 +20,17 @@ export class ChatController {
   async backfillQuestions() {
     this.industryExpertAgent.backfillExistingCategories(); // Async fire and forget
     return { success: true, message: 'Backfill process started in the background.' };
+  }
+
+  @Public()
+  @Get('debug/graph')
+  async debugGraph() {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    const routes = await prisma.graphCategoryRoute.findMany();
+    const nodes = await prisma.graphNode.findMany({ include: { options: true } });
+    await prisma.$disconnect();
+    return { routes, nodes };
   }
 
   @Public()
