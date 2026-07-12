@@ -409,10 +409,27 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         const startData = await safeJsonParse(startRes, 'Oturum başlatılamadı.');
         console.log("[ChatScreen] Session initialized on server. Data:", startData);
         
+        let messageToSend = initialMessage;
+        
+        // Read SEO preset if exists
+        try {
+          const presetRaw = sessionStorage.getItem("esnaaf_seo_preset");
+          if (presetRaw) {
+            const preset = JSON.parse(presetRaw);
+            sessionStorage.removeItem("esnaaf_seo_preset"); // Clear after reading
+            if (preset.categoryName) {
+              const locationStr = preset.district ? `${preset.district} (${preset.city})` : (preset.city || "");
+              messageToSend = `Merhaba, ben ${locationStr ? locationStr + " konumunda " : ""}${preset.categoryName} hizmeti almak istiyorum.`;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse seo preset", e);
+        }
+
         setMessages([]);
-        if (initialMessage && initialMessage.trim() !== "") {
-          console.log("[ChatScreen] Sending initial message:", initialMessage);
-          await sendMessage(initialMessage);
+        if (messageToSend && messageToSend.trim() !== "") {
+          console.log("[ChatScreen] Sending initial/preset message:", messageToSend);
+          await sendMessage(messageToSend);
         } else {
           setMessages([
             {

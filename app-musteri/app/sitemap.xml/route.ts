@@ -25,7 +25,7 @@ export async function GET() {
     <priority>1.0</priority>
   </url>
   ${links.map(slug => `  <url>
-    <loc>https://esnaaf.com/hizmet/${slug}</loc>
+    <loc>https://esnaaf.com/${slug}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`).join('\n')}

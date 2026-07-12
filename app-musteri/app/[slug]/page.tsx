@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import SeoPageClient from "../../../components/SeoPageClient";
-import ReviewsSlider from "../../../components/ReviewsSlider";
+import SeoPageClient from "../../components/SeoPageClient";
+import ReviewsSlider from "../../components/ReviewsSlider";
 
 export const dynamic = 'force-dynamic';
 

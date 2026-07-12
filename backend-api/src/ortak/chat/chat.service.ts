@@ -155,9 +155,16 @@ export class ChatService {
       return;
     }
 
-    if (!state.collected_data.hasAskedDetails) {
-      state.step = 'ask_details';
-      return;
+    // YENİ DÜZENLEME: Graph flow açıksa ve bittiyse (nextQ null ise), 'ask_details' (eski anket) adımına DÜŞÜRME!
+    if (!state.collected_data.is_graph_flow) {
+      if (!state.collected_data.hasAskedDetails) {
+        state.step = 'ask_details';
+        return;
+      }
+    } else {
+      // Eğer Graph flow ise ve nextQ null ise, demek ki tüm graph node'lar bitti.
+      // Bu durumda direkt konum alma aşamasına (ask_address) geçsin, ask_details'i tamamen atlasın.
+      state.collected_data.hasAskedDetails = true; // flag'i dolduralım ki tekrar girmesin
     }
 
     if (!state.collected_data.district || !state.collected_data.neighborhood) {
@@ -1039,12 +1046,13 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             if (nextQ) {
               responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
               if (nextQ.options) options = nextQ.options;
-            } else if (!state.collected_data.hasAskedDetails) {
+            } else if (!state.collected_data.is_graph_flow && !state.collected_data.hasAskedDetails) {
               state.step = 'ask_details';
               responseMessage = this.generatePromptForCategory(categorySlug || null);
             } else {
               state.step = 'ask_address';
-              responseMessage = 'Talebinizle ilgili detaylar başarıyla kaydedildi. Hizmetin verileceği konumu seçebilir misiniz?';
+              state.collected_data.hasAskedDetails = true;
+              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
             }
           }
           else if (call.name === 'sendOTP') {
@@ -1233,9 +1241,13 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               options = nextQ.options;
               inputType = nextQ.inputType || 'single_choice';
             }
-          } else {
+          } else if (!state.collected_data.is_graph_flow && !state.collected_data.hasAskedDetails) {
             state.step = 'ask_details';
             responseMessage = this.generatePromptForCategory(detection.categorySlug);
+          } else {
+            state.step = 'ask_address';
+            state.collected_data.hasAskedDetails = true;
+            responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
           }
         } else {
           state.step = 'category_detection';
