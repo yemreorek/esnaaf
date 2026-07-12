@@ -115,14 +115,14 @@ export class GraphSeederService {
       for (const [stepId, stepData] of Object.entries(config.steps)) {
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
-                          stepData.type || 'text';
+                          stepData.type || stepData.input_type || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
         const rawNext = stepData.next_step || stepData.next_node_id;
         const nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
         
         nodes[namespacedStepId] = {
-          question_text: stepData.question || '',
+          question_text: stepData.question || stepData.question_text || '',
           title: stepData.title || null,
           description: stepData.description || null,
           is_optional: stepData.is_optional || false,
@@ -134,7 +134,7 @@ export class GraphSeederService {
             const optRawNext = opt.next_step || opt.next_node_id;
             const optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
             return {
-              text: opt.label,
+              text: opt.label || opt.text,
               next_node_id: optNextRaw && optNextRaw !== 'none' ? `${catSlug}_${optNextRaw}` : null
             };
           }) : []
