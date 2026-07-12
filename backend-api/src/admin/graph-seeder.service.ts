@@ -104,7 +104,8 @@ export class GraphSeederService {
       nodes = {};
       category_routes = {};
       
-      const catStr = config.service_category || 'unknown';
+      const fileSlug = fileName ? fileName.replace(/\.json$/i, '') : null;
+      const catStr = config.service_category || fileSlug || 'unknown';
       const trMap: Record<string, string> = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'Ç': 'C', 'Ğ': 'G', 'İ': 'I', 'Ö': 'O', 'Ş': 'S', 'Ü': 'U' };
       const catSlug = catStr.toLowerCase().replace(/[çğıöşü]/g, (m) => trMap[m]).replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
       
