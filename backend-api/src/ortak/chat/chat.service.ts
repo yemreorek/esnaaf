@@ -694,34 +694,19 @@ export class ChatService {
           }
         }
 
-        // Deterministic transition to ask_details if all technical questions are answered
+        // Deterministic transition to ask_address if all technical questions are answered
         if (state.collected_data.categorySlug && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
-          if (state.collected_data.details && state.collected_data.details.trim().length >= 20) {
-            state.collected_data.hasAskedDetails = true;
-            state.step = 'ask_address';
-            responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
-            state.messages.push({ role: 'assistant', content: responseMessage });
-            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-            await this.trackTokens(sessionKey, tokensUsed);
-            return {
-              step: 'ask_address',
-              responseMessage,
-              collected_data: state.collected_data,
-            };
-          } else {
-            state.step = 'ask_details';
-            responseMessage = this.generatePromptForCategory(state.collected_data.categorySlug || null);
-            state.messages.push({ role: 'assistant', content: responseMessage });
-            await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
-            await this.trackTokens(sessionKey, tokensUsed);
-            return {
-              step: 'ask_details',
-              responseMessage,
-              collected_data: state.collected_data,
-              options: this.getChecklistForCategory(state.collected_data.categorySlug || null),
-              inputType: 'multi_choice'
-            };
-          }
+          state.collected_data.hasAskedDetails = true;
+          state.step = 'ask_address';
+          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return {
+            step: 'ask_address',
+            responseMessage,
+            collected_data: state.collected_data,
+          };
         }
         
         // Strict State Machine Interceptors for Etap 2 (ask_details) and Etap 3 (ask_address)
@@ -2002,6 +1987,11 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       state.collected_data.current_node_id = route.start_node_id;
       state.collected_data.node_queue = [];
       state.collected_data.is_graph_flow = true; // Flag for graph routing
+    } else if (graphSlug === 'temizlik-hizmetleri') {
+      // HARD Fallback just in case DB doesn't have the route but we KNOW it should be t-0
+      state.collected_data.current_node_id = 't-0';
+      state.collected_data.node_queue = [];
+      state.collected_data.is_graph_flow = true;
     } else {
       await this.loadCategoryQuestionsLegacy(state, slug, name);
     }
