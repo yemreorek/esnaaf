@@ -1130,7 +1130,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
                 {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
                   <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-slate-100/50">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2.5 w-full">
                       {msg.options.map((opt, idx) => {
                         const isSelected = selectedMultiOptions.includes(opt);
                         return (
@@ -1145,13 +1145,20 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                                 sendMessage(opt);
                               }
                             }}
-                            className={`px-4 py-2 text-sm font-semibold rounded-2xl border transition-all duration-200 cursor-pointer text-left leading-tight ${
+                            className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 cursor-pointer text-left leading-snug ${
                               isSelected 
-                                ? 'bg-[#c8f252] border-[#c8f252] text-slate-800 shadow-sm' 
-                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-[#c8f252]/20 hover:border-[#c8f252]'
+                                ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01]' 
+                                : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5'
                             }`}
                           >
-                            {opt}
+                            <span className="pr-4">{opt}</span>
+                            <span className={`text-xl transition-transform duration-200 ${
+                              isSelected 
+                                ? 'translate-x-1 text-slate-900' 
+                                : 'text-slate-300 group-hover:translate-x-1 group-hover:text-slate-600'
+                            }`}>
+                              →
+                            </span>
                           </button>
                         );
                       })}
