@@ -44,10 +44,20 @@ export class AdminController {
     try {
       const fileContent = file.buffer.toString('utf-8');
       const parsed: GraphKnowledgeBase = JSON.parse(fileContent);
-      return await this.graphSeederService.ingestGraphConfig(parsed);
+      return await this.graphSeederService.ingestGraphConfig(parsed, file.originalname);
     } catch (error: any) {
       throw new BadRequestException(`Geçersiz JSON formatı veya yükleme hatası: ${error.message}`);
     }
+  }
+
+  /**
+   * JSON Yükleme Geçmişini Getir
+   * GET /api/admin/graph/upload-logs
+   */
+  @Get('graph/upload-logs')
+  @Roles('admin', 'super_admin')
+  async getUploadLogs() {
+    return await this.adminService.getGraphUploadLogs();
   }
 
   /**

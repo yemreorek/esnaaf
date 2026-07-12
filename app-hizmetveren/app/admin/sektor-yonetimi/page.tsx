@@ -1,12 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
-import { UploadCloud, CheckCircle, AlertTriangle, FileJson, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UploadCloud, CheckCircle, AlertTriangle, FileJson, Loader2, Clock } from 'lucide-react';
 
 export default function SectorManagementPage({ token }: { token?: string | null }) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  const fetchLogs = async () => {
+    if (!token) return;
+    setLoadingLogs(true);
+    try {
+      const res = await fetch('/api/admin/graph/upload-logs', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch logs:', e);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, [token]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -46,6 +70,7 @@ export default function SectorManagementPage({ token }: { token?: string | null 
       if (res.ok) {
         setMessage({ type: 'success', text: 'Sektör şeması başarıyla yüklendi ve sisteme entegre edildi!' });
         setFile(null);
+        fetchLogs(); // Yüklemeden sonra geçmişi güncelle
       } else {
         const errorMessage = data?.error?.message || data?.message || 'Yükleme başarısız oldu.';
         setMessage({ type: 'error', text: errorMessage });
@@ -149,6 +174,65 @@ export default function SectorManagementPage({ token }: { token?: string | null 
             </button>
           </div>
         </div>
+
+        {/* Geçmiş JSON Yüklemeleri Tablosu */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-8 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+            <Clock className="w-5 h-5 text-gray-500" />
+            <h2 className="text-lg font-semibold text-gray-800">Geçmiş JSON Yüklemeleri</h2>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-gray-600 text-sm">
+                <tr>
+                  <th className="py-4 px-6 font-medium">Dosya Adı</th>
+                  <th className="py-4 px-6 font-medium">Kategori Slug</th>
+                  <th className="py-4 px-6 font-medium">Yüklenme Tarihi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {loadingLogs ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-gray-500">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                      Yükleniyor...
+                    </td>
+                  </tr>
+                ) : logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-gray-500">
+                      Henüz hiç JSON dosyası yüklenmemiş.
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2 text-gray-800 font-medium">
+                          <FileJson className="w-4 h-4 text-blue-500" />
+                          {log.file_name}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg font-medium">
+                          {log.category_slug}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-gray-500 text-sm">
+                        {new Date(log.uploaded_at).toLocaleString('tr-TR', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );

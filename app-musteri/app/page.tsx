@@ -15,20 +15,30 @@ const categories = [
   { name: "Su Tesisatı", icon: "🔧", phase: "Faz 1" },
   { name: "Elektrik Tesisatı", icon: "⚡", phase: "Faz 1" },
   { name: "Ev Tadilat", icon: "🔨", phase: "Faz 1" },
-  { name: "Halı & Koltuk Yıkama", icon: "🧼", phase: "Faz 2" },
+  { name: "Halı Yıkama", icon: "🧼", phase: "Faz 2" },
+  { name: "Koltuk Yıkama", icon: "🛋️", phase: "Faz 2" },
   { name: "Tadilat Sonrası Temizlik", icon: "🧹", phase: "Faz 2" },
-  { name: "Fayans & Parke Döşeme", icon: "🧱", phase: "Faz 2" },
-  { name: "Haşere & Böcek İlaçlama", icon: "🐜", phase: "Faz 2" },
-  { name: "Kombi & Klima Bakımı", icon: "❄️", phase: "Faz 2" },
-  { name: "Mantolama & Dış Cephe", icon: "🏢", phase: "Faz 2" },
-  { name: "Marangoz & Mobilya Montajı", icon: "🪚", phase: "Faz 2" },
+  { name: "Fayans Döşeme", icon: "🧱", phase: "Faz 2" },
+  { name: "Parke Döşeme", icon: "🪵", phase: "Faz 2" },
+  { name: "Haşere İlaçlama", icon: "🐜", phase: "Faz 2" },
+  { name: "Böcek İlaçlama", icon: "🪲", phase: "Faz 2" },
+  { name: "Kombi Servisi", icon: "🔥", phase: "Faz 2" },
+  { name: "Klima Servisi", icon: "❄️", phase: "Faz 2" },
+  { name: "Mantolama", icon: "🏢", phase: "Faz 2" },
+  { name: "Dış Cephe", icon: "🏗️", phase: "Faz 2" },
+  { name: "Marangoz", icon: "🪚", phase: "Faz 2" },
+  { name: "Mobilya Montajı", icon: "🪑", phase: "Faz 2" },
   { name: "Özel Ders", icon: "📚", phase: "Faz 2" },
-  { name: "Cam Balkon & PVC", icon: "🪟", phase: "Faz 3" },
-  { name: "Ofis & İş Yeri Temizliği", icon: "🏢", phase: "Faz 3" },
+  { name: "Cam Balkon", icon: "🪟", phase: "Faz 3" },
+  { name: "PVC Pencere", icon: "🪟", phase: "Faz 3" },
+  { name: "Ofis Temizliği", icon: "🏢", phase: "Faz 3" },
+  { name: "İş Yeri Temizliği", icon: "🏬", phase: "Faz 3" },
   { name: "Doğalgaz Tesisatı", icon: "🔥", phase: "Faz 3" },
-  { name: "İç Mimar & Dekorasyon", icon: "📐", phase: "Faz 3" },
+  { name: "İç Mimar", icon: "📐", phase: "Faz 3" },
+  { name: "Dekorasyon", icon: "🛋️", phase: "Faz 3" },
   { name: "Fotoğrafçı", icon: "📷", phase: "Faz 3" },
-  { name: "Organizasyon & Etkinlik", icon: "🎉", phase: "Faz 3" },
+  { name: "Organizasyon", icon: "🎉", phase: "Faz 3" },
+  { name: "Etkinlik", icon: "🎈", phase: "Faz 3" },
 ];
 
 // Helper function to render a thin, elegant, mono-colored SVG outline icon for categories
@@ -756,7 +766,7 @@ export default function Home() {
               { name: "Su Tesisatı", icon: "plumbing", category: "Su Tesisatı" },
               { name: "Elektrik", icon: "electrical_services", category: "Elektrik Tesisatı" },
               { name: "Ev Tadilat", icon: "construction", category: "Ev Tadilat" },
-              { name: "Kombi & Klima", icon: "ac_unit", category: "Kombi & Klima Bakımı" },
+              { name: "Kombi Servisi", icon: "ac_unit", category: "Kombi Servisi" },
               { name: "Diğer", icon: "more_horiz", category: "Hizmet" }
             ].map((item, idx) => (
               <button
@@ -792,8 +802,8 @@ export default function Home() {
             { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
             { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
             { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
-            { name: "Kombi & Klima Bakımı", image: "https://images.unsplash.com/photo-1647329797478-52c45b06856b?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
-            { name: "Halı & Koltuk Yıkama", image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
+            { name: "Kombi Servisi", image: "https://images.unsplash.com/photo-1647329797478-52c45b06856b?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
+            { name: "Koltuk Yıkama", image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
             <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
               <div className="relative h-48 w-full overflow-hidden shrink-0">
@@ -999,10 +1009,13 @@ export default function Home() {
               { name: "Su Tesisatı", slug: "su-tesisati" },
               { name: "Elektrik Tesisatı", slug: "elektrik-tesisati" },
               { name: "Ev Tadilat", slug: "ev-tadilat" },
-              { name: "Halı & Koltuk Yıkama", slug: "hali-koltuk-yikama" },
-              { name: "Kombi & Klima Bakımı", slug: "kombi-klima" },
-              { name: "Mantolama & Dış Cephe", slug: "mantolama-discephe" },
-              { name: "Marangoz & Mobilya", slug: "marangoz-mobilya" },
+              { name: "Halı Yıkama", slug: "hali-yikama" },
+              { name: "Koltuk Yıkama", slug: "koltuk-yikama" },
+              { name: "Kombi Servisi", slug: "kombi-servisi" },
+              { name: "Klima Servisi", slug: "klima-servisi" },
+              { name: "Mantolama", slug: "mantolama" },
+              { name: "Marangoz", slug: "marangoz" },
+              { name: "Mobilya Montajı", slug: "mobilya-montaji" },
               { name: "Özel Ders", slug: "ozel-ders" },
               { name: "Ofis Temizliği", slug: "ofis-temizligi" }
             ].map((link, idx) => (

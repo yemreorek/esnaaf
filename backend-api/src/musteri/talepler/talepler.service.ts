@@ -340,14 +340,30 @@ export class TaleplerService {
       case 'elektrik-tesisati': return 'Elektrik Tesisatı';
       case 'ev-tadilat': return 'Ev Tadilat';
       case 'nakliyat': return 'Nakliyat / Ev Taşıma';
-      case 'hali-koltuk-yikama': return 'Halı & Koltuk Yıkama';
+      case 'hali-yikama': return 'Halı Yıkama';
+      case 'koltuk-yikama': return 'Koltuk Yıkama';
       case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
-      case 'fayans-parke': return 'Fayans & Parke Döşeme';
-      case 'hasere-ilaclama': return 'Haşere & Böcek İlaçlama';
-      case 'kombi-klima': return 'Kombi & Klima Bakımı';
-      case 'mantolama-discephe': return 'Mantolama & Dış Cephe';
-      case 'marangoz-mobilya': return 'Marangoz & Mobilya Montajı';
+      case 'fayans-doseme': return 'Fayans Döşeme';
+      case 'parke-doseme': return 'Parke Döşeme';
+      case 'hasere-ilaclama': return 'Haşere İlaçlama';
+      case 'bocek-ilaclama': return 'Böcek İlaçlama';
+      case 'kombi-servisi': return 'Kombi Servisi';
+      case 'klima-servisi': return 'Klima Servisi';
+      case 'mantolama': return 'Mantolama';
+      case 'dis-cephe': return 'Dış Cephe';
+      case 'marangoz': return 'Marangoz';
+      case 'mobilya-montaji': return 'Mobilya Montajı';
       case 'ozel-ders': return 'Özel Ders';
+      case 'cam-balkon': return 'Cam Balkon';
+      case 'pvc-pencere': return 'PVC Pencere';
+      case 'ofis-temizligi': return 'Ofis Temizliği';
+      case 'is-yeri-temizligi': return 'İş Yeri Temizliği';
+      case 'dogalgaz-tesisati': return 'Doğalgaz Tesisatı';
+      case 'ic-mimar': return 'İç Mimar';
+      case 'dekorasyon': return 'Dekorasyon';
+      case 'fotografci': return 'Fotoğrafçı';
+      case 'organizasyon': return 'Organizasyon';
+      case 'etkinlik': return 'Etkinlik';
       default: return 'Genel Esnaf Hizmeti';
     }
   }

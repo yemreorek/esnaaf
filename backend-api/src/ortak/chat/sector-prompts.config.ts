@@ -38,79 +38,129 @@ export const SECTOR_PROMPTS: Record<string, string> = {
 - Kısmi tadilat (duvar yıkma, bölme, alçıpan) daha kısa sürer.
 - Müşteriye sor: Tadilat kapsamı (mutfak, banyo, komple)? Tahmini metrekare?
 `,
-  'hali-koltuk-yikama': `
-**Halı & Koltuk Yıkama:**
-- Halı boyutuna ve koltuk sayısına göre fiyat değişir.
-- Yerinde yıkama (evde) ve fabrikada yıkama seçenekleri vardır.
-- Müşteriye sor: Kaç parça halı/koltuk? Yerinde mi fabrikada mı yıkansın? Leke/kir durumu?
+  'hali-yikama': `
+**Halı Yıkama:**
+- Halı boyutuna ve cinsine göre fiyat değişir.
+- Fabrikada yıkama veya yerinde yıkama seçenekleri vardır.
+- Müşteriye sor: Kaç metrekare halı? Özel bir kumaş türü mü (ör. el dokuması, ipek)?
+`,
+  'koltuk-yikama': `
+**Koltuk Yıkama:**
+- Koltuk takımının boyutuna ve yastık sayısına göre fiyat değişir.
+- Genellikle yerinde yıkama makineleri ile yapılır.
+- Müşteriye sor: Kaç kişilik koltuk takımı? Sandalye veya yatak da eklenecek mi? Leke durumu nasıl?
 `,
   'insaat-sonrasi-temizlik': `
 **İnşaat Sonrası Temizlik:**
 - İnşaat/tadilat sonrası toz ve moloz temizliği ağır iştir; profesyonel ekipman gerektirir.
 - Müşteriye sor: İnşaat mı tadilat sonrası mı? Tahmini alan? Ne zaman bitiyor?
 `,
-  'fayans-parke': `
-**Fayans & Parke Döşeme:**
-- Fayans ve parke farklı uzmanlıklardır; mutfak/banyo fayansı, salon parkesi gibi.
-- Müşteriye sor: Fayans mı parke mi? Söküm var mı? Tahmini metrekare?
+  'fayans-doseme': `
+**Fayans Döşeme:**
+- Mutfak, banyo, koridor zemin veya duvar fayansı uzmanlığı farklı olabilir.
+- Kırım işlemi ayrıca fiyatlandırılabilir.
+- Müşteriye sor: Söküm (kırım) var mı? Tahmini metrekare? Kullanılacak malzemenin ebatları büyük mü?
+`,
+  'parke-doseme': `
+**Parke Döşeme:**
+- Laminat veya lamine parke için uygulanır, süpürgelik dahil olup olmadığı önemlidir.
+- Müşteriye sor: Eski parkenin sökülmesi gerekiyor mu? Tahmini metrekare?
 `,
   'hasere-ilaclama': `
-**Haşere & Böcek İlaçlama:**
-- Hamamböceği, fare, tahta kurusu, bit gibi haşereler farklı ilaçlama yöntemleri gerektirir.
-- İlaçlama sonrası 2-4 saat evi havalandırmak gerekir.
-- Müşteriye sor: Haşere türü? Ev mi iş yeri mi? Kaç metrekare alan?
+**Haşere İlaçlama:**
+- Hamamböceği, tahta kurusu, bit, karınca gibi farklı türlere özel çözümler sunulur.
+- İlaçlama sonrası evi belirli bir süre havalandırmak gerekir.
+- Müşteriye sor: Ev mi iş yeri mi? Haşere türü belli mi? Kaç metrekare alan?
 `,
-  'kombi-klima': `
-**Kombi & Klima Bakımı:**
-- Kombi bakımı yılda en az 1 kez yapılmalıdır (kış öncesi idealdir).
-- Klima gaz dolumu 2-3 yılda bir gerekebilir; klima temizliği mevsim başında önerilir.
-- Marka ve model bilgisi, doğru yedek parça hazırlığı için önemlidir.
-- Müşteriye sor: Cihaz türü (kombi/klima)? Marka/model? İşlem türü (bakım, arıza, montaj)?
+  'bocek-ilaclama': `
+**Böcek İlaçlama:**
+- Fare, akrep gibi özel kemirgen veya böcek türlerine göre yemleme/ilaçlama yapılır.
+- Müşteriye sor: Alanın büyüklüğü nedir? Daha önce ilaçlama yapıldı mı?
 `,
-  'mantolama-discephe': `
-**Mantolama & Dış Cephe:**
-- Dış cephe mantolama enerji tasarrufu sağlar; bina/daire bazında farklılık gösterir.
-- Müşteriye sor: Bina mı daire mi? Kaçıncı kat? Tahmini alan?
+  'kombi-servisi': `
+**Kombi Servisi:**
+- Kombi bakımı yılda en az 1 kez (kış öncesi) yapılmalıdır.
+- Arıza durumunda cihazın hata kodunu öğrenmek önemlidir.
+- Müşteriye sor: Kombinin markası ve modeli nedir? Sorun nedir (ısıtmıyor, su akıtıyor vb.) veya sadece bakım mı?
 `,
-  'marangoz-mobilya': `
-**Marangoz & Mobilya Montajı:**
-- Mutfak dolabı, gardırop, raf, masa gibi işler farklı beceriler gerektirir.
-- Müşteriye sor: Ne tür mobilya? Montaj mı, tamir mi, özel imalat mı?
+  'klima-servisi': `
+**Klima Servisi:**
+- Klima gaz dolumu, filtre temizliği ve arıza onarımı yapılır.
+- Müşteriye sor: Klimanın markası nedir ve kaç BTU? Sadece bakım mı yoksa arıza mı var?
+`,
+  'mantolama': `
+**Mantolama:**
+- Dış cephe yalıtımı binaların enerji tasarrufunu artırır.
+- Müşteriye sor: Sadece sizin dairenize mi yoksa tüm binaya mı uygulanacak?
+`,
+  'dis-cephe': `
+**Dış Cephe:**
+- Dış cephe boya, kaplama, izolasyon işleri kapsanır.
+- Müşteriye sor: Binanın kaçıncı katında çalışılacak veya tüm bina mı kaplanacak?
+`,
+  'marangoz': `
+**Marangoz:**
+- Kapı, pencere onarımı veya mutfak dolabı gibi sıfırdan imalat veya tamirleri içerir.
+- Müşteriye sor: Özel üretim mi yoksa onarım/tamirat işi mi?
+`,
+  'mobilya-montaji': `
+**Mobilya Montajı:**
+- Hazır alınan dolap, kitaplık, yatak, TV ünitesi kurulumlarını içerir.
+- Müşteriye sor: Kaç parça ürün var? Ürünler demonte şekilde adreste mi?
 `,
   'ozel-ders': `
 **Özel Ders:**
-- İnşaat düzeyleri yerine okul düzeylerinde dersler verilebilir.
 - Online veya yüz yüze ders seçenekleri mevcuttur.
 - Müşteriye sor: Hangi ders/seviye? Yüz yüze mi online mı?
 `,
-  'cam-balkon-pvc': `
-**Cam Balkon & PVC Pencere:**
-- Cam balkon ve PVC kaplama işleri bu kategoridedir.
-- Müşteriye sor: PVC mi Cam Balkon mu? Yaklaşık ölçü veya adet nedir?
+  'cam-balkon': `
+**Cam Balkon:**
+- Balkon kapatma sistemleri için katlanır, sürme, ısıcamlı gibi seçenekler mevcuttur.
+- Müşteriye sor: Isıcamlı mı isteniyor yoksa standart katlanır cam mı? Tahmini ölçü (en ve boy) nedir?
+`,
+  'pvc-pencere': `
+**PVC Pencere:**
+- Kapı ve pencerelerin PVC doğrama ile yapılması işleri.
+- Müşteriye sor: Kaç pencere/kapı değişecek? Özel bir renk veya marka tercihi var mı?
 `,
   'ofis-temizligi': `
-**Ofis & İş Yeri Temizliği:**
-- Ofis temizlik hizmetleri.
-- Müşteriye sor: Ofisiniz kaç metrekare? Hafta içi mi hafta sonu mu istersiniz?
+**Ofis Temizliği:**
+- Ofis, büro veya mağaza temizlik hizmetleri.
+- Müşteriye sor: Temizlik mesai saatleri içinde mi dışında mı yapılacak? Düzenli mi yoksa tek seferlik mi?
+`,
+  'is-yeri-temizligi': `
+**İş Yeri Temizliği:**
+- Daha geniş fabrika, mağaza, restoran tarzı yerlerin temizliğini kapsar.
+- Müşteriye sor: Ne kadar bir alan temizlenecek? Özel temizlik (davlumbaz vs) gerektiren yerler var mı?
 `,
   'dogalgaz-tesisati': `
 **Doğalgaz Tesisatı:**
 - Proje çizimi ve gaz açma süreçlerini kapsar.
 - Müşteriye sor: Yeni tesisat mı yoksa tadilat mı? Proje çizimi gerekiyor mu?
 `,
-  'ic-mimar-dekorasyon': `
-**İç Mimar & Dekorasyon:**
-- Ev veya iş yeri dekorasyon/mimarlık hizmetleri.
-- Müşteriye sor: Uygulama dahil mi, sadece 3D çizim mi istiyorsunuz?
+  'ic-mimar': `
+**İç Mimar:**
+- Ev veya iş yeri için mekan tasarımı ve planlaması.
+- Müşteriye sor: Tasarım projelendirme mi (3D çizim vb) yoksa komple danışmanlık mı isteniyor?
+`,
+  'dekorasyon': `
+**Dekorasyon:**
+- Uygulamalı dekorasyon işlemleri (duvar çıtalama, alçıpan asma tavan vb).
+- Müşteriye sor: Uygulama dahil mi? Ne tarz değişiklikler planlanıyor?
 `,
   'fotografci': `
 **Fotoğrafçı:**
 - Dış çekim, düğün fotoğrafı veya ürün çekimi.
 - Müşteriye sor: Çekim türü nedir? Ne zaman ve nerede yapılacak?
 `,
-  'organizasyon-etkinlik': `
-**Organizasyon & Etkinlik:**
-- Doğum günü, kına, düğün veya açılış organizasyonu.
-- Müşteriye sor: Etkinlik türü nedir? Davetli sayısı yaklaşık kaçtır?
+  'organizasyon': `
+**Organizasyon:**
+- Düğün, nişan, kına, açılış organizasyonlarını kapsar.
+- Müşteriye sor: Etkinlik türü ve tarihi nedir? Davetli sayısı yaklaşık kaçtır?
+`,
+  'etkinlik': `
+**Etkinlik:**
+- Daha çok doğum günü, parti, sürpriz etkinlik düzenlemeleri.
+- Müşteriye sor: Etkinlik için mekan süslemesi mi animatör/palyaço vb. ek hizmetler mi aranıyor?
 `
 };

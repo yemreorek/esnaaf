@@ -36,7 +36,7 @@ export class GraphSeederService {
   /**
    * Parse and upsert a JSON knowledge base structure into the Graph engine.
    */
-  async ingestGraphConfig(config: GraphKnowledgeBase) {
+  async ingestGraphConfig(config: GraphKnowledgeBase, fileName?: string) {
     this.logger.log(`Starting graph ingestion...`);
     
     let category_routes = config.category_routes || {};
@@ -49,14 +49,18 @@ export class GraphSeederService {
       this.logger.log(`Detected nested category format JSON for slug: ${possibleCategoryKey}`);
       const categoryData = (config as any)[possibleCategoryKey];
       const stepsObj = categoryData.steps || categoryData.nodes || {};
-      category_routes[possibleCategoryKey] = { start_node_id: categoryData.start_node_id || Object.keys(stepsObj)[0] || '1' };
+      const firstStepIdRaw = categoryData.start_node_id || Object.keys(stepsObj)[0] || '1';
+      category_routes[possibleCategoryKey] = { start_node_id: `${possibleCategoryKey}_${firstStepIdRaw}` };
       
       for (const [stepId, stepData] of Object.entries(stepsObj as Record<string, any>)) {
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
                           stepData.type || stepData.input_type || 'text';
-                          
-        nodes[stepId] = {
+        
+        const namespacedStepId = `${possibleCategoryKey}_${stepId}`;
+        const nextNodeRaw = stepData.next_step || stepData.next_node_id;
+        
+        nodes[namespacedStepId] = {
           question_text: stepData.question || stepData.question_text || '',
           title: stepData.title || null,
           description: stepData.description || null,
@@ -64,11 +68,14 @@ export class GraphSeederService {
           submit_action: stepData.submit_action || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: stepData.next_step || stepData.next_node_id || null,
-          options: stepData.options ? stepData.options.map((opt: any) => ({
-            text: opt.label || opt.text,
-            next_node_id: opt.next_step || opt.next_node_id
-          })) : []
+          next_node_id: nextNodeRaw ? `${possibleCategoryKey}_${nextNodeRaw}` : null,
+          options: stepData.options ? stepData.options.map((opt: any) => {
+            const optNextRaw = opt.next_step || opt.next_node_id;
+            return {
+              text: opt.label || opt.text,
+              next_node_id: optNextRaw && String(optNextRaw) !== 'none' ? `${possibleCategoryKey}_${optNextRaw}` : null
+            };
+          }) : []
         };
       }
     } else if (config.steps) {
@@ -80,15 +87,18 @@ export class GraphSeederService {
       const trMap: Record<string, string> = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'Ç': 'C', 'Ğ': 'G', 'İ': 'I', 'Ö': 'O', 'Ş': 'S', 'Ü': 'U' };
       const catSlug = catStr.toLowerCase().replace(/[çğıöşü]/g, (m) => trMap[m]).replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
       
-      const firstStepId = Object.keys(config.steps)[0] || '1';
-      category_routes[catSlug] = { start_node_id: firstStepId };
+      const firstStepIdRaw = Object.keys(config.steps)[0] || '1';
+      category_routes[catSlug] = { start_node_id: `${catSlug}_${firstStepIdRaw}` };
       
       for (const [stepId, stepData] of Object.entries(config.steps)) {
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
                           stepData.type || 'text';
                           
-        nodes[stepId] = {
+        const namespacedStepId = `${catSlug}_${stepId}`;
+        const nextNodeRaw = stepData.next_step !== undefined && stepData.next_step !== null ? String(stepData.next_step) : null;
+        
+        nodes[namespacedStepId] = {
           question_text: stepData.question || '',
           title: stepData.title || null,
           description: stepData.description || null,
@@ -96,11 +106,14 @@ export class GraphSeederService {
           submit_action: stepData.submit_action || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: stepData.next_step !== undefined && stepData.next_step !== null ? String(stepData.next_step) : null,
-          options: stepData.options ? stepData.options.map((opt: any) => ({
-            text: opt.label,
-            next_node_id: opt.next_step !== undefined && opt.next_step !== null ? String(opt.next_step) : null
-          })) : []
+          next_node_id: nextNodeRaw ? `${catSlug}_${nextNodeRaw}` : null,
+          options: stepData.options ? stepData.options.map((opt: any) => {
+            const optNextRaw = opt.next_step !== undefined && opt.next_step !== null ? String(opt.next_step) : null;
+            return {
+              text: opt.label,
+              next_node_id: optNextRaw && optNextRaw !== 'none' ? `${catSlug}_${optNextRaw}` : null
+            };
+          }) : []
         };
       }
     }
@@ -173,9 +186,19 @@ export class GraphSeederService {
             create: { category_slug: 'ev-temizligi', start_node_id: routeData.start_node_id }
           });
         }
-
         this.logger.debug(`Upserted route for category: ${categorySlug}`);
       }
+    }
+
+    if (fileName) {
+      const parsedCategorySlug = Object.keys(category_routes)[0] || 'genel';
+      await this.prisma.graphUploadLog.create({
+        data: {
+          file_name: fileName,
+          category_slug: parsedCategorySlug
+        }
+      });
+      this.logger.log(`Logged graph upload: ${fileName} for category: ${parsedCategorySlug}`);
     }
 
     this.logger.log(`Graph ingestion completed successfully!`);

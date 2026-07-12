@@ -1233,6 +1233,13 @@ export class AdminService {
     };
   }
 
+  async getGraphUploadLogs() {
+    return await this.prisma.graphUploadLog.findMany({
+      orderBy: { uploaded_at: 'desc' },
+      take: 100 // Get latest 100 logs
+    });
+  }
+
   async getAdminProfile(email: string) {
     const staff = await this.prisma.staff.findUnique({
       where: { email, is_active: true },
