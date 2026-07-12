@@ -621,7 +621,7 @@ export class ChatService {
                    } else {
                       state.collected_data[nodeId] = message.trim();
                       if (!state.collected_data.graph_labels) state.collected_data.graph_labels = {};
-                      state.collected_data.graph_labels[nodeId] = node.question;
+                      state.collected_data.graph_labels[nodeId] = node.question_text;
 
                       if (node.input_type === 'single_choice') {
                         const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === cleanMsg);
