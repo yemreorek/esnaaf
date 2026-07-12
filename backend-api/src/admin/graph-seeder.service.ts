@@ -118,7 +118,8 @@ export class GraphSeederService {
                           stepData.type || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
-        const nextNodeRaw = stepData.next_step !== undefined && stepData.next_step !== null ? String(stepData.next_step) : null;
+        const rawNext = stepData.next_step || stepData.next_node_id;
+        const nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
         
         nodes[namespacedStepId] = {
           question_text: stepData.question || '',
@@ -130,7 +131,8 @@ export class GraphSeederService {
           input_type: inputType,
           next_node_id: nextNodeRaw ? `${catSlug}_${nextNodeRaw}` : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
-            const optNextRaw = opt.next_step !== undefined && opt.next_step !== null ? String(opt.next_step) : null;
+            const optRawNext = opt.next_step || opt.next_node_id;
+            const optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
             return {
               text: opt.label,
               next_node_id: optNextRaw && optNextRaw !== 'none' ? `${catSlug}_${optNextRaw}` : null
