@@ -633,18 +633,22 @@ export class ChatService {
                       } else if (node.input_type === 'multi_choice') {
                         const selectedTexts = message.split(',').map(s => s.trim().toLowerCase());
                         const nextNodeIds: string[] = [];
+                        let validOptionFound = false;
                         for (const text of selectedTexts) {
                           const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === text);
-                          if (selectedOption && selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {
-                             if (!nextNodeIds.includes(selectedOption.next_node_id)) {
-                                nextNodeIds.push(selectedOption.next_node_id);
+                          if (selectedOption) {
+                             validOptionFound = true;
+                             if (selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {
+                                if (!nextNodeIds.includes(selectedOption.next_node_id)) {
+                                   nextNodeIds.push(selectedOption.next_node_id);
+                                }
                              }
                           }
                         }
-                        if (nextNodeIds.length > 0) {
+                        if (validOptionFound) {
                            if (!state.collected_data.node_history) state.collected_data.node_history = [];
                            state.collected_data.node_history.push(nodeId);
-                           state.collected_data.current_node_id = nextNodeIds.shift() || 'none';
+                           state.collected_data.current_node_id = nextNodeIds.length > 0 ? (nextNodeIds.shift() || 'none') : 'none';
                            if (nextNodeIds.length > 0) {
                               if (!state.collected_data.node_queue) state.collected_data.node_queue = [];
                               state.collected_data.node_queue.push(...nextNodeIds);
