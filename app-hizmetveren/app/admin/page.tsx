@@ -3840,7 +3840,7 @@ ${callTaskNotes}`;
             {/* SECTORS TAB */}
             {activeTab === 'sectors' && (
               <div className="animate-fade-in">
-                <SectorManagementPage />
+                <SectorManagementPage token={token} />
               </div>
             )}
           </section>

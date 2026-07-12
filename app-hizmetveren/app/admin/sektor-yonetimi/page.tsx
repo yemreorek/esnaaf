@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertTriangle, FileJson, Loader2 } from 'lucide-react';
 
-export default function SectorManagementPage() {
+export default function SectorManagementPage({ token }: { token?: string | null }) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -20,6 +20,11 @@ export default function SectorManagementPage() {
       setMessage({ type: 'error', text: 'Lütfen bir JSON dosyası seçin.' });
       return;
     }
+    
+    if (!token) {
+      setMessage({ type: 'error', text: 'Oturum tokeni bulunamadı. Lütfen tekrar giriş yapın.' });
+      return;
+    }
 
     setUploading(true);
     setMessage(null);
@@ -28,7 +33,6 @@ export default function SectorManagementPage() {
     formData.append('file', file);
 
     try {
-      const token = localStorage.getItem('accessToken');
       const res = await fetch('/api/admin/graph/upload-json', {
         method: 'POST',
         headers: {
