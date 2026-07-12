@@ -1757,35 +1757,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
    */
   private async detectCategory(message: string): Promise<{ detected: boolean; categorySlug: string | null; categoryName: string | null; confidence: number }> {
     const text = message.toLowerCase();
-
-    // DYNAMIC MATCHING: Upload edilen yeni JSON'lardaki slug'ları otomatik tanı
-    try {
-      const normalizeTr = (str: string) => str.toLocaleLowerCase('tr-TR').replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u');
-      const normalizedText = normalizeTr(text);
-      
-      const allRoutes = await this.prisma.graphCategoryRoute.findMany();
-      for (const route of allRoutes) {
-        const slug = route.category_slug;
-        // Zaten aşağıda manuel olarak yakalananları (veya kompleks olanları) atlayabiliriz ama dinamik çalışması daha iyi
-        const slugParts = slug.split(/[-_]/).filter(p => p.length > 2);
-        if (slugParts.length === 0) continue;
-        
-        let matchCount = 0;
-        for (const part of slugParts) {
-          if (normalizedText.includes(normalizeTr(part))) {
-            matchCount++;
-          }
-        }
-        
-        // Eğer slug'ın en az yarısı eşleştiyse (örn: "koltuk_yikama" -> 2 kelime, ikisi de eşleşirse)
-        if (matchCount > 0 && matchCount >= (slugParts.length / 2)) {
-          return { detected: true, categorySlug: slug, categoryName: slug.replace(/[-_]/g, ' ').toUpperCase(), confidence: 0.85 };
-        }
-      }
-    } catch (e) {
-      console.error("[detectCategory] Dynamic matching error:", e);
-    }
-
+    // DYNAMIC MATCHING MOVED TO THE END
 
     if (text.includes('cam balkon') || text.includes('cam-balkon')) {
       return { detected: true, categorySlug: 'cam-balkon', categoryName: 'Cam Balkon', confidence: 0.95 };
@@ -1878,7 +1850,33 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       return { detected: true, categorySlug: 'nakliyat', categoryName: 'Nakliyat / Ev Taşıma', confidence: 0.92 };
     }
 
-
+    // DYNAMIC MATCHING: Upload edilen yeni JSON'lardaki slug'ları otomatik tanı
+    try {
+      const normalizeTr = (str: string) => str.toLocaleLowerCase('tr-TR').replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u');
+      const normalizedText = normalizeTr(text);
+      
+      const allRoutes = await this.prisma.graphCategoryRoute.findMany();
+      for (const route of allRoutes) {
+        const slug = route.category_slug;
+        
+        // Sadece diğer hiçbir kurala uymadıysa dinamik kontrol yapalım
+        const slugParts = slug.split(/[-_]/).filter(p => p.length > 2);
+        if (slugParts.length === 0) continue;
+        
+        let matchCount = 0;
+        for (const part of slugParts) {
+          if (normalizedText.includes(normalizeTr(part))) {
+            matchCount++;
+          }
+        }
+        
+        if (matchCount > 0 && matchCount >= (slugParts.length / 2)) {
+          return { detected: true, categorySlug: slug, categoryName: slug.replace(/[-_]/g, ' ').toUpperCase(), confidence: 0.85 };
+        }
+      }
+    } catch (e) {
+      console.error("[detectCategory] Dynamic matching error:", e);
+    }
 
     return { detected: false, categorySlug: null, categoryName: null, confidence: 0.0 };
   }

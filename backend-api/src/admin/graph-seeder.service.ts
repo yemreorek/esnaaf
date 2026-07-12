@@ -45,7 +45,28 @@ export class GraphSeederService {
     const rootKeys = Object.keys(config);
     const possibleCategoryKey = rootKeys.find(k => k !== 'category_routes' && k !== 'nodes' && k !== 'service_category' && k !== 'steps' && typeof (config as any)[k] === 'object' && ((config as any)[k].steps || (config as any)[k].nodes));
 
-    if (possibleCategoryKey) {
+    if (Object.keys(category_routes).length > 0 && Object.keys(nodes).length > 0 && !possibleCategoryKey && !config.steps) {
+      // Legacy format: namespace nodes using the first category slug
+      const catSlug = Object.keys(category_routes)[0];
+      const newNodes: Record<string, any> = {};
+      
+      category_routes[catSlug].start_node_id = `${catSlug}_${category_routes[catSlug].start_node_id}`;
+      
+      for (const [nodeId, nodeData] of Object.entries(nodes)) {
+        const namespacedStepId = `${catSlug}_${nodeId}`;
+        const nextNodeRaw = nodeData.next_node_id;
+        
+        newNodes[namespacedStepId] = {
+          ...nodeData,
+          next_node_id: nextNodeRaw ? `${catSlug}_${nextNodeRaw}` : null,
+          options: nodeData.options ? nodeData.options.map((opt: any) => ({
+            ...opt,
+            next_node_id: opt.next_node_id && String(opt.next_node_id) !== 'none' ? `${catSlug}_${opt.next_node_id}` : null
+          })) : []
+        };
+      }
+      nodes = newNodes;
+    } else if (possibleCategoryKey) {
       this.logger.log(`Detected nested category format JSON for slug: ${possibleCategoryKey}`);
       const categoryData = (config as any)[possibleCategoryKey];
       const stepsObj = categoryData.steps || categoryData.nodes || {};
