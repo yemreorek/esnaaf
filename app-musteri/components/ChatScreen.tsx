@@ -1136,6 +1136,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         return (
                           <button
                             key={idx}
+                            disabled={isLoading}
                             onClick={() => {
                               if (msg.inputType === 'multi_choice') {
                                 setSelectedMultiOptions(prev => 
@@ -1145,7 +1146,9 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                                 sendMessage(opt);
                               }
                             }}
-                            className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 cursor-pointer text-left leading-snug ${
+                            className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
+                              isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                            } ${
                               isSelected 
                                 ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01]' 
                                 : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5'
@@ -1169,6 +1172,17 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         className="self-end px-5 py-2 bg-slate-800 text-white font-semibold rounded-xl text-sm hover:bg-slate-700 transition-colors"
                       >
                         Seçimi Tamamla
+                      </button>
+                    )}
+                    
+                    {currentStep !== "greeting" && (
+                      <button
+                        disabled={isLoading}
+                        onClick={() => sendMessage("Geri Dön")}
+                        className="mt-2 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors text-left flex items-center gap-1.5 w-fit disabled:opacity-50"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Yanlış mı seçtiniz? Geri Dön
                       </button>
                     )}
                   </div>

@@ -619,37 +619,47 @@ export class ChatService {
               if (nodeId && nodeId !== 'none') {
                 const node = await this.prisma.graphNode.findUnique({ where: { id: nodeId }, include: { options: true } });
                 if (node) {
-                   state.collected_data[nodeId] = message.trim();
+                   const cleanMsg = message.trim().toLowerCase();
 
-                   if (node.input_type === 'single_choice') {
-                     const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === message.trim().toLowerCase());
-                     if (selectedOption) {
-                       state.collected_data.current_node_id = selectedOption.next_node_id || 'none';
-                     } else {
-                       state.collected_data.current_node_id = 'none';
-                     }
-                   } else if (node.input_type === 'multi_choice') {
-                     const selectedTexts = message.split(',').map(s => s.trim().toLowerCase());
-                     const nextNodeIds: string[] = [];
-                     for (const text of selectedTexts) {
-                       const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === text);
-                       if (selectedOption && selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {
-                          if (!nextNodeIds.includes(selectedOption.next_node_id)) {
-                             nextNodeIds.push(selectedOption.next_node_id);
-                          }
-                       }
-                     }
-                     if (nextNodeIds.length > 0) {
-                        state.collected_data.current_node_id = nextNodeIds.shift() || 'none';
-                        if (nextNodeIds.length > 0) {
-                           if (!state.collected_data.node_queue) state.collected_data.node_queue = [];
-                           state.collected_data.node_queue.push(...nextNodeIds);
-                        }
-                     } else {
-                        state.collected_data.current_node_id = 'none';
-                     }
+                   if (cleanMsg === 'geri dön' || cleanMsg === 'geri') {
+                      if (state.collected_data.node_history && state.collected_data.node_history.length > 0) {
+                         state.collected_data.current_node_id = state.collected_data.node_history.pop();
+                      }
                    } else {
-                     state.collected_data.current_node_id = node.next_node_id || 'none';
+                      state.collected_data[nodeId] = message.trim();
+
+                      if (node.input_type === 'single_choice') {
+                        const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === cleanMsg);
+                        if (selectedOption) {
+                          if (!state.collected_data.node_history) state.collected_data.node_history = [];
+                          state.collected_data.node_history.push(nodeId);
+                          state.collected_data.current_node_id = selectedOption.next_node_id || 'none';
+                        }
+                      } else if (node.input_type === 'multi_choice') {
+                        const selectedTexts = message.split(',').map(s => s.trim().toLowerCase());
+                        const nextNodeIds: string[] = [];
+                        for (const text of selectedTexts) {
+                          const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === text);
+                          if (selectedOption && selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {
+                             if (!nextNodeIds.includes(selectedOption.next_node_id)) {
+                                nextNodeIds.push(selectedOption.next_node_id);
+                             }
+                          }
+                        }
+                        if (nextNodeIds.length > 0) {
+                           if (!state.collected_data.node_history) state.collected_data.node_history = [];
+                           state.collected_data.node_history.push(nodeId);
+                           state.collected_data.current_node_id = nextNodeIds.shift() || 'none';
+                           if (nextNodeIds.length > 0) {
+                              if (!state.collected_data.node_queue) state.collected_data.node_queue = [];
+                              state.collected_data.node_queue.push(...nextNodeIds);
+                           }
+                        }
+                      } else {
+                        if (!state.collected_data.node_history) state.collected_data.node_history = [];
+                        state.collected_data.node_history.push(nodeId);
+                        state.collected_data.current_node_id = node.next_node_id || 'none';
+                      }
                    }
                 }
               }
