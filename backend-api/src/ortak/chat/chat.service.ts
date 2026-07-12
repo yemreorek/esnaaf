@@ -155,16 +155,9 @@ export class ChatService {
       return;
     }
 
-    // YENİ DÜZENLEME: Graph flow açıksa ve bittiyse (nextQ null ise), 'ask_details' (eski anket) adımına DÜŞÜRME!
-    if (!state.collected_data.is_graph_flow) {
-      if (!state.collected_data.hasAskedDetails) {
-        state.step = 'ask_details';
-        return;
-      }
-    } else {
-      // Eğer Graph flow ise ve nextQ null ise, demek ki tüm graph node'lar bitti.
-      // Bu durumda direkt konum alma aşamasına (ask_address) geçsin, ask_details'i tamamen atlasın.
-      state.collected_data.hasAskedDetails = true; // flag'i dolduralım ki tekrar girmesin
+    if (!state.collected_data.hasAskedDetails) {
+      state.step = 'ask_details';
+      return;
     }
 
     if (!state.collected_data.district || !state.collected_data.neighborhood) {
@@ -708,16 +701,15 @@ export class ChatService {
           }
         }
 
-        // Deterministic transition to ask_address if all technical questions are answered
+        // Deterministic transition to ask_details if all technical questions are answered
         if (state.collected_data.categorySlug && !justDetectedCategory && !(await this.getNextQuestion(state)) && !state.collected_data.hasAskedDetails) {
-          state.collected_data.hasAskedDetails = true;
-          state.step = 'ask_address';
-          responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
+          state.step = 'ask_details';
+          responseMessage = `Harika! İhtiyacınızın detayları nelerdir? Bize bilmemiz gereken özel bir durumdan bahsetmek ister misiniz? (Yoksa 'hayır' diyebilirsiniz)`;
           state.messages.push({ role: 'assistant', content: responseMessage });
           await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
           await this.trackTokens(sessionKey, tokensUsed);
           return {
-            step: 'ask_address',
+            step: 'ask_details',
             responseMessage,
             collected_data: state.collected_data,
           };
