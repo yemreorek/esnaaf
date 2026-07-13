@@ -1,0 +1,98 @@
+{
+  "category": "Koltuk Yıkama",
+  "version": "1.0.0",
+  "steps": {
+    "1": {
+      "step_id": 1,
+      "question": "Kaç adet tekli koltuk (veya berjer) yıkanacak?",
+      "question_type": "single_selection",
+      "description": "Tekli koltuk veya berjerlerinizi kapsar.",
+      "options": [
+        {"label": "0", "next_step": 2},
+        {"label": "1", "next_step": 2},
+        {"label": "2", "next_step": 2},
+        {"label": "3", "next_step": 2},
+        {"label": "4", "next_step": 2},
+        {"label": "5+", "next_step": 2}
+      ]
+    },
+    "2": {
+      "step_id": 2,
+      "question": "Kaç tane üçlü / ikili kanepe / çekyat yıkanacak?",
+      "question_type": "single_selection",
+      "description": "Standart ikili veya üçlü oturma gruplarınız ve çekyatlarınız için geçerlidir.",
+      "options": [
+        {"label": "0", "next_step": 3},
+        {"label": "1", "next_step": 3},
+        {"label": "2", "next_step": 3},
+        {"label": "3", "next_step": 3},
+        {"label": "4+", "next_step": 3}
+      ]
+    },
+    "3": {
+      "step_id": 3,
+      "question": "Kaç adet L-şeklinde köşe koltuğu yıkanacak?",
+      "question_type": "single_selection",
+      "description": "L koltuk veya köşe takımlarını kapsar.",
+      "options": [
+        {"label": "0", "next_step": 4},
+        {"label": "1", "next_step": 4},
+        {"label": "2", "next_step": 4},
+        {"label": "3+", "next_step": 4}
+      ]
+    },
+    "4": {
+      "step_id": 4,
+      "question": "Kaç adet sandalye yıkanacak?",
+      "question_type": "single_selection",
+      "description": "Yemek masası veya çalışma sandalyeleri dahildir.",
+      "options": [
+        {"label": "0", "next_step": 5},
+        {"label": "1", "next_step": 5},
+        {"label": "2", "next_step": 5},
+        {"label": "4", "next_step": 5},
+        {"label": "5", "next_step": 5},
+        {"label": "6", "next_step": 5},
+        {"label": "8", "next_step": 5},
+        {"label": "10+", "next_step": 5}
+      ]
+    },
+    "5": {
+      "step_id": 5,
+      "question": "Kaç adet tek kişilik yatak yıkanacak?",
+      "question_type": "single_selection",
+      "description": "Eni 130 cm'den az olan yataklar için geçerlidir.",
+      "options": [
+        {"label": "0", "next_step": 6},
+        {"label": "1", "next_step": 6},
+        {"label": "2", "next_step": 6},
+        {"label": "3+", "next_step": 6}
+      ]
+    },
+    "6": {
+      "step_id": 6,
+      "question": "Kaç adet çift kişilik yatak yıkanacak?",
+      "question_type": "single_selection",
+      "description": "Geniş yataklar ve çift kişilik yatak modelleri dahildir.",
+      "options": [
+        {"label": "0", "next_step": "END"},
+        {"label": "1", "next_step": "END"},
+        {"label": "2", "next_step": "END"},
+        {"label": "3+", "next_step": "END"}
+      ]
+    }
+  },
+  "global_closing": {
+    "extra_details": {
+      "question": "Ustanın bilmesi gereken ekstra bir detay var mı?",
+      "type": "text_area",
+      "required": false,
+      "placeholder": "Örn: Koltukta çıkmayan inatçı kahve lekeleri var veya kadife kumaş."
+    },
+    "media_upload": {
+      "question": "Yıkanacak eşyaların veya lekelerin fotoğrafını yükleyin",
+      "type": "file_upload",
+      "required": false
+    }
+  }
+}

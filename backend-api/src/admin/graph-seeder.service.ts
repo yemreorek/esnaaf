@@ -100,8 +100,8 @@ export class GraphSeederService implements OnModuleInit {
         const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
 
         const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
-        const inputType = rawType === 'single_select' ? 'single_choice' : 
-                          rawType === 'multi_select' ? 'multi_choice' : 
+        const inputType = (rawType === 'single_select' || rawType === 'single_selection') ? 'single_choice' : 
+                          (rawType === 'multi_select' || rawType === 'multi_selection') ? 'multi_choice' : 
                           rawType || 'text';
         
         const namespacedStepId = `${possibleCategoryKey}_${stepId}`;
@@ -157,8 +157,8 @@ export class GraphSeederService implements OnModuleInit {
         const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
 
         const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
-        const inputType = rawType === 'single_select' ? 'single_choice' : 
-                          rawType === 'multi_select' ? 'multi_choice' : 
+        const inputType = (rawType === 'single_select' || rawType === 'single_selection') ? 'single_choice' : 
+                          (rawType === 'multi_select' || rawType === 'multi_selection') ? 'multi_choice' : 
                           rawType || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
