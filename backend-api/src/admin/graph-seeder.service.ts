@@ -73,28 +73,44 @@ export class GraphSeederService {
       const firstStepIdRaw = categoryData.start_node_id || Object.keys(stepsObj)[0] || '1';
       category_routes[possibleCategoryKey] = { start_node_id: `${possibleCategoryKey}_${firstStepIdRaw}` };
       
-      for (const [stepId, stepData] of Object.entries(stepsObj as Record<string, any>)) {
+      const stepKeys = Object.keys(stepsObj);
+      for (let i = 0; i < stepKeys.length; i++) {
+        const stepId = stepKeys[i];
+        const stepData = stepsObj[stepId];
+        const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
+
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
                           stepData.type || stepData.input_type || 'text';
         
         const namespacedStepId = `${possibleCategoryKey}_${stepId}`;
-        const nextNodeRaw = stepData.next_step || stepData.next_node_id;
+        const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next || stepData.sonraki_adim || stepData.sonrakiAdim || stepData.sonraki || stepData.hedef || stepData.target || stepData.goto || nextStepIdDefault;
+        let nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
+        if (nextNodeRaw && nextNodeRaw.startsWith(`${possibleCategoryKey}_`)) {
+            nextNodeRaw = nextNodeRaw.replace(`${possibleCategoryKey}_`, '');
+        }
         
         nodes[namespacedStepId] = {
-          question_text: stepData.question || stepData.question_text || '',
+          question_text: stepData.question || stepData.question_text || stepData.questionText || '',
           title: stepData.title || null,
           description: stepData.description || null,
-          is_optional: stepData.is_optional || false,
-          submit_action: stepData.submit_action || null,
+          is_optional: stepData.is_optional || stepData.isOptional || false,
+          submit_action: stepData.submit_action || stepData.submitAction || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: nextNodeRaw ? `${possibleCategoryKey}_${nextNodeRaw}` : null,
+          next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? `${possibleCategoryKey}_${nextNodeRaw}` : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
-            const optNextRaw = opt.next_step || opt.next_node_id;
+            const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next || opt.sonraki_adim || opt.sonrakiAdim || opt.sonraki || opt.hedef || opt.target || opt.goto;
+            let optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
+            if (!optNextRaw && nextNodeRaw) {
+               optNextRaw = nextNodeRaw;
+            }
+            if (optNextRaw && optNextRaw.startsWith(`${possibleCategoryKey}_`)) {
+                optNextRaw = optNextRaw.replace(`${possibleCategoryKey}_`, '');
+            }
             return {
-              text: opt.label || opt.text,
-              next_node_id: optNextRaw && String(optNextRaw) !== 'none' ? `${possibleCategoryKey}_${optNextRaw}` : null
+              text: opt.label || opt.text || opt.value || opt.name,
+              next_node_id: optNextRaw && optNextRaw !== 'none' ? `${possibleCategoryKey}_${optNextRaw}` : null
             };
           }) : []
         };
@@ -112,13 +128,19 @@ export class GraphSeederService {
       const firstStepIdRaw = Object.keys(config.steps)[0] || '1';
       category_routes[catSlug] = { start_node_id: `${catSlug}_${firstStepIdRaw}` };
       
-      for (const [stepId, stepData] of Object.entries(config.steps)) {
+      const stepKeys = Object.keys(config.steps);
+      
+      for (let i = 0; i < stepKeys.length; i++) {
+        const stepId = stepKeys[i];
+        const stepData = config.steps[stepId];
+        const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
+
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
                           stepData.type || stepData.input_type || stepData.inputType || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
-        const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next;
+        const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next || stepData.sonraki_adim || stepData.sonrakiAdim || stepData.sonraki || stepData.hedef || stepData.target || stepData.goto || nextStepIdDefault;
         let nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
         if (nextNodeRaw && nextNodeRaw.startsWith(`${catSlug}_`)) {
             nextNodeRaw = nextNodeRaw.replace(`${catSlug}_`, '');
