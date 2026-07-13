@@ -134,8 +134,11 @@ export class GraphSeederService {
           input_type: inputType,
           next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? `${catSlug}_${nextNodeRaw}` : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
-            const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next;
+            const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next || opt.sonraki_adim || opt.sonrakiAdim || opt.sonraki || opt.hedef || opt.target || opt.goto;
             let optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
+            if (!optNextRaw && nextNodeRaw) {
+               optNextRaw = nextNodeRaw;
+            }
             if (optNextRaw && optNextRaw.startsWith(`${catSlug}_`)) {
                 optNextRaw = optNextRaw.replace(`${catSlug}_`, '');
             }

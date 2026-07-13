@@ -628,7 +628,7 @@ export class ChatService {
                         if (selectedOption) {
                           if (!state.collected_data.node_history) state.collected_data.node_history = [];
                           state.collected_data.node_history.push(nodeId);
-                          state.collected_data.current_node_id = selectedOption.next_node_id || 'none';
+                          state.collected_data.current_node_id = selectedOption.next_node_id || node.next_node_id || 'none';
                         }
                       } else if (node.input_type === 'multi_choice') {
                         const selectedTexts = message.split(',').map(s => s.trim().toLowerCase());
@@ -648,7 +648,7 @@ export class ChatService {
                         if (validOptionFound) {
                            if (!state.collected_data.node_history) state.collected_data.node_history = [];
                            state.collected_data.node_history.push(nodeId);
-                           state.collected_data.current_node_id = nextNodeIds.length > 0 ? (nextNodeIds.shift() || 'none') : 'none';
+                           state.collected_data.current_node_id = nextNodeIds.length > 0 ? (nextNodeIds.shift() || 'none') : (node.next_node_id || 'none');
                            if (nextNodeIds.length > 0) {
                               if (!state.collected_data.node_queue) state.collected_data.node_queue = [];
                               state.collected_data.node_queue.push(...nextNodeIds);
