@@ -24,7 +24,8 @@ export interface GraphKnowledgeBase {
   category_routes?: Record<string, { start_node_id: string }>;
   nodes?: Record<string, GraphNodeInput>;
   service_category?: string;
-  steps?: Record<string, any>;
+  steps?: Record<string, any> | any[];
+  start_step_id?: string;
 }
 
 @Injectable()
@@ -90,14 +91,23 @@ export class GraphSeederService implements OnModuleInit {
       this.logger.log(`Detected nested category format JSON for slug: ${possibleCategoryKey}`);
       const categoryData = (config as any)[possibleCategoryKey];
       const stepsObj = categoryData.steps || categoryData.nodes || {};
-      const firstStepIdRaw = categoryData.start_node_id || Object.keys(stepsObj)[0] || '1';
+      const isStepsArray = Array.isArray(stepsObj);
+      const stepKeys = Object.keys(stepsObj);
+      
+      const getActualStepId = (idx: number) => {
+         const key = stepKeys[idx];
+         const data = (stepsObj as any)[key];
+         return data.step_id || data.id || key;
+      };
+
+      const firstStepIdRaw = categoryData.start_node_id || categoryData.start_step_id || (stepKeys.length > 0 ? getActualStepId(0) : '1');
       category_routes[possibleCategoryKey] = { start_node_id: `${possibleCategoryKey}_${firstStepIdRaw}` };
       
-      const stepKeys = Object.keys(stepsObj);
       for (let i = 0; i < stepKeys.length; i++) {
-        const stepId = stepKeys[i];
-        const stepData = stepsObj[stepId];
-        const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
+        const key = stepKeys[i];
+        const stepData = (stepsObj as any)[key];
+        const stepId = getActualStepId(i);
+        const nextStepIdDefault = i + 1 < stepKeys.length ? getActualStepId(i + 1) : null;
 
         const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
         const inputType = (rawType === 'single_select' || rawType === 'single_selection') ? 'single_choice' : 
@@ -146,15 +156,23 @@ export class GraphSeederService implements OnModuleInit {
       const trMap: Record<string, string> = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'Ç': 'C', 'Ğ': 'G', 'İ': 'I', 'Ö': 'O', 'Ş': 'S', 'Ü': 'U' };
       const catSlug = catStr.toLowerCase().replace(/[çğıöşü]/g, (m) => trMap[m]).replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
       
-      const firstStepIdRaw = Object.keys(config.steps)[0] || '1';
-      category_routes[catSlug] = { start_node_id: `${catSlug}_${firstStepIdRaw}` };
-      
+      const isStepsArray = Array.isArray(config.steps);
       const stepKeys = Object.keys(config.steps);
       
+      const getActualStepId = (idx: number) => {
+         const key = stepKeys[idx];
+         const data = (config.steps as any)[key];
+         return data.step_id || data.id || key;
+      };
+
+      const firstStepIdRaw = config.start_step_id || (stepKeys.length > 0 ? getActualStepId(0) : '1');
+      category_routes[catSlug] = { start_node_id: `${catSlug}_${firstStepIdRaw}` };
+      
       for (let i = 0; i < stepKeys.length; i++) {
-        const stepId = stepKeys[i];
-        const stepData = config.steps[stepId];
-        const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
+        const key = stepKeys[i];
+        const stepData = (config.steps as any)[key];
+        const stepId = getActualStepId(i);
+        const nextStepIdDefault = i + 1 < stepKeys.length ? getActualStepId(i + 1) : null;
 
         const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
         const inputType = (rawType === 'single_select' || rawType === 'single_selection') ? 'single_choice' : 
