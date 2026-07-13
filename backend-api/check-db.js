@@ -2,10 +2,15 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  const nodes = await prisma.graphNode.findMany({ select: { id: true, question_text: true } });
-  console.log(nodes);
+  const routes = await prisma.graphCategoryRoute.findMany();
+  console.log("ROUTES:", routes);
 }
 
 main()
-  .catch(e => console.error(e))
-  .finally(() => prisma.$disconnect());
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
