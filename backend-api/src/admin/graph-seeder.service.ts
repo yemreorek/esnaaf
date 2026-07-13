@@ -129,7 +129,7 @@ export class GraphSeederService implements OnModuleInit {
           submit_action: stepData.submit_action || stepData.submitAction || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? `${possibleCategoryKey}_${nextNodeRaw}` : null,
+          next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? (nextNodeRaw === 'END' ? 'END' : `${possibleCategoryKey}_${nextNodeRaw}`) : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
             const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next || opt.sonraki_adim || opt.sonrakiAdim || opt.sonraki || opt.hedef || opt.target || opt.goto;
             let optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
@@ -139,9 +139,10 @@ export class GraphSeederService implements OnModuleInit {
             if (optNextRaw && optNextRaw.startsWith(`${possibleCategoryKey}_`)) {
                 optNextRaw = optNextRaw.replace(`${possibleCategoryKey}_`, '');
             }
+            const finalNext = (optNextRaw === 'END' || optNextRaw === 'none' || !optNextRaw) ? optNextRaw : `${possibleCategoryKey}_${optNextRaw}`;
             return {
               text: opt.label || opt.text || opt.value || opt.name,
-              next_node_id: optNextRaw && optNextRaw !== 'none' ? `${possibleCategoryKey}_${optNextRaw}` : null
+              next_node_id: finalNext !== 'none' ? finalNext : null
             };
           }) : []
         };
@@ -186,6 +187,8 @@ export class GraphSeederService implements OnModuleInit {
             nextNodeRaw = nextNodeRaw.replace(`${catSlug}_`, '');
         }
         
+        const finalNodeNext = (nextNodeRaw === 'END' || nextNodeRaw === 'none' || !nextNodeRaw) ? nextNodeRaw : `${catSlug}_${nextNodeRaw}`;
+          
         nodes[namespacedStepId] = {
           question_text: stepData.question || stepData.question_text || stepData.questionText || '',
           title: stepData.title || null,
@@ -194,7 +197,7 @@ export class GraphSeederService implements OnModuleInit {
           submit_action: stepData.submit_action || stepData.submitAction || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? `${catSlug}_${nextNodeRaw}` : null,
+          next_node_id: finalNodeNext !== 'none' ? finalNodeNext : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
             const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next || opt.sonraki_adim || opt.sonrakiAdim || opt.sonraki || opt.hedef || opt.target || opt.goto;
             let optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
@@ -204,9 +207,10 @@ export class GraphSeederService implements OnModuleInit {
             if (optNextRaw && optNextRaw.startsWith(`${catSlug}_`)) {
                 optNextRaw = optNextRaw.replace(`${catSlug}_`, '');
             }
+            const finalNext = (optNextRaw === 'END' || optNextRaw === 'none' || !optNextRaw) ? optNextRaw : `${catSlug}_${optNextRaw}`;
             return {
               text: opt.label || opt.text || opt.value || opt.name,
-              next_node_id: optNextRaw && optNextRaw !== 'none' ? `${catSlug}_${optNextRaw}` : null
+              next_node_id: finalNext !== 'none' ? finalNext : null
             };
           }) : []
         };
