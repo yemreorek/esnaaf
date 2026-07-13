@@ -624,7 +624,7 @@ export class ChatService {
                       state.collected_data.graph_labels[nodeId] = node.question_text;
 
                       if (node.input_type === 'single_choice') {
-                        const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === cleanMsg);
+                        const selectedOption = node.options?.find((o: any) => o.text.trim().toLowerCase() === cleanMsg);
                         if (selectedOption) {
                           if (!state.collected_data.node_history) state.collected_data.node_history = [];
                           state.collected_data.node_history.push(nodeId);
@@ -635,7 +635,7 @@ export class ChatService {
                         const nextNodeIds: string[] = [];
                         let validOptionFound = false;
                         for (const text of selectedTexts) {
-                          const selectedOption = node.options?.find((o: any) => o.text.toLowerCase() === text);
+                          const selectedOption = node.options?.find((o: any) => o.text.trim().toLowerCase() === text);
                           if (selectedOption) {
                              validOptionFound = true;
                              if (selectedOption.next_node_id && selectedOption.next_node_id !== 'none') {

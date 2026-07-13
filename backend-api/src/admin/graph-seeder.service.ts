@@ -115,26 +115,32 @@ export class GraphSeederService {
       for (const [stepId, stepData] of Object.entries(config.steps)) {
         const inputType = stepData.type === 'single_select' ? 'single_choice' : 
                           stepData.type === 'multi_select' ? 'multi_choice' : 
-                          stepData.type || stepData.input_type || 'text';
+                          stepData.type || stepData.input_type || stepData.inputType || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
-        const rawNext = stepData.next_step || stepData.next_node_id;
-        const nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
+        const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next;
+        let nextNodeRaw = rawNext !== undefined && rawNext !== null ? String(rawNext) : null;
+        if (nextNodeRaw && nextNodeRaw.startsWith(`${catSlug}_`)) {
+            nextNodeRaw = nextNodeRaw.replace(`${catSlug}_`, '');
+        }
         
         nodes[namespacedStepId] = {
-          question_text: stepData.question || stepData.question_text || '',
+          question_text: stepData.question || stepData.question_text || stepData.questionText || '',
           title: stepData.title || null,
           description: stepData.description || null,
-          is_optional: stepData.is_optional || false,
-          submit_action: stepData.submit_action || null,
+          is_optional: stepData.is_optional || stepData.isOptional || false,
+          submit_action: stepData.submit_action || stepData.submitAction || null,
           notes: stepData.notes || stepData.global_steps_notes || null,
           input_type: inputType,
-          next_node_id: nextNodeRaw ? `${catSlug}_${nextNodeRaw}` : null,
+          next_node_id: nextNodeRaw && nextNodeRaw !== 'none' ? `${catSlug}_${nextNodeRaw}` : null,
           options: stepData.options ? stepData.options.map((opt: any) => {
-            const optRawNext = opt.next_step || opt.next_node_id;
-            const optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
+            const optRawNext = opt.next_step || opt.nextStep || opt.next_node_id || opt.nextNodeId || opt.next;
+            let optNextRaw = optRawNext !== undefined && optRawNext !== null ? String(optRawNext) : null;
+            if (optNextRaw && optNextRaw.startsWith(`${catSlug}_`)) {
+                optNextRaw = optNextRaw.replace(`${catSlug}_`, '');
+            }
             return {
-              text: opt.label || opt.text,
+              text: opt.label || opt.text || opt.value || opt.name,
               next_node_id: optNextRaw && optNextRaw !== 'none' ? `${catSlug}_${optNextRaw}` : null
             };
           }) : []
