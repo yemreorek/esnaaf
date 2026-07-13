@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -28,10 +28,30 @@ export interface GraphKnowledgeBase {
 }
 
 @Injectable()
-export class GraphSeederService {
+export class GraphSeederService implements OnModuleInit {
   private readonly logger = new Logger(GraphSeederService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    await this.seedFromLocalDirectory();
+  }
+
+  async seedFromLocalDirectory() {
+    try {
+      const dirPath = path.join(process.cwd(), 'src', 'graph-data');
+      if (!fs.existsSync(dirPath)) return;
+      const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.json'));
+      for (const file of files) {
+         const content = fs.readFileSync(path.join(dirPath, file), 'utf-8');
+         const parsed = JSON.parse(content);
+         await this.ingestGraphConfig(parsed, file);
+         this.logger.log(`Auto-seeded graph from ${file}`);
+      }
+    } catch (err: any) {
+      this.logger.error(`Failed to auto-seed graphs: ${err.message}`);
+    }
+  }
 
   /**
    * Parse and upsert a JSON knowledge base structure into the Graph engine.

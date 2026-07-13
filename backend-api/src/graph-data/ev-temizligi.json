@@ -1,0 +1,71 @@
+{
+  "category_id": "ev_temizligi",
+  "category_name": "Ev Temizliği",
+  "start_step_id": "step_1_evin_buyuklugu",
+  "steps": {
+    "step_1_evin_buyuklugu": {
+      "step_id": "step_1_evin_buyuklugu",
+      "question_type": "single_select",
+      "question_text": "Evin büyüklüğü nedir?",
+      "description": "Evi detaylı temizleyip düzenliyoruz. Evindeki malzemeleri kullanarak yer ve cam silme, toz alma, çöp boşaltılması ve mutfak temizliği hizmetimiz kapsamında.",
+      "options": [
+        { "label": "1+0", "value": "1+0", "next_step": "step_2_kac_banyo" },
+        { "label": "1+1", "value": "1+1", "next_step": "step_2_kac_banyo" },
+        { "label": "2+1", "value": "2+1", "next_step": "step_2_kac_banyo" },
+        { "label": "3+1", "value": "3+1", "next_step": "step_2_kac_banyo" },
+        { "label": "4+1", "value": "4+1", "next_step": "step_2_kac_banyo" },
+        { "label": "5+1", "value": "5+1", "next_step": "step_2_kac_banyo" },
+        { "label": "6+1 veya daha büyük", "value": "6+1_veya_daha_buyuk", "next_step": "step_2_kac_banyo" }
+      ]
+    },
+    "step_2_kac_banyo": {
+      "step_id": "step_2_kac_banyo",
+      "question_type": "single_select",
+      "question_text": "Kaç banyo?",
+      "description": "Banyolar da tertemiz olsun: Küvet, tuvalet, tezgah, lavabo, ayna ve cam silme, yer silme, toz alma ve çöp boşaltılması dahil.",
+      "options": [
+        { "label": "1", "value": "1", "next_step": "step_3_temizlik_suresi" },
+        { "label": "2", "value": "2", "next_step": "step_3_temizlik_suresi" },
+        { "label": "3 veya daha fazla", "value": "3_veya_daha_fazla", "next_step": "step_3_temizlik_suresi" }
+      ]
+    },
+    "step_3_temizlik_suresi": {
+      "step_id": "step_3_temizlik_suresi",
+      "question_type": "single_select",
+      "question_text": "Kaç saat temizlik yapılsın?",
+      "description": "Temizliği bu sürede bitirmeyi hedefleyeceğiz. Ekstra temizlik, ütü veya yemek yapılmasını istersen, süreyi uzat. Teknolojimiz ve büyüklüğümüz sayesinde hizmetimiz %30-60 oranında daha uygun fiyatlı.",
+      "options": [
+        { "label": "4", "value": "4", "next_step": "step_4_temizlik_sikligi" },
+        { "label": "5", "value": "5", "next_step": "step_4_temizlik_sikligi" },
+        { "label": "6", "value": "6", "next_step": "step_4_temizlik_sikligi" },
+        { "label": "7", "value": "7", "next_step": "step_4_temizlik_sikligi" },
+        { "label": "8", "value": "8", "next_step": "step_4_temizlik_sikligi" }
+      ]
+    },
+    "step_4_temizlik_sikligi": {
+      "step_id": "step_4_temizlik_sikligi",
+      "question_type": "single_select",
+      "question_text": "Temizlik hangi sıklıkla yapılsın?",
+      "description": "Seçeceğin sıklığa göre rezervasyonun otomatik oluşacaktır.",
+      "options": [
+        { "label": "Tek Sefer", "value": "tek_sefer", "next_step": "step_5_evcil_hayvan" },
+        { "label": "Haftalık Olarak", "value": "haftalik", "next_step": "step_5_evcil_hayvan" },
+        { "label": "2 Haftada Bir", "value": "2_haftada_bir", "next_step": "step_5_evcil_hayvan" },
+        { "label": "Diğer", "value": "diger", "next_step": "step_5_evcil_hayvan" }
+      ]
+    },
+    "step_5_evcil_hayvan": {
+      "step_id": "step_5_evcil_hayvan",
+      "question_type": "multi_select",
+      "question_text": "Evde köpek veya kedi var mı?",
+      "description": "Birden çok seçim yapabilirsiniz.",
+      "options": [
+        { "label": "Köpek var", "value": "kopek_var" },
+        { "label": "Kedi var", "value": "kedi_var" },
+        { "label": "Diğer", "value": "diger_hayvan" },
+        { "label": "Hiçbiri Yok", "value": "hicbiri_yok" }
+      ],
+      "next_step": "END"
+    }
+  }
+}
