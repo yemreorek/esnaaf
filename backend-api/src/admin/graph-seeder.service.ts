@@ -40,8 +40,15 @@ export class GraphSeederService implements OnModuleInit {
 
   async seedFromLocalDirectory() {
     try {
-      const dirPath = path.join(process.cwd(), 'src', 'graph-data');
-      if (!fs.existsSync(dirPath)) return;
+      let dirPath = path.join(__dirname, '..', 'graph-data');
+      if (!fs.existsSync(dirPath)) {
+        // Fallback for local dev where __dirname is src/admin
+        dirPath = path.join(process.cwd(), 'src', 'graph-data');
+      }
+      if (!fs.existsSync(dirPath)) {
+        this.logger.warn(`Graph data directory not found at ${dirPath}`);
+        return;
+      }
       const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.json'));
       for (const file of files) {
          const content = fs.readFileSync(path.join(dirPath, file), 'utf-8');
