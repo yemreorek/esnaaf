@@ -79,9 +79,10 @@ export class GraphSeederService {
         const stepData = stepsObj[stepId];
         const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
 
-        const inputType = stepData.type === 'single_select' ? 'single_choice' : 
-                          stepData.type === 'multi_select' ? 'multi_choice' : 
-                          stepData.type || stepData.input_type || 'text';
+        const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
+        const inputType = rawType === 'single_select' ? 'single_choice' : 
+                          rawType === 'multi_select' ? 'multi_choice' : 
+                          rawType || 'text';
         
         const namespacedStepId = `${possibleCategoryKey}_${stepId}`;
         const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next || stepData.sonraki_adim || stepData.sonrakiAdim || stepData.sonraki || stepData.hedef || stepData.target || stepData.goto || nextStepIdDefault;
@@ -135,9 +136,10 @@ export class GraphSeederService {
         const stepData = config.steps[stepId];
         const nextStepIdDefault = i + 1 < stepKeys.length ? stepKeys[i + 1] : null;
 
-        const inputType = stepData.type === 'single_select' ? 'single_choice' : 
-                          stepData.type === 'multi_select' ? 'multi_choice' : 
-                          stepData.type || stepData.input_type || stepData.inputType || 'text';
+        const rawType = stepData.type || stepData.input_type || stepData.inputType || stepData.question_type;
+        const inputType = rawType === 'single_select' ? 'single_choice' : 
+                          rawType === 'multi_select' ? 'multi_choice' : 
+                          rawType || 'text';
                           
         const namespacedStepId = `${catSlug}_${stepId}`;
         const rawNext = stepData.next_step || stepData.nextStep || stepData.next_node_id || stepData.nextNodeId || stepData.next || stepData.sonraki_adim || stepData.sonrakiAdim || stepData.sonraki || stepData.hedef || stepData.target || stepData.goto || nextStepIdDefault;
