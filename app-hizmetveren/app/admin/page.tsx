@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import SectorManagementPage from './sektor-yonetimi/page';
+
 import { 
   ShieldAlert, 
   Users, 
@@ -1727,22 +1727,7 @@ ${callTaskNotes}`;
             )}
 
             
-            {isTabAllowed('sectors') && (
-              <button
-                onClick={() => setActiveTab('sectors')}
-                className={`w-full text-left px-5 py-4 rounded-2xl font-black text-sm flex items-center justify-between transition-all border cursor-pointer ${
-                  activeTab === 'sectors'
-                    ? 'bg-[#c8f252] border-[#c8f252]/20 text-slate-955 font-extrabold shadow-sm shadow-[#c8f252]/10'
-                    : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-semibold'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <FileJson className="w-5 h-5" />
-                  <span>Sektör Yönetimi</span>
-                </div>
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </button>
-            )}
+
 
             {/* SLA Timer Indicator */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 mt-4 text-center shadow-sm">
@@ -3812,17 +3797,6 @@ ${callTaskNotes}`;
                                   <td className="px-6 py-4 text-center text-slate-500 font-mono text-xs">
                                     {item.bidsSent} Teklif
                                   </td>
-                                  <td className="px-6 py-4 text-center">
-                                    <span className={`px-2 py-0.5 rounded-md font-bold text-xs ${
-                                      item.successRate >= 70 
-                                        ? 'bg-green-50 text-green-600 border border-green-100'
-                                        : item.successRate >= 40 
-                                          ? 'bg-blue-50 text-blue-600 border border-blue-100'
-                                          : 'bg-amber-50 text-amber-600 border border-amber-100'
-                                    }`}>
-                                      %{item.successRate}
-                                    </span>
-                                  </td>
                                 </tr>
                               ))
                             )}
@@ -3838,12 +3812,7 @@ ${callTaskNotes}`;
                 )}
               </div>
             )}
-            {/* SECTORS TAB */}
-            {activeTab === 'sectors' && (
-              <div className="animate-fade-in">
-                <SectorManagementPage token={token} />
-              </div>
-            )}
+
           </section>
         </div>
       )}

@@ -17,8 +17,7 @@ import {
 } from './dto/admin-users.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 
-import { GraphSeederService, GraphKnowledgeBase } from './graph-seeder.service';
-
+// Removed GraphSeederService
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin', 'quality_staff', 'finance_staff', 'ops_staff', 'sales_staff', 'executive')
@@ -26,39 +25,8 @@ import { GraphSeederService, GraphKnowledgeBase } from './graph-seeder.service';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly graphSeederService: GraphSeederService,
   ) {}
 
-  /**
-   * Yeni Sektör Şeması Yükle (.json)
-   * POST /api/admin/graph/upload-json
-   */
-  @Post('graph/upload-json')
-  @UseInterceptors(FileInterceptor('file'))
-  @Roles('admin', 'super_admin') // Sadece yetkili adminler
-  async uploadGraphJson(@UploadedFile() file: any) {
-    if (!file) {
-      throw new BadRequestException('Dosya bulunamadı.');
-    }
-
-    try {
-      const fileContent = file.buffer.toString('utf-8');
-      const parsed: GraphKnowledgeBase = JSON.parse(fileContent);
-      return await this.graphSeederService.ingestGraphConfig(parsed, file.originalname);
-    } catch (error: any) {
-      throw new BadRequestException(`Geçersiz JSON formatı veya yükleme hatası: ${error.message}`);
-    }
-  }
-
-  /**
-   * JSON Yükleme Geçmişini Getir
-   * GET /api/admin/graph/upload-logs
-   */
-  @Get('graph/upload-logs')
-  @Roles('admin', 'super_admin')
-  async getUploadLogs() {
-    return await this.adminService.getGraphUploadLogs();
-  }
 
   /**
    * Giriş yapan admin personelin profil ve yetki bilgilerini getirir
