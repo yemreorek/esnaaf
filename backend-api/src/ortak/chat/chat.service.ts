@@ -204,6 +204,7 @@ export class ChatService {
     }
 
     const state: SessionState = JSON.parse(rawSession);
+    state.collected_data.is_graph_flow = false; // ALWAYS FORCE DISABLE GRAPH FLOW
 
     // Initialize A/B test parameters if missing (failsafe/migration for legacy sessions)
     if (!state.ab_variant) {
