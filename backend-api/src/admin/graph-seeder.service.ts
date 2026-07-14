@@ -207,7 +207,7 @@ export class GraphSeederService implements OnModuleInit {
         const finalNodeNext = (nextNodeRaw === 'END' || nextNodeRaw === 'none' || !nextNodeRaw) ? nextNodeRaw : `${catSlug}_${nextNodeRaw}`;
           
         nodes[namespacedStepId] = {
-          question_text: stepData.question || stepData.question_text || stepData.questionText || '',
+          question_text: stepData.question || stepData.question_text || stepData.questionText || stepData.step_title || '',
           title: stepData.title || null,
           description: stepData.description || null,
           is_optional: stepData.is_optional || stepData.isOptional || false,
