@@ -1646,7 +1646,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               {isLoading ? <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : 'Doğrulama Kodu Gönder'}
             </button>
           </div>
-        ) : ['greeting', 'category_detection', 'collecting_details'].includes(currentStep) ? (
+        ) : ['greeting', 'category_detection'].includes(currentStep) || (currentStep === 'collecting_details' && messages.length > 0 && messages[messages.length - 1].sender === 'bot' && messages[messages.length - 1].inputType !== 'textarea' && messages[messages.length - 1].inputType !== 'text' && (!messages[messages.length - 1].inputType || messages[messages.length - 1].inputType === 'single_choice' || messages[messages.length - 1].inputType === 'multi_choice')) ? (
           <div className="w-full text-center py-4 text-slate-500 text-sm font-medium animate-pulse">
             Lütfen yukarıdaki seçeneklerden birini belirleyerek devam edin.
           </div>
