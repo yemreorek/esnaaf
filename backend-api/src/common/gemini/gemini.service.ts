@@ -36,7 +36,7 @@ export class GeminiService {
               properties: {
                 categorySlug: {
                   type: Type.STRING,
-                  description: 'Hizmetin kategorisi (Desteklenen sluglar: ev-temizligi, boya-badana, nakliyat, su-tesisati, elektrik-tesisati, ev-tadilat, hali-koltuk-yikama, insaat-sonrasi-temizlik, fayans-parke, hasere-ilaclama, kombi-klima, mantolama-discephe, marangoz-mobilya, ozel-ders, cam-balkon-pvc, ofis-temizligi, dogalgaz-tesisati, ic-mimar-dekorasyon, fotografci, organizasyon-etkinlik)',
+                  description: 'Hizmetin kategorisi (Desteklenen sluglar: ev-temizligi, bos-ev-temizligi, boya-badana, nakliyat, su-tesisati, elektrik-tesisati, ev-tadilat, hali-koltuk-yikama, insaat-sonrasi-temizlik, fayans-parke, hasere-ilaclama, kombi-klima, mantolama-discephe, marangoz-mobilya, ozel-ders, cam-balkon-pvc, ofis-temizligi, dogalgaz-tesisati, ic-mimar-dekorasyon, fotografci, organizasyon-etkinlik)',
                 },
                 confidence: {
                   type: Type.NUMBER,
@@ -102,7 +102,7 @@ export class GeminiService {
               properties: {
                 categorySlug: {
                   type: Type.STRING,
-                  description: 'Sorgulanmak istenen hizmet kategorisi slugı (Örn: boya-badana, ev-temizligi, su-tesisati, elektrik-tesisati, kombi-klima vb.)',
+                  description: 'Sorgulanmak istenen hizmet kategorisi slugı (Örn: boya-badana, ev-temizligi, bos-ev-temizligi, su-tesisati, elektrik-tesisati, kombi-klima vb.)',
                 },
                 city: {
                   type: Type.STRING,

@@ -1004,6 +1004,7 @@ export default function Home() {
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
             {[
               { name: "Ev Temizliği", slug: "ev-temizligi" },
+              { name: "Boş Ev Temizliği", slug: "bos-ev-temizligi" },
               { name: "Boya Badana", slug: "boya-badana" },
               { name: "Evden Eve Nakliyat", slug: "nakliyat" },
               { name: "Su Tesisatı", slug: "su-tesisati" },

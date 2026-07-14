@@ -13,8 +13,9 @@ interface ParsedSeo {
 export class SeoService {
   constructor(private prisma: PrismaService) {}
 
-  private CATEGORIES = [
+  private readonly CATEGORIES = [
     { slug: 'ev-temizligi', name: 'Ev Temizliği' },
+    { slug: 'bos-ev-temizligi', name: 'Boş Ev Temizliği' },
     { slug: 'boya-badana', name: 'Boya Badana' },
     { slug: 'su-tesisati', name: 'Su Tesisatı' },
     { slug: 'elektrik-tesisati', name: 'Elektrik Tesisatı' },
@@ -78,9 +79,10 @@ export class SeoService {
     'bayraklı': 'Bayraklı', 'urla': 'Urla'
   };
 
-  private CATEGORY_PRICES: Record<string, { min: number; max: number; unit: string }> = {
+  private readonly CATEGORY_PRICES: Record<string, { min: number; max: number; unit: string }> = {
     'ev-temizligi': { min: 800, max: 2500, unit: 'seans' },
-    'boya-badana': { min: 3000, max: 15000, unit: 'proje' },
+    'bos-ev-temizligi': { min: 1500, max: 4000, unit: 'seans' },
+    'boya-badana': { min: 3000, max: 15000, unit: 'daire' },
     'su-tesisati': { min: 400, max: 2000, unit: 'hizmet' },
     'elektrik-tesisati': { min: 350, max: 1800, unit: 'hizmet' },
     'ev-tadilat': { min: 10000, max: 120000, unit: 'proje' },

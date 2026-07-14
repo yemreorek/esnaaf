@@ -335,6 +335,7 @@ export class TaleplerService {
   private getCategoryName(slug: string): string {
     switch (slug) {
       case 'ev-temizligi': return 'Ev Temizliği';
+      case 'bos-ev-temizligi': return 'Boş Ev Temizliği';
       case 'boya-badana': return 'Boya Badana';
       case 'su-tesisati': return 'Su Tesisatı';
       case 'elektrik-tesisati': return 'Elektrik Tesisatı';

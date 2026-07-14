@@ -1225,6 +1225,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     <div className="flex flex-col gap-2 text-xs text-slate-700 font-semibold">
                       <div><strong className="text-slate-900">Hizmet:</strong> {
                         msg.collected_data.categorySlug === 'ev-temizligi' ? 'Ev Temizliği' : 
+                        msg.collected_data.categorySlug === 'bos-ev-temizligi' ? 'Boş Ev Temizliği' : 
                         msg.collected_data.categorySlug === 'boya-badana' ? 'Boya Badana' : 
                         msg.collected_data.categorySlug === 'su-tesisati' ? 'Su Tesisatı' : 
                         msg.collected_data.categorySlug === 'elektrik-tesisati' ? 'Elektrik Tesisatı' : 

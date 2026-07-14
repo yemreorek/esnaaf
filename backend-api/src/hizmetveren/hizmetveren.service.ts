@@ -1550,6 +1550,7 @@ export class HizmetverenService {
   private getCategoryName(slug: string): string {
     switch (slug) {
       case 'ev-temizligi': return 'Ev Temizliği';
+      case 'bos-ev-temizligi': return 'Boş Ev Temizliği';
       case 'boya-badana': return 'Boya Badana';
       case 'su-tesisati': return 'Su Tesisatı';
       case 'elektrik-tesisati': return 'Elektrik Tesisatı';
@@ -1732,6 +1733,7 @@ export class HizmetverenService {
   private getCategorySlugByName(name: string): string {
     switch (name) {
       case 'Ev Temizliği': return 'ev-temizligi';
+      case 'Boş Ev Temizliği': return 'bos-ev-temizligi';
       case 'Boya Badana': return 'boya-badana';
       case 'Su Tesisatı': return 'su-tesisati';
       case 'Elektrik Tesisatı': return 'elektrik-tesisati';

@@ -163,6 +163,7 @@ export class FavoriteService {
     const helperGetCategorySlug = (name: string): string => {
       switch (name) {
         case 'Ev Temizliği': return 'ev-temizligi';
+        case 'Boş Ev Temizliği': return 'bos-ev-temizligi';
         case 'Boya Badana': return 'boya-badana';
         case 'Su Tesisatı': return 'su-tesisati';
         case 'Elektrik Tesisatı': return 'elektrik-tesisati';

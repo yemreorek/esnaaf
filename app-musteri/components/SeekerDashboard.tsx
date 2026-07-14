@@ -4027,6 +4027,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             ) : (
                               <>
                                 <option value="ev-temizligi">Ev Temizliği</option>
+                                <option value="bos-ev-temizligi">Boş Ev Temizliği</option>
                                 <option value="boya-badana">Boya Badana</option>
                                 <option value="su-tesisati">Su Tesisatı</option>
                                 <option value="elektrik-tesisati">Elektrik Tesisatı</option>

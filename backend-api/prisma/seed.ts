@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   const categories = [
     { name: 'Ev Temizliği', isActive: true },
+    { name: 'Boş Ev Temizliği', isActive: true },
     { name: 'Boya Badana', isActive: true },
     { name: 'Nakliyat / Ev Taşıma', isActive: true },
     { name: 'Su Tesisatı', isActive: true },

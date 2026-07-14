@@ -1,4 +1,10 @@
 export const SECTOR_PROMPTS: Record<string, string> = {
+  'bos-ev-temizligi': `
+**Boş Ev Temizliği:**
+- Evin eşyasız/boş olması temizlik süresini ve şeklini etkiler. Genellikle taşınma öncesi/sonrası temizliktir.
+- İnşaat sonrası veya kiracı sonrası olma durumu kullanılacak kimyasalları değiştirir.
+- Müşteriye sor: Evin büyüklüğü (kaç oda, kaç banyo)? Evin boş olma sebebi (sıfır bina, kiracı çıktı vs)?
+`,
   'ev-temizligi': `
 **Ev Temizliği:**
 - Standart temizlik (2+1 daire): Yaklaşık 3-4 saat sürer. Fiyatlar evin büyüklüğüne ve temizlik kapsamına göre değişir.

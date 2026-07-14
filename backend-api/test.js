@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main(){ console.log(await prisma.graphCategoryRoute.findMany()); console.log(await prisma.graphNode.findMany({where: {id: {startsWith: 'bos-ev-temizligi'}}})); } main().catch(console.error).finally(()= 
