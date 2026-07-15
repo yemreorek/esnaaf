@@ -3,9 +3,9 @@ const prisma = new PrismaClient();
 
 async function main() {
   const users = await prisma.user.findMany({
-    where: { phone_masked: { contains: '00000009' } },
     orderBy: { created_at: 'desc' },
-    take: 5
+    take: 5,
+    select: { id: true, phone: true, name: true, is_active: true }
   });
   console.log("USERS:", JSON.stringify(users, null, 2));
 

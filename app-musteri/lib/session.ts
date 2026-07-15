@@ -72,10 +72,38 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
     headers.set('Content-Type', 'application/json');
   }
   
-  return fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
     credentials: 'include', // IMPORTANT: Send cookies
     cache: 'no-store', // Disable Next.js caching
   });
+
+  if (response.status === 401 && !url.includes('/api/ortak/auth/refresh-token') && !url.includes('/api/ortak/auth/login')) {
+    try {
+      const refreshRes = await fetch('/api/ortak/auth/refresh-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      if (refreshRes.ok) {
+        // Retry original request
+        response = await fetch(url, {
+          ...options,
+          headers,
+          credentials: 'include',
+          cache: 'no-store',
+        });
+      } else {
+        // Refresh failed, clear local state and force logout silently
+        localStorage.removeItem('esnaaf_is_logged_in');
+        localStorage.removeItem('esnaaf_user');
+      }
+    } catch (err) {
+      console.error('Failed to refresh token', err);
+    }
+  }
+
+  return response;
 }
