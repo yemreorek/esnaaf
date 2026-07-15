@@ -2447,7 +2447,7 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
       key: step.step_id,
       question: step.step_title,
       options: step.options?.map(o => o.label) || [],
-      inputType: step.input_type,
+      inputType: step.input_type === 'single_select' ? 'single_choice' : step.input_type === 'multi_select' ? 'multi_choice' : step.input_type,
       isComplete: false
     };
   }
@@ -2471,29 +2471,65 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 
     // single_select or multi_select
     const lowerMsg = message.toLowerCase().trim();
-    // Try exact match first
+    
+    // Check if multiple options are selected (comma separated)
+    if (step.input_type === 'multi_select' && message.includes(',')) {
+      const parts = message.split(',').map(p => p.trim().toLowerCase());
+      const matchedLabels: string[] = [];
+      let lastNextStep = step.next_step || 'END';
+      
+      for (const part of parts) {
+        const match = step.options?.find(o => o.label.toLowerCase().trim() === part || o.value.toLowerCase().trim() === part);
+        if (match) {
+          matchedLabels.push(match.label);
+          if (match.next_step) lastNextStep = match.next_step;
+        }
+      }
+      
+      if (matchedLabels.length > 0) {
+        state.collected_data[step.step_id] = matchedLabels.join(', ');
+        state.collected_data.current_step_id = lastNextStep;
+        return true;
+      }
+    }
+
+    // Try exact match first for single selection
     let matchedOption = step.options?.find(o => o.label.toLowerCase().trim() === lowerMsg || o.value.toLowerCase().trim() === lowerMsg);
 
     // If not exact match, use Gemini to parse
     if (!matchedOption && step.options) {
       const allowedValues = step.options.map(o => o.value).join(', ');
       const allowedLabels = step.options.map(o => o.label).join(', ');
+      
+      const isMulti = step.input_type === 'multi_select';
       const prompt = `Kullanıcı şu soruya cevap verdi: "${step.step_title}". 
 Kullanıcının cevabı: "${message}"
 Geçerli seçenek değerleri: [${allowedValues}] (Etiketleri: [${allowedLabels}])
-Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE seçeneğin value (değer) kısmını yaz. Eğer hiçbirine uymuyorsa "INVALID" yaz.`;
+Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE seçeneğin value (değer) kısmını yaz. Eğer hiçbirine uymuyorsa "INVALID" yaz.${isMulti ? ' Birden fazla seçenek eşleşiyorsa aralarına virgül koyarak yaz.' : ''}`;
       
       try {
         const aiRes = await this.geminiService.generateResponse([], prompt, { temperature: 0 });
         const aiValue = aiRes.text.trim();
-        matchedOption = step.options.find(o => o.value === aiValue);
+        
+        if (isMulti && aiValue.includes(',')) {
+           const vals = aiValue.split(',').map(v => v.trim());
+           const matchedLabels = step.options.filter(o => vals.includes(o.value)).map(o => o.label);
+           if (matchedLabels.length > 0) {
+             state.collected_data[step.step_id] = matchedLabels.join(', ');
+             // Use the first matched option's next_step or step's next_step
+             const firstMatch = step.options.find(o => vals.includes(o.value));
+             state.collected_data.current_step_id = firstMatch?.next_step || step.next_step || 'END';
+             return true;
+           }
+        } else {
+           matchedOption = step.options.find(o => o.value === aiValue);
+        }
       } catch (e) {
         console.warn('AI Parsing failed for deterministic flow:', e);
       }
     }
 
     if (matchedOption) {
-      // For multi_select we could store arrays, but for now just string
       if (step.input_type === 'multi_select') {
         const existing = state.collected_data[step.step_id] ? (state.collected_data[step.step_id] + ', ') : '';
         state.collected_data[step.step_id] = existing + matchedOption.label;
