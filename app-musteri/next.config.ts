@@ -41,9 +41,6 @@ const nextConfig: NextConfig = {
     ];
   },
   poweredByHeader: false,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default nextConfig;
