@@ -2458,19 +2458,35 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 
     const flow = QUESTION_FLOWS[slug];
     const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
+    
+    // single_select or multi_select
+    const lowerMsg = message.toLowerCase().trim();
+    if (lowerMsg === 'geri dön' || lowerMsg === 'geri') {
+      if (state.collected_data.step_history && state.collected_data.step_history.length > 0) {
+        state.collected_data.current_step_id = state.collected_data.step_history.pop();
+        return true;
+      } else {
+        // Zaten ilk soruda
+        return false;
+      }
+    }
+
     if (currentStepId === 'END') return false;
 
     const step = flow.steps.find(s => s.step_id === currentStepId);
     if (!step) return false;
 
+    const advanceStep = (nextStepId: string) => {
+      if (!state.collected_data.step_history) state.collected_data.step_history = [];
+      state.collected_data.step_history.push(currentStepId);
+      state.collected_data.current_step_id = nextStepId;
+    };
+
     if (step.input_type === 'textarea' || step.input_type === 'text') {
       state.collected_data[step.step_id] = message;
-      state.collected_data.current_step_id = step.next_step || 'END';
+      advanceStep(step.next_step || 'END');
       return true;
     }
-
-    // single_select or multi_select
-    const lowerMsg = message.toLowerCase().trim();
     
     // Check if multiple options are selected (comma separated)
     if (step.input_type === 'multi_select' && message.includes(',')) {
@@ -2488,7 +2504,7 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
       
       if (matchedLabels.length > 0) {
         state.collected_data[step.step_id] = matchedLabels.join(', ');
-        state.collected_data.current_step_id = lastNextStep;
+        advanceStep(lastNextStep);
         return true;
       }
     }
@@ -2518,7 +2534,7 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
              state.collected_data[step.step_id] = matchedLabels.join(', ');
              // Use the first matched option's next_step or step's next_step
              const firstMatch = step.options.find(o => vals.includes(o.value));
-             state.collected_data.current_step_id = firstMatch?.next_step || step.next_step || 'END';
+             advanceStep(firstMatch?.next_step || step.next_step || 'END');
              return true;
            }
         } else {
@@ -2536,7 +2552,7 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
       } else {
         state.collected_data[step.step_id] = matchedOption.label;
       }
-      state.collected_data.current_step_id = matchedOption.next_step || step.next_step || 'END';
+      advanceStep(matchedOption.next_step || step.next_step || 'END');
       return true;
     } else {
       // Could not parse
