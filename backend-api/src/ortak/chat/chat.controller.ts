@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Req, Headers, HttpStatus, HttpCode, ForbiddenException, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, Res, Headers, HttpStatus, HttpCode, ForbiddenException, Get } from '@nestjs/common';
+import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
@@ -69,6 +70,7 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   async handleMessage(
     @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
     @Body() dto: MessageDto,
     @Headers('x-session-id') sessionIdHeader?: string,
     @Headers('authorization') authHeader?: string,
@@ -110,6 +112,21 @@ export class ChatController {
       const refreshToken = this.jwtService.sign(payload, {
         secret: process.env.JWT_REFRESH_SECRET || 'some_super_secret_refresh_key_min_32_characters',
         expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
+      });
+
+      const isSecure = process.env.NODE_ENV === 'production';
+      res.cookie('esnaaf_token', accessToken, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+      });
+      res.cookie('esnaaf_refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        path: '/api/ortak/auth/refresh-token',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       result.accessToken = accessToken;
