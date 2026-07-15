@@ -2283,13 +2283,13 @@ ${this.generatePromptForCategory(slug)}
 
 Şu ana kadar topladığın veya önceki mesajlardan anladığın net bilgileri "collected_facts" içine anahtar-değer (örn: {"Evin Büyüklüğü": "2+1"}) şeklinde koy.
 
-Beklenen JSON Formatı:
+Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama veya yorum // eklemeyin):
 {
   "question": "Müşteriye soracağın soru",
-  "options": ["Seçenek 1", "Seçenek 2"], // textarea değilse mutlaka doldur.
-  "inputType": "single_choice" | "multi_choice" | "textarea",
+  "options": ["Seçenek 1", "Seçenek 2"],
+  "inputType": "single_choice",
   "collected_facts": { "Soru Özeti": "Cevap Özeti" },
-  "isComplete": boolean // Tüm detaylar ve son textarea sorusu yanıtlandıysa true
+  "isComplete": false
 }`;
 
     try {
