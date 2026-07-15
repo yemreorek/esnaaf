@@ -82,6 +82,9 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "step_title": "Ekstra bilinmesi istediğin veya belirtmek istediğiniz detay var mı?",
         "description": "Hizmet kalitesini artırmak için eklemek istediğiniz özel bir talep varsa buraya yazabilirsiniz.",
         "input_type": "textarea",
+        "options": [
+          { "label": "Hayır", "value": "hayir", "next_step": "END" }
+        ],
         "placeholder": "Örn: Evde ekstra ütü istiyoruz, pencereler yüksek vb...",
         "is_optional": true,
         "next_step": "END"
