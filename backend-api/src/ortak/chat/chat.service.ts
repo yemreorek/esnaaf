@@ -2479,6 +2479,11 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     const advanceStep = (nextStepId: string) => {
       if (!state.collected_data.step_history) state.collected_data.step_history = [];
       state.collected_data.step_history.push(currentStepId);
+      
+      // Save the label for the frontend summary panel
+      if (!state.collected_data.graph_labels) state.collected_data.graph_labels = {};
+      state.collected_data.graph_labels[step.step_id] = step.step_title;
+
       state.collected_data.current_step_id = nextStepId;
     };
 

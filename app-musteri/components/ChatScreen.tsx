@@ -1239,7 +1239,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                           <div><strong className="text-slate-900">Çıkış Konumu:</strong> {msg.collected_data.district}, {msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}</div>
                           <div><strong className="text-slate-900">Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, {msg.collected_data.destinationCity || msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.destinationDistrict)}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels'];
+                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history'];
                             if (ignoredKeys.includes(key)) return null;
                             if (!val) return null;
                             const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || key;
@@ -1252,7 +1252,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         <>
                           <div><strong className="text-slate-900">Konum:</strong> {msg.collected_data.district || 'Belirtilmedi'}{msg.collected_data.district ? `, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : ''}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels'];
+                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history'];
                             if (ignoredKeys.includes(key)) return null;
                             if (!val) return null;
                             const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || key;
