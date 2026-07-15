@@ -1234,10 +1234,7 @@ export class AdminService {
   }
 
   async getGraphUploadLogs() {
-    return await this.prisma.graphUploadLog.findMany({
-      orderBy: { uploaded_at: 'desc' },
-      take: 100 // Get latest 100 logs
-    });
+    return [];
   }
 
   async getAdminProfile(email: string) {

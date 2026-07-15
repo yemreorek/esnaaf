@@ -611,7 +611,7 @@ export class ChatService {
             if (state.collected_data.is_graph_flow) {
               const nodeId = state.collected_data.current_node_id;
               if (nodeId && nodeId !== 'none') {
-                const node = await this.prisma.graphNode.findUnique({ where: { id: nodeId }, include: { options: true } });
+                const node = null as any;
                 if (node) {
                    const cleanMsg = message.trim().toLowerCase();
 
@@ -2053,7 +2053,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   private async initializeCategoryFlow(state: SessionState, slug: string, name?: string) {
-    const route = await this.prisma.graphCategoryRoute.findUnique({ where: { category_slug: slug } });
+    const route = null as any;
     if (route) {
       state.collected_data.current_node_id = route.start_node_id;
       state.collected_data.node_queue = [];
