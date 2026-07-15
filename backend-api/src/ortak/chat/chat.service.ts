@@ -10,7 +10,7 @@ import { GeminiService } from '../../common/gemini/gemini.service';
 import { OpenAIService } from '../../common/openai/openai.service';
 import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils/encoding.util';
 import { SECTOR_PROMPTS } from './sector-prompts.config';
-
+import { QUESTION_FLOWS, FlowStep } from './question-flow.config';
 
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
@@ -18,7 +18,7 @@ interface SessionState {
   collected_data: {
     categorySlug?: string;
     categoryName?: string;
-    questions_flow?: any[];
+    current_step_id?: string;
     city?: string;
     district?: string;
     neighborhood?: string;
@@ -1267,8 +1267,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
           state.step = 'collecting_details';
           
-          const nextQ = await this.getAiNextQuestion(state);
-          if (nextQ.isComplete) {
+          const nextQ = await this.getNextQuestion(state);
+          if (!nextQ) {
             state.step = 'ask_address';
             state.collected_data.hasAskedDetails = true;
             responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
@@ -1285,13 +1285,29 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       } else if (state.step === 'collecting_details' || state.step === 'ask_details') {
         state.step = 'collecting_details'; // Normalize in case it was stuck on ask_details
 
-        const nextQ = await this.getAiNextQuestion(state);
-        
-        // Merge AI extracted facts into collected_data for the summary
-        if (nextQ.collected_facts) {
-           for (const [k, v] of Object.entries(nextQ.collected_facts)) {
-             state.collected_data[k] = v;
-           }
+        let nextQ: any = null;
+        const slug = state.collected_data.categorySlug;
+
+        // Try deterministic flow first
+        if (slug && QUESTION_FLOWS[slug]) {
+          const processed = await this.processAnswerFromFlow(state, message);
+          if (!processed) {
+            // Unrecognized answer, get the same question again
+            nextQ = this.getNextQuestionFromFlow(state);
+            if (nextQ) responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
+          } else {
+            nextQ = this.getNextQuestionFromFlow(state);
+          }
+          if (!nextQ) nextQ = { isComplete: true };
+        } else {
+          // Fallback to AI flow
+          nextQ = await this.getAiNextQuestion(state);
+          // Merge AI extracted facts into collected_data for the summary
+          if (nextQ.collected_facts) {
+             for (const [k, v] of Object.entries(nextQ.collected_facts)) {
+               state.collected_data[k] = v;
+             }
+          }
         }
 
         if (nextQ.isComplete) {
@@ -1308,7 +1324,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           }
           responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
         } else {
-          responseMessage = nextQ.question;
+          responseMessage = responseMessage || nextQ.question;
           options = nextQ.options || [];
           inputType = nextQ.inputType || 'single_choice';
         }
@@ -2316,6 +2332,11 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
   }
 
   private async getNextQuestion(state: SessionState): Promise<any | null> {
+    const slug = state.collected_data.categorySlug;
+    if (slug && QUESTION_FLOWS[slug]) {
+      return this.getNextQuestionFromFlow(state);
+    }
+
     const aiQ = await this.getAiNextQuestion(state);
     if (aiQ.isComplete) return null;
     return {
@@ -2325,6 +2346,83 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
       inputType: aiQ.inputType,
       parse: (msg: string) => msg.trim()
     };
+  }
+
+  private getNextQuestionFromFlow(state: SessionState): any | null {
+    const slug = state.collected_data.categorySlug;
+    if (!slug || !QUESTION_FLOWS[slug]) return null;
+    
+    const flow = QUESTION_FLOWS[slug];
+    const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
+    
+    if (currentStepId === 'END') return null;
+
+    const step = flow.steps.find(s => s.step_id === currentStepId);
+    if (!step) return null;
+
+    return {
+      key: step.step_id,
+      question: step.step_title,
+      options: step.options?.map(o => o.label) || [],
+      inputType: step.input_type,
+      isComplete: false
+    };
+  }
+
+  private async processAnswerFromFlow(state: SessionState, message: string): Promise<boolean> {
+    const slug = state.collected_data.categorySlug;
+    if (!slug || !QUESTION_FLOWS[slug]) return false;
+
+    const flow = QUESTION_FLOWS[slug];
+    const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
+    if (currentStepId === 'END') return false;
+
+    const step = flow.steps.find(s => s.step_id === currentStepId);
+    if (!step) return false;
+
+    if (step.input_type === 'textarea' || step.input_type === 'text') {
+      state.collected_data[step.step_id] = message;
+      state.collected_data.current_step_id = step.next_step || 'END';
+      return true;
+    }
+
+    // single_select or multi_select
+    const lowerMsg = message.toLowerCase().trim();
+    // Try exact match first
+    let matchedOption = step.options?.find(o => o.label.toLowerCase().trim() === lowerMsg || o.value.toLowerCase().trim() === lowerMsg);
+
+    // If not exact match, use Gemini to parse
+    if (!matchedOption && step.options) {
+      const allowedValues = step.options.map(o => o.value).join(', ');
+      const allowedLabels = step.options.map(o => o.label).join(', ');
+      const prompt = `Kullanıcı şu soruya cevap verdi: "${step.step_title}". 
+Kullanıcının cevabı: "${message}"
+Geçerli seçenek değerleri: [${allowedValues}] (Etiketleri: [${allowedLabels}])
+Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE seçeneğin value (değer) kısmını yaz. Eğer hiçbirine uymuyorsa "INVALID" yaz.`;
+      
+      try {
+        const aiRes = await this.geminiService.generateResponse([], prompt, { temperature: 0 });
+        const aiValue = aiRes.text.trim();
+        matchedOption = step.options.find(o => o.value === aiValue);
+      } catch (e) {
+        console.warn('AI Parsing failed for deterministic flow:', e);
+      }
+    }
+
+    if (matchedOption) {
+      // For multi_select we could store arrays, but for now just string
+      if (step.input_type === 'multi_select') {
+        const existing = state.collected_data[step.step_id] ? (state.collected_data[step.step_id] + ', ') : '';
+        state.collected_data[step.step_id] = existing + matchedOption.label;
+      } else {
+        state.collected_data[step.step_id] = matchedOption.label;
+      }
+      state.collected_data.current_step_id = matchedOption.next_step || step.next_step || 'END';
+      return true;
+    } else {
+      // Could not parse
+      return false;
+    }
   }
 
   private getFieldLabel(key: string): string {
