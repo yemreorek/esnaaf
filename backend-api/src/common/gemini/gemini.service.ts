@@ -141,12 +141,18 @@ export class GeminiService {
 
     // Map history to Gemini API format
     // Filter out system message from contents and map 'assistant' role to 'model'
-    const contents = history
+    let contents = history
       .filter((msg) => msg.role !== 'system')
       .map((msg) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       }));
+
+    // Gemini API throws 400 Bad Request if the conversation starts with a 'model' role.
+    // Ensure the first message is always from the user.
+    while (contents.length > 0 && contents[0].role === 'model') {
+      contents.shift();
+    }
 
     // Build fallback list of models to try if the primary is overloaded
     const modelsToTry = [modelToUse];
