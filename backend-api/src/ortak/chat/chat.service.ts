@@ -257,40 +257,101 @@ export class ChatService {
     const tokensUsed = Math.floor(message.length * 0.3) + 20;
 
     let justDetectedCategory = false;
+
+    // --- FAST PATH FOR DETERMINISTIC JSON FLOW ---
+    const slug = state.collected_data.categorySlug;
+    if ((state.step === 'collecting_details' || state.step === 'ask_details') && slug && QUESTION_FLOWS[slug]) {
+      state.step = 'collecting_details'; // Normalize
+      
+      const processed = await this.processAnswerFromFlow(state, filteredMessage);
+      let nextQ: any = null;
+      
+      if (!processed) {
+        nextQ = this.getNextQuestionFromFlow(state);
+        if (nextQ) responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
+      } else {
+        nextQ = this.getNextQuestionFromFlow(state);
+      }
+      
+      if (!nextQ) {
+        state.step = 'ask_address';
+        state.collected_data.hasAskedDetails = true;
+        responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
+        options = [];
+        inputType = 'single_choice';
+      } else {
+        responseMessage = responseMessage || nextQ.question;
+        options = nextQ.options || [];
+        inputType = nextQ.inputType || 'single_choice';
+      }
+
+      state.messages.push({ role: 'user', content: message });
+      state.messages.push({ role: 'assistant', content: responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+
+      return {
+        step: state.step,
+        responseMessage,
+        collected_data: state.collected_data,
+        options,
+        inputType,
+      };
+    }
+    // --- END FAST PATH ---
+
     try {
       // ─── ACTIVE AGENT PATH (GEMINI FLASH) ───────────────────────────
       if (this.geminiService.isAvailable()) {
         
         // Hybrid Deterministic Category Failsafe:
-        // Automatically detect category in early steps using the deterministic detectCategory method
-        // Only if this is NOT a general informational query
         if (!state.collected_data.categorySlug && 
             (state.step === 'greeting' || state.step === 'category_detection') &&
             !this.isGeneralOrInformationalQuery(message)) {
           const detection = await this.detectCategory(filteredMessage);
           if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
-            justDetectedCategory = true;
             state.collected_data.categorySlug = detection.categorySlug;
             state.collected_data.categoryName = detection.categoryName || undefined;
-            await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
             state.step = 'collecting_details';
             
-            // Immediately parse parameters for the newly detected category from the current user message
-            const questions = this.getQuestionsForCategory(detection.categorySlug, state);
-            for (const q of questions) {
-              if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
-                const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
-                if (!isGenericTrim) {
-                  const val = q.parse(message);
-                  if (val) {
-                    state.collected_data[q.key] = val;
-                  }
-                }
-              }
+            if (QUESTION_FLOWS[detection.categorySlug]) {
+               const nextQ = this.getNextQuestionFromFlow(state);
+               if (nextQ) {
+                  responseMessage = `${detection.categoryName} talebiniz için detayları alalım.\n\n${nextQ.question}`;
+                  options = nextQ.options || [];
+                  inputType = nextQ.inputType || 'single_choice';
+
+                  state.messages.push({ role: 'user', content: message });
+                  state.messages.push({ role: 'assistant', content: responseMessage });
+                  await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+                  await this.trackTokens(sessionKey, tokensUsed);
+
+                  return {
+                    step: state.step,
+                    responseMessage,
+                    collected_data: state.collected_data,
+                    options,
+                    inputType,
+                  };
+               }
+            } else {
+               await this.initializeCategoryFlow(state, detection.categorySlug, detection.categoryName || undefined);
+               justDetectedCategory = true;
+               const questions = this.getQuestionsForCategory(detection.categorySlug, state);
+               for (const q of questions) {
+                 if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
+                   const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
+                   if (!isGenericTrim) {
+                     const val = q.parse(message);
+                     if (val) {
+                       state.collected_data[q.key] = val;
+                     }
+                   }
+                 }
+               }
             }
           }
         }
-        
         // A. Transactional Steps (Secure, deterministic verification/creation)
         const initialStep = state.step;
 
@@ -1038,34 +1099,56 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               categorySlug = categorySlug.replace(/_/g, '-');
             }
             state.collected_data.categorySlug = categorySlug;
-            await this.initializeCategoryFlow(state, categorySlug, undefined);
             state.step = 'collecting_details';
 
-            // Immediately parse parameters for the newly detected category from the current user message
-            const questions = this.getQuestionsForCategory(categorySlug, state);
-            for (const q of questions) {
-              if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
-                const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
-                if (!isGenericTrim) {
-                  const val = q.parse(message);
-                  if (val) {
-                    state.collected_data[q.key] = val;
-                  }
-                }
-              }
-            }
+            if (QUESTION_FLOWS[categorySlug]) {
+               const nextQ = this.getNextQuestionFromFlow(state);
+               if (nextQ) {
+                  responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım.\n\n${nextQ.question}`;
+                  options = nextQ.options || [];
+                  inputType = nextQ.inputType || 'single_choice';
 
-            const nextQ = (await this.getNextQuestion(state));
-            if (nextQ) {
-              responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
-              if (nextQ.options) options = nextQ.options;
-            } else if (!state.collected_data.hasAskedDetails) {
-              state.step = 'ask_details';
-              responseMessage = this.generatePromptForCategory(categorySlug || null);
+                  state.messages.push({ role: 'assistant', content: responseMessage });
+                  await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+                  await this.trackTokens(sessionKey, tokensUsed);
+
+                  return {
+                    step: state.step,
+                    responseMessage,
+                    collected_data: state.collected_data,
+                    options,
+                    inputType,
+                  };
+               }
             } else {
-              state.step = 'ask_address';
-              state.collected_data.hasAskedDetails = true;
-              responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
+               await this.initializeCategoryFlow(state, categorySlug, undefined);
+
+               // Immediately parse parameters for the newly detected category from the current user message
+               const questions = this.getQuestionsForCategory(categorySlug, state);
+               for (const q of questions) {
+                 if (q.key !== 'district' && q.key !== 'destinationDistrict' && !state.collected_data[q.key]) {
+                   const isGenericTrim = q.parse.toString().includes('msg.trim()') || q.parse.toString().includes('trim()');
+                   if (!isGenericTrim) {
+                     const val = q.parse(message);
+                     if (val) {
+                       state.collected_data[q.key] = val;
+                     }
+                   }
+                 }
+               }
+
+               const nextQ = (await this.getNextQuestion(state));
+               if (nextQ) {
+                 responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım. \n\n${nextQ.question}`;
+                 if (nextQ.options) options = nextQ.options;
+               } else if (!state.collected_data.hasAskedDetails) {
+                 state.step = 'ask_details';
+                 responseMessage = this.generatePromptForCategory(categorySlug || null);
+               } else {
+                 state.step = 'ask_address';
+                 state.collected_data.hasAskedDetails = true;
+                 responseMessage = 'Hizmetin verileceği konumu seçebilir misiniz?';
+               }
             }
           }
           else if (call.name === 'sendOTP') {
