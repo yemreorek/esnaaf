@@ -44,10 +44,16 @@ export class ChatController {
   ) {
     const sessionUuid = sessionIdHeader || randomUUID();
     let userId: string | null = null;
-
+    
+    let token: string | undefined = undefined;
     if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies['esnaaf_token']) {
+      token = req.cookies['esnaaf_token'];
+    }
+
+    if (token) {
       try {
-        const token = authHeader.split(' ')[1];
         const payload = this.jwtService.verify(token, {
           secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
         });
@@ -55,7 +61,6 @@ export class ChatController {
         if (payload.isImpersonated) {
           throw new ForbiddenException('Ön izleme (taklit) modundayken bu işlemi gerçekleştiremezsiniz.');
         }
-        console.log(`[ChatController] Resolved userId ${userId} for startAnonymousSession`);
       } catch (err) {
         if (err instanceof ForbiddenException) throw err;
         console.log('[ChatController] Invalid optional JWT in startAnonymousSession, processing as guest');
@@ -80,9 +85,15 @@ export class ChatController {
     console.log(`[ChatController] handleMessage received x-session-id: ${sessionIdHeader}, using sessionId: ${sessionId}`);
 
     // 1. Check if an authenticated user's JWT token is supplied
+    let token: string | undefined = undefined;
     if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies['esnaaf_token']) {
+      token = req.cookies['esnaaf_token'];
+    }
+
+    if (token) {
       try {
-        const token = authHeader.split(' ')[1];
         const payload = this.jwtService.verify(token, {
           secret: process.env.JWT_ACCESS_SECRET || 'some_super_secret_access_key_min_32_characters',
         });
