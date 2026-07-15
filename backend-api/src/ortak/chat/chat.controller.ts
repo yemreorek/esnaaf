@@ -137,7 +137,9 @@ export class ChatController {
         expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
       });
 
-      const isSecure = process.env.NODE_ENV === 'production';
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      const isSecure = forwardedProto === 'https' || (process.env.NODE_ENV === 'production' && !req.headers.host?.includes('localhost'));
+      
       res.cookie('esnaaf_token', accessToken, {
         httpOnly: true,
         secure: isSecure,

@@ -14,8 +14,9 @@ import { Public } from '../../common/decorators';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  private setCookies(res: Response, tokens: { accessToken: string, refreshToken: string }) {
-    const isSecure = process.env.NODE_ENV !== 'development';
+  private setCookies(res: Response, tokens: { accessToken: string, refreshToken: string }, req?: any) {
+    const forwardedProto = req?.headers?.['x-forwarded-proto'];
+    const isSecure = forwardedProto === 'https' || (process.env.NODE_ENV === 'production' && !req?.headers?.host?.includes('localhost'));
     res.cookie('esnaaf_token', tokens.accessToken, {
       httpOnly: true,
       secure: isSecure,
@@ -42,9 +43,9 @@ export class AuthController {
   @Public()
   @Post('otp/verify')
   @HttpCode(HttpStatus.OK)
-  async verifyOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
+  async verifyOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response, @Req() req: any) {
     const result = await this.authService.verifyOtp(dto);
-    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken }, req);
     return result;
   }
 
@@ -55,7 +56,7 @@ export class AuthController {
     // Read from cookie first, fallback to body
     const token = req.cookies?.esnaaf_refresh_token || dto.refreshToken;
     const result = await this.authService.refreshTokens({ refreshToken: token });
-    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
+    this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken }, req);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { accessToken, refreshToken, ...rest } = result;
     return rest;

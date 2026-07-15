@@ -258,6 +258,58 @@ export class ChatService {
 
     let justDetectedCategory = false;
 
+    // --- GLOBAL GERİ DÖN INTERCEPTOR ---
+    const isGeriDon = message.trim().toLowerCase() === 'geri dön' || message.trim().toLowerCase() === 'geri';
+    if (isGeriDon && state.step !== 'collecting_details' && state.step !== 'category_detection' && state.step !== 'greeting') {
+      let previousStepMsg = '';
+      if (state.step === 'ask_address') {
+        state.step = 'collecting_details';
+        if (state.collected_data.step_history && state.collected_data.step_history.length > 0) {
+           state.collected_data.current_step_id = state.collected_data.step_history.pop();
+        }
+        const nextQ = this.getNextQuestionFromFlow(state);
+        if (nextQ) {
+           previousStepMsg = nextQ.question;
+           options = nextQ.options || [];
+           inputType = nextQ.inputType || 'single_choice';
+        } else {
+           // Fallback to normal Gemini flow
+           state.step = 'ask_details';
+           previousStepMsg = 'Lütfen talebinizle ilgili ekstra detayları veya belirtmek istediklerinizi yazın.';
+        }
+      } else if (state.step === 'ask_name') {
+        state.step = 'ask_address';
+        previousStepMsg = 'Hizmetin verileceği konumu seçebilir misiniz?';
+      } else if (state.step === 'ask_phone') {
+        state.step = 'ask_name';
+        previousStepMsg = 'Size hitap edebilmemiz için adınızı ve soyadınızı öğrenebilir miyiz?';
+      } else if (state.step === 'otp_verification') {
+        state.step = 'ask_phone';
+        previousStepMsg = 'Lütfen telefon numaranızı girin (Örn: 0532 123 4567):';
+      } else if (state.step === 'confirm_form') {
+        if (!state.collected_data.phone) {
+           state.step = 'ask_phone';
+           previousStepMsg = 'Lütfen telefon numaranızı girin:';
+        } else {
+           state.step = 'otp_verification';
+           previousStepMsg = 'Lütfen telefonunuza gelen 6 haneli kodu giriniz (Test için: 123456).';
+        }
+      }
+
+      state.messages.push({ role: 'user', content: message });
+      state.messages.push({ role: 'assistant', content: previousStepMsg });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+
+      return {
+        step: state.step,
+        responseMessage: previousStepMsg,
+        collected_data: state.collected_data,
+        options,
+        inputType,
+      };
+    }
+
     // --- FAST PATH FOR DETERMINISTIC JSON FLOW ---
     const slug = state.collected_data.categorySlug;
     if ((state.step === 'collecting_details' || state.step === 'ask_details') && slug && QUESTION_FLOWS[slug]) {
@@ -2803,8 +2855,15 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
       if (ignoredKeys.includes(key)) {
         return;
       }
-      const label = formData.graph_labels?.[key] || labels[key] || key;
-      const value = formData[key];
+      let label = formData.graph_labels?.[key] || labels[key] || key;
+      if (label === key && label.startsWith('step_')) {
+        label = label.replace('step_', '').split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+      let value = formData[key];
+      // Convert values like 1_1 to 1+1, 2_1 to 2+1, etc. if it matches the pattern
+      if (typeof value === 'string' && /^\d+_\d+(?:_plus)?$/.test(value)) {
+        value = value.replace('_plus', '+').replace('_', '+');
+      }
       if (value !== undefined && value !== null && value !== "") {
         lines.push(`• ${label}: ${value}`);
       }

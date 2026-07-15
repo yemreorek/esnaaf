@@ -76,5 +76,6 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
     ...options,
     headers,
     credentials: 'include', // IMPORTANT: Send cookies
+    cache: 'no-store', // Disable Next.js caching
   });
 }
