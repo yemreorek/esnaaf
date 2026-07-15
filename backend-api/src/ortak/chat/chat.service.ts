@@ -2308,7 +2308,7 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama veya yorum
     } catch (e) {
       console.error('[ChatService] getAiNextQuestion error:', e);
       return {
-        question: 'Hizmetin detaylarından kısaca bahseder misiniz?',
+        question: 'Hizmetin detaylarından kısaca bahseder misiniz? [HATA: ' + (e instanceof Error ? e.message : String(e)) + ']',
         options: [],
         inputType: 'textarea',
         isComplete: false
