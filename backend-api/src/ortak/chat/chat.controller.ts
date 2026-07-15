@@ -35,6 +35,18 @@ export class ChatController {
   }
 
   @Public()
+  @Get('debug/talepler')
+  async debugTalepler() {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    const users = await prisma.user.findMany({ orderBy: { created_at: 'desc' }, take: 5 });
+    const talepler = await prisma.serviceRequest.findMany({ orderBy: { created_at: 'desc' }, take: 5, include: { category: true } });
+    const sessions = await prisma.user.findMany({ where: { role: 'service_seeker' }, orderBy: { created_at: 'desc' }, take: 2 });
+    await prisma.$disconnect();
+    return { users, talepler };
+  }
+
+  @Public()
   @Post('ortak/chat/anonim/baslat')
   @HttpCode(HttpStatus.OK)
   async startAnonymousSession(
