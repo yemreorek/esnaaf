@@ -1,5 +1,5 @@
 import { Controller, Post, Body, Req, Res, Headers, HttpStatus, HttpCode, ForbiddenException, Get } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
