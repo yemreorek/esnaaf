@@ -887,11 +887,9 @@ AI: Anladım, Baymak Luna 24 kombiniz yanmıyor ve sıcak su vermiyor. Bu genell
 Müşteri: "Temizlikçi lazım"
 AI: Ev temizliği talebiniz için yardımcı olayım. Hizmetin verileceği ilçeyi yazar mısınız?
 Müşteri: "Kadıköy"
-AI: Eviniz kaç odalı ve ne tür bir temizlik düşünüyorsunuz? (Standart temizlik, detaylı/derin temizlik gibi)
-Müşteri: "3+1, normal temizlik yeterli"
-AI: Kadıköy'de 3+1 daireniz için standart ev temizliği. Temizlik hakkında eklemek istediğiniz özel bir not var mı? Örneğin cam silimi, ütü gibi ek işler veya dikkat edilmesi gereken bir alan?
-Müşteri: "Cam silimi de yapılsın"
-AI: Notunuzu aldım. Size uygun ustalardan teklif almak için adınızı ve soyadınızı öğrenebilir miyim?
+AI: Eviniz kaç odalı? (Örn: 1+1, 2+1, 3+1, 4+1 veya daha büyük)
+Müşteri: "3+1"
+AI: Kadıköy'de 3+1 daireniz için ev temizliği. Ne tür bir temizlik düşünüyorsunuz? (Örn: Standart temizlik, Detaylı/Derin temizlik, İnşaat sonrası temizlik)
 
 **Örnek 3 — Genel Soru:**
 Müşteri: "Bu platform güvenli mi? Ustalar kontrol ediliyor mu?"
@@ -2273,10 +2271,10 @@ Amacın, bu hizmetle ilgili gerekli tüm detayları müşteriye sırayla sorular
 
 KURALLAR:
 1. Müşteriden ALMAN GEREKEN BİLGİLER Hizmet Rehberinde listelenmiştir. Lütfen HİZMET REHBERİNDEKİ İLK EKSİK BİLGİYİ bul ve SADECE ONUNLA İLGİLİ TEK BİR SORU SOR. Asla birden fazla soruyu aynı cümlede birleştirme!
-2. Doğrudan sektöre özel teknik soruyu sor (Örn: "Eviniz kaç odalı?", "Kaç metrekare?"). Genel geçer açılış, selamlama veya onay cümleleri kurma.
-3. Sorduğun soru açık uçlu değilse (sayı, adet, tür vb. ise), MUTLAKA UYGUN ve MANTIKLI 2 ila 6 arasında seçenek (options) sun. Örneğin "Kaç adet?" sorusuna ["1", "2", "3+"] gibi mantıklı şıklar ver (inputType: "single_choice").
-4. SADECE VE SADECE Hizmet Rehberindeki TÜM soruları sorduktan ve cevaplarını aldıktan sonra, EN SON SORU OLARAK ŞUNU SOR: "Eklemek istediğiniz, ustamızın bilmesi gereken başka bir detay var mı?". Henüz rehberdeki sorular bitmediyse bu soruyu ASLA SORMA.
-5. Müşteri son "textarea" sorusuna da yanıt verdiyse işin bitmiştir. Soru sorma, "isComplete": true dön.
+2. Doğrudan sektöre özel teknik soruyu sor (Örn: "Eviniz kaç odalı?", "Kaç metrekare?").
+3. İLK SORULAR KESİNLİKLE AÇIK UÇLU (textarea) OLAMAZ! Mutlaka tıklanabilir butonlar (options) sunmalısın. Sorduğun soruya UYGUN ve MANTIKLI en az 2, en fazla 6 seçenek (options) sun. Örneğin "Eviniz kaç odalı?" sorusuna ["1+1", "2+1", "3+1"] gibi mantıklı şıklar ver (inputType: "single_choice").
+4. SADECE VE SADECE Hizmet Rehberindeki TÜM soruları sorduktan ve cevaplarını aldıktan sonra, EN SON SORU OLARAK ŞUNU SOR: "Eklemek istediğiniz başka bir detay var mı?". Henüz rehberdeki sorular bitmediyse bu soruyu ASLA SORMA.
+5. Müşteri son soruya da yanıt verdiyse işin bitmiştir. Soru sorma, "isComplete": true dön.
 6. Sadece JSON formatında çıktı ver. Markdown kullanma, doğrudan JSON stringi olsun.
 
 Hizmet Rehberi (Sorulması gereken genel konular):
@@ -2284,10 +2282,10 @@ ${this.generatePromptForCategory(slug)}
 
 Şu ana kadar topladığın veya önceki mesajlardan anladığın net bilgileri "collected_facts" içine anahtar-değer (örn: {"Evin Büyüklüğü": "2+1"}) şeklinde koy.
 
-Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama veya yorum // eklemeyin):
+Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin):
 {
-  "question": "Müşteriye soracağın soru",
-  "options": ["Seçenek 1", "Seçenek 2"],
+  "question": "Müşteriye soracağın soru (Örn: Eviniz kaç odalı?)",
+  "options": ["Seçenek 1", "Seçenek 2", "Seçenek 3"],
   "inputType": "single_choice",
   "collected_facts": { "Soru Özeti": "Cevap Özeti" },
   "isComplete": false
