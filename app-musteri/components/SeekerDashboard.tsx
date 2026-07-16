@@ -64,6 +64,15 @@ export function resolveCityFromDistrict(district?: string): string {
   return 'İstanbul';
 }
 
+export function formatDetails(text?: string): string {
+  if (!text) return '';
+  return text.split(/[•\n]+/)
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .map(line => `• ${line}`)
+    .join('\n');
+}
+
 export const getCancelReasonText = (code?: string | null, text?: string | null): string => {
   if (code === 'musteri-ulasilamiyor') return 'Müşteriye ulaşılamıyor (Telefon/Mesajlara cevap verilmiyor)';
   if (code === 'musteri-vazgecti') return 'Müşteri işi sözlü olarak iptal etti / Vazgeçti';
@@ -2452,7 +2461,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                         <div>
                           <span className="block text-[10px] text-slate-400 font-bold uppercase">Detaylar / Açıklama</span>
                           <span className="text-slate-650 font-medium mt-1.5 block bg-slate-50 p-3 rounded-xl border border-slate-200/50 leading-relaxed font-semibold italic whitespace-pre-line">
-                            &ldquo;{selectedRequest.form_data.details || "Açıklama girilmedi"}&rdquo;
+                            &ldquo;{formatDetails(selectedRequest.form_data.details) || "Açıklama girilmedi"}&rdquo;
                           </span>
                         </div>
                       </div>
