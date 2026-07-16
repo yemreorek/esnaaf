@@ -98,5 +98,48 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "next_step": "END"
       }
     ]
+  },
+  'bos-ev-temizligi': {
+    "category_id": "bos_ev_temizligi",
+    "category_name": "Boş Ev Temizliği",
+    "steps": [
+      {
+        "step_id": "step_evin_buyuklugu",
+        "step_title": "Evin büyüklüğü nedir?",
+        "description": "Evi detaylı temizleyip düzenliyoruz. Evindeki malzemeleri kullanarak yer ve cam silme, toz alma, çöp boşaltılması ve mutfak temizliği hizmetimiz kapsamında.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1+0", "value": "1_0", "next_step": "step_banyo_sayisi" },
+          { "label": "1+1", "value": "1_1", "next_step": "step_banyo_sayisi" },
+          { "label": "2+1", "value": "2_1", "next_step": "step_banyo_sayisi" },
+          { "label": "3+1", "value": "3_1", "next_step": "step_banyo_sayisi" },
+          { "label": "4+1", "value": "4_1", "next_step": "step_banyo_sayisi" },
+          { "label": "5+1", "value": "5_1", "next_step": "step_banyo_sayisi" },
+          { "label": "6+1 veya daha büyük", "value": "6_plus", "next_step": "step_banyo_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_banyo_sayisi",
+        "step_title": "Kaç banyo?",
+        "description": "Banyolar da tertemiz olsun: Küvet, tuvalet, tezgah, lavabo, ayna ve cam silme, yer silme, toz alma ve çöp boşaltılması dahil.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1", "value": "1_bathroom", "next_step": "step_ev_bos_sebebi" },
+          { "label": "2", "value": "2_bathrooms", "next_step": "step_ev_bos_sebebi" },
+          { "label": "3 veya daha fazla", "value": "3_plus_bathrooms", "next_step": "step_ev_bos_sebebi" }
+        ]
+      },
+      {
+        "step_id": "step_ev_bos_sebebi",
+        "step_title": "Ev hangi sebepten boş?",
+        "description": "Temizliğin türünü ve odaklanılacak alanları (örn: inşaat artığı veya standart taşınma temizliği) belirlemek için önemlidir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kiracı çıktı", "value": "tenant_left", "next_step": "END" },
+          { "label": "Sıfır ev", "value": "new_building", "next_step": "END" },
+          { "label": "Diğer", "value": "other", "next_step": "END" }
+        ]
+      }
+    ]
   }
 };
