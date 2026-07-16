@@ -67,7 +67,7 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
   }
 
   const accessToken = typeof window !== 'undefined' ? localStorage.getItem('esnaaf_access_token') : null;
-  if (accessToken) {
+  if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
   

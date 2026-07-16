@@ -7,7 +7,7 @@ const cookieExtractor = (req: any) => {
   let token = null;
   if (req && req.headers.authorization) {
     const authHeaderParts = req.headers.authorization.split(' ');
-    if (authHeaderParts.length === 2 && authHeaderParts[1] !== 'active') {
+    if (authHeaderParts.length === 2 && authHeaderParts[1] !== 'active' && authHeaderParts[1] !== 'undefined' && authHeaderParts[1] !== 'null') {
       token = authHeaderParts[1];
     }
   }

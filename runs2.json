@@ -11,8 +11,8 @@
       "display_title": " remove tests",
       "run_number": 372,
       "event": "push",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "workflow_id": 284869536,
       "check_suite_id": 79933269308,
       "check_suite_node_id": "CS_kwDOSqTaPM8AAAASnGTlPA",
@@ -22,7 +22,7 @@
 
       ],
       "created_at": "2026-07-16T17:35:23Z",
-      "updated_at": "2026-07-16T17:35:26Z",
+      "updated_at": "2026-07-16T17:37:40Z",
       "actor": {
         "login": "yemreorek",
         "id": 276100283,

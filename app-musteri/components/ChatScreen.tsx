@@ -708,7 +708,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
       ]);
 
       // Store JWT tokens if session has migrated (OTP verified)
-      if (data.sessionMigrated && data.accessToken) {
+      if (data.sessionMigrated && data.accessToken && data.accessToken !== 'undefined' && data.accessToken !== 'null') {
         localStorage.setItem("esnaaf_is_logged_in", 'true');
         localStorage.setItem("esnaaf_access_token", data.accessToken);
         localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
