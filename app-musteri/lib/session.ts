@@ -66,7 +66,10 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
     headers.set('X-Session-ID', sessionId);
   }
 
-  // We no longer set Authorization Bearer manually since we use HttpOnly cookies.
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('esnaaf_access_token') : null;
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
   
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
@@ -90,7 +93,14 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
       });
       
       if (refreshRes.ok) {
-        // Retry original request
+        const refreshData = await refreshRes.json();
+        if (typeof window !== 'undefined' && refreshData.accessToken) {
+          localStorage.setItem('esnaaf_access_token', refreshData.accessToken);
+          localStorage.setItem('esnaaf_refresh_token', refreshData.refreshToken || storedRefreshToken);
+        }
+        
+        // Retry with new token
+        headers.set('Authorization', `Bearer ${refreshData.accessToken}`);
         response = await fetch(url, {
           ...options,
           headers,

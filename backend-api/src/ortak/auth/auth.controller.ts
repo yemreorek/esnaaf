@@ -43,7 +43,7 @@ export class AuthController {
   @Public()
   @Post('otp/verify')
   @HttpCode(HttpStatus.OK)
-  async verifyOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response, @Req() req: any) {
+  async verifyOtp(@Req() req: any, @Res({ passthrough: true }) res: Response, @Body() dto: VerifyOtpDto) {
     const result = await this.authService.verifyOtp(dto);
     this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken }, req);
     return result;
@@ -57,9 +57,7 @@ export class AuthController {
     const token = req.cookies?.esnaaf_refresh_token || dto.refreshToken;
     const result = await this.authService.refreshTokens({ refreshToken: token });
     this.setCookies(res, { accessToken: result.accessToken, refreshToken: result.refreshToken }, req);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { accessToken, refreshToken, ...rest } = result;
-    return rest;
+    return result;
   }
 
   @Public()

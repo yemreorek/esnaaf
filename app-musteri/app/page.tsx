@@ -350,6 +350,11 @@ export default function Home() {
         throw new Error(data.message || "Doğrulama kodu hatalı.");
       }
 
+      if (typeof window !== "undefined" && data.accessToken) {
+        localStorage.setItem("esnaaf_access_token", data.accessToken);
+        localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
+      }
+
       // Check role - if service_provider (hizmet veren), redirect them to their provider dashboard
       if (data.user && data.user.role === "service_provider") {
         triggerNotification("Hizmet Veren paneline yönlendiriliyorsunuz...");
