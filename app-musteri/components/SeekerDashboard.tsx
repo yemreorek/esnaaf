@@ -2451,7 +2451,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                         )}
                         <div>
                           <span className="block text-[10px] text-slate-400 font-bold uppercase">Detaylar / Açıklama</span>
-                          <span className="text-slate-650 font-medium mt-1.5 block bg-slate-50 p-3 rounded-xl border border-slate-200/50 leading-relaxed font-semibold italic">
+                          <span className="text-slate-650 font-medium mt-1.5 block bg-slate-50 p-3 rounded-xl border border-slate-200/50 leading-relaxed font-semibold italic whitespace-pre-line">
                             &ldquo;{selectedRequest.form_data.details || "Açıklama girilmedi"}&rdquo;
                           </span>
                         </div>
