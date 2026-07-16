@@ -299,10 +299,10 @@ const OpportunityCard = ({
             )}
             <div className="flex flex-col text-left">
               <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
-              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono ${
-                badgeType === "urgent" ? "bg-rose-50 text-rose-600 border border-rose-100/50 font-black" :
-                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border border-[#c8f252]/30" :
-                badgeType === "planned" ? "bg-slate-100 text-slate-700" : "bg-slate-50 text-slate-500"
+              <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono flex items-center gap-1 shadow-sm border ${
+                badgeType === "urgent" ? "bg-rose-100/70 text-red-700 border-rose-200/80 font-black" :
+                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border-[#c8f252]/30" :
+                badgeType === "planned" ? "bg-slate-100 text-slate-700 border-slate-200/40" : "bg-slate-50 text-slate-500 border-slate-100"
               }`}>
                 {badgeText}
               </span>

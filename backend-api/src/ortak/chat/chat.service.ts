@@ -36,6 +36,23 @@ interface SessionState {
   ab_temp?: number;
 }
 
+export function getUrgentDates() {
+  const dates: string[] = [];
+  const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+  const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  
+  for (let i = 0; i < 3; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const dayName = days[d.getDay()];
+    const day = d.getDate();
+    const monthName = months[d.getMonth()];
+    
+    dates.push(`${day} ${monthName} (${dayName})`);
+  }
+  return dates;
+}
+
 @Injectable()
 export class ChatService {
   private CITY_DISTRICTS: Record<string, string[]> = {
@@ -899,6 +916,19 @@ export class ChatService {
         } else if (state.step === 'ask_time') {
           const timeVal = message.trim();
           state.collected_data.tarih = timeVal;
+
+          let isUrgent = false;
+          if (timeVal.startsWith('Belirli Bir Zamanda:')) {
+            const urgentDates = getUrgentDates();
+            isUrgent = urgentDates.some(ud => timeVal.includes(ud));
+          }
+
+          if (isUrgent) {
+            state.collected_data.aciliyet = 'Acil (İlk 3 Gün)';
+          } else {
+            state.collected_data.aciliyet = 'Standart İş';
+          }
+
           state.step = 'ask_name';
           responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
           state.messages.push({ role: 'assistant', content: responseMessage });
@@ -1514,6 +1544,19 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       } else if (state.step === 'ask_time') {
         const timeVal = message.trim();
         state.collected_data.tarih = timeVal;
+
+        let isUrgent = false;
+        if (timeVal.startsWith('Belirli Bir Zamanda:')) {
+          const urgentDates = getUrgentDates();
+          isUrgent = urgentDates.some(ud => timeVal.includes(ud));
+        }
+
+        if (isUrgent) {
+          state.collected_data.aciliyet = 'Acil (İlk 3 Gün)';
+        } else {
+          state.collected_data.aciliyet = 'Standart İş';
+        }
+
         state.step = 'ask_name';
         responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
 
