@@ -106,8 +106,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       description: offer.description,
       provider: {
         id: offer.providerId,
-        name: offer.providerName || 'Hizmet Veren',
-        rating: offer.providerRating || 5.0,
+        avg_rating: offer.providerRating || 5.0,
+        is_approved: offer.providerIsApproved !== undefined ? offer.providerIsApproved : true,
+        user: {
+          name: offer.providerName || 'Hizmet Veren',
+          phone_masked: '',
+        },
+        subscription: offer.providerSubscription,
       },
     });
     console.log(`[WS Broadcast] New offer emitted to room ${room}`);

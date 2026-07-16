@@ -1006,7 +1006,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
           avg_rating: offer.provider?.avg_rating || offer.providerRating || 4.8,
           is_approved: offer.provider?.is_approved !== undefined ? offer.provider.is_approved : (offer.providerIsApproved !== undefined ? offer.providerIsApproved : true),
           user: {
-            name: offer.provider?.user?.name || offer.providerName || "Hizmet Veren",
+            name: offer.provider?.user?.name || offer.provider?.name || offer.providerName || "Hizmet Veren",
             phone_masked: offer.provider?.user?.phone_masked || offer.providerPhoneMasked || "",
           },
           subscription: offer.provider?.subscription || offer.providerSubscription ? {
