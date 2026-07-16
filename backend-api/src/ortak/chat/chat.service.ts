@@ -13,7 +13,7 @@ import { SECTOR_PROMPTS } from './sector-prompts.config';
 import { QUESTION_FLOWS, FlowStep } from './question-flow.config';
 
 interface SessionState {
-  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
+  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_time' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   collected_data: {
     categorySlug?: string;
@@ -278,6 +278,15 @@ export class ChatService {
            previousStepMsg = 'Lütfen talebinizle ilgili ekstra detayları veya belirtmek istediklerinizi yazın.';
         }
       } else if (state.step === 'ask_name') {
+        state.step = 'ask_time';
+        previousStepMsg = 'Talebiniz ne zaman gerçekleşsin?';
+        options = [
+          'Belirli Bir Zamanda (Üç Hafta İçinde veya bugün hemen)',
+          'İki ay içinde',
+          'Altı ay içinde'
+        ];
+        inputType = 'single_choice';
+      } else if (state.step === 'ask_time') {
         state.step = 'ask_address';
         previousStepMsg = 'Hizmetin verileceği konumu seçebilir misiniz?';
       } else if (state.step === 'ask_phone') {
@@ -875,6 +884,21 @@ export class ChatService {
           } catch (e) {
              // Handle plain text gracefully if needed, but UI will send JSON
           }
+          state.step = 'ask_time';
+          responseMessage = `Talebiniz ne zaman gerçekleşsin?`;
+          options = [
+            'Belirli Bir Zamanda (Üç Hafta İçinde veya bugün hemen)',
+            'İki ay içinde',
+            'Altı ay içinde'
+          ];
+          inputType = 'single_choice';
+          state.messages.push({ role: 'assistant', content: responseMessage });
+          await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+          await this.trackTokens(sessionKey, tokensUsed);
+          return { step: 'ask_time', responseMessage, collected_data: state.collected_data, options, inputType };
+        } else if (state.step === 'ask_time') {
+          const timeVal = message.trim();
+          state.collected_data.tarih = timeVal;
           state.step = 'ask_name';
           responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
           state.messages.push({ role: 'assistant', content: responseMessage });
@@ -1478,6 +1502,18 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         } catch (e) {
           // If it's plain text, we can try to parse it, but UI will send JSON
         }
+        state.step = 'ask_time';
+        responseMessage = `Talebiniz ne zaman gerçekleşsin?`;
+        options = [
+          'Belirli Bir Zamanda (Üç Hafta İçinde veya bugün hemen)',
+          'İki ay içinde',
+          'Altı ay içinde'
+        ];
+        inputType = 'single_choice';
+
+      } else if (state.step === 'ask_time') {
+        const timeVal = message.trim();
+        state.collected_data.tarih = timeVal;
         state.step = 'ask_name';
         responseMessage = `Teşekkürler. Size hitap edebilmemiz için adınızı ve soyadınızı alabilir miyim?`;
 

@@ -180,6 +180,34 @@ export function resolveCityFromDistrict(district?: any): string {
   return 'İstanbul';
 }
 
+export function generateDateOptions() {
+  const options = [];
+  const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+  const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  
+  for (let i = 0; i < 21; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const dayName = days[d.getDay()];
+    const day = d.getDate();
+    const monthName = months[d.getMonth()];
+    
+    const label = `${day} ${monthName} ${dayName}`;
+    const value = `${day} ${monthName} (${dayName})`;
+    options.push({ label, value });
+  }
+  return options;
+}
+
+export function generateTimeOptions() {
+  const options = [];
+  for (let i = 1; i <= 23; i++) {
+    const formatted = i < 10 ? `0${i}:00` : `${i}:00`;
+    options.push(formatted);
+  }
+  return options;
+}
+
 export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: ChatScreenProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputVal, setInputVal] = useState("");
@@ -187,6 +215,10 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [currentStep, setCurrentStep] = useState<string>("greeting");
   const [jobId, setJobId] = useState<string | null>(null);
   const [selectedMultiOptions, setSelectedMultiOptions] = useState<string[]>([]);
+  
+  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1149,36 +1181,86 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     <div className="flex flex-col gap-2.5 w-full">
                       {msg.options.map((opt, idx) => {
                         const isSelected = selectedMultiOptions.includes(opt);
+                        const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
                         return (
-                          <button
-                            key={idx}
-                            disabled={isLoading}
-                            onClick={() => {
-                              if (msg.inputType === 'multi_choice') {
-                                setSelectedMultiOptions(prev => 
-                                  prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
-                                );
-                              } else {
-                                sendMessage(opt);
-                              }
-                            }}
-                            className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
-                              isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
-                            } ${
-                              isSelected 
-                                ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01]' 
-                                : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5'
-                            }`}
-                          >
-                            <span className="pr-4">{opt}</span>
-                            <span className={`text-xl transition-transform duration-200 ${
-                              isSelected 
-                                ? 'translate-x-1 text-slate-900' 
-                                : 'text-slate-300 group-hover:translate-x-1 group-hover:text-slate-600'
-                            }`}>
-                              →
-                            </span>
-                          </button>
+                          <div key={idx} className="w-full flex flex-col gap-2">
+                            <button
+                              disabled={isLoading}
+                              onClick={() => {
+                                if (msg.inputType === 'multi_choice') {
+                                  setSelectedMultiOptions(prev => 
+                                    prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
+                                  );
+                                } else {
+                                  if (isTimeCustom) {
+                                    setShowDateTimePicker(prev => !prev);
+                                  } else {
+                                    sendMessage(opt);
+                                  }
+                                }
+                              }}
+                              className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
+                                isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                              } ${
+                                isSelected || (isTimeCustom && showDateTimePicker)
+                                  ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01]' 
+                                  : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5'
+                              }`}
+                            >
+                              <span className="pr-4">{opt}</span>
+                              <span className={`text-xl transition-transform duration-200 ${
+                                isSelected || (isTimeCustom && showDateTimePicker)
+                                  ? 'translate-x-1 text-slate-900' 
+                                  : 'text-slate-300 group-hover:translate-x-1 group-hover:text-slate-600'
+                              }`}>
+                                →
+                              </span>
+                            </button>
+                            
+                            {isTimeCustom && showDateTimePicker && (
+                              <div className="flex flex-col gap-3.5 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl mt-1.5 animate-scale-up text-left">
+                                <div className="grid grid-cols-2 gap-3.5">
+                                  <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tarih</label>
+                                    <select
+                                      value={selectedDate}
+                                      onChange={(e) => setSelectedDate(e.target.value)}
+                                      className="bg-white border border-slate-200 text-xs font-semibold px-3 py-3 rounded-xl focus:outline-none focus:border-[#c8f252] shadow-sm cursor-pointer"
+                                    >
+                                      <option value="">Seçiniz</option>
+                                      {generateDateOptions().map((d, dIdx) => (
+                                        <option key={dIdx} value={d.value}>{d.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Saat</label>
+                                    <select
+                                      value={selectedTime}
+                                      onChange={(e) => setSelectedTime(e.target.value)}
+                                      className="bg-white border border-slate-200 text-xs font-semibold px-3 py-3 rounded-xl focus:outline-none focus:border-[#c8f252] shadow-sm cursor-pointer"
+                                    >
+                                      <option value="">Seçiniz</option>
+                                      {generateTimeOptions().map((t, tIdx) => (
+                                        <option key={tIdx} value={t}>{t}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  disabled={!selectedDate || !selectedTime || isLoading}
+                                  onClick={() => {
+                                    sendMessage(`Belirli Bir Zamanda: ${selectedDate} ${selectedTime}`);
+                                    setShowDateTimePicker(false);
+                                  }}
+                                  className="w-full bg-slate-900 text-white font-extrabold py-3 rounded-xl text-xs hover:bg-slate-800 transition-all active:scale-[0.98] shadow-sm shadow-slate-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                                >
+                                  Tarih ve Saat Seçimini Tamamla
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
