@@ -14,7 +14,11 @@ const cookieExtractor = (req: any) => {
   if (!token && req && req.cookies) {
     token = req.cookies['esnaaf_token'];
   }
-  console.log('[cookieExtractor] Extracted Token:', token ? (token.substring(0, 10) + '...') : 'NULL');
+  if (typeof token === 'string') {
+    console.log('[cookieExtractor] Extracted Token:', token.substring(0, 10) + '...');
+  } else {
+    console.log('[cookieExtractor] Extracted Token: NULL or NOT STRING');
+  }
   return token;
 };
 
