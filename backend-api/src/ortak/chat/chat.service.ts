@@ -2863,7 +2863,7 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     };
 
     const keys = Object.keys(formData);
-    const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'devOtpCode', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels'];
+    const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'devOtpCode', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history', 'History'];
 
     keys.forEach(key => {
       if (ignoredKeys.includes(key)) {

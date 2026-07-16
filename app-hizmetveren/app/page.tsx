@@ -4166,7 +4166,7 @@ export default function ProviderDashboard() {
                           <div className="text-xs space-y-1 text-slate-600 font-semibold">
                             <div><strong className="text-slate-800">Müşteri:</strong> {cj.job.name}</div>
                             <div><strong className="text-slate-800">Konum:</strong> {cj.job.district}</div>
-                            <div className="text-slate-500 font-medium break-words mt-1 leading-relaxed"><strong className="text-slate-800 font-semibold font-mono">Detay:</strong> {cj.job.details}</div>
+                            <div className="text-slate-500 font-medium break-words mt-1 leading-relaxed whitespace-pre-line"><strong className="text-slate-800 font-semibold font-mono">Detay:</strong> {cj.job.details}</div>
                           </div>
                         </div>
 
