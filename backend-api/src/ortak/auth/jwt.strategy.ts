@@ -33,7 +33,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       include: { service_provider: true },
     });
 
-    if (!user || !user.is_active || user.deleted_at) {
+    if (!user) {
+      console.error(`[JwtStrategy] Unauthorized: User not found for id ${payload.sub}`);
+      throw new UnauthorizedException('Geçersiz token veya inaktif kullanıcı.');
+    }
+    if (!user.is_active) {
+      console.error(`[JwtStrategy] Unauthorized: User ${user.id} is not active`);
+      throw new UnauthorizedException('Geçersiz token veya inaktif kullanıcı.');
+    }
+    if (user.deleted_at) {
+      console.error(`[JwtStrategy] Unauthorized: User ${user.id} is deleted`);
       throw new UnauthorizedException('Geçersiz token veya inaktif kullanıcı.');
     }
 
