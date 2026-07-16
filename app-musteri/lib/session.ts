@@ -81,10 +81,12 @@ export async function customFetch(url: string, options: RequestInit = {}): Promi
 
   if (response.status === 401 && !url.includes('/api/ortak/auth/refresh-token') && !url.includes('/api/ortak/auth/login')) {
     try {
+      const storedRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('esnaaf_refresh_token') || '' : '';
       const refreshRes = await fetch('/api/ortak/auth/refresh-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
       });
       
       if (refreshRes.ok) {
