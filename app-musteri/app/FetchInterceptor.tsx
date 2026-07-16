@@ -9,22 +9,6 @@ export default function FetchInterceptor() {
         let [resource, config] = args;
         if (!config) config = {};
         
-        // Remove manual Authorization header
-        if (config.headers) {
-          const newHeaders = new Headers(config.headers);
-          newHeaders.delete('Authorization');
-          
-          if (!(config.headers instanceof Headers) && !Array.isArray(config.headers)) {
-            const obj: Record<string, string> = {};
-            newHeaders.forEach((value, key) => {
-              obj[key] = value;
-            });
-            config.headers = obj;
-          } else {
-            config.headers = newHeaders;
-          }
-        }
-
         // Force include credentials for API calls
         if (typeof resource === 'string' && resource.startsWith('/api/')) {
           config.credentials = 'include';

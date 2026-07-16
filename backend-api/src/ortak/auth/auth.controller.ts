@@ -21,6 +21,7 @@ export class AuthController {
       httpOnly: true,
       secure: isSecure,
       sameSite: 'lax',
+      path: '/',
       maxAge: 15 * 60 * 1000, // 15 mins
     });
     res.cookie('esnaaf_refresh_token', tokens.refreshToken, {
