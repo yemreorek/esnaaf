@@ -23,7 +23,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(err, user, info, context) {
     if (err || !user) {
       console.error('[JwtAuthGuard] Auth failed. Error:', err, 'Info:', info ? info.message || info : 'none', 'User:', user);
-      throw err || new UnauthorizedException('Geçersiz token veya oturum bulunamadı.');
+      const infoMsg = info ? info.message || JSON.stringify(info) : 'none';
+      throw err || new UnauthorizedException(`Auth failed: info=${infoMsg}, user=${JSON.stringify(user || null)}`);
     }
 
     const request = context.switchToHttp().getRequest();
