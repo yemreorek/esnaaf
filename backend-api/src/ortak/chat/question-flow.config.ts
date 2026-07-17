@@ -217,7 +217,7 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "input_type": "single_select",
         "options": [
           { "label": "Evet", "value": "yes", "next_step": "step_yatak_tipi" },
-          { "label": "Hayır", "value": "no", "next_step": "step_ekstra_detay" }
+          { "label": "Hayır", "value": "no", "next_step": "step_ekstra_detay_var_mi" }
         ]
       },
       {
@@ -236,9 +236,9 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "description": "Eni 130 cm'den az olan yataklar için geçerlidir.",
         "input_type": "single_select",
         "options": [
-          { "label": "1", "value": "1", "next_step": "step_ekstra_detay" },
-          { "label": "2", "value": "2", "next_step": "step_ekstra_detay" },
-          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay" }
+          { "label": "1", "value": "1", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "2", "value": "2", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay_var_mi" }
         ]
       },
       {
@@ -247,18 +247,27 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "description": "Geniş yataklar ve çift kişilik standart yatak modelleri.",
         "input_type": "single_select",
         "options": [
-          { "label": "1", "value": "1", "next_step": "step_ekstra_detay" },
-          { "label": "2", "value": "2", "next_step": "step_ekstra_detay" },
-          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay" }
+          { "label": "1", "value": "1", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "2", "value": "2", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay_var_mi" }
         ]
       },
       {
-        "step_id": "step_ekstra_detay",
+        "step_id": "step_ekstra_detay_var_mi",
         "step_title": "Ustanın bilmesi gereken ekstra bir detay veya leke var mı?",
-        "description": "Örn: Evcil hayvan idrar lekesi, kahve lekesi veya kumaş türü.",
+        "description": "Özel kumaş türü, çıkmayan zorlu lekeler veya evcil hayvan idrar durumu.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet", "value": "yes", "next_step": "step_ekstra_detay_text" },
+          { "label": "Hayır", "value": "no", "next_step": "END" }
+        ]
+      },
+      {
+        "step_id": "step_ekstra_detay_text",
+        "step_title": "Lütfen eklemek istediğiniz detayları buraya yazınız:",
+        "description": "Örn: Kanepe kolunda kahve lekesi var, yatakta evcil hayvan tüyü yoğun.",
         "input_type": "textarea",
-        "placeholder": "Leke türü veya özel kumaş detaylarını yazabilirsiniz...",
-        "is_optional": true,
+        "placeholder": "Detayları buraya giriniz...",
         "next_step": "END"
       }
     ]
