@@ -141,5 +141,126 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         ]
       }
     ]
+  },
+  'koltuk-yikama': {
+    "category_id": "koltuk_yikama",
+    "category_name": "Koltuk Yıkama",
+    "steps": [
+      {
+        "step_id": "step_tekli_koltuk",
+        "step_title": "Kaç adet tekli koltuk (veya berjer) yıkanacak?",
+        "description": "Tekli koltuk veya berjerlerinizi kapsar.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "0", "value": "0", "next_step": "step_uclu_ikili_koltuk" },
+          { "label": "1", "value": "1", "next_step": "step_uclu_ikili_koltuk" },
+          { "label": "2", "value": "2", "next_step": "step_uclu_ikili_koltuk" },
+          { "label": "3", "value": "3", "next_step": "step_uclu_ikili_koltuk" },
+          { "label": "4", "value": "4", "next_step": "step_uclu_ikili_koltuk" },
+          { "label": "5+", "value": "5_plus", "next_step": "step_uclu_ikili_koltuk" }
+        ]
+      },
+      {
+        "step_id": "step_uclu_ikili_koltuk",
+        "step_title": "Kaç tane üçlü / ikili kanepe / çekyat yıkanacak?",
+        "description": "Standart ikili, üçlü oturma grupları ve çekyatlar dahildir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "0", "value": "0", "next_step": "step_kose_koltuk" },
+          { "label": "1", "value": "1", "next_step": "step_kose_koltuk" },
+          { "label": "2", "value": "2", "next_step": "step_kose_koltuk" },
+          { "label": "3", "value": "3", "next_step": "step_kose_koltuk" },
+          { "label": "4+", "value": "4_plus", "next_step": "step_kose_koltuk" }
+        ]
+      },
+      {
+        "step_id": "step_kose_koltuk",
+        "step_title": "Kaç adet L-şeklinde köşe koltuğu yıkanacak?",
+        "description": "L koltuk veya köşe takımlarını kapsar.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "0", "value": "0", "next_step": "step_sandalye_var_mi" },
+          { "label": "1", "value": "1", "next_step": "step_sandalye_var_mi" },
+          { "label": "2", "value": "2", "next_step": "step_sandalye_var_mi" },
+          { "label": "3+", "value": "3_plus", "next_step": "step_sandalye_var_mi" }
+        ]
+      },
+      {
+        "step_id": "step_sandalye_var_mi",
+        "step_title": "Sandalye yıkanacak mı?",
+        "description": "Yemek masası, mutfak veya çalışma sandalyeleri.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet", "value": "yes", "next_step": "step_sandalye_sayisi" },
+          { "label": "Hayır", "value": "no", "next_step": "step_yatak_var_mi" }
+        ]
+      },
+      {
+        "step_id": "step_sandalye_sayisi",
+        "step_title": "Kaç adet sandalye yıkanacak?",
+        "description": "Yıkanmasını istediğiniz toplam sandalye adedi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1", "value": "1", "next_step": "step_yatak_var_mi" },
+          { "label": "2", "value": "2", "next_step": "step_yatak_var_mi" },
+          { "label": "4", "value": "4", "next_step": "step_yatak_var_mi" },
+          { "label": "5", "value": "5", "next_step": "step_yatak_var_mi" },
+          { "label": "6", "value": "6", "next_step": "step_yatak_var_mi" },
+          { "label": "8", "value": "8", "next_step": "step_yatak_var_mi" },
+          { "label": "10+", "value": "10_plus", "next_step": "step_yatak_var_mi" }
+        ]
+      },
+      {
+        "step_id": "step_yatak_var_mi",
+        "step_title": "Yatak yıkanacak mı?",
+        "description": "Evdeki yatakların yıkanma ve hijyen hizmeti.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet", "value": "yes", "next_step": "step_yatak_tipi" },
+          { "label": "Hayır", "value": "no", "next_step": "step_ekstra_detay" }
+        ]
+      },
+      {
+        "step_id": "step_yatak_tipi",
+        "step_title": "Yıkanacak yatak hangi tipte?",
+        "description": "Lütfen yatak türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tek Kişilik Yatak", "value": "single", "next_step": "step_tek_kisilik_yatak_sayisi" },
+          { "label": "Çift Kişilik Yatak", "value": "double", "next_step": "step_cift_kisilik_yatak_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_tek_kisilik_yatak_sayisi",
+        "step_title": "Kaç adet tek kişilik yatak yıkanacak?",
+        "description": "Eni 130 cm'den az olan yataklar için geçerlidir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1", "value": "1", "next_step": "step_ekstra_detay" },
+          { "label": "2", "value": "2", "next_step": "step_ekstra_detay" },
+          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay" }
+        ]
+      },
+      {
+        "step_id": "step_cift_kisilik_yatak_sayisi",
+        "step_title": "Kaç adet çift kişilik yatak yıkanacak?",
+        "description": "Geniş yataklar ve çift kişilik standart yatak modelleri.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1", "value": "1", "next_step": "step_ekstra_detay" },
+          { "label": "2", "value": "2", "next_step": "step_ekstra_detay" },
+          { "label": "3+", "value": "3_plus", "next_step": "step_ekstra_detay" }
+        ]
+      },
+      {
+        "step_id": "step_ekstra_detay",
+        "step_title": "Ustanın bilmesi gereken ekstra bir detay veya leke var mı?",
+        "description": "Örn: Evcil hayvan idrar lekesi, kahve lekesi veya kumaş türü.",
+        "input_type": "textarea",
+        "placeholder": "Leke türü veya özel kumaş detaylarını yazabilirsiniz...",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
   }
 };
