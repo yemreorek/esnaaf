@@ -2150,11 +2150,21 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                   {req.offers?.length > 0 ? (
                                     <div className="flex items-center gap-2">
                                       <div className="flex -space-x-1.5 overflow-hidden">
-                                        {req.offers.slice(0, 3).map((off, oIdx) => (
-                                          <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-950 border border-white flex items-center justify-center font-bold text-[8px] select-none">
-                                            {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
-                                          </div>
-                                        ))}
+                                        {req.offers.slice(0, 3).map((off, oIdx) => {
+                                          const photo = (off.provider as any)?.profilePhoto;
+                                          return photo ? (
+                                            <img
+                                              key={off.id}
+                                              src={photo}
+                                              alt="Usta"
+                                              className="w-5 h-5 rounded-full object-cover border border-white"
+                                            />
+                                          ) : (
+                                            <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-955 border border-white flex items-center justify-center font-bold text-[8px] select-none">
+                                              {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                       <span className="text-[10px] text-slate-700">{`${req.offers.length} Teklif`}</span>
                                     </div>
@@ -2283,11 +2293,21 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                               {req.offers?.length > 0 ? (
                                 <div className="flex items-center gap-2">
                                   <div className="flex -space-x-1.5 overflow-hidden">
-                                    {req.offers.slice(0, 3).map((off, oIdx) => (
-                                      <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-950 border border-white flex items-center justify-center font-bold text-[8px] select-none">
-                                        {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
-                                      </div>
-                                    ))}
+                                    {req.offers.slice(0, 3).map((off, oIdx) => {
+                                      const photo = (off.provider as any)?.profilePhoto;
+                                      return photo ? (
+                                        <img
+                                          key={off.id}
+                                          src={photo}
+                                          alt="Usta"
+                                          className="w-5 h-5 rounded-full object-cover border border-white"
+                                        />
+                                      ) : (
+                                        <div key={off.id} className="w-5 h-5 rounded-full bg-[#c8f252] text-slate-955 border border-white flex items-center justify-center font-bold text-[8px] select-none">
+                                          {oIdx === 0 ? "🧑‍🔧" : oIdx === 1 ? "👷" : "⚙️"}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                   <span className="text-[10px] text-slate-700 font-extrabold">{`${req.offers.length} Teklif`}</span>
                                 </div>
@@ -3464,7 +3484,23 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           if (!jc) return null;
                           return (
                             <div key={req.id} className="bg-white border-2 border-[#c8f252] rounded-[24px] p-6 shadow-sm space-y-4">
-                              <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Teyit Bekliyor</h4>
+                              <div className="flex items-center gap-3">
+                                {(jc.provider as any)?.profilePhoto ? (
+                                  <img
+                                    src={(jc.provider as any).profilePhoto}
+                                    alt={jc.provider?.user?.name || "Usta"}
+                                    className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                  />
+                                ) : (
+                                  <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-xs select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                    {jc.provider?.user?.name ? jc.provider.user.name.charAt(0) : "U"}
+                                  </span>
+                                )}
+                                <div className="text-left">
+                                  <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Teyit Bekliyor</h4>
+                                  <span className="text-[10px] text-slate-400 font-bold block">Esnaf: {jc.provider?.user?.name || "Usta"}</span>
+                                </div>
+                              </div>
                               <p className="text-xs text-slate-600 font-semibold leading-relaxed">
                                 Ustanız bu işin tamamlandığını beyan etti. Lütfen beyan edilen tutarı kontrol ederek teyit ediniz.
                               </p>
@@ -3506,7 +3542,23 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           
                           return (
                             <div key={req.id} className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm space-y-4">
-                              <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Değerlendirme Yapın</h4>
+                              <div className="flex items-center gap-3">
+                                {(completedJc?.provider as any)?.profilePhoto ? (
+                                  <img
+                                    src={(completedJc?.provider as any).profilePhoto}
+                                    alt={providerName}
+                                    className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                  />
+                                ) : (
+                                  <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-xs select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                    {providerName.charAt(0)}
+                                  </span>
+                                )}
+                                <div className="text-left">
+                                  <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Değerlendirme Yapın</h4>
+                                  <span className="text-[10px] text-slate-400 font-bold block">Esnaf: {providerName}</span>
+                                </div>
+                              </div>
                               <p className="text-xs text-slate-650 font-semibold leading-relaxed">
                                 Tebrikler! İş başarıyla tamamlandı. Ustanız <strong>{providerName}</strong> için değerlendirme yazarak diğer kullanıcılara yardımcı olabilirsiniz.
                               </p>
@@ -3911,11 +3963,24 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           )}
 
                           {searchResult && (
-                            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col gap-3">
+                            <div className="bg-slate-50 border border-slate-155 rounded-2xl p-4 flex flex-col gap-3">
                               <div className="flex items-center justify-between">
-                                <div>
-                                  <span className="block text-xs font-extrabold text-slate-800">{searchResult.name}</span>
-                                  <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
+                                <div className="flex items-center gap-3 text-left">
+                                  {searchResult.profilePhoto ? (
+                                    <img
+                                      src={searchResult.profilePhoto}
+                                      alt={searchResult.name || "Usta"}
+                                      className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                    />
+                                  ) : (
+                                    <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-xs select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                      {searchResult.name ? searchResult.name.charAt(0) : "U"}
+                                    </span>
+                                  )}
+                                  <div>
+                                    <span className="block text-xs font-extrabold text-slate-800">{searchResult.name}</span>
+                                    <span className="block text-[9px] font-bold text-slate-400">ID: {searchResult.esnaaf_id}</span>
+                                  </div>
                                 </div>
                                 <span className="bg-[#c8f252]/10 border border-[#c8f252]/30 text-slate-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
                                   Hizmet Veren
@@ -3941,9 +4006,22 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             <div className="space-y-3">
                               {loyaltyRequests.map((req) => (
                                 <div key={req.id} className="bg-white border border-amber-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
-                                  <div className="text-left">
-                                    <span className="block text-xs font-extrabold text-slate-800">{req.provider?.user?.name || "Hizmet Veren"}</span>
-                                    <span className="block text-[9px] text-slate-400 font-bold">ID: {req.provider?.user?.esnaaf_id}</span>
+                                  <div className="flex items-center gap-3 text-left">
+                                    {(req.provider as any)?.profilePhoto ? (
+                                      <img
+                                        src={(req.provider as any).profilePhoto}
+                                        alt={req.provider?.user?.name || "Usta"}
+                                        className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                      />
+                                    ) : (
+                                      <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-xs select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                        {req.provider?.user?.name ? req.provider.user.name.charAt(0) : "U"}
+                                      </span>
+                                    )}
+                                    <div>
+                                      <span className="block text-xs font-extrabold text-slate-800">{req.provider?.user?.name || "Hizmet Veren"}</span>
+                                      <span className="block text-[9px] text-slate-400 font-bold">ID: {req.provider?.user?.esnaaf_id}</span>
+                                    </div>
                                   </div>
                                   <div className="flex gap-2">
                                     <button
@@ -3976,14 +4054,27 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 return (
                                   <div key={fav.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between gap-4 transition-all hover:shadow-md">
                                     <div className="flex justify-between items-start">
-                                      <div className="text-left">
-                                        <span className="block text-xs font-extrabold text-slate-800">{prov?.user?.name}</span>
-                                        <span className="block text-[9px] text-slate-400 font-bold mb-1">Esnaaf ID: {prov?.user?.esnaaf_id}</span>
-                                        {prov?.avg_rating && (
-                                          <div className="flex items-center gap-1 text-[10px] font-extrabold text-amber-500">
-                                            ★ {parseFloat(prov.avg_rating).toFixed(1)}
-                                          </div>
+                                      <div className="flex items-center gap-3 text-left">
+                                        {(prov as any)?.profilePhoto ? (
+                                          <img
+                                            src={(prov as any).profilePhoto}
+                                            alt={prov?.user?.name || "Usta"}
+                                            className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                          />
+                                        ) : (
+                                          <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-xs select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                            {prov?.user?.name ? prov.user.name.charAt(0) : "U"}
+                                          </span>
                                         )}
+                                        <div>
+                                          <span className="block text-xs font-extrabold text-slate-800">{prov?.user?.name}</span>
+                                          <span className="block text-[9px] text-slate-400 font-bold mb-0.5">Esnaaf ID: {prov?.user?.esnaaf_id}</span>
+                                          {prov?.avg_rating && (
+                                            <div className="flex items-center gap-1 text-[10px] font-extrabold text-amber-500">
+                                              ★ {parseFloat(prov.avg_rating).toFixed(1)}
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
                                       <button
                                         onClick={() => handleRemoveFavorite(prov.id)}

@@ -208,11 +208,20 @@ export class FavoriteService {
           slug: helperGetCategorySlug(c!.name),
         }));
 
+      let onboardingData: any = {};
+      if (fav.provider.description && fav.provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(fav.provider.description);
+        } catch (e) {}
+      }
+
       return {
         ...fav,
         provider: {
           ...fav.provider,
           categories: provCategories,
+          companyName: onboardingData.companyName || '',
+          profilePhoto: onboardingData.profilePhoto || '',
         },
       };
     });
@@ -250,12 +259,23 @@ export class FavoriteService {
       throw new NotFoundException('Eşleşen aktif kullanıcı bulunamadı.');
     }
 
+    let profilePhoto = '';
+    if (targetUser.service_provider?.description) {
+      if (targetUser.service_provider.description.startsWith('{')) {
+        try {
+          const onboardingData = JSON.parse(targetUser.service_provider.description);
+          profilePhoto = onboardingData.profilePhoto || '';
+        } catch (e) {}
+      }
+    }
+
     return {
       id: targetUser.id,
       name: targetUser.name || 'Esnaaf Kullanıcı',
       esnaaf_id: targetUser.esnaaf_id,
       role: targetUser.role,
       providerId: targetUser.service_provider?.id || null,
+      profilePhoto,
     };
   }
 
@@ -370,7 +390,7 @@ export class FavoriteService {
    * Müşterinin onay bekleyen sadık müşteri isteklerini listeler.
    */
   async getPendingRequests(seekerUserId: string) {
-    return this.prisma.favoriteProvider.findMany({
+    const list = await this.prisma.favoriteProvider.findMany({
       where: {
         seeker_id: seekerUserId,
         approved: false,
@@ -390,6 +410,25 @@ export class FavoriteService {
         }
       },
       orderBy: { created_at: 'desc' }
+    });
+
+    return list.map((item) => {
+      if (!item.provider) return item;
+      let onboardingData: any = {};
+      if (item.provider.description && item.provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(item.provider.description);
+        } catch (e) {}
+      }
+
+      return {
+        ...item,
+        provider: {
+          ...item.provider,
+          companyName: onboardingData.companyName || '',
+          profilePhoto: onboardingData.profilePhoto || '',
+        }
+      };
     });
   }
 

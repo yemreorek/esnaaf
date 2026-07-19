@@ -160,6 +160,20 @@ export class TaleplerService {
           }
         });
       }
+      if (req.job_completions) {
+        req.job_completions.forEach(jc => {
+          if (jc.provider) {
+            let onboardingData: any = {};
+            if (jc.provider.description && jc.provider.description.startsWith('{')) {
+              try {
+                onboardingData = JSON.parse(jc.provider.description);
+              } catch (e) {}
+            }
+            (jc.provider as any).companyName = onboardingData.companyName || '';
+            (jc.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+          }
+        });
+      }
       const { expiresTime } = getRequestExpiryInfo(req.created_at, Date.now(), req.offers);
       (req as any).expiresTime = expiresTime;
       return req;
@@ -223,6 +237,20 @@ export class TaleplerService {
           }
           (offer.provider as any).companyName = onboardingData.companyName || '';
           (offer.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+        }
+      });
+    }
+    if (job.job_completions) {
+      job.job_completions.forEach(jc => {
+        if (jc.provider) {
+          let onboardingData: any = {};
+          if (jc.provider.description && jc.provider.description.startsWith('{')) {
+            try {
+              onboardingData = JSON.parse(jc.provider.description);
+            } catch (e) {}
+          }
+          (jc.provider as any).companyName = onboardingData.companyName || '';
+          (jc.provider as any).profilePhoto = onboardingData.profilePhoto || '';
         }
       });
     }
