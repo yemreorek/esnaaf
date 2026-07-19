@@ -868,6 +868,11 @@ export default function ProviderDashboard() {
   const [popupConfirmPassword, setPopupConfirmPassword] = useState('');
   const [showPopupPassword, setShowPopupPassword] = useState(false);
   const [isSavingPopupPassword, setIsSavingPopupPassword] = useState(false);
+  const [showEmailVerifyReminderPopup, setShowEmailVerifyReminderPopup] = useState(false);
+  const [popupEmailCode, setPopupEmailCode] = useState('');
+  const [isSendingPopupEmailCode, setIsSendingPopupEmailCode] = useState(false);
+  const [isVerifyingPopupEmailCode, setIsVerifyingPopupEmailCode] = useState(false);
+  const [popupEmailVerificationSent, setPopupEmailVerificationSent] = useState(false);
   const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
 
   const handleExitImpersonation = () => {
@@ -1385,6 +1390,61 @@ export default function ProviderDashboard() {
     }
   };
 
+  const handleSendPopupEmailVerificationCode = async () => {
+    if (!profile?.email) return;
+    setIsSendingPopupEmailCode(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil/email/send-code', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: profile.email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPopupEmailVerificationSent(true);
+        showAlert('Başarılı', 'Doğrulama kodu e-posta adresinize gönderildi. Lütfen spam/gereksiz kutunuzu da kontrol edin.', 'success');
+      } else {
+        showAlert('Hata', data.message || 'Kod gönderilemedi.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'İstek gönderilirken bir hata oluştu.', 'error');
+    } finally {
+      setIsSendingPopupEmailCode(false);
+    }
+  };
+
+  const handleVerifyPopupEmailCode = async () => {
+    if (!profile?.email || !popupEmailCode) return;
+    setIsVerifyingPopupEmailCode(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil/email/verify-code', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: profile.email, code: popupEmailCode })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showAlert('Başarılı', 'E-posta adresiniz başarıyla doğrulandı!', 'success');
+        setPopupEmailVerificationSent(false);
+        setPopupEmailCode('');
+        setShowEmailVerifyReminderPopup(false);
+        if (token) loadDashboardData(token);
+      } else {
+        showAlert('Hata', data.message || 'Doğrulama başarısız.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'Doğrulama yapılırken bir hata oluştu.', 'error');
+    } finally {
+      setIsVerifyingPopupEmailCode(false);
+    }
+  };
+
   // Simulate login via dropdown (with hardcoded OTP bypass for prod simulated masters)
   const handleSimulatedLogin = async (phone: string) => {
     if (!phone) return;
@@ -1553,6 +1613,8 @@ export default function ProviderDashboard() {
         setEditEmail(profileData.email || '');
         if (!profileData.hasPassword) {
           setShowResetPasswordPopup(true);
+        } else if (profileData.email && !profileData.emailVerified) {
+          setShowEmailVerifyReminderPopup(true);
         }
         addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
         if (profileData.accountStatus === 'pending_approval') {
@@ -7171,6 +7233,96 @@ export default function ProviderDashboard() {
             >
               {isSavingPopupPassword ? 'Şifre Kaydediliyor...' : 'Şifreyi Kaydet ve Devam Et'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* EMAIL VERIFICATION REMINDER POPUP */}
+      {showEmailVerifyReminderPopup && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-slate-100 animate-scale-up text-left space-y-6 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setShowEmailVerifyReminderPopup(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 cursor-pointer p-1 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#4c630a]">
+                <Bell className="w-8 h-8 stroke-[2.2] animate-pulse" />
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-lg">
+                E-posta Adresinizi Doğrulayın
+              </h3>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                Hesabınızın güvenliği ve bildirimleri sorunsuz alabilmek için <strong>{profile?.email}</strong> adresinizi doğrulamalısınız.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-50/50 border border-amber-200/50 rounded-2xl">
+                <p className="text-[11px] text-amber-850 font-bold leading-relaxed flex gap-1.5 items-start">
+                  <span>💡</span>
+                  <span>E-posta kutunuza doğrulama kodu gönderildiğinde lütfen <strong>Spam (Gereksiz Posta)</strong> klasörünü de kontrol edin.</span>
+                </p>
+              </div>
+
+              {!popupEmailVerificationSent ? (
+                <button
+                  type="button"
+                  onClick={handleSendPopupEmailVerificationCode}
+                  disabled={isSendingPopupEmailCode}
+                  className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs cursor-pointer disabled:opacity-50"
+                >
+                  {isSendingPopupEmailCode ? 'Kod Gönderiliyor...' : 'Doğrulama Kodu Gönder'}
+                </button>
+              ) : (
+                <div className="space-y-3 animate-scale-up">
+                  <label className="block text-xs font-extrabold text-slate-700">6 Haneli Doğrulama Kodu</label>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={popupEmailCode}
+                      onChange={(e) => setPopupEmailCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0 0 0 0 0 0"
+                      className="flex-1 bg-slate-50 border border-slate-200 focus:border-[#4c630a] rounded-xl p-3 text-center text-xs font-black text-slate-900 tracking-widest font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyPopupEmailCode}
+                      disabled={isVerifyingPopupEmailCode || popupEmailCode.length < 6}
+                      className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 rounded-xl cursor-pointer disabled:opacity-50 transition-all"
+                    >
+                      {isVerifyingPopupEmailCode ? 'Doğrulanıyor...' : 'Kodu Doğrula'}
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold pt-1">
+                    <span>Kod ulaştı mı?</span>
+                    <button
+                      type="button"
+                      onClick={handleSendPopupEmailVerificationCode}
+                      className="text-[#4c630a] font-bold hover:underline cursor-pointer"
+                    >
+                      Tekrar Gönder
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowEmailVerifyReminderPopup(false)}
+                className="text-xs text-slate-400 font-bold hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                Daha Sonra Doğrula
+              </button>
+            </div>
           </div>
         </div>
       )}
