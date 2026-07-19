@@ -1250,13 +1250,16 @@ export default function Home() {
         
         <button 
           onClick={() => {
-            setActiveTab("help");
-            triggerNotification("Gelen kutunuz yakında burada aktif olacaktır!");
+            if (isClientLoggedIn) {
+              setActiveView("dashboard");
+            } else {
+              setIsLoginModalOpen(true);
+            }
           }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer ${activeTab === "help" ? "text-slate-900 bg-[#c8f252]/20 font-bold" : "text-slate-400"}`}
+          className="flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer text-slate-400 hover:text-slate-900 transition-colors"
         >
           <span className="material-symbols-outlined text-xl mb-0.5">mail</span>
-          <span className="font-label-sm text-[9px] font-bold">Gelen Kutusu</span>
+          <span className="font-label-sm text-[9px] font-bold">Gelen Teklifler</span>
         </button>
       </nav>
 
@@ -1378,7 +1381,7 @@ export default function Home() {
             ) : (
               <>
                 {/* Logo and Intro */}
-                <div className="flex flex-col items-center text-center mt-2 mb-6">
+                <div className="flex flex-col items-center text-center mt-2 mb-5">
                   <a href="/">
                     <img 
                       alt="Esnaaf Logo" 
@@ -1395,6 +1398,36 @@ export default function Home() {
                       : "Mahallendeki güvenilir hizmet verenlere anında ulaşın."}
                   </p>
                 </div>
+
+                {/* Role Switcher for Seeker vs. Provider */}
+                {!otpSent && (
+                  <div className="flex bg-slate-100 p-1 rounded-2xl mb-5">
+                    <button
+                      type="button"
+                      className="flex-1 py-2.5 text-xs font-black bg-white text-slate-950 rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">person</span>
+                      Hizmet Alan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          const hostname = window.location.hostname;
+                          const baseUrl = (hostname === "localhost" || hostname === "127.0.0.1") 
+                            ? "http://localhost:3001" 
+                            : "https://partner.esnaaf.com";
+                          window.location.href = baseUrl;
+                        }
+                      }}
+                      className="flex-1 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">engineering</span>
+                      Esnaaf (Hizmet Veren)
+                      <span className="material-symbols-outlined text-[10px] text-slate-400">open_in_new</span>
+                    </button>
+                  </div>
+                )}
 
                 {loginError && (
                   <div className="bg-red-50 text-red-600 border border-red-150 rounded-2xl px-4 py-3 text-xs font-semibold flex items-start gap-2.5 mb-4">
