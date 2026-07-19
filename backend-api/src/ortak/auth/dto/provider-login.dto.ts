@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ProviderLoginDto {
-  @IsNotEmpty({ message: 'Telefon numarası boş bırakılamaz.' })
-  @IsString({ message: 'Telefon numarası geçerli bir metin olmalıdır.' })
-  @Matches(/^(05|5|\+90)\d{9,10}$/, { message: 'Geçersiz telefon numarası formatı.' })
+  @IsNotEmpty({ message: 'Giriş bilgisi boş bırakılamaz.' })
+  @IsString({ message: 'Giriş bilgisi geçerli bir metin olmalıdır.' })
   phone: string;
 
   @IsNotEmpty({ message: 'Şifre boş bırakılamaz.' })

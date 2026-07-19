@@ -140,6 +140,10 @@ model ServiceProvider {
   direct_requests   ServiceRequest[]       @relation("DirectProviderRequests")
   saved_cards       SavedCard[]
 
+  password_hash     String?
+  email             String?                @unique
+  email_verified    Boolean                @default(false)
+
   @@map("service_providers")
   @@index([city])
   @@index([is_approved])

@@ -852,8 +852,21 @@ export default function ProviderDashboard() {
   const [countdown, setCountdown] = useState(0);
   const [loginError, setLoginError] = useState('');
   const [devOtpSuggested, setDevOtpSuggested] = useState('');
-  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
+  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('password');
   const [password, setPassword] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
+  const [isSendingEmailCode, setIsSendingEmailCode] = useState(false);
+  const [isVerifyingEmailCode, setIsVerifyingEmailCode] = useState(false);
+  const [newProfilePassword, setNewProfilePassword] = useState('');
+  const [confirmProfilePassword, setConfirmProfilePassword] = useState('');
+  const [isUpdatingProfilePassword, setIsUpdatingProfilePassword] = useState(false);
+  const [showResetPasswordPopup, setShowResetPasswordPopup] = useState(false);
+  const [popupNewPassword, setPopupNewPassword] = useState('');
+  const [popupConfirmPassword, setPopupConfirmPassword] = useState('');
+  const [isSavingPopupPassword, setIsSavingPopupPassword] = useState(false);
   const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
 
   const handleExitImpersonation = () => {
@@ -1165,7 +1178,7 @@ export default function ProviderDashboard() {
       const verifyRes = await fetch('/api/ortak/auth/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneNumber, code: otpCode }),
+        body: JSON.stringify({ phone: phoneNumber, code: otpCode, role: 'service_provider' }),
       });
       
       const verifyData = await verifyRes.json();
@@ -1180,6 +1193,10 @@ export default function ProviderDashboard() {
       localStorage.setItem('provider_phone', phoneNumber);
       addLog(`JWT Access Token alındı. Başarıyla giriş yapıldı!`);
       
+      if (verifyData.resetPasswordRequired) {
+        setShowResetPasswordPopup(true);
+      }
+      
       await loadDashboardData(accessToken);
     } catch (err: any) {
       setLoginError(err.message);
@@ -1191,8 +1208,8 @@ export default function ProviderDashboard() {
 
   const handlePasswordLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!phoneNumber) {
-      setLoginError("Lütfen telefon numaranızı girin.");
+    if (!loginIdentifier) {
+      setLoginError("Lütfen telefon numaranızı veya e-posta adresinizi girin.");
       return;
     }
     if (!password) {
@@ -1202,13 +1219,13 @@ export default function ProviderDashboard() {
     
     setLoading(true);
     setLoginError('');
-    addLog(`Şifreli giriş isteği başlatıldı: ${phoneNumber}`);
+    addLog(`Şifreli giriş isteği başlatıldı: ${loginIdentifier}`);
     
     try {
       const loginRes = await fetch('/api/ortak/auth/provider-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneNumber, password }),
+        body: JSON.stringify({ phone: loginIdentifier, password }),
       });
       
       const loginData = await loginRes.json();
@@ -1219,7 +1236,8 @@ export default function ProviderDashboard() {
       const accessToken = loginData.accessToken;
       setToken(accessToken);
       localStorage.setItem('provider_is_logged_in', 'true');
-      localStorage.setItem('provider_phone', phoneNumber);
+      localStorage.setItem('provider_access_token', accessToken);
+      localStorage.setItem('provider_phone', loginIdentifier);
       addLog(`Şifreli giriş başarılı! Jetonlar alındı.`);
       
       await loadDashboardData(accessToken);
@@ -1228,6 +1246,141 @@ export default function ProviderDashboard() {
       addLog(`Hata: ${err.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendEmailVerificationCode = async () => {
+    if (!editEmail) return;
+    setIsSendingEmailCode(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil/email/send-code', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: editEmail })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailVerificationSent(true);
+        showAlert('Başarılı', 'Doğrulama kodu e-posta adresinize gönderildi.', 'success');
+      } else {
+        showAlert('Hata', data.message || 'Kod gönderilemedi.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'İstek gönderilirken bir hata oluştu.', 'error');
+    } finally {
+      setIsSendingEmailCode(false);
+    }
+  };
+
+  const handleVerifyEmailCode = async () => {
+    if (!editEmail || !emailCode) return;
+    setIsVerifyingEmailCode(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil/email/verify-code', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: editEmail, code: emailCode })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showAlert('Başarılı', 'E-posta adresiniz başarıyla doğrulandı!', 'success');
+        setEmailVerificationSent(false);
+        setEmailCode('');
+        if (token) loadDashboardData(token);
+      } else {
+        showAlert('Hata', data.message || 'Doğrulama başarısız.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'Doğrulama yapılırken bir hata oluştu.', 'error');
+    } finally {
+      setIsVerifyingEmailCode(false);
+    }
+  };
+
+  const handleUpdateProfilePassword = async () => {
+    if (!newProfilePassword) return;
+    if (newProfilePassword !== confirmProfilePassword) {
+      showAlert('Hata', 'Şifreler uyuşmuyor.', 'error');
+      return;
+    }
+    if (newProfilePassword.length < 6) {
+      showAlert('Hata', 'Şifre en az 6 karakter olmalıdır.', 'error');
+      return;
+    }
+    setIsUpdatingProfilePassword(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          city: editCity,
+          serviceDistricts: editDistricts.split(',').map(s => s.trim()).filter(Boolean),
+          password: newProfilePassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showAlert('Başarılı', 'Giriş şifreniz başarıyla güncellendi.', 'success');
+        setNewProfilePassword('');
+        setConfirmProfilePassword('');
+        if (token) loadDashboardData(token);
+      } else {
+        showAlert('Hata', data.message || 'Şifre güncellenemedi.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'Şifre güncellenirken bir hata oluştu.', 'error');
+    } finally {
+      setIsUpdatingProfilePassword(false);
+    }
+  };
+
+  const handleSavePopupPassword = async () => {
+    if (!popupNewPassword) return;
+    if (popupNewPassword !== popupConfirmPassword) {
+      showAlert('Hata', 'Şifreler uyuşmuyor.', 'error');
+      return;
+    }
+    if (popupNewPassword.length < 6) {
+      showAlert('Hata', 'Şifre en az 6 karakter olmalıdır.', 'error');
+      return;
+    }
+    setIsSavingPopupPassword(true);
+    try {
+      const res = await fetch('/api/hizmetveren/profil', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          city: editCity || 'Adana',
+          serviceDistricts: editDistricts ? editDistricts.split(',').map(s => s.trim()).filter(Boolean) : [],
+          password: popupNewPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showAlert('Başarılı', 'Giriş şifreniz başarıyla kaydedildi!', 'success');
+        setShowResetPasswordPopup(false);
+        setPopupNewPassword('');
+        setPopupConfirmPassword('');
+        if (token) loadDashboardData(token);
+      } else {
+        showAlert('Hata', data.message || 'Şifre kaydedilemedi.', 'error');
+      }
+    } catch (err) {
+      showAlert('Hata', 'Şifre kaydedilirken bir hata oluştu.', 'error');
+    } finally {
+      setIsSavingPopupPassword(false);
     }
   };
 
@@ -1396,6 +1549,10 @@ export default function ProviderDashboard() {
         setEditCity(profileData.city || '');
         setEditDistricts(profileData.serviceDistricts ? profileData.serviceDistricts.join(', ') : '');
         setEditBio(profileData.bio || '');
+        setEditEmail(profileData.email || '');
+        if (!profileData.hasPassword) {
+          setShowResetPasswordPopup(true);
+        }
         addLog(`Profil bilgileri yüklendi: Onay Durumu: ${profileData.isApproved}`);
         if (profileData.accountStatus === 'pending_approval') {
           setActiveTab('dashboard');
@@ -5872,6 +6029,120 @@ export default function ProviderDashboard() {
                   </button>
                 </div>
               </div>
+
+              {/* E-posta Adresi & Doğrulama Kartı */}
+              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="text-left">
+                  <h3 className="font-extrabold text-slate-900 text-sm">
+                    E-posta Adresi & Kimlik Bilgileri
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                    Giriş yapmak ve önemli bildirimleri almak için e-posta adresinizi doğrulayın.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1 space-y-1.5 text-left">
+                      <label className="block text-xs font-extrabold text-slate-700">E-posta Adresi</label>
+                      <input
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="Örn: usta@esnaaf.com"
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                      />
+                    </div>
+                    {profile?.emailVerified ? (
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-3.5 rounded-xl text-xs font-black flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" /> Doğrulanmış
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendEmailVerificationCode}
+                        disabled={isSendingEmailCode || !editEmail}
+                        className="bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold text-xs px-5 py-3.5 rounded-xl cursor-pointer disabled:opacity-50 transition-all"
+                      >
+                        {isSendingEmailCode ? 'Kod Gönderiliyor...' : 'Kodu Gönder'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Verification Code Box (Render if verification code was sent) */}
+                  {emailVerificationSent && !profile?.emailVerified && (
+                    <div className="p-4 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-2xl space-y-3 animate-scale-up text-left">
+                      <p className="text-[11px] text-[#4c630a] font-bold">
+                        E-posta adresinize gönderilen 6 haneli doğrulama kodunu giriniz. (Test kodu: <span className="font-black underline font-mono">123456</span>)
+                      </p>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={emailCode}
+                          onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
+                          placeholder="0 0 0 0 0 0"
+                          className="w-32 bg-white text-center border border-slate-200 focus:border-[#4c630a] rounded-xl p-2.5 text-xs font-black text-slate-900 tracking-widest font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyEmailCode}
+                          disabled={isVerifyingEmailCode || emailCode.length < 6}
+                          className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl cursor-pointer disabled:opacity-50 transition-all"
+                        >
+                          {isVerifyingEmailCode ? 'Doğrulanıyor...' : 'Kodu Doğrula'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Şifre Güncelleme Kartı */}
+              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="text-left">
+                  <h3 className="font-extrabold text-slate-900 text-sm">
+                    Giriş Şifresi
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                    Uygulamaya SMS yerine şifrenizle daha hızlı giriş yapabilmek için şifre belirleyin.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5 text-left">
+                    <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre</label>
+                    <input
+                      type="password"
+                      value={newProfilePassword}
+                      onChange={(e) => setNewProfilePassword(e.target.value)}
+                      placeholder="••••••"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5 text-left">
+                    <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre Tekrar</label>
+                    <input
+                      type="password"
+                      value={confirmProfilePassword}
+                      onChange={(e) => setConfirmProfilePassword(e.target.value)}
+                      placeholder="••••••"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleUpdateProfilePassword}
+                    disabled={isUpdatingProfilePassword || !newProfilePassword}
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 transition-all active:scale-95"
+                  >
+                    {isUpdatingProfilePassword ? 'Şifre Güncelleniyor...' : 'Şifreyi Güncelle'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -6830,6 +7101,57 @@ export default function ProviderDashboard() {
               className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
             >
               Hadi Başlayalım! 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MANDATORY RESET PASSWORD POPUP */}
+      {showResetPasswordPopup && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-slate-100 animate-scale-up text-left space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#4c630a]">
+                <Lock className="w-8 h-8 stroke-[2.2]" />
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-lg">
+                Yeni Şifre Belirleyin
+              </h3>
+              <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                Platform güvenliğiniz için lütfen yeni bir giriş şifresi tanımlayın.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre</label>
+                <input
+                  type="password"
+                  value={popupNewPassword}
+                  onChange={(e) => setPopupNewPassword(e.target.value)}
+                  placeholder="••••••"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a] rounded-xl p-3 outline-none text-xs font-bold text-slate-850"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre Tekrar</label>
+                <input
+                  type="password"
+                  value={popupConfirmPassword}
+                  onChange={(e) => setPopupConfirmPassword(e.target.value)}
+                  placeholder="••••••"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a] rounded-xl p-3 outline-none text-xs font-bold text-slate-850"
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSavePopupPassword}
+              disabled={isSavingPopupPassword || !popupNewPassword || popupNewPassword.length < 6}
+              className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 active:scale-[0.98] cursor-pointer shadow-md shadow-[#4c630a]/10"
+            >
+              {isSavingPopupPassword ? 'Şifre Kaydediliyor...' : 'Şifreyi Kaydet ve Devam Et'}
             </button>
           </div>
         </div>

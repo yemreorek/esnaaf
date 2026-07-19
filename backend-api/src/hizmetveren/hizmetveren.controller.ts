@@ -7,6 +7,7 @@ import { HizmetverenService } from './hizmetveren.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateDocumentsDto } from './dto/update-documents.dto';
+import { SendEmailCodeDto, VerifyEmailCodeDto } from './dto/hizmetveren-email.dto';
 
 @Controller('hizmetveren')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -90,6 +91,26 @@ export class HizmetverenController {
   @HttpCode(HttpStatus.OK)
   async updateDocuments(@CurrentUser() user: any, @Body() dto: UpdateDocumentsDto) {
     return this.hizmetverenService.updateDocuments(user.id, dto);
+  }
+
+  /**
+   * Hizmet verenin e-posta doğrulama kodu istemesini sağlar
+   * POST /api/hizmetveren/profil/email/send-code
+   */
+  @Post('profil/email/send-code')
+  @HttpCode(HttpStatus.OK)
+  async sendEmailVerificationCode(@CurrentUser() user: any, @Body() dto: SendEmailCodeDto) {
+    return this.hizmetverenService.sendEmailVerificationCode(user.id, dto.email);
+  }
+
+  /**
+   * Hizmet verenin e-posta doğrulama kodunu doğrulamasını sağlar
+   * POST /api/hizmetveren/profil/email/verify-code
+   */
+  @Post('profil/email/verify-code')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmailCode(@CurrentUser() user: any, @Body() dto: VerifyEmailCodeDto) {
+    return this.hizmetverenService.verifyEmailCode(user.id, dto.email, dto.code);
   }
 
   /**

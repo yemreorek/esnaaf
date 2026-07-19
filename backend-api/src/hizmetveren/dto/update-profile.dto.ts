@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsEmail, MinLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsString()
@@ -15,5 +15,14 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'Geçerli bir e-posta adresi giriniz.' })
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6, { message: 'Şifre en az 6 karakter uzunluğunda olmalıdır.' })
+  password?: string;
 }
 

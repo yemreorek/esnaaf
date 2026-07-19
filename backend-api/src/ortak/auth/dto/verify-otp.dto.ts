@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches, IsOptional } from 'class-validator';
 
 export class VerifyOtpDto {
   @IsNotEmpty({ message: 'Telefon numarası boş bırakılamaz.' })
@@ -10,4 +10,8 @@ export class VerifyOtpDto {
   @IsString({ message: 'OTP kodu geçerli bir metin olmalıdır.' })
   @Length(6, 6, { message: 'OTP kodu 6 haneli olmalıdır.' })
   code: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
 }

@@ -43,6 +43,15 @@ export class AuthService {
     }
   }
 
+  public async sendEmail(to: string, subject: string, text: string): Promise<boolean> {
+    console.log(`\n==================================================`);
+    console.log(`[EMAIL SIMULATED] To: ${to}`);
+    console.log(`[EMAIL SIMULATED] Subject: ${subject}`);
+    console.log(`[EMAIL SIMULATED] Content: ${text}`);
+    console.log(`==================================================\n`);
+    return true;
+  }
+
   private async generateTokens(user: any) {
     const payload = { sub: user.id, phone: user.phone, role: user.role };
     
@@ -149,7 +158,10 @@ export class AuthService {
       const encryptedPhone = encryptPhone(normalized);
       let user = await this.prisma.user.findUnique({
         where: { phone: encryptedPhone },
+        include: { service_provider: true },
       });
+
+      const isProviderRole = dto.role === 'service_provider';
 
       if (!user) {
         // Register inline
@@ -157,15 +169,30 @@ export class AuthService {
           data: {
             phone: encryptedPhone,
             phone_masked: maskPhone(normalized),
-            role: 'service_seeker', // default
+            role: isProviderRole ? 'service_provider' : 'service_seeker', // default
             is_active: true,
             kvkk_consent: false,
+            ...(isProviderRole && {
+              service_provider: {
+                create: {
+                  category_ids: [],
+                  description: JSON.stringify({}),
+                  city: 'Adana',
+                  service_districts: [],
+                  is_approved: false, // Wait for admin approval
+                },
+              },
+            }),
           },
+          include: { service_provider: true },
         });
       }
 
       // Generate JWT Tokens
       const tokens = await this.generateTokens(user);
+
+      // Reset password required if provider has no password set and is logging in via OTP
+      const resetPasswordRequired = user.role === 'service_provider' && (!user.service_provider?.password_hash);
 
       return {
         ...tokens,
@@ -175,8 +202,9 @@ export class AuthService {
           role: user.role,
           kvkk_consent: user.kvkk_consent,
           name: user.name,
-          email: user.email,
+          email: user.service_provider?.email || user.email,
         },
+        resetPasswordRequired,
       };
     } else {
       // Wrong code - increment attempts
@@ -314,28 +342,53 @@ export class AuthService {
   }
 
   async providerLogin(dto: ProviderLoginDto) {
-    const normalized = normalizePhone(dto.phone);
-    const encryptedPhone = encryptPhone(normalized);
+    let serviceProvider: any = null;
+    let user: any = null;
 
-    const user = await this.prisma.user.findUnique({
-      where: { phone: encryptedPhone },
-      include: { service_provider: true },
-    });
-
-    if (!user || user.role !== 'service_provider' || !user.service_provider) {
-      throw new UnauthorizedException('Geçersiz telefon numarası veya şifre.');
+    if (dto.phone.includes('@')) {
+      // Login with Email
+      serviceProvider = await this.prisma.serviceProvider.findFirst({
+        where: { email: dto.phone.trim().toLowerCase() },
+        include: { user: true },
+      });
+      if (serviceProvider) {
+        user = serviceProvider.user;
+      }
+    } else {
+      // Login with Phone
+      const normalized = normalizePhone(dto.phone);
+      const encryptedPhone = encryptPhone(normalized);
+      user = await this.prisma.user.findUnique({
+        where: { phone: encryptedPhone },
+        include: { service_provider: true },
+      });
+      if (user && user.service_provider) {
+        serviceProvider = user.service_provider;
+      }
     }
 
-    let providerData: any = {};
-    try {
-      providerData = JSON.parse(user.service_provider.description || '{}');
-    } catch (e) {
-      throw new UnauthorizedException('Geçersiz hesap verileri.');
+    if (!user || user.role !== 'service_provider' || !serviceProvider) {
+      throw new UnauthorizedException('Geçersiz giriş bilgileri veya şifre.');
     }
 
     const hashedIncoming = createHash('sha256').update(dto.password).digest('hex');
-    if (providerData.password !== hashedIncoming) {
-      throw new UnauthorizedException('Geçersiz telefon numarası veya şifre.');
+
+    let isPasswordCorrect = false;
+
+    if (serviceProvider.password_hash) {
+      isPasswordCorrect = serviceProvider.password_hash === hashedIncoming;
+    } else {
+      // Fallback to JSON password in description
+      try {
+        const providerData = JSON.parse(serviceProvider.description || '{}');
+        isPasswordCorrect = providerData.password === hashedIncoming;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedException('Geçersiz giriş bilgileri veya şifre.');
     }
 
     const tokens = await this.generateTokens(user);
@@ -348,7 +401,7 @@ export class AuthService {
         role: user.role,
         kvkk_consent: user.kvkk_consent,
         name: user.name,
-        email: user.email,
+        email: serviceProvider.email || user.email,
       },
     };
   }
