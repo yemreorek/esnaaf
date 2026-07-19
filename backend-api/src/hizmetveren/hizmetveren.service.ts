@@ -459,7 +459,7 @@ export class HizmetverenService {
    * Hizmet verenin profil detaylarını döner
    */
   async getProfile(providerUserId: string) {
-    const cacheKey = `provider:profile:v3:${providerUserId}`;
+    const cacheKey = `provider:profile:v4:${providerUserId}`;
     return this.redis.getOrSet(cacheKey, async () => {
       const provider = await this.prisma.serviceProvider.findUnique({
         where: { user_id: providerUserId },
@@ -513,6 +513,7 @@ export class HizmetverenService {
         taxPlateDocument: onboardingData.taxPlateDocument || '',
         companyType: onboardingData.companyType || '',
         companyName: onboardingData.companyName || '',
+        profilePhoto: onboardingData.profilePhoto || '',
         bio: bioStr,
         healthScore,
         esnaaf_id: provider.user.esnaaf_id,
@@ -598,6 +599,14 @@ export class HizmetverenService {
       descriptionObj.bio = dto.description;
     }
 
+    if (dto.companyName !== undefined) {
+      descriptionObj.companyName = dto.companyName;
+    }
+
+    if (dto.profilePhoto !== undefined) {
+      descriptionObj.profilePhoto = dto.profilePhoto;
+    }
+
     // Check unique email
     let updatedEmail = provider.email;
     let emailVerified = provider.email_verified;
@@ -641,6 +650,8 @@ export class HizmetverenService {
     }
 
     await this.redis.del(`provider:profile:v2:${providerUserId}`);
+    await this.redis.del(`provider:profile:v3:${providerUserId}`);
+    await this.redis.del(`provider:profile:v4:${providerUserId}`);
 
     const freshProfile = await this.getProfile(providerUserId);
 

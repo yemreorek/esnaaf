@@ -24,5 +24,13 @@ export class UpdateProfileDto {
   @IsString()
   @MinLength(6, { message: 'Şifre en az 6 karakter uzunluğunda olmalıdır.' })
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  profilePhoto?: string;
 }
 

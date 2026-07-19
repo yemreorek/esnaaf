@@ -590,6 +590,9 @@ export default function ProviderDashboard() {
     fetchLocations();
   }, []);
   const [editBio, setEditBio] = useState('');
+  const [editCompanyName, setEditCompanyName] = useState('');
+  const [editProfilePhoto, setEditProfilePhoto] = useState('');
+  const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   
   const [quota, setQuota] = useState<Quota | null>(null);
@@ -1085,6 +1088,84 @@ export default function ProviderDashboard() {
     } finally {
       if (type === 'identity') setUploadingIdentity(false);
       else setUploadingTaxPlate(false);
+    }
+  };
+
+  const handleUploadProfilePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!token) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showAlert("Hata", "Geçersiz dosya tipi. Yalnızca PNG, JPEG ve WEBP yükleyebilirsiniz.", "error");
+      return;
+    }
+
+    setIsUploadingProfilePhoto(true);
+    try {
+      const presignedRes = await fetch('/api/ortak/upload/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type
+        })
+      });
+
+      const presignedData = await presignedRes.json();
+      if (!presignedRes.ok) {
+        throw new Error(presignedData.message || 'Presigned URL oluşturulamadı.');
+      }
+
+      const uploadRes = await fetch(presignedData.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type
+        },
+        body: file
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Fotoğraf sunucuya yüklenemedi.');
+      }
+
+      setEditProfilePhoto(presignedData.fileUrl);
+
+      // Save directly to profile description via endpoint
+      const updateRes = await fetch('/api/hizmetveren/profil', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editName,
+          city: editCity,
+          serviceDistricts: selectedDistricts,
+          description: editBio,
+          companyName: editCompanyName,
+          profilePhoto: presignedData.fileUrl
+        })
+      });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) {
+        throw new Error(updateData.message || 'Profil resmi güncellenemedi.');
+      }
+
+      setProfile(updateData.provider || updateData);
+      showAlert("Başarılı", "Profil fotoğrafınız başarıyla güncellendi.", "success");
+      addLog("Profil fotoğrafı başarıyla güncellendi.");
+    } catch (err: any) {
+      console.error(err);
+      showAlert("Hata", err.message || "Profil resmi yüklenirken bir hata oluştu.", "error");
+      addLog(`Profil resmi yükleme hatası: ${err.message}`);
+    } finally {
+      setIsUploadingProfilePhoto(false);
     }
   };
 
@@ -1635,6 +1716,8 @@ export default function ProviderDashboard() {
         setEditDistricts(profileData.serviceDistricts ? profileData.serviceDistricts.join(', ') : '');
         setSelectedDistricts(profileData.serviceDistricts || []);
         setEditBio(profileData.bio || '');
+        setEditCompanyName(profileData.companyName || '');
+        setEditProfilePhoto(profileData.profilePhoto || '');
         setEditEmail(profileData.email || '');
         if (!profileData.hasPassword) {
           setShowResetPasswordPopup(true);
@@ -1708,7 +1791,9 @@ export default function ProviderDashboard() {
           name: editName,
           city: editCity,
           serviceDistricts: selectedDistricts,
-          description: editBio
+          description: editBio,
+          companyName: editCompanyName,
+          profilePhoto: editProfilePhoto
         })
       });
 
@@ -3402,7 +3487,7 @@ export default function ProviderDashboard() {
             <div className="hidden sm:flex items-center gap-2.5 text-left">
               <span className="text-xs font-black text-slate-850 leading-none">{quota ? quota.providerName : 'Mert Yılmaz'}</span>
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                src={profile?.profilePhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
                 alt="Hizmet Veren Profil"
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100"
               />
@@ -6052,13 +6137,40 @@ export default function ProviderDashboard() {
               <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
                 <div className="text-left">
                   <h3 className="font-extrabold text-slate-900 text-sm">Temel Bilgiler</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Adınız ve tanıtım bilgileriniz müşterilere gösterilecektir.</p>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Adınız, profil resminiz ve tanıtım bilgileriniz müşterilere gösterilecektir.</p>
+                </div>
+
+                {/* Profile Photo Upload Section */}
+                <div className="flex flex-col items-center justify-center py-4 border-b border-slate-100/80 mb-2">
+                  <div className="relative w-28 h-28 group">
+                    <img
+                      src={editProfilePhoto || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"}
+                      alt="Profil Fotoğrafı"
+                      className="w-full h-full object-cover rounded-full border-4 border-[#c8f252]/40 shadow-md transition-all group-hover:scale-105"
+                    />
+                    {isUploadingProfilePhoto && (
+                      <div className="absolute inset-0 bg-slate-900/60 rounded-full flex items-center justify-center text-white text-[10px] font-black">
+                        Yükleniyor...
+                      </div>
+                    )}
+                  </div>
+
+                  <label className="mt-4 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-black text-[11px] px-4.5 py-2.5 rounded-2xl cursor-pointer shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadProfilePhoto}
+                      disabled={isUploadingProfilePhoto}
+                      className="hidden"
+                    />
+                    📷 Fotoğrafı düzenle
+                  </label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name field */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-extrabold text-slate-700">Ad Soyad / Firma Adı</label>
+                    <label className="block text-xs font-extrabold text-slate-700">Ad Soyad</label>
                     <input
                       type="text"
                       value={editName}
@@ -6067,6 +6179,21 @@ export default function ProviderDashboard() {
                       className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
                       required
                     />
+                  </div>
+
+                  {/* Company Name field */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Firma Adı / Şirket Adı</label>
+                    <input
+                      type="text"
+                      value={editCompanyName}
+                      onChange={(e) => setEditCompanyName(e.target.value)}
+                      placeholder="Örn: Yılmaz Elektrik & Tesisat"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold block leading-none mt-1">
+                      ℹ️ Müşterilerin profilinde bu adı görür.
+                    </span>
                   </div>
 
                   {/* Disabled Phone field */}
@@ -6078,21 +6205,21 @@ export default function ProviderDashboard() {
                       disabled
                       className="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 outline-none text-xs font-bold text-slate-400 cursor-not-allowed"
                     />
-                    <span className="text-[9px] text-slate-400 font-semibold block leading-relaxed">
+                    <span className="text-[9px] text-slate-400 font-semibold block leading-relaxed mt-1">
                       Telefon numaranızı güncellemek için kayıtlı e-posta adresiniz ile <a href="mailto:destek@esnaaf.com" className="text-[#4c630a] font-bold hover:underline">destek@esnaaf.com</a> adresine başvurmalısınız.
                     </span>
                   </div>
-                </div>
 
-                {/* Biography/Description field */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-extrabold text-slate-700">Usta Tanıtım Yazısı / Biyografi</label>
-                  <textarea
-                    value={editBio}
-                    onChange={(e) => setEditBio(e.target.value)}
-                    placeholder="Müşterilere kendinizi ve tecrübelerinizi tanıtın..."
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 min-h-[120px] transition-colors resize-none"
-                  />
+                  {/* Biography/Description field */}
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="block text-xs font-extrabold text-slate-700">Usta Tanıtım Yazısı / Biyografi</label>
+                    <textarea
+                      value={editBio}
+                      onChange={(e) => setEditBio(e.target.value)}
+                      placeholder="Müşterilere kendinizi ve tecrübelerinizi tanıtın..."
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 min-h-[120px] transition-colors resize-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 flex justify-end">
@@ -6100,7 +6227,7 @@ export default function ProviderDashboard() {
                     type="button"
                     onClick={handleSaveProfile}
                     disabled={isSavingProfile}
-                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
                   >
                     {isSavingProfile ? 'Güncelleniyor...' : 'Kişisel Bilgileri Kaydet'}
                   </button>
