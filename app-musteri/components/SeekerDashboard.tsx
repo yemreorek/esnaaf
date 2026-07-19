@@ -2856,9 +2856,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                   >
                                   <div className="flex items-center justify-between w-full border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
-                                      <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-sm select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
-                                        {offer.provider.user.name ? offer.provider.user.name.charAt(0) : "U"}
-                                      </span>
+                                      {(offer.provider as any).profilePhoto ? (
+                                        <img
+                                          src={(offer.provider as any).profilePhoto}
+                                          alt={offer.provider.user.name || "Usta"}
+                                          className="w-10 h-10 rounded-full object-cover shadow-sm border border-[#c8f252]/10"
+                                        />
+                                      ) : (
+                                        <span className="w-10 h-10 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-extrabold text-sm select-none uppercase font-mono shadow-sm border border-[#c8f252]/10">
+                                          {offer.provider.user.name ? offer.provider.user.name.charAt(0) : "U"}
+                                        </span>
+                                      )}
                                       <div className="flex flex-col">
                                         <span className="font-extrabold text-xs md:text-sm text-slate-800">
                                           {offer.provider.user.name}
@@ -4130,9 +4138,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                 
                 {/* Basic Info Header Card */}
                 <div className="flex flex-col items-center text-center gap-4 bg-slate-50/50 p-6 rounded-[28px] border border-slate-100">
-                  <div className="w-20 h-20 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-black text-2xl select-none shadow-md border border-[#c8f252]/20">
-                    {selectedProviderProfile.name ? selectedProviderProfile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "US"}
-                  </div>
+                  {selectedProviderProfile.profilePhoto ? (
+                    <img
+                      src={selectedProviderProfile.profilePhoto}
+                      alt={selectedProviderProfile.name || "Usta"}
+                      className="w-20 h-20 rounded-full object-cover shadow-md border border-[#c8f252]/20"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-black text-2xl select-none shadow-md border border-[#c8f252]/20">
+                      {selectedProviderProfile.name ? selectedProviderProfile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "US"}
+                    </div>
+                  )}
                   
                   <div className="flex flex-col gap-1">
                     <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center">

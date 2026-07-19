@@ -148,6 +148,16 @@ export class TaleplerService {
           if (offer.status === 'accepted' && offer.provider?.user) {
             (offer.provider.user as any).phone_decrypted = decryptPhone(offer.provider.user.phone);
           }
+          if (offer.provider) {
+            let onboardingData: any = {};
+            if (offer.provider.description && offer.provider.description.startsWith('{')) {
+              try {
+                onboardingData = JSON.parse(offer.provider.description);
+              } catch (e) {}
+            }
+            (offer.provider as any).companyName = onboardingData.companyName || '';
+            (offer.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+          }
         });
       }
       const { expiresTime } = getRequestExpiryInfo(req.created_at, Date.now(), req.offers);
@@ -203,6 +213,16 @@ export class TaleplerService {
       job.offers.forEach(offer => {
         if (offer.status === 'accepted' && offer.provider?.user) {
           (offer.provider.user as any).phone_decrypted = decryptPhone(offer.provider.user.phone);
+        }
+        if (offer.provider) {
+          let onboardingData: any = {};
+          if (offer.provider.description && offer.provider.description.startsWith('{')) {
+            try {
+              onboardingData = JSON.parse(offer.provider.description);
+            } catch (e) {}
+          }
+          (offer.provider as any).companyName = onboardingData.companyName || '';
+          (offer.provider as any).profilePhoto = onboardingData.profilePhoto || '';
         }
       });
     }
@@ -807,6 +827,7 @@ export class TaleplerService {
       avg_rating: provider.avg_rating ? Number(provider.avg_rating) : 5.0,
       categories: categories.map((c) => c.name),
       is_approved: provider.is_approved,
+      profilePhoto: descriptionObj.profilePhoto || '',
       description: {
         companyType: descriptionObj.companyType || 'bireysel',
         companyName: descriptionObj.companyName || '',
