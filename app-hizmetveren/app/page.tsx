@@ -3375,7 +3375,10 @@ export default function ProviderDashboard() {
               {/* Metrics Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* 1. Bids Sent */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                <div 
+                  onClick={() => handleTabClick('firsatlar')}
+                  className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:scale-[1.01] transition-all flex items-start gap-4 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                     <FileText className="w-5 h-5 text-blue-600 stroke-[2.2]" />
                   </div>
@@ -3390,7 +3393,10 @@ export default function ProviderDashboard() {
                 </div>
 
                 {/* 2. Won Jobs */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                <div 
+                  onClick={() => handleTabClick('kazanilanlar')}
+                  className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:scale-[1.01] transition-all flex items-start gap-4 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                     <Briefcase className="w-5 h-5 text-emerald-600 stroke-[2.2]" />
                   </div>
@@ -3405,7 +3411,10 @@ export default function ProviderDashboard() {
                 </div>
 
                 {/* 3. Lost Jobs */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                <div 
+                  onClick={() => handleTabClick('kayip_iptal')}
+                  className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:scale-[1.01] transition-all flex items-start gap-4 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
                     <X className="w-5 h-5 text-rose-500 stroke-[2.2]" />
                   </div>
@@ -3420,7 +3429,10 @@ export default function ProviderDashboard() {
                 </div>
 
                 {/* 4. Completed Jobs */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                <div 
+                  onClick={() => handleTabClick('tamamlananlar')}
+                  className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:scale-[1.01] transition-all flex items-start gap-4 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/10 border border-[#c8f252]/30 flex items-center justify-center shrink-0">
                     <CheckCircle className="w-5 h-5 text-[#4c630a] stroke-[2.2]" />
                   </div>
@@ -3450,7 +3462,10 @@ export default function ProviderDashboard() {
                 </div>
 
                 {/* 6. Disputes */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
+                <div 
+                  onClick={() => handleTabClick('uyusmazliklar')}
+                  className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:scale-[1.01] transition-all flex items-start gap-4 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
                     <AlertTriangle className="w-5 h-5 text-red-500 stroke-[2.2]" />
                   </div>
