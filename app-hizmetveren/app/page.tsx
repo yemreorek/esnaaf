@@ -5369,45 +5369,50 @@ export default function ProviderDashboard() {
                   </div>
 
                   {/* Premium Benefit Showcase Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-y border-slate-100 py-5 my-1 bg-slate-50/50 rounded-2xl p-4">
-                    <div className="space-y-1 text-left">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                        <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-black">%</span>
-                        Düşük Komisyon
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                        VIP pakette %5'e varan düşük komisyon oranlarıyla tamamladığınız her işten daha fazla kazanç elde edersiniz.
-                      </p>
-                    </div>
+                  {(() => {
+                    const vipPkg = availablePackages.find(p => p.type === 'vip') || { commissionRate: 3, delayMinutes: 0, activeJobsLimit: 7 };
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-y border-slate-100 py-5 my-1 bg-slate-50/50 rounded-2xl p-4">
+                        <div className="space-y-1 text-left">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-black">%</span>
+                            Düşük Komisyon
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium leading-normal">
+                            VIP pakette %{vipPkg.commissionRate}'e varan düşük komisyon oranlarıyla tamamladığınız her işten daha fazla kazanç elde edersiniz.
+                          </p>
+                        </div>
 
-                    <div className="space-y-1 text-left">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                        <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                          </svg>
-                        </span>
-                        Anında İlan Bildirimi
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                        Yeni gelen tüm talepleri anında (0 dakika gecikmeyle) görerek ilk teklifinizi gecikmeden iletin.
-                      </p>
-                    </div>
+                        <div className="space-y-1 text-left">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                            <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                              </svg>
+                            </span>
+                            Anında İlan Bildirimi
+                          </div>
+                          <p className="text-[10px] text-slate-450 font-medium leading-normal">
+                            Yeni gelen tüm talepleri anında ({vipPkg.delayMinutes} dakika gecikmeyle) görerek ilk teklifinizi gecikmeden iletin.
+                          </p>
+                        </div>
 
-                    <div className="space-y-1 text-left">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                        <span className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-650">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </span>
-                        Ekstra Aktif İş Limiti
+                        <div className="space-y-1 text-left">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                            <span className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-655">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </span>
+                            Ekstra Aktif İş Limiti
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium leading-normal">
+                            Aynı anda yürütebileceğiniz aktif iş kapasitenizi (slot kilidini) {vipPkg.activeJobsLimit} slot'a çıkararak iş hacminizi genişletin.
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                        Aynı anda yürütebileceğiniz aktif iş kapasitenizi (slot kilidini) 7 slot'a çıkararak iş hacminizi genişletin.
-                      </p>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-1">
                     {availablePackages.map((pkg: any) => {
@@ -5447,10 +5452,7 @@ export default function ProviderDashboard() {
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Aktif İş Limiti: {pkg.activeJobsLimit} Slot</span>
                               <span className="block text-[9px] text-slate-500 font-medium">
                                 ✓ Dağıtım Hızı: {
-                                  pkg.type === 'free' ? 'Rakiplere göre 15 Dk Gecikmeli' :
-                                  pkg.type === 'basic' ? 'Rakiplere göre 10 Dk Gecikmeli' :
-                                  pkg.type === 'standard' ? 'Rakiplere göre 5 Dk Gecikmeli' :
-                                  'Anında (0 Dk)'
+                                  pkg.delayMinutes === 0 ? 'Anında (0 Dk)' : `Rakiplere göre ${pkg.delayMinutes} Dk Gecikmeli`
                                 }
                               </span>
                               <span className="block text-[9px] text-slate-500 font-medium">

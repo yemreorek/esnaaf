@@ -25,19 +25,20 @@ export class AbonelikService {
   async getPackages() {
     const dbConfigs = await this.prisma.systemPackageConfig.findMany();
     
-    const getConfig = (type: string, defPrice: number, defComm: number, defLimit: number) => {
+    const getConfig = (type: string, defPrice: number, defComm: number, defLimit: number, defDelay: number) => {
       const found = dbConfigs.find(c => c.package_type === type);
       return {
         price: found ? Number(found.price) : defPrice,
         commissionRate: found ? Number(found.commission_rate) : defComm,
         activeJobsLimit: found ? found.active_jobs_limit : defLimit,
+        delayMinutes: found ? found.delay_minutes : defDelay,
       };
     };
 
-    const freeCfg = getConfig('free', 0, 10, 1);
-    const basicCfg = getConfig('basic', 5000, 7, 3);
-    const standardCfg = getConfig('standard', 10000, 5, 5);
-    const vipCfg = getConfig('vip', 20000, 3, 7);
+    const freeCfg = getConfig('free', 0, 10, 1, 15);
+    const basicCfg = getConfig('basic', 5000, 7, 3, 10);
+    const standardCfg = getConfig('standard', 10000, 5, 5, 5);
+    const vipCfg = getConfig('vip', 20000, 3, 7, 0);
 
     return [
       { 
@@ -46,8 +47,9 @@ export class AbonelikService {
         quota: null, 
         commissionRate: freeCfg.commissionRate,
         activeJobsLimit: freeCfg.activeJobsLimit,
+        delayMinutes: freeCfg.delayMinutes,
         name: 'Ücretsiz Paket (Freemium)', 
-        description: `Aylık 0 ₺ | Komisyon: %${freeCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${freeCfg.activeJobsLimit} | Rozet: Yok` 
+        description: `Aylık 0 ₺ | Komisyon: %${freeCfg.commissionRate} | Gecikme: ${freeCfg.delayMinutes} Dk | Aktif İş Limiti (Kapasite): ${freeCfg.activeJobsLimit} | Rozet: Yok` 
       },
       { 
         type: PackageType.basic, 
@@ -55,8 +57,9 @@ export class AbonelikService {
         quota: null, 
         commissionRate: basicCfg.commissionRate,
         activeJobsLimit: basicCfg.activeJobsLimit,
+        delayMinutes: basicCfg.delayMinutes,
         name: 'Basic Paket (Düşük)', 
-        description: `Aylık ${basicCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${basicCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${basicCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
+        description: `Aylık ${basicCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${basicCfg.commissionRate} | Gecikme: ${basicCfg.delayMinutes} Dk | Aktif İş Limiti (Kapasite): ${basicCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
       { 
         type: PackageType.standard, 
@@ -64,8 +67,9 @@ export class AbonelikService {
         quota: null, 
         commissionRate: standardCfg.commissionRate,
         activeJobsLimit: standardCfg.activeJobsLimit,
+        delayMinutes: standardCfg.delayMinutes,
         name: 'Standart Paket (Orta)', 
-        description: `Aylık ${standardCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${standardCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${standardCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
+        description: `Aylık ${standardCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${standardCfg.commissionRate} | Gecikme: ${standardCfg.delayMinutes} Dk | Aktif İş Limiti (Kapasite): ${standardCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
       { 
         type: PackageType.vip, 
@@ -73,8 +77,9 @@ export class AbonelikService {
         quota: null, 
         commissionRate: vipCfg.commissionRate,
         activeJobsLimit: vipCfg.activeJobsLimit,
+        delayMinutes: vipCfg.delayMinutes,
         name: 'VIP Paket (Yüksek)', 
-        description: `Aylık ${vipCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${vipCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${vipCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
+        description: `Aylık ${vipCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${vipCfg.commissionRate} | Gecikme: ${vipCfg.delayMinutes} Dk | Aktif İş Limiti (Kapasite): ${vipCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
     ];
   }
