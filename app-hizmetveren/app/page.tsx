@@ -2852,18 +2852,6 @@ export default function ProviderDashboard() {
           </button>
 
           <button
-            onClick={() => handleTabClick('belge-dogrulama')}
-            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
-              activeTab === 'belge-dogrulama' 
-                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
-                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
-            }`}
-          >
-            <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-amber-500" />
-            <span>{profile && !profile.isApproved ? 'Belge Doğrulama' : 'Doğrulama Belgelerim'}</span>
-          </button>
-
-          <button
             onClick={() => handleTabClick('firsatlar')}
             className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
               isTabLocked('firsatlar')
@@ -3018,6 +3006,18 @@ export default function ProviderDashboard() {
             <Star className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-amber-500" />
             <span>Sadık Müşterilerim</span>
             {isTabLocked('loyal_customers') && <Lock className="w-3.5 h-3.5 ml-auto text-slate-400" />}
+          </button>
+
+          <button
+            onClick={() => handleTabClick('belge-dogrulama')}
+            className={`flex items-center gap-3.5 px-4 py-3 w-full text-left font-bold rounded-2xl transition-all text-xs cursor-pointer ${
+              activeTab === 'belge-dogrulama' 
+                ? 'bg-[#4c630a] text-white font-extrabold shadow-sm shadow-[#4c630a]/20 scale-bounce' 
+                : 'text-slate-450 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <FileText className="w-4.5 h-4.5 shrink-0 stroke-[2.2] text-amber-500" />
+            <span>{profile && !profile.isApproved ? 'Belge Doğrulama' : 'Doğrulama Belgelerim'}</span>
           </button>
         </div>
 
