@@ -39,6 +39,88 @@ import {
   Calendar
 } from 'lucide-react';
 
+const ConfettiEffect = ({ active }: { active: boolean }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ['#c8f252', '#4c630a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+    const particles = Array.from({ length: 120 }).map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * canvas.height,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+      tiltAngle: 0
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.lineWidth = p.r / 2;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+        ctx.stroke();
+      });
+
+      update();
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    const update = () => {
+      particles.forEach((p) => {
+        p.tiltAngle += p.tiltAngleIncremental;
+        p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+        p.x += Math.sin(p.tiltAngle);
+        p.tilt = Math.sin(p.tiltAngle - p.r / 2) * 5;
+
+        if (p.y > canvas.height) {
+          p.x = Math.random() * canvas.width;
+          p.y = -20;
+          p.tilt = Math.random() * 10 - 5;
+        }
+      });
+    };
+
+    draw();
+
+    const handleResize = () => {
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-[9999] w-full h-full"
+    />
+  );
+};
+
 export function resolveCityFromDistrict(district?: string): string {
   if (!district) return 'İstanbul';
   const adanaDistricts = [
@@ -506,6 +588,41 @@ export default function ProviderDashboard() {
   const [offerPrice, setOfferPrice] = useState<string>('');
   const [offerMessage, setOfferMessage] = useState<string>('');
   const [submittingOffer, setSubmittingOffer] = useState(false);
+
+  const [isUpdatingAvailability, setIsUpdatingAvailability] = useState(false);
+  const [showConfettiModal, setShowConfettiModal] = useState(false);
+
+  const toggleAvailability = async () => {
+    if (!token) return;
+    setIsUpdatingAvailability(true);
+    try {
+      const newStatus = !profile?.isAvailable;
+      const res = await fetch('/api/hizmetveren/profil/availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isAvailable: newStatus })
+      });
+
+      if (!res.ok) {
+        throw new Error('Müsaitlik durumu güncellenemedi.');
+      }
+
+      setProfile((prev: any) => prev ? { ...prev, isAvailable: newStatus } : null);
+
+      if (newStatus) {
+        setShowConfettiModal(true);
+      } else {
+        showAlert("Başarılı", "Müsaitlik durumunuz 'Kapalı' olarak güncellendi. Artık yeni iş ilanları almayacaksınız.", "success");
+      }
+    } catch (err: any) {
+      showAlert("Hata", err.message, "error");
+    } finally {
+      setIsUpdatingAvailability(false);
+    }
+  };
 
   const socketRef = useRef<Socket | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -3735,7 +3852,40 @@ export default function ProviderDashboard() {
                   return null;
                 })()}
               {/* Dashboard Title & Overview Banner */}
-              <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              {profile && !profile.isAvailable && (
+                <div className="bg-rose-50 border border-rose-200 rounded-3xl p-5 md:p-6 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 animate-scale-up mb-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0 animate-pulse">
+                      🚨
+                    </div>
+                    <div>
+                      <h4 className="text-rose-800 font-extrabold text-xs md:text-sm uppercase tracking-wider">
+                        YENİ İLAN ALIMI DURDURULDU
+                      </h4>
+                      <p className="text-slate-600 text-[11px] md:text-xs font-semibold leading-relaxed mt-0.5">
+                        Müsaitlik durumunuz <strong>"KAPALI"</strong> olduğu için yeni ilan akışı durdurulmuştur.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={toggleAvailability}
+                      disabled={isUpdatingAvailability}
+                      className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm uppercase tracking-wider"
+                    >
+                      {isUpdatingAvailability ? 'Güncelleniyor...' : 'AKTİF YAP 🚀'}
+                    </button>
+                    <button
+                      onClick={() => showAlert("Bilgi", "Hesabınız pasif modda kalmaya devam ediyor. İstediğiniz zaman aktif edebilirsiniz.", "info")}
+                      className="bg-transparent border border-rose-200 text-rose-700 hover:bg-rose-100/40 font-extrabold text-[11px] py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 uppercase tracking-wider"
+                    >
+                      PASİF TUT
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 border border-slate-100 p-6 rounded-[28px] shadow-sm mb-6">
                 <div>
                   <h2 className="font-extrabold text-slate-900 tracking-tight text-2xl md:text-3xl leading-snug">
                     Yeni Fırsatlar
@@ -3745,22 +3895,45 @@ export default function ProviderDashboard() {
                   </p>
                 </div>
 
-                {/* Filter & Sort buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => showAlert("Yakında", "Filtreleme özellikleri yakında aktif olacaktır.", "info")}
-                    className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-                  >
-                    <Filter className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Filtrele</span>
-                  </button>
-                  <button
-                    onClick={() => showAlert("Yakında", "Sıralama parametreleri yakında eklenecektir.", "info")}
-                    className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-                  >
-                    <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Sırala</span>
-                  </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Availability Toggle Switch */}
+                  <div className="flex items-center gap-3 bg-white border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm">
+                    <span className="text-slate-700 text-xs font-bold uppercase tracking-wider">Yeni İş Alımı:</span>
+                    <button
+                      onClick={toggleAvailability}
+                      disabled={isUpdatingAvailability}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        profile?.isAvailable ? 'bg-[#4c630a]' : 'bg-slate-300'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          profile?.isAvailable ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                    <span className={`text-xs font-extrabold uppercase tracking-wide min-w-[32px] ${profile?.isAvailable ? 'text-[#4c630a]' : 'text-slate-500'}`}>
+                      {profile?.isAvailable ? 'Açık' : 'Kapalı'}
+                    </span>
+                  </div>
+
+                  {/* Filter & Sort buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => showAlert("Yakında", "Filtreleme özellikleri yakında aktif olacaktır.", "info")}
+                      className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Filter className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Filtrele</span>
+                    </button>
+                    <button
+                      onClick={() => showAlert("Yakında", "Sıralama parametreleri yakında eklenecektir.", "info")}
+                      className="bg-white border border-slate-200/80 hover:border-[#4c630a]/40 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Sırala</span>
+                    </button>
+                  </div>
                 </div>
               </header>
 
@@ -6433,6 +6606,45 @@ export default function ProviderDashboard() {
               className="w-full bg-[#4c630a] hover:bg-[#3d5008] text-white font-extrabold py-3.5 rounded-2xl transition-all text-xs cursor-pointer shadow-md active:scale-95"
             >
               Anladım, Platformu Keşfet
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🎉 Success Confetti Modal (Component B) */}
+      {showConfettiModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm z-[9999] p-4 animate-fade-in">
+          <ConfettiEffect active={showConfettiModal} />
+          <div className="bg-white rounded-[32px] border border-slate-100 shadow-2xl p-8 max-w-md w-full text-center space-y-6 animate-scale-up relative overflow-hidden">
+            {/* Decorative Background Glows */}
+            <div className="absolute -top-12 -left-12 w-24 h-24 bg-[#c8f252]/20 rounded-full blur-xl" />
+            <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-blue-500/10 rounded-full blur-xl" />
+
+            <div className="w-20 h-20 bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
+              🎉
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                TEBRİKLER, AKTİF MODDASINIZ!
+              </h3>
+              <p className="text-slate-500 text-xs md:text-sm font-semibold leading-relaxed">
+                Müsaitlik durumunuz başarıyla <strong>"Aktif"</strong> olarak güncellendi. Canlı ilanlar anında akmaya başlayacaktır!
+              </p>
+            </div>
+            
+            <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 p-4 rounded-2xl text-left">
+              <div className="text-slate-800 text-[11px] font-bold leading-relaxed space-y-1">
+                <p>✅ Yeni ilanlar anında akışınıza düşer.</p>
+                <p>✅ En uygun teklifi vererek yeni işler kapabilirsiniz.</p>
+                <p>💡 Yoğun olduğunuzda durumunuzu kapatmayı unutmayın.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowConfettiModal(false)}
+              className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-md transition-all active:scale-95 border border-transparent uppercase tracking-wider"
+            >
+              Hadi Başlayalım! 🚀
             </button>
           </div>
         </div>

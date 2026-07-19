@@ -556,10 +556,96 @@ export class TaleplerService {
         },
       });
 
-      return accepted;
+      // Kapasite ve Kota Limit Kontrolü - Limit aşılırsa ustanın diğer pending teklifleri otomatik geri çekilir
+      const now = new Date();
+      const acceptedOffers = await tx.acceptedOffer.findMany({
+        where: {
+          provider_id: offer.provider_id,
+          offer: {
+            status: 'accepted',
+          },
+          job: {
+            status: {
+              notIn: ['completed', 'cancelled'],
+            },
+          },
+        },
+        include: {
+          offer: true,
+        },
+      });
+
+      const activeJobsCount = acceptedOffers.filter((ao) => {
+        if (ao.offer.started_at) return true;
+        if (!ao.offer.appointment_at) return true;
+        const appointmentTime = new Date(ao.offer.appointment_at).getTime();
+        const twentyFourHoursFromNow = now.getTime() + 24 * 60 * 60 * 1000;
+        return appointmentTime <= twentyFourHoursFromNow;
+      }).length;
+
+      let capacityLimit = 1; // default free
+      const sub = offer.provider.subscription;
+      if (sub && ['active', 'trial', 'admin_trial'].includes(sub.status)) {
+        if (sub.package_type === 'vip') {
+          capacityLimit = 7;
+        } else if (sub.package_type === 'standard' || sub.package_type === 'premium') {
+          capacityLimit = 5;
+        } else if (sub.package_type === 'basic') {
+          capacityLimit = 3;
+        }
+      }
+
+      const isCapacityFull = activeJobsCount >= capacityLimit;
+      let withdrawnOffers: any[] = [];
+
+      if (isCapacityFull) {
+        const otherPendingOffers = await tx.offer.findMany({
+          where: {
+            provider_id: offer.provider_id,
+            status: 'pending',
+            id: { not: offer.id },
+          },
+        });
+
+        if (otherPendingOffers.length > 0) {
+          await tx.offer.updateMany({
+            where: {
+              id: { in: otherPendingOffers.map((o) => o.id) },
+            },
+            data: {
+              status: 'cancelled',
+              cancelled_by: 'system',
+              cancel_reason_code: 'capacity_limit_reached',
+              cancel_reason_text: 'Hizmet veren aktif iş kapasite limitine ulaştığı için teklif sistem tarafından geri çekilmiştir.',
+              cancelled_at: now,
+            },
+          });
+          withdrawnOffers = otherPendingOffers;
+        }
+      }
+
+      return { accepted, withdrawnOffers };
     });
 
-    // 4. WebSocket ile eski usta(lar)ı ve odayı bilgilendir
+    const accepted = result.accepted;
+    const withdrawnOffers = result.withdrawnOffers;
+
+    // 4. WebSocket ile diğer taleplerin odalarına iptalleri yayınla
+    for (const offerItem of withdrawnOffers) {
+      const room = `job_${offerItem.job_id}`;
+      this.chatGateway.server?.to(room).emit('offer_cancelled', {
+        jobId: offerItem.job_id,
+        offerId: offerItem.id,
+        reasonCode: 'capacity_limit_reached',
+      });
+      // Ayrıca bu usta odasına da teklifin sistemce geri çekildiğini bildir
+      this.chatGateway.server?.to(`provider_${offer.provider_id}`).emit('offer_cancelled', {
+        jobId: offerItem.job_id,
+        offerId: offerItem.id,
+      });
+    }
+
+    // 4b. WebSocket ile eski usta(lar)ı ve odayı bilgilendir
     for (const prev of activePreviousAcceptedOffers) {
       this.chatGateway.server?.to(`provider_${prev.provider_id}`).emit('offer_cancelled', {
         jobId: offer.job_id,
@@ -622,7 +708,7 @@ export class TaleplerService {
       seekerName: offer.job.seeker.name || 'Müşteri',
       providerPhone: providerRealPhone,
       providerName: offer.provider.user.name || 'Hizmet Veren',
-      acceptedOfferId: result.id,
+      acceptedOfferId: accepted.id,
     };
   }
 

@@ -93,7 +93,10 @@ export class HizmetverenService {
 
       // 30 dk zaman sayacı ve 4 teklif sınırı kontrolü
       const jobOffers = await this.prisma.offer.findMany({
-        where: { job_id: job.id },
+        where: {
+          job_id: job.id,
+          status: { in: ['pending', 'accepted'] },
+        },
         select: { created_at: true },
       });
       const offersCount = jobOffers.length;
@@ -250,7 +253,10 @@ export class HizmetverenService {
 
     // 3b. Zaman ve Teklif Sınırı Koruması (Rezervasyon dahil)
     const jobOffers = await this.prisma.offer.findMany({
-      where: { job_id: dto.jobId },
+      where: {
+        job_id: dto.jobId,
+        status: { in: ['pending', 'accepted'] },
+      },
       select: { created_at: true },
     });
     const offerCount = jobOffers.length;
@@ -312,6 +318,12 @@ export class HizmetverenService {
           responded_at: now,
           response_duration_minutes: durationMin,
         },
+      });
+
+      // Reset unanswered lead count
+      await tx.serviceProvider.update({
+        where: { id: provider.id },
+        data: { unanswered_lead_count: 0 },
       });
 
       return newOffer;
@@ -482,6 +494,8 @@ export class HizmetverenService {
         city: provider.city || 'Adana',
         serviceDistricts: provider.service_districts || [],
         isApproved: provider.is_approved,
+        isAvailable: provider.is_available,
+        unansweredLeadCount: provider.unanswered_lead_count,
         accountStatus: provider.account_status,
         identityDocument: onboardingData.identityDocument || '',
         taxPlateDocument: onboardingData.taxPlateDocument || '',
@@ -1267,7 +1281,10 @@ export class HizmetverenService {
 
         // Teklif limitleri ve zaman aşımı kontrolleri
         const jobOffers = await this.prisma.offer.findMany({
-          where: { job_id: rt.job_id },
+          where: {
+            job_id: rt.job_id,
+            status: { in: ['pending', 'accepted'] },
+          },
           select: { created_at: true },
         });
         const offerCount = jobOffers.length;
@@ -1322,6 +1339,118 @@ export class HizmetverenService {
         this.logger.error(`Error processing delayed notification ${rt.id}: ${err.message}`);
       }
     }
+  }
+
+  /**
+   * Her dakika tetiklenen cevapsız ilanları denetleyen ve pasif duruma alan Cron
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkUnansweredLeads() {
+    const pendingResponses = await this.prisma.responseTime.findMany({
+      where: {
+        notified_sent: true,
+        responded_at: null,
+        unanswered_processed: false,
+      },
+    });
+
+    if (pendingResponses.length === 0) return;
+
+    this.logger.log(`[MÜSAİTLİK - CRON] ${pendingResponses.length} adet cevapsız bildirim taranıyor...`);
+
+    for (const rt of pendingResponses) {
+      try {
+        const job = await this.prisma.serviceRequest.findUnique({
+          where: { id: rt.job_id },
+          include: {
+            offers: {
+              where: {
+                status: { in: ['pending', 'accepted'] },
+              },
+            },
+          },
+        });
+        if (!job) continue;
+
+        const { isExpired } = getRequestExpiryInfo(job.created_at, Date.now(), job.offers);
+        const isClosed = job.status === 'completed' || job.status === 'cancelled' || job.offers.length >= 4;
+
+        if (isExpired || isClosed) {
+          const provider = await this.prisma.serviceProvider.findUnique({
+            where: { id: rt.provider_id },
+            include: { subscription: true },
+          });
+
+          if (provider) {
+            const unansweredCount = provider.unanswered_lead_count + 1;
+            let isAvailable = provider.is_available;
+
+            // Paket limitini belirle: Ücretsiz (Free) = 5, Ücretli (Basic, Standard, VIP) = 10
+            let limit = 5;
+            const sub = provider.subscription;
+            if (sub && ['active', 'trial', 'admin_trial'].includes(sub.status)) {
+              limit = 10;
+            }
+
+            if (unansweredCount >= limit) {
+              isAvailable = false;
+
+              // Uygulama içi push ve SMS bildirimlerini tetikle
+              try {
+                await this.bildirimService.sendNotification(provider.user_id, 'HV-AV-PASIF', { limit });
+                await this.bildirimService.sendNotification(provider.user_id, 'HV-AV-PASIF-SMS', { limit });
+              } catch (err) {
+                this.logger.error(`Passivation notification failed: ${err.message}`);
+              }
+            }
+
+            await this.prisma.serviceProvider.update({
+              where: { id: provider.id },
+              data: {
+                unanswered_lead_count: unansweredCount,
+                is_available: isAvailable,
+              },
+            });
+
+            // Invalidate Redis profile cache
+            await this.redis.del(`provider:profile:v2:${provider.user_id}`);
+
+            this.logger.log(`[MÜSAİTLİK - CRON] Provider ${provider.id} unanswered count incremented: ${unansweredCount}/${limit}. is_available: ${isAvailable}`);
+          }
+
+          await this.prisma.responseTime.update({
+            where: { id: rt.id },
+            data: { unanswered_processed: true },
+          });
+        }
+      } catch (err) {
+        this.logger.error(`Error processing unanswered response time ${rt.id}: ${err.message}`);
+      }
+    }
+  }
+
+  /**
+   * Hizmet verenin müsaitlik durumunu manuel olarak günceller
+   */
+  async updateAvailability(providerUserId: string, isAvailable: boolean) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    // Invalidate Redis profile cache
+    await this.redis.del(`provider:profile:v2:${providerUserId}`);
+
+    return this.prisma.serviceProvider.update({
+      where: { id: provider.id },
+      data: {
+        is_available: isAvailable,
+        unanswered_lead_count: 0, // Sıfırlama
+      },
+    });
   }
 
   /**

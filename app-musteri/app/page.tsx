@@ -555,14 +555,14 @@ export default function Home() {
       )}
 
       {/* 🧭 Header (TopNavBar) */}
-      <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
+      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-14 md:h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
           <div className="flex items-center gap-12">
             <a href="/" className="flex items-center">
-              <div className="h-16 w-[180px] overflow-hidden flex items-center justify-center relative cursor-pointer">
+              <div className="h-11 w-[120px] md:h-16 md:w-[180px] overflow-hidden flex items-center justify-center relative cursor-pointer">
                 <img
                   alt="Esnaaf Logo"
-                  className="absolute h-[180px] w-auto max-w-none object-contain"
+                  className="absolute h-[120px] md:h-[180px] w-auto max-w-none object-contain"
                   src="/logo.png"
                 />
               </div>
@@ -575,12 +575,12 @@ export default function Home() {
             </nav>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {isClientLoggedIn ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <button
                   onClick={() => setActiveView("dashboard")}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
+                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
                 >
                   Panelim
                 </button>
@@ -592,22 +592,22 @@ export default function Home() {
                     setActiveView("home");
                     triggerNotification("Çıkış yapıldı.");
                   }}
-                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
+                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
                 >
                   Çıkış
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
+                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
                 >
                   Giriş Yap
                 </button>
                 <button
                   onClick={handleHizmetVerRedirect}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
+                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-3.5 py-1.5 md:px-6 md:py-3 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
                 >
                   Hizmet Ver
                 </button>

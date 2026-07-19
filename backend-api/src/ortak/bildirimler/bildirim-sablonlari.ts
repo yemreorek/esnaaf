@@ -186,6 +186,16 @@ export const BILDIRIM_SABLONLARI: Record<string, BildirimTemplate> = {
     body: 'Merhaba, esnaaf.com\'a yaptığınız başvuru ve yasal belgeleriniz başarıyla onaylanmıştır. Hesabınız şu andan itibaren tamamen aktif ve kısıtlamasızdır. Müşterilerimizin açtığı canlı ilanlara teklif vermek, profilinizi zenginleştirmek ve hemen kazanmaya başlamak için aşağıdaki bağlantıdan panelinize ulaşabilirsiniz.',
     channels: [NotifChannel.email],
   },
+  'HV-AV-PASIF': {
+    title: 'Müsaitlik Durumunuz Kapatıldı',
+    body: 'Gelen son {limit} ilana yanıt vermediğiniz için hesabınız otomatik olarak "Müsait Değil" moduna alınmıştır. Yeni iş teklifleri almaya devam etmek için hemen panelinizden durumunuzu "Aktif" yapabilirsiniz.',
+    channels: [NotifChannel.in_app, NotifChannel.push],
+  },
+  'HV-AV-PASIF-SMS': {
+    title: 'SMS',
+    body: 'esnaaf.com: Gelen son {limit} ilana yanıt vermediğiniz için hesabınız otomatik olarak "Müsait Değil" moduna alınmıştır. Yeni iş teklifleri almaya devam etmek için hemen panelinizden durumunuzu "Aktif" yapabilirsiniz: esnaaf.com/login',
+    channels: [NotifChannel.sms],
+  },
   'HV-15': {
     title: 'Profil Onay Talebiniz Reddedildi',
     body: 'Profil onay talebiniz reddedilmiştir. Red gerekçesi: {reason}',

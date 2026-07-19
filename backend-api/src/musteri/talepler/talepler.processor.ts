@@ -122,6 +122,7 @@ export class TaleplerProcessor {
       where: {
         is_approved: true,
         account_status: 'active',
+        is_available: true,
         category_ids: {
           has: request.category_id,
         },
@@ -270,8 +271,15 @@ export class TaleplerProcessor {
         providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
       }
 
-      // Sistemdeki tüm gecikme süreleri kaldırılmıştır. Herkes anında görür (0 dakika gecikmeyle).
-      let delayMinutes = 0;
+      // Paket bazlı kademeli gecikme süreleri (VIP: 0 dk, Standard: 5 dk, Basic: 10 dk, Ücretsiz: 15 dk)
+      let delayMinutes = 15;
+      if (packageLevel.type === 'vip') {
+        delayMinutes = 0;
+      } else if (packageLevel.type === 'standard') {
+        delayMinutes = 5;
+      } else if (packageLevel.type === 'basic') {
+        delayMinutes = 10;
+      }
 
       // Test modunda süreleri saniyeye indirge
       let delayMs = delayMinutes * 60 * 1000;
@@ -395,9 +403,9 @@ export class TaleplerProcessor {
    * Get subscription limits from DB subscription
    */
   private getProviderPackage(provider: any): { type: string; limit: number; weight: number } {
-    let type = 'basic';
-    let limit = 3;
-    let weight = 25;
+    let type = 'free';
+    let limit = 1;
+    let weight = 10;
 
     const sub = provider.subscription;
     if (sub && ['active', 'trial', 'admin_trial'].includes(sub.status)) {
@@ -409,7 +417,7 @@ export class TaleplerProcessor {
         type = 'standard';
         limit = 5;
         weight = 60;
-      } else {
+      } else if (sub.package_type === 'basic') {
         type = 'basic';
         limit = 3;
         weight = 25;

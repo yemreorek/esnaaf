@@ -93,6 +93,16 @@ export class HizmetverenController {
   }
 
   /**
+   * Hizmet verenin müsaitlik durumunu günceller
+   * POST /api/hizmetveren/profil/availability
+   */
+  @Post('profil/availability')
+  @HttpCode(HttpStatus.OK)
+  async updateAvailability(@CurrentUser() user: any, @Body('isAvailable') isAvailable: boolean) {
+    return this.hizmetverenService.updateAvailability(user.id, isAvailable);
+  }
+
+  /**
    * Hizmet verenin tüm tekliflerini listeler
    * GET /api/hizmetveren/teklifler
    */

@@ -122,6 +122,8 @@ model ServiceProvider {
   response_time_avg Int?
   is_approved       Boolean                @default(false)
   approved_at       DateTime?
+  is_available          Boolean                @default(true)
+  unanswered_lead_count Int                    @default(0)
   account_status    AccountStatus          @default(pending_approval)
   open_door_right   Boolean                @default(false)
   subscription_id   String?                @db.Uuid
@@ -529,6 +531,7 @@ model ResponseTime {
   is_rejected               Boolean  @default(false)
   rejection_reason          String?
   rejection_details         String?  @db.Text
+  unanswered_processed      Boolean  @default(false)
 
   @@map("response_times")
   @@index([provider_id, notified_at(sort: Desc)])
