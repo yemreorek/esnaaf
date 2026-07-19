@@ -455,13 +455,6 @@ export class TaleplerService {
     const activePreviousAcceptedOffers = offer.job.accepted_offers.filter(ao => ao.offer.status === 'accepted');
 
     // 2.5. Komisyon oranı hesaplama ve "Sadık Müşteri" hakkı kontrolü
-    const COMMISSION_RATES: Record<string, number> = {
-      basic: 7,
-      standard: 5,
-      premium: 5,
-      vip: 3,
-    };
-
     let commissionRate = 10; // Varsayılan/Fallback oranı %10 (Ücretsiz üye)
     let updateOpenDoorToFalse = false;
 
@@ -476,7 +469,15 @@ export class TaleplerService {
         const sub = offer.provider.subscription;
         const activeStatuses = ['active', 'trial', 'admin_trial'];
         if (sub && activeStatuses.includes(sub.status)) {
-          commissionRate = COMMISSION_RATES[sub.package_type] ?? 10;
+          const config = await this.prisma.systemPackageConfig.findUnique({
+            where: { package_type: sub.package_type }
+          });
+          commissionRate = config ? Number(config.commission_rate) : 5;
+        } else {
+          const config = await this.prisma.systemPackageConfig.findUnique({
+            where: { package_type: 'free' }
+          });
+          commissionRate = config ? Number(config.commission_rate) : 10;
         }
       }
     }

@@ -13,7 +13,8 @@ import {
   ResolveDisputeDto, 
   CallTaskResultDto,
   SaveAbTestConfigDto,
-  CreateCampaignDto
+  CreateCampaignDto,
+  UpdatePackageConfigDto
 } from './dto/admin-users.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 
@@ -353,5 +354,52 @@ export class AdminController {
     @CurrentUser() user?: any
   ) {
     return this.adminService.getRegionalKpiReport({ city, district, categorySlug, period }, user.email);
+  }
+
+  /**
+   * Get all dynamic system package configurations
+   * GET /api/admin/package-configs
+   */
+  @Get('package-configs')
+  @HttpCode(HttpStatus.OK)
+  async getPackageConfigs(@CurrentUser() user: any) {
+    return this.adminService.getPackageConfigs(user.email);
+  }
+
+  /**
+   * Update a specific system package configuration
+   * PUT /api/admin/package-configs
+   */
+  @Put('package-configs')
+  @HttpCode(HttpStatus.OK)
+  async updatePackageConfig(
+    @Body() dto: UpdatePackageConfigDto,
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.updatePackageConfig(user.email, dto);
+  }
+
+  /**
+   * Subscription distribution stats (counts by city, category, package type)
+   * GET /api/admin/subscription-reports
+   */
+  @Get('subscription-reports')
+  @HttpCode(HttpStatus.OK)
+  async getSubscriptionReports(
+    @Query('city') city?: string,
+    @Query('categoryId') categoryId?: string,
+    @CurrentUser() user?: any
+  ) {
+    return this.adminService.getSubscriptionReports({ city, categoryId }, user.email);
+  }
+
+  /**
+   * Churned/expired paid subscription list
+   * GET /api/admin/subscription-reports/churned
+   */
+  @Get('subscription-reports/churned')
+  @HttpCode(HttpStatus.OK)
+  async getChurnedSubscriptions(@CurrentUser() user: any) {
+    return this.adminService.getChurnedSubscriptions(user.email);
   }
 }

@@ -48,6 +48,36 @@ async function main() {
   }
 
   console.log('Seeding completed successfully!');
+
+  // Seed default package configurations
+  const packageConfigs = [
+    { package_type: 'free', price: 0, commission_rate: 10, active_jobs_limit: 1, delay_minutes: 15 },
+    { package_type: 'basic', price: 5000, commission_rate: 7, active_jobs_limit: 3, delay_minutes: 10 },
+    { package_type: 'standard', price: 10000, commission_rate: 5, active_jobs_limit: 5, delay_minutes: 5 },
+    { package_type: 'vip', price: 20000, commission_rate: 3, active_jobs_limit: 7, delay_minutes: 0 },
+  ];
+
+  console.log('Seeding package configurations...');
+  for (const config of packageConfigs) {
+    await prisma.systemPackageConfig.upsert({
+      where: { package_type: config.package_type },
+      update: {
+        price: config.price,
+        commission_rate: config.commission_rate,
+        active_jobs_limit: config.active_jobs_limit,
+        delay_minutes: config.delay_minutes,
+      },
+      create: {
+        package_type: config.package_type,
+        price: config.price,
+        commission_rate: config.commission_rate,
+        active_jobs_limit: config.active_jobs_limit,
+        delay_minutes: config.delay_minutes,
+      },
+    });
+  }
+
+  console.log('Package configurations seed completed!');
 }
 
 main()

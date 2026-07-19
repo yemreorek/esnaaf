@@ -745,4 +745,14 @@ model SavedCard {
   @@index([provider_id, is_primary])
 }
 
-// Removed Graph engine models
+model SystemPackageConfig {
+  id                 String   @id @default(uuid()) @db.Uuid
+  package_type       String   @unique // "free", "basic", "standard", "vip"
+  price              Decimal  @db.Decimal(10, 2)
+  commission_rate    Decimal  @db.Decimal(5, 2)
+  active_jobs_limit  Int
+  delay_minutes      Int
+  updated_at         DateTime @updatedAt @default(now())
+
+  @@map("system_package_configs")
+}

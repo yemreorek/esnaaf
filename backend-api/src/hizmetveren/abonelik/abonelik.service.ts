@@ -23,42 +23,58 @@ export class AbonelikService {
    * Paketleri listeler
    */
   async getPackages() {
+    const dbConfigs = await this.prisma.systemPackageConfig.findMany();
+    
+    const getConfig = (type: string, defPrice: number, defComm: number, defLimit: number) => {
+      const found = dbConfigs.find(c => c.package_type === type);
+      return {
+        price: found ? Number(found.price) : defPrice,
+        commissionRate: found ? Number(found.commission_rate) : defComm,
+        activeJobsLimit: found ? found.active_jobs_limit : defLimit,
+      };
+    };
+
+    const freeCfg = getConfig('free', 0, 10, 1);
+    const basicCfg = getConfig('basic', 5000, 7, 3);
+    const standardCfg = getConfig('standard', 10000, 5, 5);
+    const vipCfg = getConfig('vip', 20000, 3, 7);
+
     return [
       { 
         type: 'free', 
-        price: 0, 
+        price: freeCfg.price, 
         quota: null, 
-        commissionRate: 10,
-        activeJobsLimit: 1,
+        commissionRate: freeCfg.commissionRate,
+        activeJobsLimit: freeCfg.activeJobsLimit,
         name: 'Ücretsiz Paket (Freemium)', 
-        description: 'Aylık 0 ₺ | Komisyon: %10 | Aktif İş Limiti (Kapasite): 1 | Rozet: Yok' 
+        description: `Aylık 0 ₺ | Komisyon: %${freeCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${freeCfg.activeJobsLimit} | Rozet: Yok` 
       },
       { 
         type: PackageType.basic, 
-        price: 5000, 
+        price: basicCfg.price, 
         quota: null, 
-        commissionRate: 7,
-        activeJobsLimit: 3,
+        commissionRate: basicCfg.commissionRate,
+        activeJobsLimit: basicCfg.activeJobsLimit,
         name: 'Basic Paket (Düşük)', 
-        description: 'Aylık 5.000 ₺ | Komisyon: %7 | Aktif İş Limiti (Kapasite): 3 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: `Aylık ${basicCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${basicCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${basicCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
       { 
         type: PackageType.standard, 
-        price: 10000, 
+        price: standardCfg.price, 
         quota: null, 
-        commissionRate: 5,
-        activeJobsLimit: 5,
+        commissionRate: standardCfg.commissionRate,
+        activeJobsLimit: standardCfg.activeJobsLimit,
         name: 'Standart Paket (Orta)', 
-        description: 'Aylık 10.000 ₺ | Komisyon: %5 | Aktif İş Limiti (Kapasite): 5 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: `Aylık ${standardCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${standardCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${standardCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
       { 
         type: PackageType.vip, 
-        price: 20000, 
+        price: vipCfg.price, 
         quota: null, 
-        commissionRate: 3,
-        activeJobsLimit: 7,
+        commissionRate: vipCfg.commissionRate,
+        activeJobsLimit: vipCfg.activeJobsLimit,
         name: 'VIP Paket (Yüksek)', 
-        description: 'Aylık 20.000 ₺ | Komisyon: %3 | Aktif İş Limiti (Kapasite): 7 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: `Aylık ${vipCfg.price.toLocaleString('tr-TR')} ₺ | Komisyon: %${vipCfg.commissionRate} | Aktif İş Limiti (Kapasite): ${vipCfg.activeJobsLimit} | Rozet: VIP / Onaylı Üye ✔️` 
       },
     ];
   }
