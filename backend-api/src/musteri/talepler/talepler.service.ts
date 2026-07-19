@@ -456,10 +456,10 @@ export class TaleplerService {
 
     // 2.5. Komisyon oranı hesaplama ve "Sadık Müşteri" hakkı kontrolü
     const COMMISSION_RATES: Record<string, number> = {
-      basic: 10,
-      standard: 7,
-      premium: 7,
-      vip: 5,
+      basic: 7,
+      standard: 5,
+      premium: 5,
+      vip: 3,
     };
 
     let commissionRate = 10; // Varsayılan/Fallback oranı %10 (Ücretsiz üye)

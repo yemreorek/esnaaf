@@ -5446,7 +5446,12 @@ export default function ProviderDashboard() {
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Komisyon Oranı: %{pkg.commissionRate}</span>
                               <span className="block text-[9px] text-slate-500 font-medium">✓ Aktif İş Limiti: {pkg.activeJobsLimit} Slot</span>
                               <span className="block text-[9px] text-slate-500 font-medium">
-                                ✓ Dağıtım Hızı: Anında (0 Dk)
+                                ✓ Dağıtım Hızı: {
+                                  pkg.type === 'free' ? 'Rakiplere göre 15 Dk Gecikmeli' :
+                                  pkg.type === 'basic' ? 'Rakiplere göre 10 Dk Gecikmeli' :
+                                  pkg.type === 'standard' ? 'Rakiplere göre 5 Dk Gecikmeli' :
+                                  'Anında (0 Dk)'
+                                }
                               </span>
                               <span className="block text-[9px] text-slate-500 font-medium">
                                 ✓ 4. Slot Erişimi: Herkese Açık (Sınırsız)
@@ -5496,10 +5501,13 @@ export default function ProviderDashboard() {
                         <span>Aktif İş Limiti:</span>
                         <span className="font-extrabold text-slate-800">{selectedPackage.activeJobsLimit} Slot</span>
                       </div>
-                       <div className="flex justify-between">
+                      <div className="flex justify-between">
                         <span>Dağıtım Hızı:</span>
                         <span className="font-extrabold text-slate-800">
-                          Anında (0 Dk)
+                          {selectedPackage.type === 'free' ? 'Rakiplere göre 15 Dk Gecikmeli' :
+                           selectedPackage.type === 'basic' ? 'Rakiplere göre 10 Dk Gecikmeli' :
+                           selectedPackage.type === 'standard' ? 'Rakiplere göre 5 Dk Gecikmeli' :
+                           'Anında (0 Dk)'}
                         </span>
                       </div>
                       <div className="flex justify-between">

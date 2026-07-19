@@ -37,28 +37,28 @@ export class AbonelikService {
         type: PackageType.basic, 
         price: 5000, 
         quota: null, 
-        commissionRate: 10,
+        commissionRate: 7,
         activeJobsLimit: 3,
         name: 'Basic Paket (Düşük)', 
-        description: 'Aylık 5.000 ₺ | Komisyon: %10 | Aktif İş Limiti (Kapasite): 3 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: 'Aylık 5.000 ₺ | Komisyon: %7 | Aktif İş Limiti (Kapasite): 3 | Rozet: VIP / Onaylı Üye ✔️' 
       },
       { 
         type: PackageType.standard, 
         price: 10000, 
         quota: null, 
-        commissionRate: 7,
+        commissionRate: 5,
         activeJobsLimit: 5,
         name: 'Standart Paket (Orta)', 
-        description: 'Aylık 10.000 ₺ | Komisyon: %7 | Aktif İş Limiti (Kapasite): 5 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: 'Aylık 10.000 ₺ | Komisyon: %5 | Aktif İş Limiti (Kapasite): 5 | Rozet: VIP / Onaylı Üye ✔️' 
       },
       { 
         type: PackageType.vip, 
         price: 20000, 
         quota: null, 
-        commissionRate: 5,
+        commissionRate: 3,
         activeJobsLimit: 7,
         name: 'VIP Paket (Yüksek)', 
-        description: 'Aylık 20.000 ₺ | Komisyon: %5 | Aktif İş Limiti (Kapasite): 7 | Rozet: VIP / Onaylı Üye ✔️' 
+        description: 'Aylık 20.000 ₺ | Komisyon: %3 | Aktif İş Limiti (Kapasite): 7 | Rozet: VIP / Onaylı Üye ✔️' 
       },
     ];
   }
