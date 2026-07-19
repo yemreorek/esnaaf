@@ -135,10 +135,29 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "description": "Temizliğin türünü ve odaklanılacak alanları (örn: inşaat artığı veya standart taşınma temizliği) belirlemek için önemlidir.",
         "input_type": "single_select",
         "options": [
-          { "label": "Kiracı çıktı", "value": "tenant_left", "next_step": "END" },
-          { "label": "Sıfır ev", "value": "new_building", "next_step": "END" },
-          { "label": "Diğer", "value": "other", "next_step": "END" }
+          { "label": "Kiracı çıktı", "value": "tenant_left", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "Sıfır ev", "value": "new_building", "next_step": "step_ekstra_detay_var_mi" },
+          { "label": "Diğer", "value": "other", "next_step": "step_ekstra_detay_var_mi" }
         ]
+      },
+      {
+        "step_id": "step_ekstra_detay_var_mi",
+        "step_title": "Ekstra bilinmesi istediğin veya belirtmek istediğiniz detay var mı?",
+        "description": "Hizmet kalitesini artırmak için eklemek istediğiniz özel bir talep varsa seçebilirsiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hayır Yok", "value": "hayir", "next_step": "END" },
+          { "label": "Evet Var", "value": "evet", "next_step": "step_ekstra_detay_text" }
+        ],
+        "is_optional": false
+      },
+      {
+        "step_id": "step_ekstra_detay_text",
+        "step_title": "Lütfen eklemek istediğiniz detayları buraya yazınız:",
+        "description": "Özel taleplerinizi buraya yazabilirsiniz.",
+        "input_type": "textarea",
+        "placeholder": "Detayları buraya giriniz...",
+        "next_step": "END"
       }
     ]
   },
@@ -326,12 +345,12 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
           {
             "label": "Evet, çıkması gereken lekeler var",
             "value": "evet_leke_var",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           },
           {
             "label": "Hayır, standart halı yıkama yeterli",
             "value": "hayir_standart",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           }
         ]
       },
@@ -362,12 +381,12 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
           {
             "label": "Evet, çıkması gereken lekeler var",
             "value": "evet_leke_var",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           },
           {
             "label": "Hayır, standart halı yıkama yeterli",
             "value": "hayir_standart",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           }
         ]
       },
@@ -396,22 +415,32 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
           {
             "label": "Evet, çıkması gereken lekeler var",
             "value": "evet_leke_var",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           },
           {
             "label": "Hayır, standart halı yıkama yeterli",
             "value": "hayir_standart",
-            "next_step": "step_detaylar"
+            "next_step": "step_ekstra_detay_var_mi"
           }
         ]
       },
       {
-        "step_id": "step_detaylar",
-        "step_title": "İhtiyacın detayları neler?",
+        "step_id": "step_ekstra_detay_var_mi",
+        "step_title": "Ekstra bilinmesi istediğin veya belirtmek istediğiniz detay var mı?",
+        "description": "Hizmet kalitesini artırmak için eklemek istediğiniz özel bir talep varsa seçebilirsiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hayır Yok", "value": "hayir", "next_step": "END" },
+          { "label": "Evet Var", "value": "evet", "next_step": "step_ekstra_detay_text" }
+        ],
+        "is_optional": false
+      },
+      {
+        "step_id": "step_ekstra_detay_text",
+        "step_title": "Lütfen eklemek istediğiniz detayları buraya yazınız:",
         "description": "Varsa lekelerin türünü, halı cinsini, ofis çalışma saatlerini veya belirtmek istediğiniz diğer detayları yazabilirsiniz.",
         "input_type": "textarea",
         "placeholder": "Detayları buraya giriniz...",
-        "is_optional": true,
         "next_step": "END"
       }
     ]
