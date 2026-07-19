@@ -866,6 +866,7 @@ export default function ProviderDashboard() {
   const [showResetPasswordPopup, setShowResetPasswordPopup] = useState(false);
   const [popupNewPassword, setPopupNewPassword] = useState('');
   const [popupConfirmPassword, setPopupConfirmPassword] = useState('');
+  const [showPopupPassword, setShowPopupPassword] = useState(false);
   const [isSavingPopupPassword, setIsSavingPopupPassword] = useState(false);
   const [isImpersonated, setIsImpersonated] = useState<boolean>(false);
 
@@ -7126,7 +7127,7 @@ export default function ProviderDashboard() {
               <div className="space-y-1.5">
                 <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre</label>
                 <input
-                  type="password"
+                  type={showPopupPassword ? "text" : "password"}
                   value={popupNewPassword}
                   onChange={(e) => setPopupNewPassword(e.target.value)}
                   placeholder="••••••"
@@ -7136,12 +7137,29 @@ export default function ProviderDashboard() {
               <div className="space-y-1.5">
                 <label className="block text-xs font-extrabold text-slate-700">Yeni Şifre Tekrar</label>
                 <input
-                  type="password"
+                  type={showPopupPassword ? "text" : "password"}
                   value={popupConfirmPassword}
                   onChange={(e) => setPopupConfirmPassword(e.target.value)}
                   placeholder="••••••"
                   className="w-full bg-slate-50 border border-slate-200 focus:border-[#4c630a] rounded-xl p-3 outline-none text-xs font-bold text-slate-850"
                 />
+              </div>
+              
+              {/* Şifreyi Göster Checkbox */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="showPopupPasswordCheckbox"
+                  checked={showPopupPassword}
+                  onChange={(e) => setShowPopupPassword(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#4c630a] focus:ring-[#4c630a]/20 border-slate-300 accent-[#4c630a] cursor-pointer"
+                />
+                <label 
+                  htmlFor="showPopupPasswordCheckbox" 
+                  className="text-xs font-bold text-slate-500 cursor-pointer select-none"
+                >
+                  Şifreyi Göster
+                </label>
               </div>
             </div>
 
