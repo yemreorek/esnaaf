@@ -14,7 +14,7 @@ import {
   CreateCampaignDto
 } from './dto/admin-users.dto';
 import { JwtService } from '@nestjs/jwt';
-import { decryptPhone, encryptPhone, maskPhone } from '../common/utils/phone.util';
+import { decryptPhone, encryptPhone, maskPhone, normalizePhone } from '../common/utils/phone.util';
 import { 
   UserRole, 
   StaffRole, 
@@ -160,10 +160,23 @@ export class AdminService {
     }
 
     if (search) {
-      where.OR = [
+      const orConditions: any[] = [
         { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
       ];
+
+      // If search contains numbers, it might be a phone number.
+      // We normalize it and search for its deterministic encrypted representation.
+      const hasDigits = /\d/.test(search);
+      if (hasDigits) {
+        const normalized = normalizePhone(search);
+        if (normalized) {
+          orConditions.push({ phone: encryptPhone(normalized) });
+        }
+        orConditions.push({ phone: encryptPhone(search) });
+      }
+
+      where.OR = orConditions;
     }
 
     const [users, total] = await Promise.all([

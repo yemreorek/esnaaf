@@ -2095,7 +2095,7 @@ ${callTaskNotes}`;
                   <div className="relative md:col-span-2">
                     <input
                       type="text"
-                      placeholder="İsim veya e-posta ile arama yapın..."
+                      placeholder="İsim, telefon veya e-posta ile arama yapın..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200/60 focus:border-[#c8f252] rounded-xl py-2.5 px-4 pl-10 text-sm focus:outline-none transition-colors focus:ring-1 focus:ring-[#c8f252]/30"
