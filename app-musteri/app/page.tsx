@@ -799,7 +799,7 @@ export default function Home() {
           <p className="font-body text-slate-500 text-sm">Mahallenizde en çok aranan ve en hızlı teklif toplayan popüler hizmetler</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {[
             { name: "Ev Temizliği", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=400&auto=format&fit=crop", rating: "4.8", count: "9.861", commentCount: "8.875" },
             { name: "Boya Badana", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=400&auto=format&fit=crop", rating: "4.9", count: "5.546", commentCount: "4.920" },
@@ -810,8 +810,8 @@ export default function Home() {
             { name: "Kombi Servisi", image: "https://images.unsplash.com/photo-1647329797478-52c45b06856b?q=80&w=400&auto=format&fit=crop", rating: "4.7", count: "2.100", commentCount: "1.840" },
             { name: "Koltuk Yıkama", image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?q=80&w=400&auto=format&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
-            <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
-              <div className="relative h-48 w-full overflow-hidden shrink-0">
+            <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
+              <div className="relative h-28 md:h-48 w-full overflow-hidden shrink-0">
                 <img
                   alt={srv.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -822,37 +822,37 @@ export default function Home() {
                 <img
                   src="/logo-icon.png"
                   alt="esnaaf"
-                  className="absolute top-0 left-0 w-18 h-18 object-contain select-none filter drop-shadow-md"
+                  className="absolute top-0 left-0 w-12 h-12 md:w-18 md:h-18 object-contain select-none filter drop-shadow-md"
                 />
               </div>
               
-              <div className="p-5 flex flex-col justify-between flex-grow gap-4.5">
+              <div className="p-3 md:p-5 flex flex-col justify-between flex-grow gap-3 md:gap-4.5">
                 <div className="space-y-2">
-                  <h3 className="font-extrabold text-[#719600] text-[15px] group-hover:opacity-90 transition-opacity tracking-tight">{srv.name}</h3>
+                  <h3 className="font-extrabold text-[#719600] text-[13px] md:text-[15px] group-hover:opacity-90 transition-opacity tracking-tight">{srv.name}</h3>
                   
                   {/* Rating / Counts row */}
-                  <div className="flex justify-between items-center w-full">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full gap-2 sm:gap-0">
                     {/* Left: Professional Count */}
-                    <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px]">
-                      <span className="material-symbols-outlined text-[13px] shrink-0 text-slate-400">group</span>
-                      <span>{srv.count} Profesyonel</span>
+                    <div className="flex items-center gap-1 text-slate-500 font-bold text-[9px] md:text-[10px]">
+                      <span className="material-symbols-outlined text-[12px] md:text-[13px] shrink-0 text-slate-400">group</span>
+                      <span className="whitespace-nowrap">{srv.count} Prof</span>
                     </div>
 
                     {/* Right: Rating Box & Stars */}
-                    <div className="flex items-center gap-1.5">
-                      <div className="bg-[#c8f252] text-slate-950 font-black text-[10px] px-1.5 py-1 rounded-md shadow-xs shrink-0">
+                    <div className="flex items-center gap-1 flex-wrap sm:flex-nowrap">
+                      <div className="bg-[#c8f252] text-slate-950 font-black text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 md:py-1 rounded shadow-xs shrink-0">
                         {srv.rating}
                       </div>
                       <div className="flex flex-col justify-center leading-none">
                         <div className="flex items-center text-amber-500 select-none">
-                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[9px] md:text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[9px] md:text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[9px] md:text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[9px] md:text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[9px] md:text-[10px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
                         </div>
-                        <span className="text-[8px] text-slate-400 font-bold mt-0.5 tracking-tight shrink-0 whitespace-nowrap">
-                          ({srv.commentCount} Onaylı Yorum)
+                        <span className="text-[7px] md:text-[8px] text-slate-400 font-bold mt-0.5 tracking-tight shrink-0 whitespace-nowrap">
+                          ({srv.commentCount} Yorum)
                         </span>
                       </div>
                     </div>
@@ -861,7 +861,7 @@ export default function Home() {
 
                 <button
                   onClick={() => handleSelectCategory(srv.name)}
-                  className="w-full bg-[#181d20] hover:bg-[#719600] text-white font-extrabold text-xs py-3.5 rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-sm"
+                  className="w-full bg-[#181d20] hover:bg-[#719600] text-white font-extrabold text-[10px] md:text-xs py-2 md:py-3.5 rounded-lg md:rounded-xl transition-all cursor-pointer text-center active:scale-98 shadow-sm"
                 >
                   Teklif Al
                 </button>
