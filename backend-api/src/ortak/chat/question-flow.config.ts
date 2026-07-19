@@ -271,5 +271,149 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "next_step": "END"
       }
     ]
+  },
+  'hali-yikama': {
+    "category_id": "hali_yikama",
+    "category_name": "Halı Yıkama",
+    "steps": [
+      {
+        "step_id": "step_yikama_yeri",
+        "step_title": "Halı nerede yıkansın?",
+        "description": "Hizmetin nerede verileceğini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          {
+            "label": "Adresten alınıp teslim edilsin",
+            "value": "adresten_alim",
+            "next_step": "step_metrekare_genel"
+          },
+          {
+            "label": "Evde halı temizliği yapılsın",
+            "value": "evde_temizlik",
+            "next_step": "step_metrekare_evde"
+          },
+          {
+            "label": "Ofiste halı temizliği yapılsın",
+            "value": "ofiste_temizlik",
+            "next_step": "step_metrekare_ofis"
+          }
+        ]
+      },
+      {
+        "step_id": "step_metrekare_genel",
+        "step_title": "Kaç metrekare halı yıkanacak?",
+        "description": "Büyük oda halıları 6m2'dir ve çoğu halı 1 ila 6m2 arasındadır. En yakın seçeneği seçmeniz yeterlidir.",
+        "input_type": "single_select",
+        "options": [
+          {"label": "5", "value": "5", "next_step": "step_leke_durumu_genel"},
+          {"label": "10", "value": "10", "next_step": "step_leke_durumu_genel"},
+          {"label": "15", "value": "15", "next_step": "step_leke_durumu_genel"},
+          {"label": "20", "value": "20", "next_step": "step_leke_durumu_genel"},
+          {"label": "25", "value": "25", "next_step": "step_leke_durumu_genel"},
+          {"label": "30", "value": "30", "next_step": "step_leke_durumu_genel"},
+          {"label": "40", "value": "40", "next_step": "step_leke_durumu_genel"},
+          {"label": "50", "value": "50", "next_step": "step_leke_durumu_genel"},
+          {"label": "60", "value": "60", "next_step": "step_leke_durumu_genel"},
+          {"label": "80 veya daha fazla", "value": "80_veya_daha_fazla", "next_step": "step_leke_durumu_genel"}
+        ]
+      },
+      {
+        "step_id": "step_leke_durumu_genel",
+        "step_title": "Çıkarılmasını istediğin lekeler var mı?",
+        "description": "Standart yıkama dışındaki lekeli durumları belirtin.",
+        "input_type": "single_select",
+        "options": [
+          {
+            "label": "Evet, çıkması gereken lekeler var",
+            "value": "evet_leke_var",
+            "next_step": "step_detaylar"
+          },
+          {
+            "label": "Hayır, standart halı yıkama yeterli",
+            "value": "hayir_standart",
+            "next_step": "step_detaylar"
+          }
+        ]
+      },
+      {
+        "step_id": "step_metrekare_evde",
+        "step_title": "Kaç metrekare halı yıkanacak?",
+        "description": "Büyük oda halıları 6m2'dir ve çoğu halı 1 ila 6m2 arasındadır. En yakın seçeneği seçmeniz yeterlidir.",
+        "input_type": "single_select",
+        "options": [
+          {"label": "5", "value": "5", "next_step": "step_leke_durumu_evde"},
+          {"label": "10", "value": "10", "next_step": "step_leke_durumu_evde"},
+          {"label": "15", "value": "15", "next_step": "step_leke_durumu_evde"},
+          {"label": "20", "value": "20", "next_step": "step_leke_durumu_evde"},
+          {"label": "25", "value": "25", "next_step": "step_leke_durumu_evde"},
+          {"label": "30", "value": "30", "next_step": "step_leke_durumu_evde"},
+          {"label": "40", "value": "40", "next_step": "step_leke_durumu_evde"},
+          {"label": "50", "value": "50", "next_step": "step_leke_durumu_evde"},
+          {"label": "60", "value": "60", "next_step": "step_leke_durumu_evde"},
+          {"label": "80 veya daha fazla", "value": "80_veya_daha_fazla", "next_step": "step_leke_durumu_evde"}
+        ]
+      },
+      {
+        "step_id": "step_leke_durumu_evde",
+        "step_title": "Çıkarılmasını istediğin lekeler var mı?",
+        "description": "Standart yıkama dışındaki lekeli durumları belirtin.",
+        "input_type": "single_select",
+        "options": [
+          {
+            "label": "Evet, çıkması gereken lekeler var",
+            "value": "evet_leke_var",
+            "next_step": "step_detaylar"
+          },
+          {
+            "label": "Hayır, standart halı yıkama yeterli",
+            "value": "hayir_standart",
+            "next_step": "step_detaylar"
+          }
+        ]
+      },
+      {
+        "step_id": "step_metrekare_ofis",
+        "step_title": "Kaç metrekare halı yıkanacak?",
+        "description": "En yakın seçeneği seçmeniz yeterlidir.",
+        "input_type": "single_select",
+        "options": [
+          {"label": "20 veya daha az", "value": "20_veya_daha_az", "next_step": "step_leke_durumu_ofis"},
+          {"label": "30", "value": "30", "next_step": "step_leke_durumu_ofis"},
+          {"label": "50", "value": "50", "next_step": "step_leke_durumu_ofis"},
+          {"label": "60", "value": "60", "next_step": "step_leke_durumu_ofis"},
+          {"label": "80", "value": "80", "next_step": "step_leke_durumu_ofis"},
+          {"label": "100", "value": "100", "next_step": "step_leke_durumu_ofis"},
+          {"label": "250", "value": "250", "next_step": "step_leke_durumu_ofis"},
+          {"label": "500 veya daha fazla", "value": "500_veya_daha_fazla", "next_step": "step_leke_durumu_ofis"}
+        ]
+      },
+      {
+        "step_id": "step_leke_durumu_ofis",
+        "step_title": "Çıkarılmasını istediğin lekeler var mı?",
+        "description": "Standart yıkama dışındaki lekeli durumları belirtin.",
+        "input_type": "single_select",
+        "options": [
+          {
+            "label": "Evet, çıkması gereken lekeler var",
+            "value": "evet_leke_var",
+            "next_step": "step_detaylar"
+          },
+          {
+            "label": "Hayır, standart halı yıkama yeterli",
+            "value": "hayir_standart",
+            "next_step": "step_detaylar"
+          }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Varsa lekelerin türünü, halı cinsini, ofis çalışma saatlerini veya belirtmek istediğiniz diğer detayları yazabilirsiniz.",
+        "input_type": "textarea",
+        "placeholder": "Detayları buraya giriniz...",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
   }
 };
