@@ -3374,62 +3374,6 @@ export default function ProviderDashboard() {
 
               {/* Metrics Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Esnaaf ID & QR Kod Kartı */}
-                <div className="bg-slate-900 p-6 rounded-[28px] border border-slate-805 shadow-md hover:shadow-lg transition-all flex flex-col justify-between text-white relative overflow-hidden min-h-[160px]">
-                  {/* Decorative glow */}
-                  <div className="absolute top-[-30px] right-[-30px] w-20 h-20 rounded-full bg-[#c8f252]/10 blur-xl"></div>
-                  
-                  <div className="flex justify-between items-start z-10 gap-3">
-                    <div className="text-left space-y-1">
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Kolay Eşleşme ID</span>
-                      <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all">
-                        {esnaafId || 'ESN-74291'}
-                      </div>
-                      <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
-                        Müşteriniz bu ID'yi aratarak sizi sadık hizmet veren listesine ekleyebilir.
-                      </p>
-                    </div>
-                    {/* Visual QR Code Mockup */}
-                    <div className="w-16 h-16 bg-white p-1.5 rounded-xl shrink-0 flex flex-col gap-0.5 justify-between items-center relative shadow-md">
-                      <div className="grid grid-cols-5 gap-0.5 w-full h-full">
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-200 rounded-sm"></div>
-                        <div className="bg-slate-900 rounded-sm"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-bold z-10">
-                    <span>Esnaaf ID Kartım</span>
-                    <span className="text-[#c8f252]">Aktif</span>
-                  </div>
-                </div>
                 {/* 1. Bids Sent */}
                 <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
@@ -5676,57 +5620,117 @@ export default function ProviderDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
                 {/* Sol Taraf: Müşteri Arama ve Davet Etme */}
-                <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm space-y-5 lg:col-span-1">
-                  <div className="space-y-1">
-                    <h3 className="font-extrabold text-slate-900 text-sm">Yeni Sadık Müşteri Ekle</h3>
-                    <p className="text-[11px] text-slate-450 font-semibold leading-relaxed">
-                      Müşterinizin ekranındaki 5 haneli **Esnaaf ID**'sini girerek bulun ve listenize ekleme isteği gönderin.
-                    </p>
-                  </div>
+                <div className="flex flex-col gap-6 lg:col-span-1">
+                  {/* Esnaaf ID & QR Kod Kartı */}
+                  <div className="bg-slate-900 p-6 rounded-[28px] border border-slate-800 shadow-md hover:shadow-lg transition-all flex flex-col justify-between text-white relative overflow-hidden min-h-[160px] w-full">
+                    {/* Decorative glow */}
+                    <div className="absolute top-[-30px] right-[-30px] w-20 h-20 rounded-full bg-[#c8f252]/10 blur-xl"></div>
+                    
+                    <div className="flex justify-between items-start z-10 gap-3">
+                      <div className="text-left space-y-1">
+                        <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Kolay Eşleşme ID</span>
+                        <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all">
+                          {esnaafId || 'ESN-74291'}
+                        </div>
+                        <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
+                          Müşteriniz bu ID'yi aratarak sizi sadık hizmet veren listesine ekleyebilir.
+                        </p>
+                      </div>
+                      {/* Visual QR Code Mockup */}
+                      <div className="w-16 h-16 bg-white p-1.5 rounded-xl shrink-0 flex flex-col gap-0.5 justify-between items-center relative shadow-md">
+                        <div className="grid grid-cols-5 gap-0.5 w-full h-full">
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
 
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Örn: ESN-K3T9X"
-                        value={searchSeekerEsnaafId}
-                        onChange={(e) => setSearchSeekerEsnaafId(e.target.value.toUpperCase())}
-                        className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSearchSeeker}
-                        disabled={isSearchingSeeker}
-                        className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
-                      >
-                        {isSearchingSeeker ? 'Aranıyor...' : 'Bul'}
-                      </button>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-200 rounded-sm"></div>
+                          <div className="bg-slate-900 rounded-sm"></div>
+                        </div>
+                      </div>
                     </div>
 
-                    {searchSeekerError && (
-                      <p className="text-xs text-red-500 font-semibold">{searchSeekerError}</p>
-                    )}
+                    <div className="flex justify-between items-center pt-4 border-t border-slate-800 text-[10px] text-slate-400 font-bold z-10">
+                      <span>Esnaaf ID Kartım</span>
+                      <span className="text-[#c8f252]">Aktif</span>
+                    </div>
+                  </div>
 
-                    {searchSeekerResult && (
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3 animate-scale-up">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 text-sm">
-                            {searchSeekerResult.name?.substring(0, 2).toUpperCase() || 'MÜ'}
-                          </div>
-                          <div className="text-left">
-                            <h4 className="font-extrabold text-xs text-slate-800">{searchSeekerResult.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">{searchSeekerResult.esnaaf_id}</p>
-                          </div>
-                        </div>
+                  {/* Yeni Sadık Müşteri Ekle */}
+                  <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm space-y-5 w-full">
+                    <div className="space-y-1">
+                      <h3 className="font-extrabold text-slate-900 text-sm">Yeni Sadık Müşteri Ekle</h3>
+                      <p className="text-[11px] text-slate-450 font-semibold leading-relaxed">
+                        Müşterinizin ekranındaki 5 haneli **Esnaaf ID**'sini girerek bulun ve listenize ekleme isteği gönderin.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Örn: ESN-K3T9X"
+                          value={searchSeekerEsnaafId}
+                          onChange={(e) => setSearchSeekerEsnaafId(e.target.value.toUpperCase())}
+                          className="bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 flex-grow uppercase transition-colors"
+                        />
                         <button
                           type="button"
-                          onClick={() => handleSendLoyaltyRequest(searchSeekerResult.esnaaf_id)}
-                          className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-2.5 rounded-xl cursor-pointer shadow-sm transition-all text-center"
+                          onClick={handleSearchSeeker}
+                          disabled={isSearchingSeeker}
+                          className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
                         >
-                          Sadık Müşteri İsteği Gönder
+                          {isSearchingSeeker ? 'Aranıyor...' : 'Bul'}
                         </button>
                       </div>
-                    )}
+
+                      {searchSeekerError && (
+                        <p className="text-xs text-red-500 font-semibold">{searchSeekerError}</p>
+                      )}
+
+                      {searchSeekerResult && (
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3 animate-scale-up">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 text-sm">
+                              {searchSeekerResult.name?.substring(0, 2).toUpperCase() || 'MÜ'}
+                            </div>
+                            <div className="text-left">
+                              <h4 className="font-extrabold text-xs text-slate-800">{searchSeekerResult.name}</h4>
+                              <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">{searchSeekerResult.esnaaf_id}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSendLoyaltyRequest(searchSeekerResult.esnaaf_id)}
+                            className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 font-black text-xs py-2.5 rounded-xl cursor-pointer shadow-sm transition-all text-center border-none"
+                          >
+                            Sadık Müşteri İsteği Gönder
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
