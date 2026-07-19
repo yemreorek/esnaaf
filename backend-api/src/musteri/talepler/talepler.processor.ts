@@ -163,7 +163,11 @@ export class TaleplerProcessor {
         } else if (providerCity === 'İzmir') {
           providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
         } else {
-          providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+          providerDistricts = [
+            'Seyhan', 'Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Kozan', 
+            'İmamoğlu', 'Karataş', 'Karaisalı', 'Pozantı', 'Yumurtalık', 
+            'Tufanbeyli', 'Feke', 'Aladağ', 'Saimbeyli'
+          ];
         }
       }
 
@@ -268,7 +272,11 @@ export class TaleplerProcessor {
       const providerCity = provider.city || 'Adana';
       let providerDistricts = provider.service_districts || [];
       if (providerDistricts.length === 0) {
-        providerDistricts = ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'];
+        providerDistricts = [
+          'Seyhan', 'Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Kozan', 
+          'İmamoğlu', 'Karataş', 'Karaisalı', 'Pozantı', 'Yumurtalık', 
+          'Tufanbeyli', 'Feke', 'Aladağ', 'Saimbeyli'
+        ];
       }
 
       // Paket bazlı kademeli gecikme süreleri (VIP: 0 dk, Standard: 5 dk, Basic: 10 dk, Ücretsiz: 15 dk)

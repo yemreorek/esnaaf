@@ -139,7 +139,11 @@ const FIELD_LABELS: Record<string, string> = {
 
 
 const CITY_DISTRICTS: Record<string, string[]> = {
-  'Adana': ['Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Seyhan'],
+  'Adana': [
+    'Seyhan', 'Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Kozan', 
+    'İmamoğlu', 'Karataş', 'Karaisalı', 'Pozantı', 'Yumurtalık', 
+    'Tufanbeyli', 'Feke', 'Aladağ', 'Saimbeyli'
+  ],
   'İstanbul': [
     'Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 
     'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 
@@ -157,10 +161,82 @@ const CITY_DISTRICTS: Record<string, string[]> = {
   ]
 };
 
+const ADANA_NEIGHBORHOODS: Record<string, string[]> = {
+  'Seyhan': [
+    'Ziyapaşa', 'Cemalpaşa', 'Reşatbey', 'Gazipaşa', 'Kurtuluş',
+    'Yeşilyurt', 'Tellidere', 'Fatih', 'Pınar', 'Gürselpaşa',
+    'Sümer', 'Meydan', 'Şakirpaşa', 'Fevzipaşa', 'Döşeme',
+    'Kuruköprü', 'Namık Kemal', 'Denizli', 'Narlıca', 'Barış'
+  ],
+  'Çukurova': [
+    'Güzelyalı', 'Beyazevler', 'Huzurevleri', 'Karslılar',
+    'Kurttepe', 'Mahfesığmaz', 'Toros', 'Yurt', 'Yüzüncüyıl',
+    'Esentepe', 'Belediye Evleri', 'Şambayadı', 'Karahan', 'Kocatepe'
+  ],
+  'Yüreğir': [
+    'Kışla', 'Yavuzlar', 'Köprülü', 'Akıncılar', 'Sinanpaşa',
+    'Selahattin Eyyubi', 'Karşıyaka', 'Atakent', 'Serinevler',
+    'PTT Evleri', 'Cumhuriyet', 'Anadolu', 'Danalı', 'Geçitli'
+  ],
+  'Sarıçam': [
+    'Mehmet Akif Ersoy', 'Yıldırım Beyazıt', 'Orhangazi',
+    'Yavuz Sultan Selim', 'Beyceli', 'Çarkıpare', 'Sofudede',
+    'Boynuyoğun', 'Buruk', 'Suluca', 'Yeşiltepe', 'Göztepe'
+  ],
+  'Ceyhan': [
+    'Namık Kemal', 'Cumhuriyet', 'Hürriyet', 'İstiklal',
+    'Büyükkırım', 'Fatih', 'Şahin Özbilen', 'Mithatpaşa',
+    'Kösreli', 'Mercimek', 'Mustafabeyli', 'Doruk'
+  ],
+  'Kozan': [
+    'Varsaklar', 'Tufanpaşa', 'Karacaoğlan', 'Şevkiye',
+    'Arslanpaşa', 'Türkeli', 'Cumhuriyet', 'Hacıuşağı',
+    'Tepecik', 'Güneri', 'Deliçay', 'Hacıbeyli'
+  ],
+  'İmamoğlu': [
+    'Cumhuriyet', 'Fatih', 'Hürriyet', 'Saygeçit',
+    'Tuna', 'Adalet', 'Yenievler', 'Alaybeyi'
+  ],
+  'Karataş': [
+    'Kemaliye', 'Yeni Mahalle', 'Karşıyaka', 'Bahçe',
+    'Tuzla', 'Bebeli', 'Adalı', 'Sirkenli'
+  ],
+  'Karaisalı': [
+    'Selampınar', 'Karapınar', 'Yeni Mahalle', 'Karakılıç',
+    'Çatalan', 'Körkuyu', 'Kızıldağ', 'Beydemir'
+  ],
+  'Pozantı': [
+    'Zafer', 'Cumhuriyet', 'İstiklal', 'Kurtuluş',
+    'Kamışlı', 'Akçatekir', 'Bürümcek', 'Yazıcak'
+  ],
+  'Yumurtalık': [
+    'Ayas', 'Kemaliye', 'Akdeniz', 'Zeytinbeli',
+    'Gölovası', 'Kaldırım', 'Yeşilköy'
+  ],
+  'Tufanbeyli': [
+    'İstiklal', 'Cumhuriyet', 'Yeni Mahalle', 'Bozyer',
+    'Yamanlar', 'Pekmezci', 'Ortaköy'
+  ],
+  'Feke': [
+    'Karasağan', 'İslam Mah.', 'Güzle', 'Tapan',
+    'Keklikçi', 'Sülemişli', 'Oruçlu'
+  ],
+  'Aladağ': [
+    'Sinanpaşa', 'Mansurlu', 'Akören', 'Karsantı',
+    'Gerdibi', 'Yetimli', 'Büyüksofulu'
+  ],
+  'Saimbeyli': [
+    'İslam Mah.', 'Fatih', 'Yardibi', 'Karakuyu',
+    'Himmetli', 'Değirmenciuşağı', 'Çeralar'
+  ]
+};
+
 export function resolveCityFromDistrict(district?: any): string {
   if (!district || typeof district !== 'string') return 'İstanbul';
   const adanaDistricts = [
-    'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'
+    'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'kozan', 
+    'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 'yumurtalık', 
+    'tufanbeyli', 'feke', 'aladağ', 'saimbeyli'
   ];
   const istanbulDistricts = [
     'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 'bakırköy', 'ataşehir', 'beylikdüzü'
@@ -1673,14 +1749,28 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               <option value="">İlçe Seçiniz</option>
               {addressCity && CITY_DISTRICTS[addressCity].map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <input
-              type="text"
-              placeholder="Mahalle veya açık adres (Örn: Kızılay Mah.)"
-              value={addressNeighborhood}
-              onChange={(e) => setAddressNeighborhood(e.target.value)}
-              disabled={!addressDistrict}
-              className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
-            />
+            {addressCity === "Adana" ? (
+              <select
+                value={addressNeighborhood}
+                onChange={(e) => setAddressNeighborhood(e.target.value)}
+                disabled={!addressDistrict}
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                <option value="">Mahalle / Köy Seçiniz</option>
+                {addressDistrict && ADANA_NEIGHBORHOODS[addressDistrict]?.map(m => (
+                  <option key={m} value={m}>{m} Mah.</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                placeholder="Mahalle veya açık adres (Örn: Kızılay Mah.)"
+                value={addressNeighborhood}
+                onChange={(e) => setAddressNeighborhood(e.target.value)}
+                disabled={!addressDistrict}
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+              />
+            )}
             <button
               onClick={() => {
                 const addr = JSON.stringify({ city: addressCity, district: addressDistrict, neighborhood: addressNeighborhood });

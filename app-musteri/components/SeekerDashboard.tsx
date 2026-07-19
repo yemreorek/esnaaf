@@ -44,7 +44,9 @@ import {
 export function resolveCityFromDistrict(district?: string): string {
   if (!district) return 'İstanbul';
   const adanaDistricts = [
-    'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'
+    'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'kozan', 
+    'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 'yumurtalık', 
+    'tufanbeyli', 'feke', 'aladağ', 'saimbeyli'
   ];
   const istanbulDistricts = [
     'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 'bakırköy', 'ataşehir', 'beylikdüzü'

@@ -56,7 +56,11 @@ export function getUrgentDates() {
 @Injectable()
 export class ChatService {
   private CITY_DISTRICTS: Record<string, string[]> = {
-    'Adana': ['çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'seyhan'],
+    'Adana': [
+      'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'kozan', 
+      'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 'yumurtalık', 
+      'tufanbeyli', 'feke', 'aladağ', 'saimbeyli'
+    ],
     'İstanbul': [
       'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 
       'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 
@@ -75,7 +79,9 @@ export class ChatService {
   };
 
   private DISTRICT_CAPITALIZATION: Record<string, string> = {
-    'çukurova': 'Çukurova', 'yüreğir': 'Yüreğir', 'sarıçam': 'Sarıçam', 'ceyhan': 'Ceyhan', 'seyhan': 'Seyhan',
+    'seyhan': 'Seyhan', 'çukurova': 'Çukurova', 'yüreğir': 'Yüreğir', 'sarıçam': 'Sarıçam', 'ceyhan': 'Ceyhan', 
+    'kozan': 'Kozan', 'imamoğlu': 'İmamoğlu', 'karataş': 'Karataş', 'karaisalı': 'Karaisalı', 'pozantı': 'Pozantı', 
+    'yumurtalık': 'Yumurtalık', 'tufanbeyli': 'Tufanbeyli', 'feke': 'Feke', 'aladağ': 'Aladağ', 'saimbeyli': 'Saimbeyli',
     'kadıköy': 'Kadıköy', 'şişli': 'Şişli', 'beşiktaş': 'Beşiktaş', 'ümraniye': 'Ümranıye', 'üsküdar': 'Üsküdar', 
     'fatih': 'Fatih', 'beyoğlu': 'Beyoğlu', 'sarıyer': 'Sarıyer', 'maltepe': 'Maltepe', 'kartal': 'Kartal', 
     'pendik': 'Pendik', 'başakşehir': 'Başakşehir', 'esenyurt': 'Esenyurt', 'bahçelievler': 'Bahçelievler', 
