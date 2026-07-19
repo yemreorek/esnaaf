@@ -573,6 +573,22 @@ export default function ProviderDashboard() {
   const [editCity, setEditCity] = useState('');
   const [editDistricts, setEditDistricts] = useState('');
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>([]);
+  const [citiesDistricts, setCitiesDistricts] = useState<Record<string, string[]>>(CITIES_DISTRICTS);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch('/api/ortak/konumlar');
+        const resData = await res.json();
+        if (res.ok && resData.success && resData.data) {
+          setCitiesDistricts(resData.data);
+        }
+      } catch (err) {
+        console.error("Fetch locations failed:", err);
+      }
+    };
+    fetchLocations();
+  }, []);
   const [editBio, setEditBio] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   
@@ -6111,19 +6127,18 @@ export default function ProviderDashboard() {
                       className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors cursor-pointer"
                     >
                       <option value="">İl Seçiniz</option>
-                      <option value="Adana">Adana</option>
-                      <option value="Ankara">Ankara</option>
-                      <option value="İstanbul">İstanbul</option>
-                      <option value="İzmir">İzmir</option>
+                      {Object.keys(citiesDistricts).map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
                     </select>
                   </div>
 
                   {/* District selection */}
-                  {editCity && CITIES_DISTRICTS[editCity] && (
+                  {editCity && citiesDistricts[editCity] && (
                     <div className="space-y-3">
                       <label className="block text-xs font-extrabold text-slate-700">Hizmet Verdiğiniz İlçeler</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                        {CITIES_DISTRICTS[editCity].map((district) => {
+                        {citiesDistricts[editCity].map((district) => {
                           const isChecked = selectedDistricts.includes(district);
                           return (
                             <label

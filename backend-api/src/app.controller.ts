@@ -1,6 +1,7 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './common/decorators';
+import { CITIES_DISTRICTS } from './common/constants/locations.constant';
 
 @Controller()
 export class AppController {
@@ -27,6 +28,15 @@ export class AppController {
       success: true,
       message: 'Sistem sağlıklı bir şekilde çalışıyor.',
       ...health,
+    };
+  }
+
+  @Public()
+  @Get('api/ortak/konumlar')
+  getLocations() {
+    return {
+      success: true,
+      data: CITIES_DISTRICTS
     };
   }
 }

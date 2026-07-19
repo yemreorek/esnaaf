@@ -4,6 +4,7 @@ import * as Bull from 'bull';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ChatGateway } from '../../ortak/chat/chat.gateway';
 import { BildirimService } from '../../ortak/bildirimler/bildirim.service';
+import { CITIES_DISTRICTS } from '../../common/constants/locations.constant';
 
 @Processor('talepler-distribution')
 @Injectable()
@@ -156,19 +157,7 @@ export class TaleplerProcessor {
       const providerCity = provider.city || 'Adana';
       let providerDistricts = provider.service_districts || [];
       if (providerDistricts.length === 0) {
-        if (providerCity === 'İstanbul') {
-          providerDistricts = ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'];
-        } else if (providerCity === 'Ankara') {
-          providerDistricts = ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'];
-        } else if (providerCity === 'İzmir') {
-          providerDistricts = ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla'];
-        } else {
-          providerDistricts = [
-            'Seyhan', 'Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Kozan', 
-            'İmamoğlu', 'Karataş', 'Karaisalı', 'Pozantı', 'Yumurtalık', 
-            'Tufanbeyli', 'Feke', 'Aladağ', 'Saimbeyli'
-          ];
-        }
+        providerDistricts = CITIES_DISTRICTS[providerCity] || CITIES_DISTRICTS['Adana'];
       }
 
       // Çoklu Şehir Sınır Koruması: Talebin ili ile hizmet verenin ili eşleşmeli
