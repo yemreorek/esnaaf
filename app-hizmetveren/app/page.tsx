@@ -3177,6 +3177,11 @@ export default function ProviderDashboard() {
             <div className="space-y-8 animate-scale-up text-left">
               {/* VIP/Basic/Standard/Free Membership Active Banner */}
               {quota && (() => {
+                const freePkg = availablePackages.find(p => p.type === 'free') || { commissionRate: 10, activeJobsLimit: 1, delayMinutes: 15 };
+                const basicPkg = availablePackages.find(p => p.type === 'basic') || { commissionRate: 7, activeJobsLimit: 3, delayMinutes: 10 };
+                const standardPkg = availablePackages.find(p => p.type === 'standard') || { commissionRate: 5, activeJobsLimit: 5, delayMinutes: 5 };
+                const vipPkg = availablePackages.find(p => p.type === 'vip') || { commissionRate: 3, activeJobsLimit: 7, delayMinutes: 0 };
+
                 const isFree = quota.packageName.includes('Ücretsiz') || quota.limit === 1;
                 const isBasic = quota.packageName.includes('Basic');
                 const isStandard = quota.packageName.includes('Standart') || quota.packageName.includes('Standard');
@@ -3192,12 +3197,12 @@ export default function ProviderDashboard() {
                         </h4>
                       </div>
                       <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                        Yeni ilanları <strong>15 dakika gecikmeyle</strong> görüyorsunuz. Hemen teklif verip yeni bir iş kapmak için paketinizi yükselterek bu gecikmeyi sıfırlayabilirsiniz!
+                        Yeni ilanları <strong>{freePkg.delayMinutes} dakika gecikmeyle</strong> görüyorsunuz. Hemen teklif verip yeni bir iş kapmak için paketinizi yükselterek bu gecikmeyi sıfırlayabilirsiniz!
                       </p>
                       <div className="bg-red-50 border border-red-200/80 p-4 rounded-2xl text-red-950 font-extrabold text-[11px] leading-relaxed shadow-[0_2px_8px_rgba(239,68,68,0.02)]">
                         🚨 <strong>DİKKAT EDİLMESİ GEREKENLER (ÜCRETSİZ LİMİTİ):</strong>
                         <br />
-                        Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi 1 adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %10 komisyon tahsil edilir. İlanların hiç kapanmaması ve anlık gelmesi için paketinizi yükseltebilirsiniz.
+                        Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi {freePkg.activeJobsLimit} adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %{freePkg.commissionRate} komisyon tahsil edilir. İlanların hiç kapanmaması ve anlık gelmesi için paketinizi yükseltebilirsiniz.
                       </div>
                       <div className="flex justify-end pt-1">
                         <button 
@@ -3221,12 +3226,12 @@ export default function ProviderDashboard() {
                         </h4>
                       </div>
                       <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                        Basic paket ile aynı anda en fazla 3 aktif iş yürütebilir ve yeni ilanları <strong>10 dakika gecikmeyle</strong> görürsünüz.
+                        Basic paket ile aynı anda en fazla {basicPkg.activeJobsLimit} aktif iş yürütebilir ve yeni ilanları <strong>{basicPkg.delayMinutes} dakika gecikmeyle</strong> görürsünüz.
                       </p>
                       <div className="bg-white/80 border border-blue-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
                         🚀 <strong>DAHA FAZLA İLAN VE DÜŞÜK KOMİSYON AVANTAJI:</strong>
                         <br />
-                        Standart pakete geçerek kapasitenizi 5 aktif işe çıkarıp gecikme sürenizi 5 dakikaya düşürebilir, komisyonunuzu %7'ye indirebilirsiniz. Veya VIP pakete geçerek 7 aktif iş kapasitesi, 0 dakika gecikme, %5 en düşük komisyon oranı ve tekliflerinizin daima en üst sırada gösterilmesini sağlayan <strong>VIP rozeti</strong> elde edebilirsiniz!
+                        Standart pakete geçerek kapasitenizi {standardPkg.activeJobsLimit} aktif işe çıkarıp gecikme sürenizi {standardPkg.delayMinutes} dakikaya düşürebilir, komisyonunuzu %{standardPkg.commissionRate}'e indirebilirsiniz. Veya VIP pakete geçerek {vipPkg.activeJobsLimit} aktif iş kapasitesi, {vipPkg.delayMinutes} dakika gecikme, %{vipPkg.commissionRate} en düşük komisyon oranı ve tekliflerinizin daima en üst sırada gösterilmesini sağlayan <strong>VIP rozeti</strong> elde edebilirsiniz!
                       </div>
                       <div className="flex justify-end pt-1">
                         <button 
@@ -3250,12 +3255,12 @@ export default function ProviderDashboard() {
                         </h4>
                       </div>
                       <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                        Standart paket ile aynı anda en fazla 5 aktif iş yürütebilir ve yeni ilanları <strong>5 dakika gecikmeyle</strong> görürsünüz.
+                        Standart paket ile aynı anda en fazla {standardPkg.activeJobsLimit} aktif iş yürütebilir ve yeni ilanları <strong>{standardPkg.delayMinutes} dakika gecikmeyle</strong> görürsünüz.
                       </p>
                       <div className="bg-white/80 border border-indigo-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
                         🏆 <strong>EN YÜKSEK PREMİUM AVANTAJ (VIP ÜYELİK):</strong>
                         <br />
-                        VIP pakete geçiş yaparak kapasitenizi maksimum sınır olan 7 aktif işe yükseltebilir, gecikme sürenizi 0 dakikaya (anlık akışa) çekebilir, komisyon oranınızı en düşük oran olan %5'e düşürebilir ve tekliflerinize eklenen VIP rozeti ile rakiplerinizin daima önünde listelenme avantajını elde edebilirsiniz!
+                        VIP pakete geçiş yaparak kapasitenizi maksimum sınır olan {vipPkg.activeJobsLimit} aktif işe yükseltebilir, gecikme sürenizi {vipPkg.delayMinutes} dakikaya (anlık akışa) çekebilir, komisyon oranınızı en düşük oran olan %{vipPkg.commissionRate}'e düşürebilir ve tekliflerinize eklenen VIP rozeti ile rakiplerinizin daima önünde listelenme avantajını elde edebilirsiniz!
                       </div>
                       <div className="flex justify-end pt-1">
                         <button 
@@ -3279,7 +3284,7 @@ export default function ProviderDashboard() {
                         </h4>
                       </div>
                       <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                        Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Yeni ilanları <strong>anlık (0 dakika gecikmeyle)</strong> görüyorsunuz. Aynı anda 7 aktif iş kapasitesi, %5 en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
+                        Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Yeni ilanları <strong>anlık ({vipPkg.delayMinutes} dakika gecikmeyle)</strong> görüyorsunuz. Aynı anda {vipPkg.activeJobsLimit} aktif iş kapasitesi, %{vipPkg.commissionRate} en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
                       </p>
                     </div>
                   );
@@ -3888,6 +3893,11 @@ export default function ProviderDashboard() {
             return (
               <>
                 {quota && (() => {
+                  const freePkg = availablePackages.find(p => p.type === 'free') || { commissionRate: 10, activeJobsLimit: 1, delayMinutes: 15 };
+                  const basicPkg = availablePackages.find(p => p.type === 'basic') || { commissionRate: 7, activeJobsLimit: 3, delayMinutes: 10 };
+                  const standardPkg = availablePackages.find(p => p.type === 'standard') || { commissionRate: 5, activeJobsLimit: 5, delayMinutes: 5 };
+                  const vipPkg = availablePackages.find(p => p.type === 'vip') || { commissionRate: 3, activeJobsLimit: 7, delayMinutes: 0 };
+
                   const isFree = quota.packageName.includes('Ücretsiz') || quota.limit === 1;
                   const isBasic = quota.packageName.includes('Basic');
                   const isStandard = quota.packageName.includes('Standart') || quota.packageName.includes('Standard');
@@ -3903,12 +3913,12 @@ export default function ProviderDashboard() {
                           </h4>
                         </div>
                         <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                          Yeni ilanları <strong>15 dakika gecikmeyle</strong> görüyorsunuz. Hemen teklif verip yeni bir iş kapmak için paketinizi yükselterek bu gecikmeyi sıfırlayabilirsiniz!
+                          Yeni ilanları <strong>{freePkg.delayMinutes} dakika gecikmeyle</strong> görüyorsunuz. Hemen teklif verip yeni bir iş kapmak için paketinizi yükselterek bu gecikmeyi sıfırlayabilirsiniz!
                         </p>
                         <div className="bg-red-50 border border-red-200/80 p-4 rounded-2xl text-red-950 font-extrabold text-[11px] leading-relaxed shadow-[0_2px_8px_rgba(239,68,68,0.02)]">
                           🚨 <strong>DİKKAT EDİLMESİ GEREKENLER (ÜCRETSİZ LİMİTİ):</strong>
                           <br />
-                          Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi 1 adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %10 komisyon tahsil edilir. İlanların hiç kapanmaması ve anlık gelmesi için paketinizi yükseltebilirsiniz.
+                          Ücretsiz pakette aynı anda kazanabileceğiniz maksimum aktif iş kapasitesi {freePkg.activeJobsLimit} adettir. Teklifiniz müşteri tarafından kabul edilip 1 iş kazandığınızda, yeni ilan akışı siz bu işi tamamlayıp onaylayana kadar tamamen kilitlenecektir. Ayrıca bu işten %{freePkg.commissionRate} komisyon tahsil edilir. İlanların hiç kapanmaması ve anlık gelmesi için paketinizi yükseltebilirsiniz.
                         </div>
                         <div className="flex justify-end pt-1">
                           <button 
@@ -3932,12 +3942,12 @@ export default function ProviderDashboard() {
                           </h4>
                         </div>
                         <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                          Basic paket ile aynı anda en fazla 3 aktif iş yürütebilir ve yeni ilanları <strong>10 dakika gecikmeyle</strong> görürsünüz.
+                          Basic paket ile aynı anda en fazla {basicPkg.activeJobsLimit} aktif iş yürütebilir ve yeni ilanları <strong>{basicPkg.delayMinutes} dakika gecikmeyle</strong> görürsünüz.
                         </p>
                         <div className="bg-white/80 border border-blue-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
                           🚀 <strong>DAHA FAZLA İLAN VE DÜŞÜK KOMİSYON AVANTAJI:</strong>
                           <br />
-                          Standart pakete geçerek kapasitenizi 5 aktif işe çıkarıp gecikme sürenizi 5 dakikaya düşürebilir, komisyonunuzu %7'ye indirebilirsiniz. Veya VIP pakete geçerek 7 aktif iş kapasitesi, 0 dakika gecikme, %5 en düşük komisyon oranı ve tekliflerinizin daima en üst sırada gösterilmesini sağlayan <strong>VIP rozeti</strong> elde edebilirsiniz!
+                          Standart pakete geçerek kapasitenizi {standardPkg.activeJobsLimit} aktif işe çıkarıp gecikme sürenizi {standardPkg.delayMinutes} dakikaya düşürebilir, komisyonunuzu %{standardPkg.commissionRate}'e indirebilirsiniz. Veya VIP pakete geçerek {vipPkg.activeJobsLimit} aktif iş kapasitesi, {vipPkg.delayMinutes} dakika gecikme, %{vipPkg.commissionRate} en düşük komisyon oranı ve tekliflerinizin daima en üst sırada gösterilmesini sağlayan <strong>VIP rozeti</strong> elde edebilirsiniz!
                         </div>
                         <div className="flex justify-end pt-1">
                           <button 
@@ -3961,12 +3971,12 @@ export default function ProviderDashboard() {
                           </h4>
                         </div>
                         <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                          Standart paket ile aynı anda en fazla 5 aktif iş yürütebilir ve yeni ilanları <strong>5 dakika gecikmeyle</strong> görürsünüz.
+                          Standart paket ile aynı anda en fazla {standardPkg.activeJobsLimit} aktif iş yürütebilir ve yeni ilanları <strong>{standardPkg.delayMinutes} dakika gecikmeyle</strong> görürsünüz.
                         </p>
                         <div className="bg-white/80 border border-indigo-100 p-4 rounded-2xl text-slate-800 text-[11px] font-semibold leading-relaxed">
                           🏆 <strong>EN YÜKSEK PREMİUM AVANTAJ (VIP ÜYELİK):</strong>
                           <br />
-                          VIP pakete geçiş yaparak kapasitenizi maksimum sınır olan 7 aktif işe yükseltebilir, gecikme sürenizi 0 dakikaya (anlık akışa) çekebilir, komisyon oranınızı en düşük oran olan %5'e düşürebilir ve tekliflerinize eklenen VIP rozeti ile rakiplerinizin daima önünde listelenme avantajını elde edebilirsiniz!
+                          VIP pakete geçiş yaparak kapasitenizi maksimum sınır olan {vipPkg.activeJobsLimit} aktif işe yükseltebilir, gecikme sürenizi {vipPkg.delayMinutes} dakikaya (anlık akışa) çekebilir, komisyon oranınızı en düşük oran olan %{vipPkg.commissionRate}'e düşürebilir ve tekliflerinize eklenen VIP rozeti ile rakiplerinizin daima önünde listelenme avantajını elde edebilirsiniz!
                         </div>
                         <div className="flex justify-end pt-1">
                           <button 
@@ -3990,7 +4000,7 @@ export default function ProviderDashboard() {
                           </h4>
                         </div>
                         <p className="text-slate-700 text-xs font-semibold leading-relaxed">
-                          Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Yeni ilanları <strong>anlık (0 dakika gecikmeyle)</strong> görüyorsunuz. Aynı anda 7 aktif iş kapasitesi, %5 en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
+                          Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Yeni ilanları <strong>anlık ({vipPkg.delayMinutes} dakika gecikmeyle)</strong> görüyorsunuz. Aynı anda {vipPkg.activeJobsLimit} aktif iş kapasitesi, %{vipPkg.commissionRate} en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
                         </p>
                       </div>
                     );
