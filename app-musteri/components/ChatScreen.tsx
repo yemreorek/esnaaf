@@ -1811,9 +1811,14 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                 className="w-full bg-white border border-slate-200 rounded-xl p-3 outline-none focus:border-[#c8f252] text-sm text-slate-900 font-semibold disabled:bg-slate-100 disabled:text-slate-400"
               >
                 <option value="">Mahalle / Köy Seçiniz</option>
-                {addressDistrict && ADANA_NEIGHBORHOODS[addressDistrict]?.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
+                {addressDistrict && (() => {
+                  const list = ADANA_NEIGHBORHOODS[addressDistrict] || [];
+                  const neighborhoods = list.filter(m => !m.toLowerCase().includes('köy'));
+                  const villages = list.filter(m => m.toLowerCase().includes('köy'));
+                  return [...neighborhoods, ...villages].map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ));
+                })()}
               </select>
             ) : (
               <input
