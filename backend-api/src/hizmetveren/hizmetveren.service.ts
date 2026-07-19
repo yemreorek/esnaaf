@@ -459,7 +459,7 @@ export class HizmetverenService {
    * Hizmet verenin profil detaylarını döner
    */
   async getProfile(providerUserId: string) {
-    const cacheKey = `provider:profile:v2:${providerUserId}`;
+    const cacheKey = `provider:profile:v3:${providerUserId}`;
     return this.redis.getOrSet(cacheKey, async () => {
       const provider = await this.prisma.serviceProvider.findUnique({
         where: { user_id: providerUserId },
@@ -487,10 +487,21 @@ export class HizmetverenService {
 
       const healthScore = await this.calculateProviderHealthScore(provider.id, provider);
 
+      const categories = await this.prisma.category.findMany({
+        where: {
+          id: { in: provider.category_ids },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
       return {
         id: provider.id,
         userId: provider.user_id,
         name: provider.user.name || 'Hizmet Veren',
+        phone: decryptPhone(provider.user.phone),
         phone_masked: provider.user.phone_masked,
         city: provider.city || 'Adana',
         serviceDistricts: provider.service_districts || [],
@@ -508,6 +519,7 @@ export class HizmetverenService {
         email: provider.email || provider.user.email || '',
         emailVerified: provider.email_verified,
         hasPassword: !!provider.password_hash,
+        categories: categories || [],
       };
     }, 600); // Cache for 10 minutes
   }

@@ -557,6 +557,13 @@ interface Quota {
   remaining: number | null;
 }
 
+const CITIES_DISTRICTS: Record<string, string[]> = {
+  "Adana": ['Seyhan', 'Çukurova', 'Yüreğir', 'Sarıçam', 'Ceyhan', 'Kozan', 'İmamoğlu', 'Karataş', 'Karaisalı', 'Pozantı', 'Yumurtalık', 'Tufanbeyli', 'Feke', 'Aladağ', 'Saimbeyli'],
+  "Ankara": ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Gölbaşı', 'Pursaklar'],
+  "İstanbul": ['Kadıköy', 'Şişli', 'Beşiktaş', 'Ümraniye', 'Üsküdar', 'Fatih', 'Beyoğlu', 'Sarıyer', 'Maltepe', 'Kartal', 'Pendik', 'Başakşehir', 'Esenyurt', 'Bahçelievler', 'Bakırköy', 'Ataşehir', 'Beylikdüzü'],
+  "İzmir": ['Karşıyaka', 'Konak', 'Bornova', 'Buca', 'Karabağlar', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe', 'Bayraklı', 'Urla']
+};
+
 export default function ProviderDashboard() {
   const [selectedPhone, setSelectedPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -565,6 +572,7 @@ export default function ProviderDashboard() {
   const [editName, setEditName] = useState('');
   const [editCity, setEditCity] = useState('');
   const [editDistricts, setEditDistricts] = useState('');
+  const [selectedDistricts, setSelectedDistricts] = useState<string[]>([]);
   const [editBio, setEditBio] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   
@@ -1609,6 +1617,7 @@ export default function ProviderDashboard() {
         setEditName(profileData.name || '');
         setEditCity(profileData.city || '');
         setEditDistricts(profileData.serviceDistricts ? profileData.serviceDistricts.join(', ') : '');
+        setSelectedDistricts(profileData.serviceDistricts || []);
         setEditBio(profileData.bio || '');
         setEditEmail(profileData.email || '');
         if (!profileData.hasPassword) {
@@ -1682,7 +1691,7 @@ export default function ProviderDashboard() {
         body: JSON.stringify({
           name: editName,
           city: editCity,
-          serviceDistricts: editDistricts.split(',').map(s => s.trim()).filter(Boolean),
+          serviceDistricts: selectedDistricts,
           description: editBio
         })
       });
@@ -6025,6 +6034,11 @@ export default function ProviderDashboard() {
               </div>
 
               <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="text-left">
+                  <h3 className="font-extrabold text-slate-900 text-sm">Temel Bilgiler</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Adınız ve tanıtım bilgileriniz müşterilere gösterilecektir.</p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name field */}
                   <div className="space-y-1.5">
@@ -6039,35 +6053,19 @@ export default function ProviderDashboard() {
                     />
                   </div>
 
-                  {/* City field */}
+                  {/* Disabled Phone field */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-extrabold text-slate-700">Şehir</label>
+                    <label className="block text-xs font-extrabold text-slate-400">Kayıtlı Telefon Numarası</label>
                     <input
                       type="text"
-                      value={editCity}
-                      onChange={(e) => setEditCity(e.target.value)}
-                      placeholder="Örn: İstanbul"
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
-                      required
+                      value={profile?.phone || ''}
+                      disabled
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 outline-none text-xs font-bold text-slate-400 cursor-not-allowed"
                     />
+                    <span className="text-[9px] text-slate-400 font-semibold block leading-relaxed">
+                      Telefon numaranızı güncellemek için kayıtlı e-posta adresiniz ile <a href="mailto:destek@esnaaf.com" className="text-[#4c630a] font-bold hover:underline">destek@esnaaf.com</a> adresine başvurmalısınız.
+                    </span>
                   </div>
-                </div>
-
-                {/* Service Districts field */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-extrabold text-slate-700">
-                    Hizmet Verdiğiniz İlçeler (Virgülle ayırın)
-                  </label>
-                  <input
-                    type="text"
-                    value={editDistricts}
-                    onChange={(e) => setEditDistricts(e.target.value)}
-                    placeholder="Örn: Kadıköy, Beşiktaş, Üsküdar"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors"
-                  />
-                  <span className="text-[10px] text-slate-400 font-semibold block">
-                    Birden fazla ilçe girmek için aralarına virgül koyarak yazabilirsiniz.
-                  </span>
                 </div>
 
                 {/* Biography/Description field */}
@@ -6088,8 +6086,118 @@ export default function ProviderDashboard() {
                     disabled={isSavingProfile}
                     className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
                   >
-                    {isSavingProfile ? 'Güncelleniyor...' : 'Değişiklikleri Kaydet'}
+                    {isSavingProfile ? 'Güncelleniyor...' : 'Kişisel Bilgileri Kaydet'}
                   </button>
+                </div>
+              </div>
+
+              {/* Konum Tercihleri (İl ve İlçe Seçimi) */}
+              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="text-left">
+                  <h3 className="font-extrabold text-slate-900 text-sm">Konum Tercihleri</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Hizmet verdiğiniz ili ve bu ile bağlı çalışmak istediğiniz ilçeleri seçin.</p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* City selection */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-slate-700">Hizmet Verdiğiniz İl</label>
+                    <select
+                      value={editCity}
+                      onChange={(e) => {
+                        setEditCity(e.target.value);
+                        setSelectedDistricts([]); // Reset districts on city change
+                      }}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-xl p-3 outline-none text-xs font-bold text-slate-850 transition-colors cursor-pointer"
+                    >
+                      <option value="">İl Seçiniz</option>
+                      <option value="Adana">Adana</option>
+                      <option value="Ankara">Ankara</option>
+                      <option value="İstanbul">İstanbul</option>
+                      <option value="İzmir">İzmir</option>
+                    </select>
+                  </div>
+
+                  {/* District selection */}
+                  {editCity && CITIES_DISTRICTS[editCity] && (
+                    <div className="space-y-3">
+                      <label className="block text-xs font-extrabold text-slate-700">Hizmet Verdiğiniz İlçeler</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {CITIES_DISTRICTS[editCity].map((district) => {
+                          const isChecked = selectedDistricts.includes(district);
+                          return (
+                            <label
+                              key={district}
+                              className={`flex items-center gap-2.5 p-3 rounded-2xl border transition-all cursor-pointer select-none text-xs font-bold ${
+                                isChecked
+                                  ? 'bg-[#c8f252]/10 border-[#c8f252]/50 text-slate-900 shadow-sm'
+                                  : 'bg-slate-50/50 border-slate-100 text-slate-500 hover:bg-slate-50 hover:border-slate-200'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedDistricts([...selectedDistricts, district]);
+                                  } else {
+                                    setSelectedDistricts(selectedDistricts.filter((d) => d !== district));
+                                  }
+                                }}
+                                className="w-4 h-4 rounded text-[#4c630a] focus:ring-[#4c630a]/20 border-slate-300 accent-[#4c630a] cursor-pointer"
+                              />
+                              <span>{district}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-semibold block leading-relaxed bg-[#c8f252]/5 border border-[#c8f252]/10 p-3.5 rounded-2xl">
+                        💡 <strong>Önemli Entegrasyon:</strong> Sistemdeki yeni iş teklifleri konum duyarlıdır. Sadece seçtiğiniz ilçe sınırlarında gelen ilanlar paneline düşecek, seçmediğiniz bölgelerden gelen teklifler filtrelenerek size iletilmeyecektir.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile || !editCity}
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    {isSavingProfile ? 'Güncelleniyor...' : 'Konum Tercihlerini Kaydet'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Hizmet Profilleri Bölümü */}
+              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                <div className="text-left">
+                  <h3 className="font-extrabold text-slate-900 text-sm">Hizmet Profillerim</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Sistemde hizmet verdiğiniz uzmanlık alanları ve kategoriler.</p>
+                </div>
+
+                {profile?.categories && profile.categories.length > 0 ? (
+                  <div className="flex flex-wrap gap-2.5 pt-1">
+                    {profile.categories.map((cat: any) => (
+                      <span
+                        key={cat.id}
+                        className="bg-slate-100 text-slate-800 border border-slate-200/50 px-4 py-2.5 rounded-2xl text-xs font-black flex items-center gap-1.5"
+                      >
+                        💼 {cat.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-slate-400 font-semibold text-xs bg-slate-50 rounded-2xl border border-slate-100">
+                    Kayıtlı bir hizmet profiliniz bulunmamaktadır.
+                  </div>
+                )}
+
+                <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
+                  <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
+                    ⚙️ Hizmet alanlarınızı/sektörlerinizi değiştirmek, yeni uzmanlık eklemek veya mevcut olanları çıkartmak için kayıtlı e-posta adresiniz üzerinden <a href="mailto:destek@esnaaf.com" className="text-[#4c630a] font-bold hover:underline">destek@esnaaf.com</a> adresi ile iletişime geçebilirsiniz.
+                  </p>
                 </div>
               </div>
 
