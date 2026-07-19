@@ -163,71 +163,125 @@ const CITY_DISTRICTS: Record<string, string[]> = {
 
 const ADANA_NEIGHBORHOODS: Record<string, string[]> = {
   'Seyhan': [
-    'Ziyapaşa', 'Cemalpaşa', 'Reşatbey', 'Gazipaşa', 'Kurtuluş',
-    'Yeşilyurt', 'Tellidere', 'Fatih', 'Pınar', 'Gürselpaşa',
-    'Sümer', 'Meydan', 'Şakirpaşa', 'Fevzipaşa', 'Döşeme',
-    'Kuruköprü', 'Namık Kemal', 'Denizli', 'Narlıca', 'Barış'
+    'Akkapı Mah.', 'Alidede Mah.', 'Atakent Mah.', 'Barbaros Mah.', 'Barış Mah.', 
+    'Bey Mah.', 'Beyazevler Mah.', 'Cemalpaşa Mah.', 'Çınarlı Mah.', 'Dağlıoğlu Mah.', 
+    'Denizli Mah.', 'Döşeme Mah.', 'Fatih Mah.', 'Fevzipaşa Mah.', 'Gazipaşa Mah.', 
+    'Gülbahçesi Mah.', 'Gürselpaşa Mah.', 'Havuzlubahçe Mah.', 'Hürriyet Mah.', 'İstiklal Mah.', 
+    'Kayalıbağ Mah.', 'Karasoku Mah.', 'Kuruköprü Mah.', 'Kurtuluş Mah.', 'Mestanzade Mah.', 
+    'Meydan Mah.', 'Mirzaçelebi Mah.', 'Mithatpaşa Mah.', 'Namık Kemal Mah.', 'Narlıca Mah.', 
+    'Onur Mah.', 'Ovalı Mah.', 'Pınar Mah.', 'Reşatbey Mah.', 'Sakarya Mah.', 
+    'Sarıyakup Mah.', 'Sucuzade Mah.', 'Sümer Mah.', 'Şakirpaşa Mah.', 'Tepebağ Mah.', 
+    'Tellidere Mah.', 'Türkocağı Mah.', 'Uçak Mah.', 'Ulucami Mah.', 'Yenibey Mah.', 
+    'Yeşilyurt Mah.', 'Ziyapaşa Mah.',
+    'Karakuyu köyü Mah.', 'Karayusuflu köyü Mah.', 'Köylüoğlu köyü Mah.', 
+    'Mürseloğlu köyü Mah.', 'Salmanbeyli köyü Mah.', 'Zeytinli köyü Mah.',
+    'Zeytinli köyü Yeni Mah.'
   ],
   'Çukurova': [
-    'Güzelyalı', 'Beyazevler', 'Huzurevleri', 'Karslılar',
-    'Kurttepe', 'Mahfesığmaz', 'Toros', 'Yurt', 'Yüzüncüyıl',
-    'Esentepe', 'Belediye Evleri', 'Şambayadı', 'Karahan', 'Kocatepe'
+    'Belediye Evleri Mah.', 'Beyazevler Mah.', 'Esentepe Mah.', 'Güzelyalı Mah.', 
+    'Huzurevleri Mah.', 'Karslılar Mah.', 'Kocatepe Mah.', 'Kurttepe Mah.', 
+    'Mahfesığmaz Mah.', 'Salbaş Mah.', 'Toros Mah.', 'Yurt Mah.', 
+    'Yüzüncüyıl Mah.',
+    'Kabasakal köyü Mah.', 'Kabasakal köyü Rüzgarlı Mah.', 'Fadıl köyü Mah.', 
+    'Küçükçınar köyü Mah.', 'Örcün köyü Mah.', 'Şambayadı köyü Mah.',
+    'Karahan köyü Mah.', 'Karahan köyü Yusuflar Mah.', 'Karahan köyü TOKİ Evleri Mah.'
   ],
   'Yüreğir': [
-    'Kışla', 'Yavuzlar', 'Köprülü', 'Akıncılar', 'Sinanpaşa',
-    'Selahattin Eyyubi', 'Karşıyaka', 'Atakent', 'Serinevler',
-    'PTT Evleri', 'Cumhuriyet', 'Anadolu', 'Danalı', 'Geçitli'
+    '19 Mayıs Mah.', 'Akıncılar Mah.', 'Anadolu Mah.', 'Atakent Mah.', 'Cumhuriyet Mah.', 
+    'Çamlıbel Mah.', 'Dadaloğlu Mah.', 'Dede Korkut Mah.', 'Geçitli Mah.', 'Havuzlar Mah.', 
+    'Karşıyaka Mah.', 'Kışla Mah.', 'Kiremithane Mah.', 'Koza Mah.', 'Köprülü Mah.', 
+    'Mutlu Mah.', 'Özgür Mah.', 'PTT Evleri Mah.', 'Sarıçam Mah.', 'Selahattin Eyyubi Mah.', 
+    'Serinevler Mah.', 'Sinanpaşa Mah.', 'Ulubatlı Hasan Mah.', 'Yavuzlar Mah.', 
+    'Yenidoğan Mah.', 'Yeşilbağlar Mah.', 'Yunus Emre Mah.',
+    'Solaklı köyü Cumhuriyet Mah.', 'Solaklı köyü Hürriyet Mah.', 
+    'Doğankent köyü Cumhuriyet Mah.', 'Doğankent köyü Kışla Mah.', 
+    'Geçitli köyü Cumhuriyet Mah.', 'Geçitli köyü Hürriyet Mah.',
+    'Yakapınar köyü Cumhuriyet Mah.', 'Yakapınar köyü Hürriyet Mah.',
+    'Belören köyü Mah.', 'Havutlu köyü Yeşilada Mah.', 'Çotlu köyü Mah.', 
+    'Yunusoğlu köyü Hürriyet Mah.', 'Yunusoğlu köyü Cumhuriyet Mah.'
   ],
   'Sarıçam': [
-    'Mehmet Akif Ersoy', 'Yıldırım Beyazıt', 'Orhangazi',
-    'Yavuz Sultan Selim', 'Beyceli', 'Çarkıpare', 'Sofudede',
-    'Boynuyoğun', 'Buruk', 'Suluca', 'Yeşiltepe', 'Göztepe'
+    'Beyceli Mah.', 'Çarkıpare Mah.', 'Esentepe Mah.', 'Göztepe Mah.', 'Gültepe Mah.', 
+    'Kemalpaşa Mah.', 'Mehmet Akif Ersoy Mah.', 'Orhangazi Mah.', 'Sofudede Mah.', 
+    'Şahintepe Mah.', 'Yavuz Sultan Selim Mah.', 'Yeni Mahalle', 'Yıldırım Beyazıt Mah.', 
+    'Yeşiltepe Mah.',
+    'Buruk köyü Cumhuriyet Mah.', 'Buruk köyü İstiklal Mah.', 'Buruk köyü TOKİ Evleri Mah.',
+    'Suluca köyü Cumhuriyet Mah.', 'Suluca köyü Hürriyet Mah.', 
+    'Kürkçüler köyü Dağcı Mah.', 'Kürkçüler köyü Göztepe Mah.', 'Kürkçüler köyü Müminli Mah.', 
+    'Baklalı köyü Mah.', 'Cihadiye köyü Mah.', 'Yarımca köyü Mah.', 'Kargakeş köyü Mah.', 
+    'Hocallı köyü Mah.', 'Çirişgediği köyü Mah.', 'Bayramhacılı köyü Mah.'
   ],
   'Ceyhan': [
-    'Namık Kemal', 'Cumhuriyet', 'Hürriyet', 'İstiklal',
-    'Büyükkırım', 'Fatih', 'Şahin Özbilen', 'Mithatpaşa',
-    'Kösreli', 'Mercimek', 'Mustafabeyli', 'Doruk'
+    'Altıocak Mah.', 'Botaş Mah.', 'Büyükkırım Mah.', 'Cumhuriyet Mah.', 'Emek Mah.', 
+    'Esentepe Mah.', 'Fatih Mah.', 'Gaziosmanpaşa Mah.', 'Hürriyet Mah.', 'İstiklal Mah.', 
+    'Konakoğlu Mah.', 'Mithatpaşa Mah.', 'Muradiye Mah.', 'Namık Kemal Mah.', 'Sarısakal Mah.', 
+    'Şahin Özbilen Mah.', 'Ulus Mah.', 'Yarsuat Mah.',
+    'Mercimek köyü Cumhuriyet Mah.', 'Mercimek köyü Hürriyet Mah.', 
+    'Kösreli köyü Mah.', 'Mustafabeyli köyü Fatih Mah.', 'Mustafabeyli köyü Hürriyet Mah.',
+    'Doruk köyü Mah.', 'Kurtkulağı köyü Mah.', 'Hamdilli köyü Mah.', 'Birkent köyü Mah.', 
+    'Büyükmangıt köyü Mah.', 'Sirkeli köyü Mah.', 'Sağkaya köyü Mah.', 'Dokuztekne köyü Mah.', 
+    'Adapınar köyü Mah.'
   ],
   'Kozan': [
-    'Varsaklar', 'Tufanpaşa', 'Karacaoğlan', 'Şevkiye',
-    'Arslanpaşa', 'Türkeli', 'Cumhuriyet', 'Hacıuşağı',
-    'Tepecik', 'Güneri', 'Deliçay', 'Hacıbeyli'
+    'Arslanpaşa Mah.', 'Cumhuriyet Mah.', 'Çanaklı Mah.', 'Deliçay Mah.', 'Güneri Mah.', 
+    'Hacıbeyli Mah.', 'Hacıuşağı Mah.', 'Karacaoğlan Mah.', 'Mahmutlu Mah.', 'Şevkiye Mah.', 
+    'Tavşantepe Mah.', 'Tepecik Mah.', 'Tufanpaşa Mah.', 'Türkeli Mah.', 'Varsaklar Mah.',
+    'Yarıcak köyü Mah.', 'Pekmezci köyü Mah.', 'Bucak köyü Mah.', 'Gaziköy köyü Mah.', 
+    'Çürüklü köyü Mah.', 'Faydalı köyü Mah.', 'Hamamköy köyü Mah.', 'Ilıcaköy köyü Mah.', 
+    'Kuyubeli köyü Mah.', 'Postkabasakal köyü Mah.', 'Şerifli köyü Mah.', 'Göller Yaylası Mah.',
+    'Karahan köyü Yusuflar Mah.', 'Karahan köyü Mah.', 'Karahan köyü Cami Mah.'
   ],
   'İmamoğlu': [
-    'Cumhuriyet', 'Fatih', 'Hürriyet', 'Saygeçit',
-    'Tuna', 'Adalet', 'Yenievler', 'Alaybeyi'
+    'Adalet Mah.', 'Alaybeyi Mah.', 'Cumhuriyet Mah.', 'Fatih Mah.', 'Hürriyet Mah.', 
+    'Saygeçit Mah.', 'Tuna Mah.', 'Yenievler Mah.',
+    'Çerkezli köyü Mah.', 'Üçtepe köyü Mah.', 'Camili köyü Mah.', 'Koyunevi köyü Mah.', 
+    'Sevinçli köyü Mah.', 'Sokutaş köyü Mah.', 'Pekmezci köyü Mah.', 'Malıhıdırlı köyü Mah.'
   ],
   'Karataş': [
-    'Kemaliye', 'Yeni Mahalle', 'Karşıyaka', 'Bahçe',
-    'Tuzla', 'Bebeli', 'Adalı', 'Sirkenli'
+    'Bahçe Mah.', 'Karşıyaka Mah.', 'Kemaliye Mah.', 'Yeni Mahalle',
+    'Tuzla köyü Mah.', 'Bebeli köyü Mah.', 'Adalı köyü Mah.', 'Sirkenli köyü Mah.', 
+    'Tabaklar köyü Mah.', 'Hasırağacı köyü Mah.', 'Oymaklı köyü Mah.', 'Yemişli köyü Mah.', 
+    'Çağşarlı köyü Mah.', 'Kızıltahta köyü Mah.'
   ],
   'Karaisalı': [
-    'Selampınar', 'Karapınar', 'Yeni Mahalle', 'Karakılıç',
-    'Çatalan', 'Körkuyu', 'Kızıldağ', 'Beydemir'
+    'Karakılıç Mah.', 'Karapınar Mah.', 'Selampınar Mah.', 'Yeni Mahalle',
+    'Çatalan köyü Mah.', 'Körkuyu köyü Mah.', 'Kızıldağ Yaylası Mah.', 'Beydemir köyü Mah.', 
+    'Salbaş köyü Mah.', 'Hacılı köyü Mah.', 'Kuzgun köyü Mah.', 'Sadıkali köyü Mah.', 
+    'Etekli köyü Mah.', 'Gildirli köyü Mah.', 'Çakallı köyü Mah.'
   ],
   'Pozantı': [
-    'Zafer', 'Cumhuriyet', 'İstiklal', 'Kurtuluş',
-    'Kamışlı', 'Akçatekir', 'Bürümcek', 'Yazıcak'
+    'Cumhuriyet Mah.', 'İstiklal Mah.', 'Kurtuluş Mah.', 'Zafer Mah.',
+    'Kamışlı köyü Mah.', 'Akçatekir Yaylası Mah.', 'Bürümcek köyü Mah.', 'Yazıcak köyü Mah.', 
+    'Fındıklı köyü Mah.', 'Aşçıbekirli köyü Mah.', 'Belemedik köyü Mah.', 'Dağdibi köyü Mah.', 
+    'Karakışlakçı köyü Mah.'
   ],
   'Yumurtalık': [
-    'Ayas', 'Kemaliye', 'Akdeniz', 'Zeytinbeli',
-    'Gölovası', 'Kaldırım', 'Yeşilköy'
+    'Akdeniz Mah.', 'Ayas Mah.', 'Kemaliye Mah.',
+    'Zeytinbeli köyü Mah.', 'Gölovası köyü Mah.', 'Kaldırım köyü Mah.', 'Yeşilköy köyü Mah.', 
+    'Narlık köyü Mah.', 'Kuzupınarı köyü Mah.', 'Demirtaş köyü Mah.', 'Sugözü köyü Mah.'
   ],
   'Tufanbeyli': [
-    'İstiklal', 'Cumhuriyet', 'Yeni Mahalle', 'Bozyer',
-    'Yamanlar', 'Pekmezci', 'Ortaköy'
+    'Cumhuriyet Mah.', 'İstiklal Mah.', 'Yeni Mahalle',
+    'Bozyer köyü Mah.', 'Yamanlar köyü Mah.', 'Pekmezci köyü Mah.', 'Ortaköy köyü Mah.', 
+    'Şar köyü Mah.', 'Kayarcık köyü Mah.', 'Çatalçam köyü Mah.', 'Doğanbeyli köyü Mah.', 
+    'Damlalı köyü Mah.'
   ],
   'Feke': [
-    'Karasağan', 'İslam Mah.', 'Güzle', 'Tapan',
-    'Keklikçi', 'Sülemişli', 'Oruçlu'
+    'Güzle Mah.', 'İslam Mah.', 'Karasağan Mah.',
+    'Tapan köyü Mah.', 'Keklikçi köyü Mah.', 'Sülemişli köyü Mah.', 'Oruçlu köyü Mah.', 
+    'Mansurlu köyü Mah.', 'Kızılyer köyü Mah.', 'Gedikli köyü Mah.', 'Belenköy köyü Mah.', 
+    'Ormancık köyü Mah.'
   ],
   'Aladağ': [
-    'Sinanpaşa', 'Mansurlu', 'Akören', 'Karsantı',
-    'Gerdibi', 'Yetimli', 'Büyüksofulu'
+    'Karsantı Mah.', 'Mansurlu Mah.', 'Sinanpaşa Mah.',
+    'Akören köyü Mah.', 'Gerdibi köyü Mah.', 'Yetimli köyü Mah.', 'Büyüksofulu köyü Mah.', 
+    'Kabasakal köyü Mah.', 'Posyağbasan köyü Mah.', 'Kıcak köyü Mah.', 'Kökez köyü Mah.'
   ],
   'Saimbeyli': [
-    'İslam Mah.', 'Fatih', 'Yardibi', 'Karakuyu',
-    'Himmetli', 'Değirmenciuşağı', 'Çeralar'
+    'Fatih Mah.', 'İslam Mah.',
+    'Yardibi köyü Mah.', 'Karakuyu köyü Mah.', 'Himmetli köyü Mah.', 'Değirmenciuşağı köyü Mah.', 
+    'Çeralar köyü Mah.', 'Kızılağaç köyü Mah.', 'Obruk köyü Mah.', 'Eyüplü köyü Mah.', 
+    'Avcıpınarı köyü Mah.'
   ]
 };
 
@@ -1758,7 +1812,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               >
                 <option value="">Mahalle / Köy Seçiniz</option>
                 {addressDistrict && ADANA_NEIGHBORHOODS[addressDistrict]?.map(m => (
-                  <option key={m} value={m}>{m} Mah.</option>
+                  <option key={m} value={m}>{m}</option>
                 ))}
               </select>
             ) : (
