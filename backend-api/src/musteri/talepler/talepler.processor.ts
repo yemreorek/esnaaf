@@ -266,6 +266,8 @@ export class TaleplerProcessor {
     this.logger.log(`\n================== AKILLI DAĞITIM RAPORU ==================`);
     this.logger.log(`Talep Konumu: ${requestDistrict} | Kategori: ${request.category.name}`);
     
+    const packageConfigs = await this.prisma.systemPackageConfig.findMany();
+
     // 6. Seçilen her usta için response_times kaydı oluştur ve logla
     for (const item of selected) {
       const { provider, score, packageLevel } = item;
@@ -281,12 +283,17 @@ export class TaleplerProcessor {
 
       // Paket bazlı kademeli gecikme süreleri (VIP: 0 dk, Standard: 5 dk, Basic: 10 dk, Ücretsiz: 15 dk)
       let delayMinutes = 15;
-      if (packageLevel.type === 'vip') {
-        delayMinutes = 0;
-      } else if (packageLevel.type === 'standard') {
-        delayMinutes = 5;
-      } else if (packageLevel.type === 'basic') {
-        delayMinutes = 10;
+      const matchedConfig = packageConfigs.find(c => c.package_type === packageLevel.type);
+      if (matchedConfig) {
+        delayMinutes = matchedConfig.delay_minutes;
+      } else {
+        if (packageLevel.type === 'vip') {
+          delayMinutes = 0;
+        } else if (packageLevel.type === 'standard') {
+          delayMinutes = 5;
+        } else if (packageLevel.type === 'basic') {
+          delayMinutes = 10;
+        }
       }
 
       // Test modunda süreleri saniyeye indirge

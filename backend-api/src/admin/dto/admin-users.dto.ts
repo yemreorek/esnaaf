@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsInt, Min, IsEmail, IsNumber, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsInt, Min, Max, IsEmail, IsNumber, IsBoolean, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserRole, StaffRole, CampaignType, PackageType } from '@prisma/client';
 
@@ -161,4 +161,26 @@ export class CreateCampaignDto {
 
   @IsString()
   valid_until: string;
+}
+
+export class UpdatePackageConfigDto {
+  @IsString()
+  package_type: string;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  commission_rate: number;
+
+  @IsInt()
+  @Min(0)
+  active_jobs_limit: number;
+
+  @IsInt()
+  @Min(0)
+  delay_minutes: number;
 }

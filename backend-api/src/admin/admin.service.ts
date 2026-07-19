@@ -11,7 +11,8 @@ import {
   DisputeDecision, 
   CallTaskResult,
   SaveAbTestConfigDto,
-  CreateCampaignDto
+  CreateCampaignDto,
+  UpdatePackageConfigDto
 } from './dto/admin-users.dto';
 import { JwtService } from '@nestjs/jwt';
 import { decryptPhone, encryptPhone, maskPhone, normalizePhone } from '../common/utils/phone.util';
@@ -1467,6 +1468,152 @@ export class AdminService {
       },
       leaderboard,
     };
+  }
+
+  async getPackageConfigs(adminEmail: string) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'users', 'read');
+    }
+    return this.prisma.systemPackageConfig.findMany({
+      orderBy: { price: 'asc' }
+    });
+  }
+
+  async updatePackageConfig(adminEmail: string, dto: UpdatePackageConfigDto) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'users', 'write');
+    }
+    const { package_type, price, commission_rate, active_jobs_limit, delay_minutes } = dto;
+
+    const config = await this.prisma.systemPackageConfig.upsert({
+      where: { package_type },
+      update: {
+        price,
+        commission_rate,
+        active_jobs_limit,
+        delay_minutes
+      },
+      create: {
+        package_type,
+        price,
+        commission_rate,
+        active_jobs_limit,
+        delay_minutes
+      }
+    });
+
+    console.log(`[Package Config Update] Admin ${adminEmail} updated package ${package_type}: price=${price}, comm=${commission_rate}%, limit=${active_jobs_limit}, delay=${delay_minutes}m`);
+    return config;
+  }
+
+  async getSubscriptionReports(filters: { city?: string; categoryId?: string }, adminEmail: string) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'reports', 'read');
+    }
+
+    const { city, categoryId } = filters;
+
+    // Fetch all categories to map IDs to Names
+    const categories = await this.prisma.category.findMany({
+      where: { isActive: true }
+    });
+    const categoryMap = new Map(categories.map(c => [c.id, c.name]));
+
+    // Fetch active/approved providers
+    const where: any = {
+      is_approved: true,
+      deleted_at: null,
+    };
+    if (city) {
+      where.city = city;
+    }
+    if (categoryId) {
+      where.category_ids = { has: categoryId };
+    }
+
+    const providers = await this.prisma.serviceProvider.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true, phone: true } },
+        subscription: true
+      }
+    });
+
+    // Grouping structure: key could be "City | CategoryName"
+    const grouped = new Map<string, { city: string; categoryName: string; free: number; basic: number; standard: number; vip: number }>();
+
+    for (const p of providers) {
+      // Determine active package type
+      let packType = 'free';
+      const activeStatuses = ['active', 'trial', 'admin_trial'];
+      if (p.subscription && activeStatuses.includes(p.subscription.status)) {
+        packType = p.subscription.package_type; // 'basic', 'standard', 'vip'
+      }
+
+      // Process categories
+      const pCatIds = p.category_ids || [];
+      const catIdsToProcess = categoryId ? [categoryId] : (pCatIds.length > 0 ? pCatIds : ['no-category']);
+
+      for (const cId of catIdsToProcess) {
+        const categoryName = categoryMap.get(cId) || 'Belirtilmemiş';
+        const key = `${p.city || 'Adana'} | ${categoryName}`;
+
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            city: p.city || 'Adana',
+            categoryName,
+            free: 0,
+            basic: 0,
+            standard: 0,
+            vip: 0
+          });
+        }
+
+        const stats = grouped.get(key)!;
+        if (packType === 'free') stats.free++;
+        else if (packType === 'basic') stats.basic++;
+        else if (packType === 'standard' || packType === 'premium') stats.standard++;
+        else if (packType === 'vip') stats.vip++;
+      }
+    }
+
+    return Array.from(grouped.values());
+  }
+
+  async getChurnedSubscriptions(adminEmail: string) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'reports', 'read');
+    }
+
+    // Subscriptions with status in expired, cancelled, suspended
+    const churnedSubs = await this.prisma.subscription.findMany({
+      where: {
+        status: { in: ['expired', 'cancelled', 'suspended'] }
+      },
+      include: {
+        provider: {
+          include: {
+            user: { select: { name: true, email: true, phone: true } }
+          }
+        }
+      },
+      orderBy: { expires_at: 'desc' }
+    });
+
+    return churnedSubs.map(s => {
+      const decryptedPhone = s.provider?.user?.phone ? decryptPhone(s.provider.user.phone) : 'N/A';
+      return {
+        id: s.id,
+        providerId: s.provider_id,
+        providerName: s.provider?.user?.name || 'N/A',
+        providerEmail: s.provider?.user?.email || 'N/A',
+        providerPhone: decryptedPhone,
+        packageType: s.package_type,
+        status: s.status,
+        expiresAt: s.expires_at,
+        cancelledAt: s.cancelled_at
+      };
+    });
   }
 }
 

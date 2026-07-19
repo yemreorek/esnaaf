@@ -23,7 +23,8 @@ import {
   Sliders,
   Award,
   Check,
-  FileJson
+  FileJson,
+  CreditCard
 } from 'lucide-react';
 
 interface Stats {
@@ -235,8 +236,16 @@ export default function AdminPortal() {
 
 
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'sectors' | 'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs' | 'kpi'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'sectors' | 'dashboard' | 'users' | 'approvals' | 'reviews' | 'nps' | 'abtest' | 'disputes' | 'calltasks' | 'staff' | 'campaigns' | 'auditlogs' | 'kpi' | 'subscription_mgmt'>('dashboard');
   const [logMessages, setLogMessages] = useState<string[]>([]);
+  
+  // Subscription management states
+  const [packageConfigs, setPackageConfigs] = useState<any[]>([]);
+  const [subReports, setSubReports] = useState<any[]>([]);
+  const [churnedSubs, setChurnedSubs] = useState<any[]>([]);
+  const [subReportCity, setSubReportCity] = useState('');
+  const [subReportCategoryId, setSubReportCategoryId] = useState('');
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
   
   // Simulated Logged-In User Profile and RBAC States
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string; email?: string; phone?: string; permissions?: Record<string, string> } | null>(null);
@@ -295,6 +304,8 @@ export default function AdminPortal() {
           return !!(perms.dashboard && perms.dashboard !== 'none');
         case 'abtest':
           return !!(perms.ab_test && perms.ab_test !== 'none');
+        case 'subscription_mgmt':
+          return !!(perms.users && perms.users !== 'none');
         default:
           return false;
       }
@@ -1213,6 +1224,92 @@ ${callTaskNotes}`;
     }
   };
 
+  const loadSubscriptionMgmtData = async (accessToken: string) => {
+    const activeToken = accessToken || token;
+    if (!activeToken) return;
+    try {
+      // 0. Load categories
+      const resCats = await fetch('/api/auth/categories');
+      if (resCats.ok) {
+        const cats = await resCats.json();
+        setAvailableCategories(cats);
+      }
+
+      // 1. Load package configs
+      const resConfig = await fetch('/api/admin/package-configs', {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (resConfig.ok) {
+        const data = await resConfig.json();
+        setPackageConfigs(data);
+      }
+
+      // 2. Load churned subs
+      const resChurned = await fetch('/api/admin/subscription-reports/churned', {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (resChurned.ok) {
+        const data = await resChurned.json();
+        setChurnedSubs(data);
+      }
+
+      // 3. Load reports
+      await loadSubscriptionReports(activeToken);
+    } catch (err: any) {
+      addLog(`Abonelik yönetim verisi yükleme hatası: ${err.message}`);
+    }
+  };
+
+  const loadSubscriptionReports = async (accessToken: string) => {
+    const activeToken = accessToken || token;
+    if (!activeToken) return;
+    try {
+      const url = new URL('/api/admin/subscription-reports', window.location.origin);
+      if (subReportCity) url.searchParams.append('city', subReportCity);
+      if (subReportCategoryId) url.searchParams.append('categoryId', subReportCategoryId);
+
+      const res = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubReports(data);
+      }
+    } catch (err: any) {
+      addLog(`Rapor yükleme hatası: ${err.message}`);
+    }
+  };
+
+  const updatePackageConfigOnServer = async (pkgDto: { package_type: string; price: number; commission_rate: number; active_jobs_limit: number; delay_minutes: number }) => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/admin/package-configs', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(pkgDto)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        addLog(`Paket ayarı güncellendi: ${pkgDto.package_type}`);
+        const resConfig = await fetch('/api/admin/package-configs', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resConfig.ok) {
+          const freshConfigs = await resConfig.json();
+          setPackageConfigs(freshConfigs);
+        }
+        alert('Paket başarıyla güncellendi!');
+      } else {
+        alert(`Güncelleme başarısız: ${data.message || 'Hata oluştu'}`);
+      }
+    } catch (err: any) {
+      addLog(`Paket güncelleme hatası: ${err.message}`);
+    }
+  };
+
   const showUserDetail = async (userId: string) => {
     if (!token) return;
     try {
@@ -1319,9 +1416,17 @@ ${callTaskNotes}`;
         loadAuditLogs(token, auditLogsPage);
       } else if (activeTab === 'kpi') {
         loadKpiReport(token);
+      } else if (activeTab === 'subscription_mgmt') {
+        loadSubscriptionMgmtData(token);
       }
     }
   }, [activeTab, token]);
+
+  useEffect(() => {
+    if (token && activeTab === 'subscription_mgmt') {
+      loadSubscriptionReports(token);
+    }
+  }, [subReportCity, subReportCategoryId, token, activeTab]);
 
   useEffect(() => {
     if (token && activeTab === 'dashboard') {
@@ -1721,6 +1826,23 @@ ${callTaskNotes}`;
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5" />
                   <span>Bölgesel Raporlar / KPI</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </button>
+            )}
+
+            {isTabAllowed('subscription_mgmt') && (
+              <button
+                onClick={() => setActiveTab('subscription_mgmt')}
+                className={`w-full text-left px-5 py-4 rounded-2xl font-black text-sm flex items-center justify-between transition-all border cursor-pointer ${
+                  activeTab === 'subscription_mgmt'
+                    ? 'bg-[#c8f252] border-[#c8f252]/20 text-slate-955 font-extrabold shadow-sm shadow-[#c8f252]/10'
+                    : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5" />
+                  <span>Komisyon ve Abonelik</span>
                 </div>
                 <ChevronRight className="w-4 h-4 opacity-50" />
               </button>
@@ -3810,6 +3932,256 @@ ${callTaskNotes}`;
                     <p className="text-slate-400 text-sm font-bold">Lütfen filtreleri kullanarak analiz yapın.</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TAB 13: COMMISSION & SUBSCRIPTION MANAGEMENT */}
+            {activeTab === 'subscription_mgmt' && (
+              <div className="space-y-6 animate-scale-up">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                    <CreditCard className="w-6 h-6 text-slate-800" />
+                    <span>Komisyon ve Abonelik Yönetimi</span>
+                  </h2>
+                  <div className="text-xs bg-[#c8f252]/10 border border-[#c8f252]/20 text-slate-800 font-extrabold px-3 py-1.5 rounded-xl">
+                    Konsol Ayarları: Aktif
+                  </div>
+                </div>
+
+                {/* Section 1: Package Configurations */}
+                <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6">
+                  <h3 className="font-extrabold text-slate-900 text-sm mb-4 uppercase tracking-wider">Fiyat ve Komisyon Konsolu</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {['free', 'basic', 'standard', 'vip'].map(type => {
+                      const config = packageConfigs.find(c => c.package_type === type) || {
+                        package_type: type,
+                        price: type === 'free' ? 0 : type === 'basic' ? 5000 : type === 'standard' ? 10000 : 20000,
+                        commission_rate: type === 'free' ? 10 : type === 'basic' ? 7 : type === 'standard' ? 5 : 3,
+                        active_jobs_limit: type === 'free' ? 1 : type === 'basic' ? 3 : type === 'standard' ? 5 : 7,
+                        delay_minutes: type === 'free' ? 15 : type === 'basic' ? 10 : type === 'standard' ? 5 : 0
+                      };
+
+                      return (
+                        <form
+                          key={type}
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const price = Number(formData.get('price'));
+                            const commission_rate = Number(formData.get('commission_rate'));
+                            const active_jobs_limit = Number(formData.get('active_jobs_limit'));
+                            const delay_minutes = Number(formData.get('delay_minutes'));
+                            await updatePackageConfigOnServer({
+                              package_type: type,
+                              price,
+                              commission_rate,
+                              active_jobs_limit,
+                              delay_minutes
+                            });
+                          }}
+                          className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-sm"
+                        >
+                          <div>
+                            <h4 className="font-black text-xs uppercase text-slate-500 tracking-wider mb-3">
+                              {type === 'free' ? '🆓 ÜCRETSİZ' : type === 'basic' ? '💎 BASIC' : type === 'standard' ? '👑 STANDART' : '✨ VIP'} PAKET
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-[10px] font-black text-slate-450 uppercase mb-1">Aylık Fiyat (₺)</label>
+                                <input
+                                  name="price"
+                                  type="number"
+                                  defaultValue={Number(config.price)}
+                                  disabled={type === 'free'}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#c8f252] disabled:opacity-60"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-black text-slate-450 uppercase mb-1">Komisyon Oranı (%)</label>
+                                <input
+                                  name="commission_rate"
+                                  type="number"
+                                  step="0.1"
+                                  defaultValue={Number(config.commission_rate)}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#c8f252]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-black text-slate-450 uppercase mb-1">Aktif İş Limiti</label>
+                                <input
+                                  name="active_jobs_limit"
+                                  type="number"
+                                  defaultValue={config.active_jobs_limit}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#c8f252]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-black text-slate-450 uppercase mb-1">Dağıtım Gecikmesi (Dk)</label>
+                                <input
+                                  name="delay_minutes"
+                                  type="number"
+                                  defaultValue={config.delay_minutes}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#c8f252]"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="submit"
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase py-2 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 mt-2"
+                          >
+                            Ayarları Kaydet
+                          </button>
+                        </form>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 2: Regional / Sectoral Active Subscribers Breakdown (KPI) */}
+                <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5 pb-4 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider">Abonelik Dağılım Raporu (KPI)</h3>
+                      <p className="text-xs text-slate-400 mt-1">İl ve Sektör bazında aktif esnaf sayıları</p>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <select
+                        value={subReportCity}
+                        onChange={(e) => setSubReportCity(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                      >
+                        <option value="">Tüm İller</option>
+                        <option value="Adana">Adana</option>
+                        <option value="İstanbul">İstanbul</option>
+                        <option value="Ankara">Ankara</option>
+                        <option value="İzmir">İzmir</option>
+                      </select>
+
+                      <select
+                        value={subReportCategoryId}
+                        onChange={(e) => setSubReportCategoryId(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer max-w-[200px]"
+                      >
+                        <option value="">Tüm Kategoriler</option>
+                        {availableCategories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-450 font-black uppercase border-b border-slate-150">
+                          <th className="px-6 py-4">İl</th>
+                          <th className="px-6 py-4">Kategori (Sektör)</th>
+                          <th className="px-6 py-4 text-center">Ücretsiz</th>
+                          <th className="px-6 py-4 text-center">Basic</th>
+                          <th className="px-6 py-4 text-center">Standart</th>
+                          <th className="px-6 py-4 text-center">VIP</th>
+                          <th className="px-6 py-4 text-center">Toplam</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                        {subReports.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="text-center py-12 text-slate-400 text-xs italic">
+                              Seçilen filtrelere uygun aktif esnaf bulunamadı.
+                            </td>
+                          </tr>
+                        ) : (
+                          subReports.map((row, idx) => {
+                            const totalRow = row.free + row.basic + row.standard + row.vip;
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-slate-900">{row.city}</td>
+                                <td className="px-6 py-4 text-slate-600">{row.categoryName}</td>
+                                <td className="px-6 py-4 text-center text-slate-500 font-mono">{row.free}</td>
+                                <td className="px-6 py-4 text-center text-blue-600 font-mono">{row.basic}</td>
+                                <td className="px-6 py-4 text-center text-indigo-600 font-mono">{row.standard}</td>
+                                <td className="px-6 py-4 text-center text-amber-600 font-mono">{row.vip}</td>
+                                <td className="px-6 py-4 text-center text-slate-900 font-mono font-extrabold">{totalRow}</td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Section 3: Churned Expired Subscribers List */}
+                <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6">
+                  <div className="border-b border-slate-100 pb-4 mb-5">
+                    <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider text-rose-800">
+                      Aboneliği Biten & Yenilemeyen Esnaflar
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">Ödemesi veya süresi bitip ücretsiz pakete geri dönmüş esnafların takibi</p>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-rose-50/40 text-rose-900/60 font-black uppercase border-b border-slate-150">
+                          <th className="px-6 py-4">Hizmet Veren</th>
+                          <th className="px-6 py-4">E-Posta</th>
+                          <th className="px-6 py-4">Telefon</th>
+                          <th className="px-6 py-4">Son Paket</th>
+                          <th className="px-6 py-4">Durum</th>
+                          <th className="px-6 py-4">Sona Erme Tarihi</th>
+                          <th className="px-6 py-4 text-right">İşlemler</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-650">
+                        {churnedSubs.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="text-center py-12 text-slate-400 text-xs italic">
+                              Aboneliği biten esnaf bulunmamaktadır.
+                            </td>
+                          </tr>
+                        ) : (
+                          churnedSubs.map(sub => (
+                            <tr key={sub.id} className="hover:bg-slate-50/40 transition-colors">
+                              <td className="px-6 py-4 font-black text-slate-800">{sub.providerName}</td>
+                              <td className="px-6 py-4 font-mono text-slate-500">{sub.providerEmail}</td>
+                              <td className="px-6 py-4 font-mono text-slate-800">{sub.providerPhone}</td>
+                              <td className="px-6 py-4">
+                                <span className="bg-slate-100 text-slate-700 text-[10px] font-extrabold uppercase px-2 py-1 rounded-md">
+                                  {sub.packageType}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`text-[10px] font-extrabold uppercase px-2 py-1 rounded-md ${
+                                  sub.status === 'expired' 
+                                    ? 'bg-rose-50 text-rose-700' 
+                                    : sub.status === 'cancelled' 
+                                      ? 'bg-amber-50 text-amber-700' 
+                                      : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {sub.status === 'expired' ? 'Süresi Bitti' : sub.status === 'cancelled' ? 'İptal Edildi' : 'Askıda'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-slate-500">
+                                {new Date(sub.expiresAt).toLocaleDateString('tr-TR')}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  onClick={() => showUserDetail(sub.providerId)}
+                                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer transition-all active:scale-95"
+                                >
+                                  Kartı Aç
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
 
