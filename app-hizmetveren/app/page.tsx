@@ -3175,6 +3175,61 @@ export default function ProviderDashboard() {
           {/* Switchable content based on activeTab */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8 animate-scale-up text-left">
+              {/* VIP Membership Active Banner */}
+              {quota && (() => {
+                const isVip = quota.packageName.includes('VIP') || profile?.package?.vipStatus || false;
+                if (isVip && quota.limit !== null && quota.used < quota.limit) {
+                  return (
+                    <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 rounded-3xl p-5 text-left space-y-2 animate-scale-up shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#4c630a] text-sm">✨</span>
+                        <h4 className="text-[#4c630a] font-extrabold text-xs uppercase tracking-wider">
+                          VIP ÜYELİK AKTİF (KAPASİTE: {quota.used}/{quota.limit})
+                        </h4>
+                      </div>
+                      <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                        Tebrikler! Platformumuzdaki en yüksek üyelik seviyesindesiniz. Aynı anda 7 aktif iş kapasitesi, %5 en düşük komisyon oranı ve en üstte listelenme VIP avantajlarıyla ayrıcalıklı fırsatlardan yararlanıyorsunuz.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Müsait Değil (Yeni İlan Alımı Durduruldu) Uyarı Şeridi */}
+              {profile && !profile.isAvailable && (
+                <div className="bg-rose-50 border border-rose-200 rounded-3xl p-5 md:p-6 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 animate-scale-up shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0 animate-pulse">
+                      🚨
+                    </div>
+                    <div>
+                      <h4 className="text-rose-800 font-extrabold text-xs md:text-sm uppercase tracking-wider">
+                        YENİ İLAN ALIMI DURDURULDU
+                      </h4>
+                      <p className="text-slate-600 text-[11px] md:text-xs font-semibold leading-relaxed mt-0.5">
+                        Müsaitlik durumunuz <strong>"KAPALI"</strong> olduğu için yeni ilan akışı durdurulmuştur.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={toggleAvailability}
+                      disabled={isUpdatingAvailability}
+                      className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] py-2.5 px-5 rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm uppercase tracking-wider"
+                    >
+                      {isUpdatingAvailability ? 'Güncelleniyor...' : 'AKTİF YAP 🚀'}
+                    </button>
+                    <button
+                      onClick={() => showAlert("Bilgi", "Hesabınız pasif modda kalmaya devam ediyor. İstediğiniz zaman aktif edebilirsiniz.", "info")}
+                      className="bg-transparent border border-rose-200 text-rose-700 hover:bg-rose-100/40 font-extrabold text-[11px] py-2.5 px-4 rounded-xl cursor-pointer transition-all active:scale-95 uppercase tracking-wider"
+                    >
+                      PASİF TUT
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Header Title & Controls */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
