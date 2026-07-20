@@ -41,6 +41,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 30** | **Dinamik Yönlendirme & Kesiciler** | Tek Ajan + Dinamik Prompt Değişimi (`sector-prompts.config.ts`), PII regex isim/telefon kesicileri ve Türkçe-locale duyarlı isim temizleme (`cleanName`) algoritması. Müşteri paneli süresi dolan işlerde `Teklifleri Gör (X)`, `Tekrar Yayınla` ve `İptal Et` butonları akışı | **✅ Tamamlandı** |
 | **Adım 31** | **Yeni Abonelik & Sıralama** | Gecikme süreleri kaldırılmış yeni 1 Ücretsiz + 3 Ücretli (Basic, Standard, VIP) paket mimarisi, teklif önceliklendirme sıralama algoritması, ücretsiz esnaf aktif iş limit kilidi (State A/B) ve upsell uyarıları | **✅ Tamamlandı** |
 | **Adım 32** | **Pasif Panel & Onay Otomasyonu** | Hizmet veren kayıt sonrası kısıtlı oturum (pasif panel modu), `active` hesap durum kısıtlayıcı koruyucu (`ActiveAccountGuard`), karşılama modalı, sabit top uyarı şeridi, aksiyon kesiciler ve 4'lü admin onay bildirim otomasyonu zinciri (FCM, SMS, Email) | **✅ Tamamlandı** |
+| **Adım 33** | **Profil Resmi & Konum & Firma Adı** | Profil resmi yükleme altyapısı, sol menü ve üst bar avatar senkronizasyonu, Firma Adı belirteçli input, dinamik konum tercihleri (il ve çoklu ilçe seçimi) ve global usta avatar gösterimi (teklifler, favoriler, arama ve iş teyidi) | **✅ Tamamlandı** |
 
 ---
 
@@ -851,6 +852,24 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 - **Canlı Veritabanı Eşitleme (Migration):**
   * GCP Cloud SQL veritabanı dış ağ yetkilendirmesi güncellenerek `prisma db push` ile canlı veritabanı şeması sorunsuz eşitlendi.
   * Tüm uygulamalar hata vermeden derlendi ve test edildi.
+
+## 🛠️ Adım 33 Geliştirme Detayları (Profil Resmi, Firma Adı, Dinamik Konum & Global Gösterim)
+
+- **Profil Fotoğrafı & Firma Adı:**
+  * Profil ayarlarında en üstte dairesel fotoğraf yükleme alanı ve altındaki tetikleyici "Fotoğrafı düzenle" butonu kodlandı.
+  * Eklenen/güncellenen profil fotoğrafı, sol sidebar ve sağ üst header avatarlarını anlık olarak senkronize edecek şekilde bağlandı.
+  * "Ad Soyad" alanının altına "Firma Adı / Şirket Adı" eklendi ve altına *"Müşterilerin profilinde bu adı görür."* bilgilendirme notu entegre edildi.
+- **Dinamik Konum & Hizmet Profili:**
+  * Konum tercihlerinde tek il seçilip bu ile ait ilçelerin çoklu checkbox ile seçilmesi sağlandı; konum listesi `/api/ortak/konumlar` üzerinden dinamikleştirildi.
+- **Global Avatar Gösterimi (Müşteri Paneli):**
+  * Usta profil resmi müşteri uygulaması genelindeki tüm arayüzlerde dinamikleştirildi:
+    - **Taleplerim Listesi:** Masaüstü tablo satırlarındaki ve mobil kartlardaki teklif veren esnaf rozetleri usta profil resmi ile değiştirildi.
+    - **Favori Esnaflar Listesi:** Favorilere eklenmiş esnaflar listelenirken sollarına dairesel usta profil resimleri eklendi.
+    - **Esnaf Arama:** Esnaaf ID ile arama yapıldığında arama sonucunda ustanın profil resmi gösterildi.
+    - **İş Teyit & Puanlama:** İş bittiğinde uyuşmazlık teyit kartlarında ve yorum yapma alanlarında dairesel usta profil resmi entegre edildi.
+- **Test ve Canlıya Geçiş:**
+  * `app-hizmetveren`, `app-musteri` ve `backend-api` derleme testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak canlı sunuculara otomatik olarak dağıtıldı.
+
 
 
 

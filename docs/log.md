@@ -1,7 +1,21 @@
 # Esnaaf Geliştirme Günlüğü (log.md)
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
- ## 2026-07-08 feat | Hizmet Veren Kayıt Pasif Modu & Admin Onay Otomasyonu & Görsel Yükleme Base64 Sıkıştırması
+
+## 2026-07-19 feat | Profil Resmi Yükleme, Firma Adı & Konum Tercihleri ve Global Arayüz Gösterimi
+
+- **Profil Fotoğrafı & Firma Adı:**
+  - Hizmet veren profil ekranına dairesel fotoğraf alanı ve tetikleyici "Fotoğrafı düzenle" butonu eklendi. Yüklenen resimlerin sol menü (sidebar) ve üst bar (header) üzerindeki profil resimleriyle anlık senkronize olması sağlandı.
+  - "Ad Soyad" alanının altına "Firma Adı / Şirket Adı" giriş alanı eklenerek müşterilerin göreceği adı temsil ettiğine dair açıklayıcı not yerleştirildi.
+- **Dinamik İl ve İlçe Konum Tercihleri:**
+  - Konum tercihlerinde tek il ve çoklu ilçe seçimi `/api/ortak/konumlar` dinamik endpoint'i üzerinden çekilecek şekilde bağlandı.
+- **Global Usta Avatar Gösterimi:**
+  - Ustanın profil resmi müşteri paneli genelinde; teklif kartlarında, teklif detay pencerelerinde, favori usta listesinde, Esnaaf ID arama sonuçlarında ve iş teyidi/değerlendirme onay pencerelerinde dairesel görsel formatında dinamik gösterilecek şekilde entegre edildi.
+  - `/api/ortak/favoriler` ve `/api/musteri/teklifler` API endpoint'lerinde, veritabanından çekilen usta nesnelerine `profilePhoto` ve `companyName` alanları otomatik parse edilerek enjekte edildi.
+- **Derleme ve Dağıtım:**
+  - `app-hizmetveren`, `app-musteri` ve `backend-api` build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak otomatik olarak canlıya dağıtıldı.
+
+## 2026-07-08 feat | Hizmet Veren Kayıt Pasif Modu & Admin Onay Otomasyonu & Görsel Yükleme Base64 Sıkıştırması
 
 - **Fotoğraf Yükleme EROFS & Kırık Görsel Çözümü:**
   - Cloud Run'ın durumsuz ve geçici `/tmp` dosya sistemi kısıtlamalarını çözmek için yerel disk yüklemesi kaldırıldı.
