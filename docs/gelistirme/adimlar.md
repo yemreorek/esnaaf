@@ -43,6 +43,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 32** | **Pasif Panel & Onay Otomasyonu** | Hizmet veren kayıt sonrası kısıtlı oturum (pasif panel modu), `active` hesap durum kısıtlayıcı koruyucu (`ActiveAccountGuard`), karşılama modalı, sabit top uyarı şeridi, aksiyon kesiciler ve 4'lü admin onay bildirim otomasyonu zinciri (FCM, SMS, Email) | **✅ Tamamlandı** |
 | **Adım 33** | **Profil Resmi & Konum & Firma Adı** | Profil resmi yükleme altyapısı, sol menü ve üst bar avatar senkronizasyonu, Firma Adı belirteçli input, dinamik konum tercihleri (il ve çoklu ilçe seçimi) ve global usta avatar gösterimi (teklifler, favoriler, arama ve iş teyidi) | **✅ Tamamlandı** |
 | **Adım 34** | **Hizmet Alan Profil Resmi & Initials** | Müşteri profil resmi yükleme & Canvas sıkıştırma altyapısı, veritabanı `profile_photo` sütun entegrasyonu, JWT payload/cookie senkronizasyonu, resim olmadığında dinamik isim baş harfleri (initials) avatar gösterim kuralları | **✅ Tamamlandı** |
+| **Adım 35** | **Dinamik Adres Formatı Entegrasyonu** | Canlı sohbette seçilen Mahalle/Köy, İlçe, İl bilgilerini sıralı şekilde (`Mahalle, İlçe, İl`) birleştiren dinamik formatlama yapısı; hizmet veren fırsat, teklif, aktif/tamamlanmış iş listeleri ile hizmet alan "Tekliflerim" form detayları entegrasyonu | **✅ Tamamlandı** |
 
 ---
 
@@ -890,6 +891,21 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
     - İsim boşsa fallback olarak "HA" (Hizmet Alan) gösterilir.
 - **Derleme Doğrulama:**
   * Tüm uygulamalar sıfır hata ve sıfır TypeScript tipi uyuşmazlığıyla derlendi.
+
+## 🛠️ Adım 35 Geliştirme Detayları (Dinamik Adres Formatı Entegrasyonu)
+
+- **Backend API Geliştirmeleri:**
+  * `hizmetveren.service.ts` içerisine `formatFullLocation(formData)` yardımcı fonksiyonu tanımlandı. Bu fonksiyon `form_data` JSON alanındaki `neighborhood`, `district` ve `city` alanlarını sırasıyla `Mahalle, İlçe, İl` biçiminde (örn. `Gürselpaşa Mah, Seyhan, Adana`) birleştirir.
+  * Hizmet veren uygulaması tarafından çağrılan 6 API endpoint fonksiyonunun (`getGelenIsler`, `getOffers`, `getWonJobs`, `getCompletedJobs`, `getDisputes`, `getLostAndCancelledJobs`) kullanıcıya döndürdüğü `district` alanı bu yeni dinamik formatlama fonksiyonuyla güncellendi.
+- **Hizmet Veren Arayüzü (app-hizmetveren & app-hizmetveren-mobil):**
+  * `app-hizmetveren/app/page.tsx` üzerindeki gelen iş fırsatı kartında mükerrer şehir adı gösterimi olmaması için `{job.district}` alanı format-duyarlı hale getirildi (eğer virgül içeriyorsa olduğu gibi render edilir, içermiyorsa ilçe/il birleştirilir).
+  * Mobil uygulama `JobCard.tsx` bileşenindeki "Çıkış", "Varış" ve "Konum" parametreleri de aynı şekilde format-duyarlı hale getirildi.
+- **Hizmet Alan Arayüzü (app-musteri):**
+  * `SeekerDashboard.tsx` dosyasında `formatSeekerLocation` yardımcı fonksiyonu yazıldı. "Tekliflerim" sekmesindeki talep özet chip'lerinde ve talep detay kartlarındaki konum kısımları `Mahalle, İlçe, İl` formatıyla güncellendi.
+  * `ChatScreen.tsx` yapay zeka chat penceresinde birikmiş konuşma geçmişi (log) kartlarındaki adres gösterimleri (`Çıkış Konumu` ve genel `Konum`) de mahalle bilgisi varsa bunu en başa ekleyecek şekilde dinamikleştirildi.
+- **Derleme Doğrulama:**
+  * `app-hizmetveren`, `app-hizmetveren-mobil`, `app-musteri` ve `backend-api` uygulamaları derleme testinden sıfır hatayla geçti.
+
 
 
 

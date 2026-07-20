@@ -118,7 +118,7 @@ export class HizmetverenService {
       gelenIsler.push({
         id: job.id,
         categoryName: job.category.name,
-        district: formData.district || 'Kadıköy',
+        district: formatFullLocation(formData),
         details: formData.details || '',
         name: formData.name || 'Müşteri',
         created_at: job.created_at,
@@ -833,7 +833,7 @@ export class HizmetverenService {
         job: {
           id: o.job.id,
           categoryName: o.job.category.name,
-          district: formData.district || 'Kadıköy',
+          district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
           status: o.job.status,
@@ -951,7 +951,7 @@ export class HizmetverenService {
         job: {
           id: ao.job.id,
           categoryName: ao.job.category.name,
-          district: formData.district || 'Kadıköy',
+          district: formatFullLocation(formData),
           details: formData.details || '',
           name: ao.seeker.name || 'Müşteri',
           phone: customerPhone,
@@ -1134,7 +1134,7 @@ export class HizmetverenService {
         job: {
           id: c.job.id,
           categoryName: c.job.category.name,
-          district: formData.district || 'Kadıköy',
+          district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
         },
@@ -1219,7 +1219,7 @@ export class HizmetverenService {
         job: {
           id: d.job.id,
           categoryName: d.job.category.name,
-          district: formData.district || 'Kadıköy',
+          district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
         },
@@ -1384,7 +1384,7 @@ export class HizmetverenService {
         job: {
           id: o.job.id,
           categoryName: o.job.category.name,
-          district: formData.district || 'Kadıköy',
+          district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
           status: o.job.status,
@@ -2118,6 +2118,21 @@ export function getRequestExpiryInfo(
 
   const isExpired = expiresTime <= compareWith;
   return { expiresTime, isExpired, label, isExtended, initialExpiresTime };
+}
+
+export function formatFullLocation(formData: any): string {
+  if (!formData) return 'Seyhan, Adana';
+  const parts: string[] = [];
+  if (formData.neighborhood) {
+    parts.push(formData.neighborhood);
+  }
+  if (formData.district) {
+    parts.push(formData.district);
+  }
+  if (formData.city) {
+    parts.push(formData.city);
+  }
+  return parts.join(', ') || 'Seyhan, Adana';
 }
 
 

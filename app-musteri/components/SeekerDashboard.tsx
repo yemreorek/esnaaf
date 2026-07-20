@@ -96,6 +96,23 @@ export const getAvatarInitials = (name: string): string => {
   return "HA";
 };
 
+export const formatSeekerLocation = (formData: any): string => {
+  if (!formData) return "Bilinmiyor";
+  const parts: string[] = [];
+  if (formData.neighborhood) {
+    parts.push(formData.neighborhood);
+  }
+  if (formData.district) {
+    parts.push(formData.district);
+  }
+  if (formData.city) {
+    parts.push(formData.city);
+  } else if (formData.district) {
+    parts.push(resolveCityFromDistrict(formData.district));
+  }
+  return parts.join(', ') || "Bilinmiyor";
+};
+
 interface Offer {
   id: string;
   price: number;
@@ -2053,7 +2070,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                     {/* Konum Chip */}
                                     <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1 text-slate-650 text-[11px] font-bold transition-colors hover:bg-slate-100/50">
                                       <MapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                                      <span>{req.form_data.district || "Bilinmiyor"}{req.form_data.district ? `, ${req.form_data.city || resolveCityFromDistrict(req.form_data.district)}` : ''}</span>
+                                      <span>{formatSeekerLocation(req.form_data)}</span>
                                     </span>
 
                                     {/* Tarih Chip */}
@@ -2569,7 +2586,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                         </div>
                         <div>
                           <span className="block text-[10px] text-slate-400 font-bold uppercase">Konum</span>
-                          <span className="text-slate-800 font-extrabold mt-0.5 block">{selectedRequest.form_data.district || "Bilinmiyor"}{selectedRequest.form_data.district ? `, ${selectedRequest.form_data.city || resolveCityFromDistrict(selectedRequest.form_data.district)}` : ''}</span>
+                          <span className="text-slate-800 font-extrabold mt-0.5 block">{formatSeekerLocation(selectedRequest.form_data)}</span>
                         </div>
                         {selectedRequest.form_data.tarih && (
                           <div>

@@ -407,7 +407,7 @@ const OpportunityCard = ({
             <span className="font-extrabold text-xs text-slate-800 leading-snug">{job.name || "Misafir Seeker"}</span>
             <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              {job.district || "Kadıköy"}, {resolveCityFromDistrict(job.district)}
+              {job.district ? (job.district.includes(',') ? job.district : `${job.district}, ${resolveCityFromDistrict(job.district)}`) : "Kadıköy, İstanbul"}
             </span>
           </div>
         </div>

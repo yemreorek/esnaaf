@@ -2,6 +2,20 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-20 feat | Dinamik Adres Formatı (`Mahalle, İlçe, İl`) Entegrasyonu
+
+- **Backend API Geliştirmeleri:**
+  - `hizmetveren.service.ts` içerisine `formatFullLocation(formData)` yardımcı fonksiyonu tanımlandı. Bu fonksiyon `form_data` JSON alanındaki `neighborhood`, `district` ve `city` alanlarını sırasıyla `Mahalle, İlçe, İl` biçiminde (örn. `Gürselpaşa Mah, Seyhan, Adana`) birleştirir.
+  - Hizmet veren uygulaması tarafından çağrılan 6 API endpoint fonksiyonunun (`getGelenIsler`, `getOffers`, `getWonJobs`, `getCompletedJobs`, `getDisputes`, `getLostAndCancelledJobs`) kullanıcıya döndürdüğü `district` alanı bu yeni dinamik formatlama fonksiyonuyla güncellendi.
+- **Hizmet Veren Arayüzü (app-hizmetveren & app-hizmetveren-mobil):**
+  - `app-hizmetveren/app/page.tsx` üzerindeki gelen iş fırsatı kartında mükerrer şehir adı gösterimi olmaması için `{job.district}` alanı format-duyarlı hale getirildi (eğer virgül içeriyorsa olduğu gibi render edilir, içermiyorsa ilçe/il birleştirilir).
+  - Mobil uygulama `JobCard.tsx` bileşenindeki "Çıkış", "Varış" ve "Konum" parametreleri de aynı şekilde format-duyarlı hale getirildi.
+- **Hizmet Alan Arayüzü (app-musteri):**
+  - `SeekerDashboard.tsx` dosyasında `formatSeekerLocation` yardımcı fonksiyonu yazıldı. "Tekliflerim" sekmesindeki talep özet chip'lerinde ve talep detay kartlarındaki konum kısımları `Mahalle, İlçe, İl` formatıyla güncellendi.
+  - `ChatScreen.tsx` yapay zeka chat penceresinde birikmiş konuşma geçmişi (log) kartlarındaki adres gösterimleri (`Çıkış Konumu` ve genel `Konum`) de mahalle bilgisi varsa bunu en başa ekleyecek şekilde dinamikleştirildi.
+- **Derleme Doğrulama:**
+  - `app-hizmetveren`, `app-hizmetveren-mobil`, `app-musteri` ve `backend-api` uygulamaları derleme testinden sıfır hatayla geçti.
+
 ## 2026-07-20 feat | Hizmet Alan Profil Fotoğrafı Yükleme, Initials Avatar ve Backend Profil Düzenleme Entegrasyonu
 
 - **Veritabanı Şeması & Model Değişiklikleri:**

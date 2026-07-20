@@ -88,11 +88,11 @@ export default function JobCard({ job, onOfferPress }: JobCardProps) {
           <>
             <View style={styles.row}>
               <Text style={styles.label}>Çıkış:</Text>
-              <Text style={styles.value}>{formData.district}, {resolveCityFromDistrict(formData.district)}</Text>
+              <Text style={styles.value}>{formData.district && formData.district.includes(',') ? formData.district : `${formData.district}, ${resolveCityFromDistrict(formData.district)}`}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Varış:</Text>
-              <Text style={styles.value}>{formData.destinationDistrict}, {resolveCityFromDistrict(formData.destinationDistrict)}</Text>
+              <Text style={styles.value}>{formData.destinationDistrict && formData.destinationDistrict.includes(',') ? formData.destinationDistrict : `${formData.destinationDistrict}, ${resolveCityFromDistrict(formData.destinationDistrict)}`}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Daire:</Text>
@@ -107,12 +107,12 @@ export default function JobCard({ job, onOfferPress }: JobCardProps) {
               <Text style={styles.value}>{formData.tarih}</Text>
             </View>
           </>
-        ) : (
-          <>
-            <View style={styles.row}>
-              <Text style={styles.label}>Konum:</Text>
-              <Text style={styles.value}>{formData.district || 'Belirtilmedi'}{formData.district ? `, ${resolveCityFromDistrict(formData.district)}` : ''}</Text>
-            </View>
+         ) : (
+           <>
+             <View style={styles.row}>
+               <Text style={styles.label}>Konum:</Text>
+               <Text style={styles.value}>{formData.district ? (formData.district.includes(',') ? formData.district : `${formData.district}, ${resolveCityFromDistrict(formData.district)}`) : 'Belirtilmedi'}</Text>
+             </View>
 
             {slug === 'ev-temizligi' && (
               <>
