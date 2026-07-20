@@ -85,6 +85,7 @@ model User {
   phone_masked            String
   name                    String?
   email                   String?
+  profile_photo           String?
   role                    UserRole
   esnaaf_id               String?                 @unique
   kvkk_consent            Boolean                 @default(false)

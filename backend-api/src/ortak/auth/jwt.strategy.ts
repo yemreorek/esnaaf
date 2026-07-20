@@ -56,6 +56,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       kvkk_consent: user.kvkk_consent,
       isImpersonated: payload.isImpersonated || false,
       accountStatus: user.service_provider?.account_status || 'active',
+      profile_photo: user.profile_photo,
     };
   }
 }

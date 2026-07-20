@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, UseGuards, Req, Res, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Headers, UseGuards, Req, Res, HttpStatus, HttpCode } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -113,5 +113,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async startAnonymousSession(@Headers('x-session-id') sessionUuid?: string) {
     return this.authService.startAnonymousSession(sessionUuid);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile/update')
+  @HttpCode(HttpStatus.OK)
+  async updateProfile(@Req() req: any, @Body() dto: { name?: string; email?: string; profilePhoto?: string }) {
+    return this.authService.updateProfile(req.user.id, dto);
   }
 }

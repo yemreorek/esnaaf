@@ -83,6 +83,19 @@ export const getCancelReasonText = (code?: string | null, text?: string | null):
   return text || code || 'Gerekçe belirtilmedi';
 };
 
+export const getAvatarInitials = (name: string): string => {
+  if (!name) return "HA";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    const first = parts[0]?.[0] || "";
+    const last = parts[parts.length - 1]?.[0] || "";
+    return (first + last).toUpperCase();
+  } else if (parts.length === 1 && parts[0]) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return "HA";
+};
+
 interface Offer {
   id: string;
   price: number;
@@ -411,6 +424,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileSuccessMsg, setProfileSuccessMsg] = useState("");
+  const [seekerProfilePhoto, setSeekerProfilePhoto] = useState("");
 
   // Completion/Rating states (Step 6 / Phase 2)
   const [completionState, setCompletionState] = useState<string | null>(null);
@@ -624,6 +638,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
       setUser(authUser);
       setProfileName(authUser.name || "");
       setProfileEmail(authUser.email || "");
+      setSeekerProfilePhoto(authUser.profile_photo || "");
       fetchNotifications();
     }
     fetchRequests();
@@ -1483,18 +1498,106 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
     }
   };
 
+  const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        const img = new window.Image();
+        img.src = dataUrl;
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else resolve(file);
+            }, 'image/jpeg', quality);
+          } catch (e) {
+            resolve(file);
+          }
+        };
+        img.onerror = () => {
+          resolve(file);
+        };
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleUploadSeekerPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const compressedBlob = await compressImage(file, 800, 800, 0.7);
+      const filename = `seeker-profile-${Date.now()}.jpg`;
+      const contentType = 'image/jpeg';
+      const presignedRes = await customFetch(
+        `/api/storage/presigned-url?filename=${encodeURIComponent(filename)}&contentType=${encodeURIComponent(contentType)}`
+      );
+
+      if (!presignedRes.ok) {
+        const errData = await presignedRes.json();
+        throw new Error(errData.message || 'Presigned URL oluşturulamadı.');
+      }
+
+      const { uploadUrl, downloadUrl } = await presignedRes.json();
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType
+        },
+        body: compressedBlob
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Fotoğraf sunucuya yüklenemedi.');
+      }
+
+      setSeekerProfilePhoto(downloadUrl);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Profil resmi yüklenirken bir hata oluştu.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileSuccessMsg("");
     try {
       const res = await customFetch("/api/ortak/auth/profile/update", {
         method: "PUT",
-        body: JSON.stringify({ name: profileName, email: profileEmail }),
+        body: JSON.stringify({ name: profileName, email: profileEmail, profilePhoto: seekerProfilePhoto }),
       });
       if (res.ok) {
         setProfileSuccessMsg("Profiliniz başarıyla güncellendi.");
         // Sync local storage
-        const updatedUser = { ...user, name: profileName, email: profileEmail };
+        const updatedUser = { ...user, name: profileName, email: profileEmail, profile_photo: seekerProfilePhoto };
         localStorage.setItem("esnaaf_user", JSON.stringify(updatedUser));
         setUser(updatedUser);
       } else {
@@ -1815,11 +1918,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
             <div className="flex items-center gap-2.5 text-left cursor-pointer" onClick={() => setActiveTab("profile")}>
               <span className="text-xs font-black text-slate-850 leading-none hidden sm:inline">{user?.name || "Misafir Kullanıcı"}</span>
-              <img
-                src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"}
-                alt="Profil Fotoğrafı"
-                className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-sm"
-              />
+              {user?.profile_photo ? (
+                <img
+                  src={user.profile_photo}
+                  alt="Profil Fotoğrafı"
+                  className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-sm"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xs border border-slate-200 shadow-sm select-none">
+                  {getAvatarInitials(user?.name || "Müşteri")}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -3626,6 +3735,39 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     )}
 
                     <form onSubmit={handleUpdateProfile} className="space-y-5">
+                      {/* Seeker Profile Photo Upload Section */}
+                      <div className="flex flex-col items-center justify-center py-4 border-b border-slate-100 mb-4">
+                        <div className="relative w-24 h-24 group">
+                          {seekerProfilePhoto ? (
+                            <img
+                              src={seekerProfilePhoto}
+                              alt="Profil Fotoğrafı"
+                              className="w-full h-full object-cover rounded-full border-4 border-[#c8f252]/40 shadow-md transition-all group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xl border-4 border-[#c8f252]/40 shadow-md select-none transition-all group-hover:scale-105">
+                              {getAvatarInitials(profileName || user?.name || "Müşteri")}
+                            </div>
+                          )}
+                          {isUploadingPhoto && (
+                            <div className="absolute inset-0 bg-slate-900/60 rounded-full flex items-center justify-center text-white text-[10px] font-black">
+                              Yükleniyor...
+                            </div>
+                          )}
+                        </div>
+
+                        <label className="mt-4 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-black text-[10px] px-4 py-2 rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadSeekerPhoto}
+                            disabled={isUploadingPhoto}
+                            className="hidden"
+                          />
+                          📷 Fotoğrafı düzenle
+                        </label>
+                      </div>
+
                       <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-slate-500">Telefon Numarası (Değiştirilemez):</label>
                         <input

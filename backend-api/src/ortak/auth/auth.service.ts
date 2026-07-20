@@ -203,6 +203,7 @@ export class AuthService {
           kvkk_consent: user.kvkk_consent,
           name: user.name,
           email: user.service_provider?.email || user.email,
+          profile_photo: user.profile_photo,
         },
         resetPasswordRequired,
       };
@@ -402,6 +403,7 @@ export class AuthService {
         kvkk_consent: user.kvkk_consent,
         name: user.name,
         email: serviceProvider.email || user.email,
+        profile_photo: user.profile_photo,
       },
     };
   }
@@ -413,5 +415,32 @@ export class AuthService {
         orderBy: { name: 'asc' },
       });
     }, 3600); // Cache for 1 hour
+  }
+
+  async updateProfile(userId: string, dto: { name?: string; email?: string; profilePhoto?: string }) {
+    const dataToUpdate: any = {};
+    if (dto.name !== undefined) dataToUpdate.name = dto.name;
+    if (dto.email !== undefined) dataToUpdate.email = dto.email;
+    if (dto.profilePhoto !== undefined) dataToUpdate.profile_photo = dto.profilePhoto;
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+    });
+
+    return {
+      success: true,
+      message: 'Profil başarıyla güncellendi.',
+      user: {
+        id: updated.id,
+        phone: updated.phone,
+        phone_masked: updated.phone_masked,
+        name: updated.name,
+        email: updated.email,
+        role: updated.role,
+        kvkk_consent: updated.kvkk_consent,
+        profile_photo: updated.profile_photo,
+      },
+    };
   }
 }

@@ -42,6 +42,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 31** | **Yeni Abonelik & Sıralama** | Gecikme süreleri kaldırılmış yeni 1 Ücretsiz + 3 Ücretli (Basic, Standard, VIP) paket mimarisi, teklif önceliklendirme sıralama algoritması, ücretsiz esnaf aktif iş limit kilidi (State A/B) ve upsell uyarıları | **✅ Tamamlandı** |
 | **Adım 32** | **Pasif Panel & Onay Otomasyonu** | Hizmet veren kayıt sonrası kısıtlı oturum (pasif panel modu), `active` hesap durum kısıtlayıcı koruyucu (`ActiveAccountGuard`), karşılama modalı, sabit top uyarı şeridi, aksiyon kesiciler ve 4'lü admin onay bildirim otomasyonu zinciri (FCM, SMS, Email) | **✅ Tamamlandı** |
 | **Adım 33** | **Profil Resmi & Konum & Firma Adı** | Profil resmi yükleme altyapısı, sol menü ve üst bar avatar senkronizasyonu, Firma Adı belirteçli input, dinamik konum tercihleri (il ve çoklu ilçe seçimi) ve global usta avatar gösterimi (teklifler, favoriler, arama ve iş teyidi) | **✅ Tamamlandı** |
+| **Adım 34** | **Hizmet Alan Profil Resmi & Initials** | Müşteri profil resmi yükleme & Canvas sıkıştırma altyapısı, veritabanı `profile_photo` sütun entegrasyonu, JWT payload/cookie senkronizasyonu, resim olmadığında dinamik isim baş harfleri (initials) avatar gösterim kuralları | **✅ Tamamlandı** |
 
 ---
 
@@ -869,6 +870,27 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
     - **İş Teyit & Puanlama:** İş bittiğinde uyuşmazlık teyit kartlarında ve yorum yapma alanlarında dairesel usta profil resmi entegre edildi.
 - **Test ve Canlıya Geçiş:**
   * `app-hizmetveren`, `app-musteri` ve `backend-api` derleme testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak canlı sunuculara otomatik olarak dağıtıldı.
+
+## 🛠️ Adım 34 Geliştirme Detayları (Hizmet Alan Profil Resmi & Initials Altyapısı)
+
+- **Veritabanı Şeması & Model Değişiklikleri:**
+  * `User` tablosuna `profile_photo` string kolonu eklendi ve `prisma db push` komutu ile PostgreSQL veritabanı şeması başarıyla güncellendi.
+- **Backend API Geliştirmeleri:**
+  * `JwtStrategy` update edilerek, doğrulanan kullanıcı payload'una `profile_photo` claim'i eklendi.
+  * `AuthController` ve `AuthService` içine global `PUT /api/ortak/auth/profile/update` endpoint'i yazıldı. Bu endpoint üzerinden müşteri kendi adını, e-posta adresini ve profil fotoğraf URL'sini veritabanına kaydedebilir.
+  * `verifyOtp` ve `providerLogin` yanıt nesnelerine kullanıcının güncel `profile_photo` verisi eklendi.
+- **Önyüz Hizmet Alan Arayüzü Geliştirmeleri (app-musteri):**
+  * `SeekerDashboard.tsx` profil düzenleme (Hesap Ayarları) formunun en üstüne dairesel fotoğraf yükleme bileşeni ve "Fotoğrafı düzenle" aksiyon tetikleyicisi entegre edildi.
+  * Seçilen resimleri GCS yüklemesi öncesinde HTML5 Canvas ile sıkıştırarak 800x800 ve 70% JPEG kalitesine indiren `compressImage` yardımcı fonksiyonu yazıldı. Sıkıştırılmış resimlerin presigned URL altyapısıyla güvenli şekilde yüklenmesi sağlandı.
+  * Güncellenen profil resmi, tarayıcı yerel depolama (`localStorage: esnaaf_user`) ile anlık eşitlenerek üst bar (header) üzerindeki profil resmiyle anlık senkronize edildi.
+- **İsim Baş Harfleri (Initials) Avatar Kuralı:**
+  * Kullanıcı profil fotoğrafı yüklemediğinde, ismine göre dinamik initials hesaplama kuralı yazıldı:
+    - İsim ve Soyisim varsa (örn. "Ahmet Yılmaz"), baş harflerini alıp avatar yapar (örn. "AY").
+    - Sadece tek isim varsa (örn. "yunus"), isminin ilk iki harfini alır (örn. "YU").
+    - İsim boşsa fallback olarak "HA" (Hizmet Alan) gösterilir.
+- **Derleme Doğrulama:**
+  * Tüm uygulamalar sıfır hata ve sıfır TypeScript tipi uyuşmazlığıyla derlendi.
+
 
 
 

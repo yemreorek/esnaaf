@@ -2,6 +2,26 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-20 feat | Hizmet Alan Profil Fotoğrafı Yükleme, Initials Avatar ve Backend Profil Düzenleme Entegrasyonu
+
+- **Veritabanı Şeması & Model Değişiklikleri:**
+  - `User` tablosuna `profile_photo` string kolonu eklendi ve `prisma db push` komutu ile PostgreSQL veritabanı şeması başarıyla güncellendi.
+- **Backend API Geliştirmeleri:**
+  - `JwtStrategy` update edilerek, doğrulanan kullanıcı payload'una `profile_photo` claim'i eklendi.
+  - `AuthController` ve `AuthService` içine global `PUT /api/ortak/auth/profile/update` endpoint'i yazıldı. Bu endpoint üzerinden müşteri kendi adını, e-posta adresini ve profil fotoğraf URL'sini veritabanına kaydedebilir.
+  - `verifyOtp` ve `providerLogin` yanıt nesnelerine kullanıcının güncel `profile_photo` verisi eklendi.
+- **Önyüz Hizmet Alan Arayüzü Geliştirmeleri (app-musteri):**
+  - `SeekerDashboard.tsx` profil düzenleme (Hesap Ayarları) formunun en üstüne dairesel fotoğraf yükleme bileşeni ve "Fotoğrafı düzenle" aksiyon tetikleyicisi entegre edildi.
+  - Seçilen resimleri GCS yüklemesi öncesinde HTML5 Canvas ile sıkıştırarak 800x800 ve 70% JPEG kalitesine indiren `compressImage` yardımcı fonksiyonu yazıldı. Sıkıştırılmış resimlerin presigned URL altyapısıyla güvenli şekilde yüklenmesi sağlandı.
+  - Güncellenen profil resmi, tarayıcı yerel depolama (`localStorage: esnaaf_user`) ile anlık eşitlenerek üst bar (header) üzerindeki profil resmiyle anlık senkronize edildi.
+- **İsim Baş Harfleri (Initials) Avatar Kuralı:**
+  - Kullanıcı profil fotoğrafı yüklemediğinde, ismine göre dinamik initials hesaplama kuralı yazıldı:
+    - İsim ve Soyisim varsa (örn. "Ahmet Yılmaz"), baş harflerini alıp avatar yapar (örn. "AY").
+    - Sadece tek isim varsa (örn. "yunus"), isminin ilk iki harfini alır (örn. "YU").
+    - İsim boşsa fallback olarak "HA" (Hizmet Alan) gösterilir.
+- **Derleme Doğrulama:**
+  - `app-musteri` ve `backend-api` build testleri sıfır hatayla doğrulandı, `main` branch'ine pushlanarak canlı sunuculara otomatik olarak dağıtıldı.
+
 ## 2026-07-19 feat | Profil Resmi Yükleme, Firma Adı & Konum Tercihleri ve Global Arayüz Gösterimi
 
 - **Profil Fotoğrafı & Firma Adı:**
