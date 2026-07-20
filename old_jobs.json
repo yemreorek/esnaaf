@@ -1,0 +1,329 @@
+{
+  "total_count": 3,
+  "jobs": [
+    {
+      "id": 87698373477,
+      "run_id": 29521184575,
+      "workflow_name": "Deploy to Google Cloud Run",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/yemreorek/esnaaf/actions/runs/29521184575",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSqTaPM8AAAAUazr7ZQ",
+      "head_sha": "87a3da85dd18149918daea109314be563750382a",
+      "url": "https://api.github.com/repos/yemreorek/esnaaf/actions/jobs/87698373477",
+      "html_url": "https://github.com/yemreorek/esnaaf/actions/runs/29521184575/job/87698373477",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-07-16T17:46:50Z",
+      "started_at": "2026-07-16T17:46:52Z",
+      "completed_at": "2026-07-16T17:48:51Z",
+      "name": "Build & Deploy Provider Web App",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-16T17:46:53Z",
+          "completed_at": "2026-07-16T17:46:55Z"
+        },
+        {
+          "name": "Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-16T17:46:55Z",
+          "completed_at": "2026-07-16T17:46:57Z"
+        },
+        {
+          "name": "Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-16T17:46:57Z",
+          "completed_at": "2026-07-16T17:46:57Z"
+        },
+        {
+          "name": "Set up Cloud SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-07-16T17:46:57Z",
+          "completed_at": "2026-07-16T17:47:11Z"
+        },
+        {
+          "name": "Configure Docker for GCP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-07-16T17:47:11Z",
+          "completed_at": "2026-07-16T17:47:11Z"
+        },
+        {
+          "name": "Build and Push Docker Image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-07-16T17:47:11Z",
+          "completed_at": "2026-07-16T17:48:17Z"
+        },
+        {
+          "name": "Deploy to Cloud Run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-07-16T17:48:17Z",
+          "completed_at": "2026-07-16T17:48:48Z"
+        },
+        {
+          "name": "Post Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-16T17:48:48Z",
+          "completed_at": "2026-07-16T17:48:48Z"
+        },
+        {
+          "name": "Post Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-07-16T17:48:48Z",
+          "completed_at": "2026-07-16T17:48:48Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-07-16T17:48:48Z",
+          "completed_at": "2026-07-16T17:48:48Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/yemreorek/esnaaf/check-runs/87698373477",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001442,
+      "runner_name": "GitHub Actions 1000001442",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 87698373479,
+      "run_id": 29521184575,
+      "workflow_name": "Deploy to Google Cloud Run",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/yemreorek/esnaaf/actions/runs/29521184575",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSqTaPM8AAAAUazr7Zw",
+      "head_sha": "87a3da85dd18149918daea109314be563750382a",
+      "url": "https://api.github.com/repos/yemreorek/esnaaf/actions/jobs/87698373479",
+      "html_url": "https://github.com/yemreorek/esnaaf/actions/runs/29521184575/job/87698373479",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-07-16T17:46:50Z",
+      "started_at": "2026-07-16T17:46:52Z",
+      "completed_at": "2026-07-16T17:47:51Z",
+      "name": "Build & Deploy Backend",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-16T17:46:53Z",
+          "completed_at": "2026-07-16T17:46:54Z"
+        },
+        {
+          "name": "Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-16T17:46:54Z",
+          "completed_at": "2026-07-16T17:46:55Z"
+        },
+        {
+          "name": "Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-16T17:46:55Z",
+          "completed_at": "2026-07-16T17:46:55Z"
+        },
+        {
+          "name": "Set up Cloud SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-07-16T17:46:55Z",
+          "completed_at": "2026-07-16T17:47:15Z"
+        },
+        {
+          "name": "Configure Docker for GCP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-07-16T17:47:15Z",
+          "completed_at": "2026-07-16T17:47:16Z"
+        },
+        {
+          "name": "Build and Push Docker Image",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-07-16T17:47:16Z",
+          "completed_at": "2026-07-16T17:47:49Z"
+        },
+        {
+          "name": "Deploy to Cloud Run",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-07-16T17:47:49Z",
+          "completed_at": "2026-07-16T17:47:49Z"
+        },
+        {
+          "name": "Post Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-16T17:47:49Z",
+          "completed_at": "2026-07-16T17:47:49Z"
+        },
+        {
+          "name": "Post Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-07-16T17:47:49Z",
+          "completed_at": "2026-07-16T17:47:49Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-07-16T17:47:49Z",
+          "completed_at": "2026-07-16T17:47:49Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/yemreorek/esnaaf/check-runs/87698373479",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001441,
+      "runner_name": "GitHub Actions 1000001441",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 87698373537,
+      "run_id": 29521184575,
+      "workflow_name": "Deploy to Google Cloud Run",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/yemreorek/esnaaf/actions/runs/29521184575",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSqTaPM8AAAAUazr7oQ",
+      "head_sha": "87a3da85dd18149918daea109314be563750382a",
+      "url": "https://api.github.com/repos/yemreorek/esnaaf/actions/jobs/87698373537",
+      "html_url": "https://github.com/yemreorek/esnaaf/actions/runs/29521184575/job/87698373537",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-07-16T17:46:50Z",
+      "started_at": "2026-07-16T17:46:53Z",
+      "completed_at": "2026-07-16T17:49:03Z",
+      "name": "Build & Deploy Customer Web App",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-16T17:46:53Z",
+          "completed_at": "2026-07-16T17:46:56Z"
+        },
+        {
+          "name": "Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-16T17:46:56Z",
+          "completed_at": "2026-07-16T17:46:57Z"
+        },
+        {
+          "name": "Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-16T17:46:57Z",
+          "completed_at": "2026-07-16T17:46:57Z"
+        },
+        {
+          "name": "Set up Cloud SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-07-16T17:46:57Z",
+          "completed_at": "2026-07-16T17:47:17Z"
+        },
+        {
+          "name": "Configure Docker for GCP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-07-16T17:47:17Z",
+          "completed_at": "2026-07-16T17:47:18Z"
+        },
+        {
+          "name": "Build and Push Docker Image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-07-16T17:47:18Z",
+          "completed_at": "2026-07-16T17:48:26Z"
+        },
+        {
+          "name": "Deploy to Cloud Run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-07-16T17:48:26Z",
+          "completed_at": "2026-07-16T17:49:01Z"
+        },
+        {
+          "name": "Post Authenticate with Google Cloud",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-16T17:49:01Z",
+          "completed_at": "2026-07-16T17:49:01Z"
+        },
+        {
+          "name": "Post Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-07-16T17:49:01Z",
+          "completed_at": "2026-07-16T17:49:01Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-07-16T17:49:01Z",
+          "completed_at": "2026-07-16T17:49:01Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/yemreorek/esnaaf/check-runs/87698373537",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001444,
+      "runner_name": "GitHub Actions 1000001444",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

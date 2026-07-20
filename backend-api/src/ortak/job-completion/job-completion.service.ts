@@ -100,10 +100,22 @@ export class JobCompletionService {
     }
 
     // 6. Canlı WebSocket Bildirimi Gönder (Müşteriye anında onay kartı çıkar)
+    let hvName = 'Hizmet Veren';
+    if (provider) {
+      let onboardingData: any = {};
+      if (provider.description && provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(provider.description);
+        } catch (e) {}
+      }
+      hvName = onboardingData.companyName || provider.user?.name || 'Hizmet Veren';
+    }
+
+    // 6. Canlı WebSocket Bildirimi Gönder (Müşteriye anında onay kartı çıkar)
     this.chatGateway.emitJobCompletedByProvider(jobId, {
       jobId,
       providerId: provider.id,
-      providerName: provider.user?.name || 'Hizmet Veren',
+      providerName: hvName,
       price: dto.price,
       note: dto.note || '',
     });
@@ -111,7 +123,7 @@ export class JobCompletionService {
     // 7. Müşteriye bildirim zilinde gözükmesi ve push/SMS olarak gitmesi için sistem bildirimi gönder
     try {
       await this.bildirimService.sendNotification(acceptedOffer.seeker_id, 'HA-IS-BEYAN', {
-        hv_name: provider.user?.name || 'Hizmet Veren',
+        hv_name: hvName,
         jobId,
       });
     } catch (notifErr: any) {

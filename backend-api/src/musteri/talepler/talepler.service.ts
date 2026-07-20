@@ -155,8 +155,12 @@ export class TaleplerService {
                 onboardingData = JSON.parse(offer.provider.description);
               } catch (e) {}
             }
-            (offer.provider as any).companyName = onboardingData.companyName || '';
+            const cName = onboardingData.companyName || '';
+            (offer.provider as any).companyName = cName;
             (offer.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+            if (offer.provider.user) {
+              offer.provider.user.name = cName || offer.provider.user.name || 'Hizmet Veren';
+            }
           }
         });
       }
@@ -169,8 +173,12 @@ export class TaleplerService {
                 onboardingData = JSON.parse(jc.provider.description);
               } catch (e) {}
             }
-            (jc.provider as any).companyName = onboardingData.companyName || '';
+            const cName = onboardingData.companyName || '';
+            (jc.provider as any).companyName = cName;
             (jc.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+            if (jc.provider.user) {
+              jc.provider.user.name = cName || jc.provider.user.name || 'Hizmet Veren';
+            }
           }
         });
       }
@@ -235,8 +243,12 @@ export class TaleplerService {
               onboardingData = JSON.parse(offer.provider.description);
             } catch (e) {}
           }
-          (offer.provider as any).companyName = onboardingData.companyName || '';
+          const cName = onboardingData.companyName || '';
+          (offer.provider as any).companyName = cName;
           (offer.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+          if (offer.provider.user) {
+            offer.provider.user.name = cName || offer.provider.user.name || 'Hizmet Veren';
+          }
         }
       });
     }
@@ -249,8 +261,12 @@ export class TaleplerService {
               onboardingData = JSON.parse(jc.provider.description);
             } catch (e) {}
           }
-          (jc.provider as any).companyName = onboardingData.companyName || '';
+          const cName = onboardingData.companyName || '';
+          (jc.provider as any).companyName = cName;
           (jc.provider as any).profilePhoto = onboardingData.profilePhoto || '';
+          if (jc.provider.user) {
+            jc.provider.user.name = cName || jc.provider.user.name || 'Hizmet Veren';
+          }
         }
       });
     }
@@ -711,12 +727,23 @@ export class TaleplerService {
       isReAccept,
     });
 
+    let acceptedProviderName = 'Hizmet Veren';
+    if (offer.provider) {
+      let onboardingData: any = {};
+      if (offer.provider.description && offer.provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(offer.provider.description);
+        } catch (e) {}
+      }
+      acceptedProviderName = onboardingData.companyName || offer.provider.user.name || 'Hizmet Veren';
+    }
+
     const room = `job_${offer.job_id}`;
     this.chatGateway.server?.to(room).emit('offer_accepted', {
       jobId: offer.job_id,
       offerId: offer.id,
       providerId: offer.provider_id,
-      providerName: offer.provider.user.name || 'Hizmet Veren',
+      providerName: acceptedProviderName,
       acceptedCount: 1,
     });
 
@@ -752,13 +779,24 @@ export class TaleplerService {
       }
     }
 
+    let responseProviderName = 'Hizmet Veren';
+    if (offer.provider) {
+      let onboardingData: any = {};
+      if (offer.provider.description && offer.provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(offer.provider.description);
+        } catch (e) {}
+      }
+      responseProviderName = onboardingData.companyName || offer.provider.user.name || 'Hizmet Veren';
+    }
+
     return {
       success: true,
       message: 'Teklif başarıyla kabul edildi ve telefon numaraları karşılıklı açıldı.',
       seekerPhone: seekerRealPhone,
       seekerName: offer.job.seeker.name || 'Müşteri',
       providerPhone: providerRealPhone,
-      providerName: offer.provider.user.name || 'Hizmet Veren',
+      providerName: responseProviderName,
       acceptedOfferId: accepted.id,
     };
   }
@@ -847,7 +885,7 @@ export class TaleplerService {
 
     return {
       id: provider.id,
-      name: provider.user.name || 'Hizmet Veren',
+      name: descriptionObj.companyName || provider.user.name || 'Hizmet Veren',
       phone_masked: provider.user.phone_masked,
       city: provider.city || 'Adana',
       service_districts: provider.service_districts || [],

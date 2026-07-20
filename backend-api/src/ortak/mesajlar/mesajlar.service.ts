@@ -106,8 +106,18 @@ export class MesajlarService {
     } else {
       // Trigger HA-05b notification for the customer (Seeker)
       try {
+        let hvName = 'Hizmet Veren';
+        if (offer.provider) {
+          let onboardingData: any = {};
+          if (offer.provider.description && offer.provider.description.startsWith('{')) {
+            try {
+              onboardingData = JSON.parse(offer.provider.description);
+            } catch (e) {}
+          }
+          hvName = onboardingData.companyName || offer.provider.user.name || 'Hizmet Veren';
+        }
         await this.bildirimService.sendNotification(offer.job.seeker_id, 'HA-05b', {
-          hv_name: offer.provider.user.name || 'Hizmet Veren',
+          hv_name: hvName,
         });
       } catch (err: any) {
         this.logger.error(`Failed to send message notification to customer: ${err.message}`);

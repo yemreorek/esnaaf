@@ -330,6 +330,17 @@ export class HizmetverenService {
       return newOffer;
     });
 
+    let wsProviderName = 'Hizmet Veren';
+    if (provider) {
+      let onboardingData: any = {};
+      if (provider.description && provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(provider.description);
+        } catch (e) {}
+      }
+      wsProviderName = onboardingData.companyName || provider.user.name || 'Hizmet Veren';
+    }
+
     // 7. WebSocket ile müşteriyi bilgilendir
     this.chatGateway.emitNewOffer(dto.jobId, {
       id: result.id,
@@ -337,7 +348,7 @@ export class HizmetverenService {
       description: result.message || '',
       created_at: result.created_at,
       providerId: provider.id,
-      providerName: provider.user.name || 'Hizmet Veren',
+      providerName: wsProviderName,
       providerRating: provider.avg_rating ? Number(provider.avg_rating) : 4.0,
       providerIsApproved: provider.is_approved,
       providerSubscription: provider.subscription ? {
@@ -998,9 +1009,20 @@ export class HizmetverenService {
         timeZone: 'Europe/Istanbul',
       });
 
+      let hvName = 'Hizmet Veren';
+      if (provider) {
+        let onboardingData: any = {};
+        if (provider.description && provider.description.startsWith('{')) {
+          try {
+            onboardingData = JSON.parse(provider.description);
+          } catch (e) {}
+        }
+        hvName = onboardingData.companyName || provider.user.name || 'Hizmet Veren';
+      }
+
       const eventCode = isUpdate ? 'HA-RAN-GNC' : 'HA-RAN-YN';
       await this.bildirimService.sendNotification(acceptedOffer.seeker_id, eventCode, {
-        hv_name: provider.user.name || 'Hizmet Veren',
+        hv_name: hvName,
         appointment_date: appointmentDateStr,
       });
     } catch (err: any) {
@@ -1630,7 +1652,16 @@ export class HizmetverenService {
       trReason = reasonText;
     }
 
-    const providerName = provider.user.name || 'Hizmet Veren';
+    let providerName = 'Hizmet Veren';
+    if (provider) {
+      let onboardingData: any = {};
+      if (provider.description && provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(provider.description);
+        } catch (e) {}
+      }
+      providerName = onboardingData.companyName || provider.user.name || 'Hizmet Veren';
+    }
 
     // Transaction ile teklif ve talebi güncelle
     await this.prisma.$transaction([

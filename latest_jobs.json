@@ -1,0 +1,113 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 87708420502,
+      "run_id": 29524208346,
+      "workflow_name": "Deploy to Amazon ECS",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/yemreorek/esnaaf/actions/runs/29524208346",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOSqTaPM8AAAAUa9RJlg",
+      "head_sha": "f9f626619d33b777ed59c54ff70e5b1d42e60ff1",
+      "url": "https://api.github.com/repos/yemreorek/esnaaf/actions/jobs/87708420502",
+      "html_url": "https://github.com/yemreorek/esnaaf/actions/runs/29524208346/job/87708420502",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-07-16T18:30:24Z",
+      "started_at": "2026-07-16T18:30:26Z",
+      "completed_at": "2026-07-16T18:30:35Z",
+      "name": "Build & Deploy to ECS Fargate",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-16T18:30:27Z",
+          "completed_at": "2026-07-16T18:30:30Z"
+        },
+        {
+          "name": "Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-16T18:30:30Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Configure AWS Credentials",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 3,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Login to Amazon ECR",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Build, tag, and push image to Amazon ECR",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Fill in the new image ID in the Amazon ECS task definition",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Deploy Amazon ECS task definition",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:32Z"
+        },
+        {
+          "name": "Post Configure AWS Credentials",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-16T18:30:32Z",
+          "completed_at": "2026-07-16T18:30:33Z"
+        },
+        {
+          "name": "Post Checkout Code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-07-16T18:30:33Z",
+          "completed_at": "2026-07-16T18:30:33Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-07-16T18:30:33Z",
+          "completed_at": "2026-07-16T18:30:33Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/yemreorek/esnaaf/check-runs/87708420502",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001456,
+      "runner_name": "GitHub Actions 1000001456",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

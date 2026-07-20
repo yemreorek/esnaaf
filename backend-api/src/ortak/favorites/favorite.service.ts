@@ -215,13 +215,18 @@ export class FavoriteService {
         } catch (e) {}
       }
 
+      const cName = onboardingData.companyName || '';
       return {
         ...fav,
         provider: {
           ...fav.provider,
           categories: provCategories,
-          companyName: onboardingData.companyName || '',
+          companyName: cName,
           profilePhoto: onboardingData.profilePhoto || '',
+          user: fav.provider.user ? {
+            ...fav.provider.user,
+            name: cName || fav.provider.user.name || 'Hizmet Veren'
+          } : undefined
         },
       };
     });
@@ -421,12 +426,17 @@ export class FavoriteService {
         } catch (e) {}
       }
 
+      const cName = onboardingData.companyName || '';
       return {
         ...item,
         provider: {
           ...item.provider,
-          companyName: onboardingData.companyName || '',
+          companyName: cName,
           profilePhoto: onboardingData.profilePhoto || '',
+          user: item.provider.user ? {
+            ...item.provider.user,
+            name: cName || item.provider.user.name || 'Hizmet Veren'
+          } : undefined
         }
       };
     });

@@ -362,6 +362,17 @@ export class TaleplerProcessor {
             }
           });
 
+          let otonomProviderName = 'Hizmet Veren';
+          if (provider) {
+            let onboardingData: any = {};
+            if (provider.description && provider.description.startsWith('{')) {
+              try {
+                onboardingData = JSON.parse(provider.description);
+              } catch (e) {}
+            }
+            otonomProviderName = onboardingData.companyName || provider.user.name || 'Hizmet Veren';
+          }
+
           // WebSocket ile müşteriye yeni teklif ulaştığını anlık bildir
           this.chatGateway.emitNewOffer(request.id, {
             id: offer.id,
@@ -369,7 +380,7 @@ export class TaleplerProcessor {
             description: offer.message,
             created_at: offer.created_at,
             providerId: provider.id,
-            providerName: provider.user.name,
+            providerName: otonomProviderName,
             providerRating: Number(provider.avg_rating || 4.8),
             providerIsApproved: provider.is_approved,
             providerSubscription: provider.subscription ? {

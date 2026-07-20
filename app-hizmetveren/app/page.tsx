@@ -6137,7 +6137,7 @@ export default function ProviderDashboard() {
               <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
                 <div className="text-left">
                   <h3 className="font-extrabold text-slate-900 text-sm">Temel Bilgiler</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Adınız, profil resminiz ve tanıtım bilgileriniz müşterilere gösterilecektir.</p>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Firma veya Şirket adınız, profil resminiz ve tanıtım bilgileriniz müşterilere gösterilecektir.</p>
                 </div>
 
                 {/* Profile Photo Upload Section */}

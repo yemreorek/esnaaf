@@ -30,8 +30,18 @@ export class NpsSurveyProcessor {
     }
 
     // Trigger HA-08 for Seeker
+    let hvName08 = 'Hizmet Veren';
+    if (completion.provider) {
+      let onboardingData: any = {};
+      if (completion.provider.description && completion.provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(completion.provider.description);
+        } catch (e) {}
+      }
+      hvName08 = onboardingData.companyName || completion.provider.user.name || 'Hizmet Veren';
+    }
     await this.bildirimService.sendNotification(completion.seeker_id, 'HA-08', {
-      hv_name: completion.provider.user.name || 'Hizmet Veren',
+      hv_name: hvName08,
     });
   }
 
@@ -60,8 +70,18 @@ export class NpsSurveyProcessor {
     }
 
     // Trigger HA-10 for Seeker
+    let hvName10 = 'Hizmet Veren';
+    if (provider) {
+      let onboardingData: any = {};
+      if (provider.description && provider.description.startsWith('{')) {
+        try {
+          onboardingData = JSON.parse(provider.description);
+        } catch (e) {}
+      }
+      hvName10 = onboardingData.companyName || provider.user.name || 'Hizmet Veren';
+    }
     await this.bildirimService.sendNotification(seekerId, 'HA-10', {
-      hv_name: provider.user.name || 'Hizmet Veren',
+      hv_name: hvName10,
     });
   }
 }
