@@ -4370,7 +4370,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
             <div className="bg-white rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 flex flex-col animate-scale-up text-left">
               {/* Sticky Header */}
               <div className="sticky top-0 bg-white/95 backdrop-blur-md px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
-                <span className="font-extrabold text-slate-800 text-base tracking-tight">Usta Profili</span>
+                <span className="font-extrabold text-slate-800 text-base tracking-tight">Hizmet Veren Profili</span>
                 <button
                   onClick={() => setSelectedProviderProfile(null)}
                   className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-500 hover:text-slate-800"

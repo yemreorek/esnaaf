@@ -2,6 +2,13 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 ui | "Hizmet Veren Profili" Modal Başlık Güncellemesi
+
+- **Arayüz Metin Güncellemesi:**
+  - Hizmet alan paneli "Yorumları İncele" detay modal penceresinin üst başlık metni `"Usta Profili"` yerine `"Hizmet Veren Profili"` olarak güncellendi (`SeekerDashboard.tsx`).
+- **Derleme Doğrulama:**
+  - `app-musteri` Next.js önyüz uygulaması sıfır hatayla derlendi.
+
 ## 2026-07-23 ui | Usta Profili Modalı Kapatma (X) Butonu Revizyonu
 
 - **Arayüz & UX Düzenlemesi:**

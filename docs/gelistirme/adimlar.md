@@ -48,6 +48,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 37** | **Müsaitlik Durumu Otomatik Pasife Geçiş Düzeltmesi & Limit Artırımı** | Hizmet verenin "AKTİF YAP" butonuna bastıktan veya teklif verdikten hemen sonra geçmiş birikmiş bildirimler nedeniyle tekrar pasife düşme hatasının giderilmesi; tüm paketlerde cevapsız limitinin 10'a çıkarılması | **✅ Tamamlandı** |
 | **Adım 38** | **"Yorumları İncele" Buton Etiket Güncellemesi** | Hizmet alan paneli "Tekliflerim" teklif akış kartlarındaki "Profili Gör" buton metninin kullanıcının inceleme amacını daha net yansıtacak şekilde "Yorumları İncele" olarak güncellenmesi | **✅ Tamamlandı** |
 | **Adım 39** | **Usta Profili Modalı Kapatma (X) Butonu Revizyonu** | Hizmet alan paneli "Yorumları İncele" modal penceresindeki sol üst geri ok `<` butonunun kaldırılıp sağ üst köşeye modern kapatma `X` butonunun yerleştirilmesi | **✅ Tamamlandı** |
+| **Adım 40** | **"Hizmet Veren Profili" Modal Başlık Güncellemesi** | Hizmet alan paneli "Yorumları İncele" modalındaki "Usta Profili" başlık yazısının "Hizmet Veren Profili" olarak güncellenmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -956,6 +957,14 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Modal pencerenin sağ üst köşesine standart `X` kapatma ikonu (`M6 18L18 6M6 6l12 12`) yerleştirilerek kullanıcıların modalı rahatça kapatabilmesi sağlandı.
 - **Derleme Doğrulama:**
   * `app-musteri` uygulaması sıfır hatayla derlendi.
+
+## 🛠️ Adım 40 Geliştirme Detayları ("Hizmet Veren Profili" Modal Başlık Güncellemesi)
+
+- **Arayüz Metin Güncellemesi:**
+  * Hizmet alan panelinde "Yorumları İncele" modal penceresinin üst başlığındaki `"Usta Profili"` ifadesi `"Hizmet Veren Profili"` olarak güncellendi (`SeekerDashboard.tsx`).
+- **Derleme Doğrulama:**
+  * `app-musteri` uygulaması sıfır hatayla derlendi.
+
 
 
 
