@@ -44,6 +44,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 33** | **Profil Resmi & Konum & Firma Adı** | Profil resmi yükleme altyapısı, sol menü ve üst bar avatar senkronizasyonu, Firma Adı belirteçli input, dinamik konum tercihleri (il ve çoklu ilçe seçimi) ve global usta avatar gösterimi (teklifler, favoriler, arama ve iş teyidi) | **✅ Tamamlandı** |
 | **Adım 34** | **Hizmet Alan Profil Resmi & Initials** | Müşteri profil resmi yükleme & Canvas sıkıştırma altyapısı, veritabanı `profile_photo` sütun entegrasyonu, JWT payload/cookie senkronizasyonu, resim olmadığında dinamik isim baş harfleri (initials) avatar gösterim kuralları | **✅ Tamamlandı** |
 | **Adım 35** | **Dinamik Adres Formatı Entegrasyonu** | Canlı sohbette seçilen Mahalle/Köy, İlçe, İl bilgilerini sıralı şekilde (`Mahalle, İlçe, İl`) birleştiren dinamik formatlama yapısı; hizmet veren fırsat, teklif, aktif/tamamlanmış iş listeleri ile hizmet alan "Tekliflerim" form detayları entegrasyonu | **✅ Tamamlandı** |
+| **Adım 36** | **Canlı Sohbet Giriş Kilidi Düzeltmesi** | "Yeni Talep Oluştur" butonundan sohbet başlatıldığında metin giriş kutusunun ve mikrofon butonunun kilitlenmesini sağlayan hatalı `['greeting', 'category_detection']` kontrolünün düzeltilmesi ve dinamik seçenek varlığına duyarlı hale getirilmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -905,6 +906,24 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * `ChatScreen.tsx` yapay zeka chat penceresinde birikmiş konuşma geçmişi (log) kartlarındaki adres gösterimleri (`Çıkış Konumu` ve genel `Konum`) de mahalle bilgisi varsa bunu en başa ekleyecek şekilde dinamikleştirildi.
 - **Derleme Doğrulama:**
   * `app-hizmetveren`, `app-hizmetveren-mobil`, `app-musteri` ve `backend-api` uygulamaları derleme testinden sıfır hatayla geçti.
+
+## 🛠️ Adım 36 Geliştirme Detayları (Canlı Sohbet Giriş Kilidi Düzeltmesi)
+
+- **Kök Neden Tespiti:**
+  * Hizmet alan panelinde "+ Yeni Talep Oluştur" butonuna basıldığında sohbet `initialMessage=""` ve `currentStep="greeting"` olarak açılmaktadır.
+  * `ChatScreen.tsx` alt footer bileşenindeki `['greeting', 'category_detection'].includes(currentStep)` kontrolü nedeniyle, sohbet karşılamasında herhangi bir buton seçeneği olmamasına rağmen alt alan tamamen kilitleniyor ve *"Lütfen yukarıdaki seçeneklerden birini belirleyerek devam edin."* uyarısı gösterilerek metin kutusu ve mikrofon gizleniyordu.
+- **Çözüm & Yeniden Yapılandırma:**
+  * Hatalı statik adım adı kontrolü kaldırıldı; yerine asistanın son mesajında gerçekten seçenek butonları (`options`) bulunup bulunmadığını ve mesaj tipinin serbest metin (`text`/`textarea`) olmadığını denetleyen dinamik kontrol mantığı entegre edildi:
+    ```typescript
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+    const hasOptions = lastMsg && lastMsg.role === 'assistant' && Array.isArray(lastMsg.options) && lastMsg.options.length > 0;
+    const isTextInputType = lastMsg && (lastMsg.inputType === 'text' || lastMsg.inputType === 'textarea');
+    return hasOptions && !isTextInputType;
+    ```
+  * Bu sayede "Size bugün hangi konuda yardımcı olabilirim?" karşılama mesajında metin yazma kutusu, mikrofon butonu ve gönder düğmesi aktif hale geldi.
+- **Derleme Doğrulama:**
+  * `app-musteri` uygulaması sıfır hatayla derlendi.
+
 
 
 

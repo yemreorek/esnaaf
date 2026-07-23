@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 fix | Canlı Sohbet Karşılama Giriş Kilidi Düzeltmesi
+
+- **Hata Tespiti & Düzeltme:**
+  - Hizmet alan panelinde "+ Yeni Talep Oluştur" butonuna tıklandığında açılan canlı sohbette metin giriş kutusunun ve mikrofon butonunun kilitlenmesine sebep olan `['greeting', 'category_detection'].includes(currentStep)` koşulu kaldırıldı.
+  - `ChatScreen.tsx` alt footer bileşenine dinamik seçenek varlığı kontrolü (`hasOptions && !isTextInputType`) getirildi.
+  - Artık ilk açılıştaki "Size bugün hangi konuda yardımcı olabilirim?" karşılama mesajında metin yazma alanı, sesli mesaj mikrofon butonu ve gönder düğmesi eksiksiz aktif duruma getirildi.
+- **Derleme Doğrulama:**
+  - `app-musteri` uygulaması sıfır hatayla derlendi.
+
 ## 2026-07-20 feat | Dinamik Adres Formatı (`Mahalle, İlçe, İl`) Entegrasyonu
 
 - **Backend API Geliştirmeleri:**
