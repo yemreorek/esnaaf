@@ -3132,7 +3132,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       {loadingProviderProfile ? (
                                         <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
                                       ) : null}
-                                      <span>Profili Gör</span>
+                                       <span>Yorumları İncele</span>
                                     </button>
 
                                     {offer.status === "accepted" && (

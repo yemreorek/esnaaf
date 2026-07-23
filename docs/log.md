@@ -2,6 +2,13 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 ui | Teklif Kartı "Yorumları İncele" Buton Etiket Güncellemesi
+
+- **Arayüz & UX Düzenlemesi:**
+  - Hizmet alan paneli (`app-musteri`) "Tekliflerim" sekmesindeki gelen teklifler akış kartlarında yer alan `"Profili Gör"` buton metni, hizmet alan kullanıcının ustanın geçmiş değerlendirme ve yorumlarını inceleyeceğini daha açık vurgulamak adına `"Yorumları İncele"` olarak güncellendi (`SeekerDashboard.tsx` ve `ChatScreen.tsx`).
+- **Derleme Doğrulama:**
+  - `app-musteri` Next.js önyüz uygulaması sıfır hatayla derlendi.
+
 ## 2026-07-23 fix | Hizmet Veren Müsaitlik Durumu Otomatik Pasife Düşme Düzeltmesi & Limit 10 Entegrasyonu
 
 - **Hata Tespiti & Çözüm:**

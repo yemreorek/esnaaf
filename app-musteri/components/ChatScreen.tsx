@@ -1237,7 +1237,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
 
                 <div className="flex items-center gap-2.5 w-full pt-2">
                   <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50">
-                    Profili Gör
+                    Yorumları İncele
                   </button>
                   <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl cursor-pointer transition-all border border-slate-200/50">
                     Mesaj Gönder

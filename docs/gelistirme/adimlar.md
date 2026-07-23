@@ -46,6 +46,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 35** | **Dinamik Adres Formatı Entegrasyonu** | Canlı sohbette seçilen Mahalle/Köy, İlçe, İl bilgilerini sıralı şekilde (`Mahalle, İlçe, İl`) birleştiren dinamik formatlama yapısı; hizmet veren fırsat, teklif, aktif/tamamlanmış iş listeleri ile hizmet alan "Tekliflerim" form detayları entegrasyonu | **✅ Tamamlandı** |
 | **Adım 36** | **Canlı Sohbet Giriş Kilidi Düzeltmesi** | "Yeni Talep Oluştur" butonundan sohbet başlatıldığında metin giriş kutusunun ve mikrofon butonunun kilitlenmesini sağlayan hatalı `['greeting', 'category_detection']` kontrolünün düzeltilmesi ve dinamik seçenek varlığına duyarlı hale getirilmesi | **✅ Tamamlandı** |
 | **Adım 37** | **Müsaitlik Durumu Otomatik Pasife Geçiş Düzeltmesi & Limit Artırımı** | Hizmet verenin "AKTİF YAP" butonuna bastıktan veya teklif verdikten hemen sonra geçmiş birikmiş bildirimler nedeniyle tekrar pasife düşme hatasının giderilmesi; tüm paketlerde cevapsız limitinin 10'a çıkarılması | **✅ Tamamlandı** |
+| **Adım 38** | **"Yorumları İncele" Buton Etiket Güncellemesi** | Hizmet alan paneli "Tekliflerim" teklif akış kartlarındaki "Profili Gör" buton metninin kullanıcının inceleme amacını daha net yansıtacak şekilde "Yorumları İncele" olarak güncellenmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -937,6 +938,15 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Veritabanındaki tüm birikmiş geçmiş kayıtlar temizlenerek ustaların profilleri yeniden aktif hale getirildi.
 - **Derleme Doğrulama:**
   * `backend-api` NestJS uygulaması derleme testinden sıfır hatayla geçti.
+
+## 🛠️ Adım 38 Geliştirme Detayları ("Yorumları İncele" Buton Etiket Güncellemesi)
+
+- **Görsel & UX Revizyonu:**
+  * Hizmet alan platformu (`app-musteri`) "Tekliflerim" sekmesindeki gelen teklifler akış kartlarında yer alan `"Profili Gör"` buton metni, kullanıcının ustanın müşteri yorumlarını ve değerlendirme puanlarını inceleme amacını daha net vurgulamak adına `"Yorumları İncele"` olarak güncellendi.
+  * `SeekerDashboard.tsx` ve `ChatScreen.tsx` bileşenlerindeki ilgili teklif kartı buton etiketleri senkronize edildi.
+- **Derleme Doğrulama:**
+  * `app-musteri` uygulaması sıfır hatayla derlendi.
+
 
 
 
