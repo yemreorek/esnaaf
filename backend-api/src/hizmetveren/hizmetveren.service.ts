@@ -321,14 +321,31 @@ export class HizmetverenService {
         },
       });
 
-      // Reset unanswered lead count
+      // Reset unanswered lead count and ensure provider is active
       await tx.serviceProvider.update({
         where: { id: provider.id },
-        data: { unanswered_lead_count: 0 },
+        data: {
+          unanswered_lead_count: 0,
+          is_available: true,
+        },
+      });
+
+      // Clear all past unprocessed responseTime records so old leads do not trigger passivation
+      await tx.responseTime.updateMany({
+        where: {
+          provider_id: provider.id,
+          unanswered_processed: false,
+        },
+        data: {
+          unanswered_processed: true,
+        },
       });
 
       return newOffer;
     });
+
+    // Invalidate Redis profile cache
+    await this.redis.del(`provider:profile:v2:${provider.user_id}`);
 
     let wsProviderName = 'Hizmet Veren';
     if (provider) {
@@ -1543,12 +1560,8 @@ export class HizmetverenService {
             const unansweredCount = provider.unanswered_lead_count + 1;
             let isAvailable = provider.is_available;
 
-            // Paket limitini belirle: Ücretsiz (Free) = 5, Ücretli (Basic, Standard, VIP) = 10
-            let limit = 5;
-            const sub = provider.subscription;
-            if (sub && ['active', 'trial', 'admin_trial'].includes(sub.status)) {
-              limit = 10;
-            }
+            // Tüm abonelik paketlerinde (Ücretsiz, Basic, Standard, VIP) üst üste cevapsız kalma limiti 10 olarak belirlenmiştir.
+            const limit = 10;
 
             if (unansweredCount >= limit) {
               isAvailable = false;
@@ -1601,6 +1614,19 @@ export class HizmetverenService {
 
     // Invalidate Redis profile cache
     await this.redis.del(`provider:profile:v2:${providerUserId}`);
+
+    if (isAvailable) {
+      // Clear past unprocessed responseTime records so old backlog leads don't trigger passivation
+      await this.prisma.responseTime.updateMany({
+        where: {
+          provider_id: provider.id,
+          unanswered_processed: false,
+        },
+        data: {
+          unanswered_processed: true,
+        },
+      });
+    }
 
     return this.prisma.serviceProvider.update({
       where: { id: provider.id },

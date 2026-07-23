@@ -45,6 +45,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 34** | **Hizmet Alan Profil Resmi & Initials** | Müşteri profil resmi yükleme & Canvas sıkıştırma altyapısı, veritabanı `profile_photo` sütun entegrasyonu, JWT payload/cookie senkronizasyonu, resim olmadığında dinamik isim baş harfleri (initials) avatar gösterim kuralları | **✅ Tamamlandı** |
 | **Adım 35** | **Dinamik Adres Formatı Entegrasyonu** | Canlı sohbette seçilen Mahalle/Köy, İlçe, İl bilgilerini sıralı şekilde (`Mahalle, İlçe, İl`) birleştiren dinamik formatlama yapısı; hizmet veren fırsat, teklif, aktif/tamamlanmış iş listeleri ile hizmet alan "Tekliflerim" form detayları entegrasyonu | **✅ Tamamlandı** |
 | **Adım 36** | **Canlı Sohbet Giriş Kilidi Düzeltmesi** | "Yeni Talep Oluştur" butonundan sohbet başlatıldığında metin giriş kutusunun ve mikrofon butonunun kilitlenmesini sağlayan hatalı `['greeting', 'category_detection']` kontrolünün düzeltilmesi ve dinamik seçenek varlığına duyarlı hale getirilmesi | **✅ Tamamlandı** |
+| **Adım 37** | **Müsaitlik Durumu Otomatik Pasife Geçiş Düzeltmesi & Limit Artırımı** | Hizmet verenin "AKTİF YAP" butonuna bastıktan veya teklif verdikten hemen sonra geçmiş birikmiş bildirimler nedeniyle tekrar pasife düşme hatasının giderilmesi; tüm paketlerde cevapsız limitinin 10'a çıkarılması | **✅ Tamamlandı** |
 
 ---
 
@@ -923,6 +924,20 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Bu sayede "Size bugün hangi konuda yardımcı olabilirim?" karşılama mesajında metin yazma kutusu, mikrofon butonu ve gönder düğmesi aktif hale geldi.
 - **Derleme Doğrulama:**
   * `app-musteri` uygulaması sıfır hatayla derlendi.
+
+## 🛠️ Adım 37 Geliştirme Detayları (Müsaitlik Otomatik Pasife Geçiş Düzeltmesi & Limit Artırımı)
+
+- **Kök Neden Tespiti:**
+  * Hizmet veren panelden durumunu "AKTİF YAP" düğmesiyle açtığında veya yeni bir teklif sunduğunda `unanswered_lead_count` sıfırlanıyordu ancak geçmişte yanıtlanmamış eski `ResponseTime` kayıtlarının `unanswered_processed` bayrağı `false` kalıyordu.
+  * Her dakika çalışan `@Cron(CronExpression.EVERY_MINUTE) checkUnansweredLeads` cron fonksiyonu bu birikmiş geçmiş bildirimleri tekrar işleyip sayacı hemen 5/10 seviyesine çıkararak hesabı anında yeniden "PASİF" moda düşürüyordu.
+- **Çözüm & Limit Güncellemesi:**
+  * `updateAvailability` ve `createOffer` metodlarında usta aktif konuma geçtiğinde veya teklif verdiğinde geçmişteki tüm işlenmemiş `ResponseTime` kayıtları `unanswered_processed = true` olarak güncellenerek geçmiş birikmeler temizlendi.
+  * Teklif verme anında `is_available = true` ve `unanswered_lead_count = 0` güncellemeleri entegre edilip Redis profil önbelleği temizlendi.
+  * Tüm abonelik paketlerinde (Ücretsiz, Basic, Standard, VIP) cevapsız kalma pasiflik limiti **10** ilana sabitlendi.
+  * Veritabanındaki tüm birikmiş geçmiş kayıtlar temizlenerek ustaların profilleri yeniden aktif hale getirildi.
+- **Derleme Doğrulama:**
+  * `backend-api` NestJS uygulaması derleme testinden sıfır hatayla geçti.
+
 
 
 

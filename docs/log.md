@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 fix | Hizmet Veren Müsaitlik Durumu Otomatik Pasife Düşme Düzeltmesi & Limit 10 Entegrasyonu
+
+- **Hata Tespiti & Çözüm:**
+  - Hizmet verenin "AKTİF YAP" butonuna basıp durumunu açmasından veya teklif vermesinden hemen sonra geçmişteki işlenmemiş cevapsız bildirimlerin cron tarafından tekrar işlenerek hesabı anında yeniden "PASİF" moda alma sorunu giderildi.
+  - `updateAvailability` ve `createOffer` servis metodlarına usta aktifleştiğinde geçmiş birikmiş `ResponseTime` kayıtlarını `unanswered_processed = true` yaparak temizleyen ve Redis profil önbelleğini sıfırlayan yapı eklendi.
+- **Kural Güncellemesi:**
+  - Tüm abonelik paketlerinde (Ücretsiz, Basic, Standard, VIP) üst üste ilana yanıt vermeyip pasifleşme limiti **10** ilana yükseltildi.
+  - Veritabanındaki birikmiş cevapsız kayıtlar temizlenerek tüm ustaların durumları aktife çekildi.
+
 ## 2026-07-23 fix | Canlı Sohbet Karşılama Giriş Kilidi Düzeltmesi
 
 - **Hata Tespiti & Düzeltme:**
