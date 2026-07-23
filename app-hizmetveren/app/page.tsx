@@ -2766,7 +2766,7 @@ export default function ProviderDashboard() {
       if (isFree) {
         showAlert(
           'Tebrikler!',
-          'Teklifiniz anında müşteriye iletildi! Ancak sistemde Ücretli Aboneliğe sahip olan esnaflar teklif verdiğinde sıralamada otomatik olarak üzerinize geçecektir. Müşterinin dikkatini ilk sırada çekmek ve VIP Rozetiyle teklifinizin kabul edilme şansını artırmak için paketinizi yükseltin!',
+          'Teklifiniz anında müşteriye iletildi! Ancak sistemde Ücretli Aboneliğe sahip olan hizmet verenler teklif verdiğinde sıralamada otomatik olarak üzerinize geçecektir. Müşterinin dikkatini ilk sırada çekmek ve VIP Rozetiyle teklifinizin kabul edilme şansını artırmak için paketinizi yükseltin!',
           'info'
         );
       } else {
@@ -2861,7 +2861,7 @@ export default function ProviderDashboard() {
               Hizmet Veren Girişi
             </h1>
             <p className="text-xs text-slate-400 font-semibold mt-1 text-center leading-relaxed">
-              Esnaf yönetim paneline giriş yapın, yeni iş fırsatlarını kaçırmayın.
+              Hizmet veren yönetim paneline giriş yapın, yeni iş fırsatlarını kaçırmayın.
             </p>
           </div>
 
@@ -3416,7 +3416,7 @@ export default function ProviderDashboard() {
                 disabled={loading}
                 className="bg-transparent text-slate-800 text-[11px] font-black focus:outline-none cursor-pointer w-full border-none outline-none font-sans"
               >
-                <option value="" className="bg-white text-slate-800">--- Esnaf Girişi Yap ---</option>
+                <option value="" className="bg-white text-slate-800">--- Hizmet Veren Girişi Yap ---</option>
                 {MOCK_USTAS.map((u) => (
                   <option key={u.phone} value={u.phone} className="bg-white text-slate-800">
                     {u.name} (⭐ {u.rating})
@@ -4155,7 +4155,7 @@ export default function ProviderDashboard() {
                           Mevcut işlerinizden en az birini tamamlayıp, <strong>"Tamamlanan İşler"</strong> sekmesinden müşteri teyidini tamamlayarak aktif slot sayınızı boşalttığınızda, gelen yeni fırsatlar anında tekrar akmaya başlayacaktır.
                         </p>
                         <p className="text-amber-900 text-xs font-bold leading-relaxed bg-amber-100/40 p-3.5 rounded-2xl border border-amber-200/50">
-                          🔥 <strong>Diğer Esnaflar Teklif Veriyor!</strong> Siz mevcut işlerinizi tamamlayıp yer açana kadar, <strong>diğer rakipleriniz</strong> bölgenizdeki yeni iş ilanlarına teklif vermeye kesintisiz devam etmektedir. İlanları rakiplerinize kaptırmamak için mevcut işlerinizi hızlıca tamamlayın veya bir üst pakete geçerek kapasite limitinizi genişletin!
+                          🔥 <strong>Diğer Hizmet Verenler Teklif Veriyor!</strong> Siz mevcut işlerinizi tamamlayıp yer açana kadar, <strong>diğer rakipleriniz</strong> bölgenizdeki yeni iş ilanlarına teklif vermeye kesintisiz devam etmektedir. İlanları rakiplerinize kaptırmamak için mevcut işlerinizi hızlıca tamamlayın veya bir üst pakete geçerek kapasite limitinizi genişletin!
                         </p>
                       </>
                     )}

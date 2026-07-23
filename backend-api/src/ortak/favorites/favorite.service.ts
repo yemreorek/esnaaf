@@ -193,7 +193,7 @@ export class FavoriteService {
         case 'Fotoğrafçı': return 'fotografci';
         case 'Organizasyon': return 'organizasyon';
         case 'Etkinlik': return 'etkinlik';
-        default: return 'genel-esnaf-hizmeti';
+        default: return 'genel-hizmet';
       }
     };
 
@@ -380,7 +380,7 @@ export class FavoriteService {
         this.chatGateway.server?.to(`user_${targetUser.id}`).emit('new_loyalty_request', {
           id: created.id,
           providerId: provider.id,
-          providerName: provider.user?.name || 'Esnaf Usta',
+          providerName: provider.user?.name || 'Hizmet Veren',
           createdAt: created.created_at,
         });
       } catch (wsErr) {

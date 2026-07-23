@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Esnaaf Partner — Hizmet Veren Paneli",
-  description: "Bölgenizdeki esnaf taleplerine anlık teklif verin, işinizi büyütün",
+  description: "Bölgenizdeki hizmet taleplerine anlık teklif verin, işinizi büyütün",
 };
 
 export default function RootLayout({

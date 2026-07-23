@@ -2934,7 +2934,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 </span>
                               </div>
                               <p className="text-slate-700 text-xs font-extrabold leading-relaxed max-w-md">
-                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi esnaflara iletildi. {getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).label} içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
+                                Canlı bağlantı aktif! Talebiniz sistemdeki en iyi hizmet verenlere iletildi. {getRequestExpiryInfo(selectedRequest.created_at, Date.now(), selectedRequest.offers).label} içerisinde en uygun teklifler canlı olarak bu ekranda listelenmeye devam edecektir.
                               </p>
                             </div>
                           ) : null}
@@ -2958,7 +2958,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                   <div className="space-y-1">
                                     <div className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</div>
                                     <div className="text-slate-500 text-xs font-semibold max-w-[280px] leading-relaxed mx-auto">
-                                      Talebiniz bölgenizdeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
+                                      Talebiniz bölgenizdeki en iyi hizmet verenlere iletildi. Teklifler canlı olarak bu ekranda belirecek.
                                     </div>
                                   </div>
                                 </>
@@ -3019,7 +3019,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                         </span>
                                         <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                                           <span className="text-[10px] text-slate-400 font-bold uppercase">
-                                            Profesyonel Esnaf
+                                            Profesyonel Hizmet Veren
                                           </span>
                                           {isPaidProvider(offer) ? (
                                             <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-emerald-200">
@@ -3108,7 +3108,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       <div className="flex items-center gap-2">
                                         <span className="text-emerald-600 text-xs">📞</span>
                                         <div className="flex flex-col">
-                                          <span className="text-[9px] text-slate-400 font-bold uppercase">Esnaf Telefon Numarası</span>
+                                          <span className="text-[9px] text-slate-400 font-bold uppercase">Hizmet Veren Telefon Numarası</span>
                                           <span className="text-xs font-black text-slate-800 font-mono">
                                             {offer.provider?.user?.phone_decrypted || mutualPhones?.providerPhone || "Bilinmiyor"}
                                           </span>
@@ -3198,7 +3198,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       </div>
                       <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Canlı İzleme Aktif</h4>
                       <p className="text-slate-400 text-xs font-semibold leading-relaxed mb-6">
-                        Tekliflerinizi ve esnaf etkileşimlerini anlık canlı lobi modunda yönetiyorsunuz. Canlı Socket.io odaları arka planda sürekli olarak güncellenir.
+                        Tekliflerinizi ve hizmet veren etkileşimlerini anlık canlı lobi modunda yönetiyorsunuz. Canlı Socket.io odaları arka planda sürekli olarak güncellenir.
                       </p>
                       <button 
                         onClick={() => setActiveTab("tekliflerim")}
@@ -3354,7 +3354,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     <div className="space-y-6 animate-scale-up text-left">
                       <div>
                         <h3 className="font-extrabold text-slate-900 text-2xl">Sohbet & İletişim Kutusu</h3>
-                        <p className="text-xs text-slate-400 font-semibold mt-1">Anlaştığınız esnaflarla gerçekleştirdiğiniz mesaj geçmişini yönetin.</p>
+                        <p className="text-xs text-slate-400 font-semibold mt-1">Anlaştığınız hizmet verenlerle gerçekleştirdiğiniz mesaj geçmişini yönetin.</p>
                       </div>
 
                       {!hasAccepted && !hasActiveChat ? (
@@ -3362,7 +3362,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           <div className="text-4xl mb-4">💬</div>
                           <h4 className="font-extrabold text-slate-800 text-sm mb-1.5">Henüz Aktif Sohbet Yok</h4>
                           <p className="text-slate-400 text-xs font-semibold leading-relaxed">
-                            Bir esnafın teklifini kabul ettiğinizde veya mesaj gönderdiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
+                            Bir hizmet verenin teklifini kabul ettiğinizde veya mesaj gönderdiğinizde, karşılıklı iletişim kanalları ve sohbet odanız burada otomatik olarak açılacaktır.
                           </p>
                         </div>
                       ) : (
@@ -3504,7 +3504,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 <span className="text-3xl">💬</span>
                                 <h4 className="text-xs font-black text-slate-800 mt-3 font-sans">Sohbet Başlatılmadı</h4>
                                 <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                                  Soldaki listeden görüşmek istediğiniz esnafı seçerek anlık sohbete başlayabilirsiniz.
+                                  Soldaki listeden görüşmek istediğiniz hizmet vereni seçerek anlık sohbete başlayabilirsiniz.
                                 </p>
                               </div>
                             )}
@@ -3527,7 +3527,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       <div className="space-y-6 animate-scale-up text-left">
                         <div>
                           <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
-                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve hizmet verenleri değerlendirerek puanlayın.</p>
                         </div>
 
                         <div className="bg-white border border-slate-100 rounded-[24px] p-8 text-center shadow-sm max-w-lg mx-auto mt-6 flex flex-col items-center gap-4">
@@ -3582,7 +3582,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       <div className="space-y-6 animate-scale-up text-left">
                         <div>
                           <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
-                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                          <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve hizmet verenleri değerlendirerek puanlayın.</p>
                         </div>
 
                         <div className="bg-white border border-slate-100 rounded-[24px] p-12 text-center shadow-sm max-w-lg mx-auto mt-6">
@@ -3600,7 +3600,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     <div className="space-y-6 animate-scale-up text-left">
                       <div>
                         <h3 className="font-extrabold text-slate-900 text-2xl">İş Teyit & Puanlama Paneli</h3>
-                        <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve esnafları değerlendirerek puanlayın.</p>
+                        <p className="text-xs text-slate-400 font-semibold mt-1">Tamamlanan işlerinizin onaylarını verin ve hizmet verenleri değerlendirerek puanlayın.</p>
                       </div>
 
                       <div className="space-y-6 max-w-3xl">
@@ -3624,14 +3624,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 )}
                                 <div className="text-left">
                                   <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Teyit Bekliyor</h4>
-                                  <span className="text-[10px] text-slate-400 font-bold block">Esnaf: {jc.provider?.user?.name || "Usta"}</span>
+                                  <span className="text-[10px] text-slate-400 font-bold block">Hizmet Veren: {jc.provider?.user?.name || "Usta"}</span>
                                 </div>
                               </div>
                               <p className="text-xs text-slate-600 font-semibold leading-relaxed">
                                 Ustanız bu işin tamamlandığını beyan etti. Lütfen beyan edilen tutarı kontrol ederek teyit ediniz.
                               </p>
                               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-bold space-y-2 text-slate-700">
-                                <div className="flex justify-between"><span>Esnaf Adı:</span><span className="text-slate-900">{jc.provider?.user?.name || "Usta"}</span></div>
+                                <div className="flex justify-between"><span>Hizmet Veren Adı:</span><span className="text-slate-900">{jc.provider?.user?.name || "Usta"}</span></div>
                                 <div className="flex justify-between"><span>Beyan Edilen Ücret:</span><span className="text-slate-900">₺{Number(jc.provider_declared_amount || 0).toLocaleString("tr-TR")}</span></div>
                               </div>
                               <div className="flex gap-3 pt-2">
@@ -3663,7 +3663,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                         {/* Pending Reviews */}
                         {completedNoReviewRequests.map((req) => {
                           const completedJc = req.job_completions?.[0];
-                          const providerName = completedJc?.provider?.user?.name || "Esnaf";
+                          const providerName = completedJc?.provider?.user?.name || "Hizmet Veren";
                           const isCurrentReviewReq = selectedRequest?.id === req.id;
                           
                           return (
@@ -3682,7 +3682,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 )}
                                 <div className="text-left">
                                   <h4 className="font-black text-sm text-slate-900">{req.category?.name} - Değerlendirme Yapın</h4>
-                                  <span className="text-[10px] text-slate-400 font-bold block">Esnaf: {providerName}</span>
+                                  <span className="text-[10px] text-slate-400 font-bold block">Hizmet Veren: {providerName}</span>
                                 </div>
                               </div>
                               <p className="text-xs text-slate-650 font-semibold leading-relaxed">
@@ -4046,7 +4046,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                 {esnaafId || 'Yükleniyor...'}
                               </div>
                               <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
-                                Hizmet veren (esnaf) bu ID'yi kendi panelinde "Sadık Müşterilerim" bölümüne ekleyerek sizinle özel komisyon avantajıyla eşleşebilir.
+                                Hizmet veren bu ID'yi kendi panelinde "Sadık Müşterilerim" bölümüne ekleyerek sizinle özel komisyon avantajıyla eşleşebilir.
                               </p>
                             </div>
                             {/* Visual QR Code Mockup */}
@@ -4109,7 +4109,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                             <button
                               onClick={handleSearchUsta}
                               disabled={isSearching}
-                              className="bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-400 text-xs font-black px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
+                              className="bg-slate-900 hover:bg-slate-880 text-white disabled:bg-slate-400 text-xs font-black px-4 rounded-xl cursor-pointer transition-all active:scale-95 shrink-0"
                             >
                               {isSearching ? "Aranıyor..." : "Ara"}
                             </button>
@@ -4359,7 +4359,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
         {/* Floating lime-green "+" button strictly matching the mockup at bottom right */}
         <button
           onClick={() => onLogout()}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-50 border border-transparent"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#c8f252] hover:bg-[#b5e639] text-slate-955 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-50 border border-transparent"
         >
           <Plus className="w-6 h-6 stroke-[3]" />
         </button>
@@ -4394,7 +4394,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       className="w-20 h-20 rounded-full object-cover shadow-md border border-[#c8f252]/20"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-full bg-[#c8f252] text-slate-950 flex items-center justify-center font-black text-2xl select-none shadow-md border border-[#c8f252]/20">
+                    <div className="w-20 h-20 rounded-full bg-[#c8f252] text-slate-955 flex items-center justify-center font-black text-2xl select-none shadow-md border border-[#c8f252]/20">
                       {selectedProviderProfile.name ? selectedProviderProfile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "US"}
                     </div>
                   )}
@@ -4403,7 +4403,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                     <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center">
                       {selectedProviderProfile.name}
                       {selectedProviderProfile.is_approved && (
-                        <span className="text-slate-950 bg-[#c8f252] p-0.5 rounded-full border border-[#c8f252]/30" title="Onaylı Esnaf">
+                        <span className="text-slate-955 bg-[#c8f252] p-0.5 rounded-full border border-[#c8f252]/30" title="Onaylı Hizmet Veren">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
@@ -4479,7 +4479,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
                 {/* Customer reviews block (Müşteri Yorumları) */}
                 <div className="flex flex-col gap-5 border-b border-slate-100 pb-8">
-                  <h4 className="text-base font-black text-slate-950 tracking-tight">Müşteri Yorumları</h4>
+                  <h4 className="text-base font-black text-slate-955 tracking-tight">Müşteri Yorumları</h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50/30 p-5 rounded-2xl border border-slate-100">
                     <div className="flex flex-col items-center justify-center text-center">
@@ -4551,7 +4551,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
                 {/* Photos (Fotoğraflar) */}
                 <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
-                  <h4 className="text-base font-black text-slate-950 tracking-tight">Fotoğraflar</h4>
+                  <h4 className="text-base font-black text-slate-955 tracking-tight">Fotoğraflar</h4>
                   {selectedProviderProfile.description?.referencePhotos && selectedProviderProfile.description.referencePhotos.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3">
                       {selectedProviderProfile.description.referencePhotos.map((photo: string, index: number) => (
@@ -4567,9 +4567,9 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
                 {/* Activity (Aktivite) */}
                 <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
-                  <h4 className="text-base font-black text-slate-950 tracking-tight">Aktivite</h4>
+                  <h4 className="text-base font-black text-slate-955 tracking-tight">Aktivite</h4>
                   <div className="flex items-center gap-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                    <span className="w-9 h-9 rounded-xl bg-[#c8f252] text-slate-950 flex items-center justify-center font-bold text-sm">
+                    <span className="w-9 h-9 rounded-xl bg-[#c8f252] text-slate-955 flex items-center justify-center font-bold text-sm">
                       💼
                     </span>
                     <div className="flex flex-col">
@@ -4581,7 +4581,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
                 {/* Verification (Doğrulandı) */}
                 <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
-                  <h4 className="text-base font-black text-slate-950 tracking-tight">Doğrulandı</h4>
+                  <h4 className="text-base font-black text-slate-955 tracking-tight">Doğrulandı</h4>
                   <div className="flex flex-col gap-2.5">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                       <span className="text-emerald-500">✓</span>
@@ -4591,7 +4591,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       <>
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                           <span className="text-emerald-500">✓</span>
-                          <span>Kimlik belgesi doğrulanmış esnaf</span>
+                          <span>Kimlik belgesi doğrulanmış hizmet veren</span>
                         </div>
                         {selectedProviderProfile.description?.companyType === "corporate" && (
                           <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
@@ -4606,7 +4606,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
 
                 {/* About (Hakkında) */}
                 <div className="flex flex-col gap-3.5 border-b border-slate-100 pb-8">
-                  <h4 className="text-base font-black text-slate-950 tracking-tight">Hakkında</h4>
+                  <h4 className="text-base font-black text-slate-955 tracking-tight">Hakkında</h4>
                   <p className="text-xs md:text-sm text-slate-600 font-semibold leading-relaxed whitespace-pre-line">
                     {selectedProviderProfile.description?.descriptionText || "Açıklama belirtilmedi."}
                   </p>
@@ -4624,7 +4624,7 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                       ))
                     ) : (
                       <span className="px-3.5 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                        Genel Esnaf Hizmetleri
+                        Genel Hizmetler
                       </span>
                     )}
                   </div>

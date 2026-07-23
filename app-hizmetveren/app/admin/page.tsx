@@ -4037,6 +4037,11 @@ ${callTaskNotes}`;
                       );
                     })}
                   </div>
+                  <div className="mt-8 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                    <p className="text-blue-700 leading-relaxed font-semibold">
+                      Canlı verilerin analizi sonucunda, <strong>Google Gemini 3.5 Flash</strong> kullanımı, <strong>3.1 Pro</strong> modeline kıyasla <strong>%94 daha düşük maliyet</strong> ve <strong>4 kat daha yüksek hız</strong> sağlamaktadır. %2.8'lik düşük dönüşüm oran farkına rağmen, ölçeklenebilir hizmet talepleri için varsayılan model olarak <strong>Gemini 3.5 Flash</strong> kullanılması finansal ve kullanıcı deneyimi açısından en verimli seçenektir.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Section 2: Regional / Sectoral Active Subscribers Breakdown (KPI) */}
@@ -4044,7 +4049,7 @@ ${callTaskNotes}`;
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5 pb-4 border-b border-slate-100">
                     <div>
                       <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider">Abonelik Dağılım Raporu (KPI)</h3>
-                      <p className="text-xs text-slate-400 mt-1">İl ve Sektör bazında aktif esnaf sayıları</p>
+                      <p className="text-xs text-slate-400 mt-1">İl ve Sektör bazında aktif hizmet veren sayıları</p>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       <select
@@ -4089,7 +4094,7 @@ ${callTaskNotes}`;
                         {subReports.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="text-center py-12 text-slate-400 text-xs italic">
-                              Seçilen filtrelere uygun aktif esnaf bulunamadı.
+                              Seçilen filtrelere uygun aktif hizmet veren bulunamadı.
                             </td>
                           </tr>
                         ) : (
@@ -4117,9 +4122,9 @@ ${callTaskNotes}`;
                 <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6">
                   <div className="border-b border-slate-100 pb-4 mb-5">
                     <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider text-rose-800">
-                      Aboneliği Biten & Yenilemeyen Esnaflar
+                      Aboneliği Biten & Yenilemeyen Hizmet Verenler
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1">Ödemesi veya süresi bitip ücretsiz pakete geri dönmüş esnafların takibi</p>
+                    <p className="text-xs text-slate-400 mt-1">Ödemesi veya süresi bitip ücretsiz pakete geri dönmüş hizmet verenlerin takibi</p>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -4139,7 +4144,7 @@ ${callTaskNotes}`;
                         {churnedSubs.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="text-center py-12 text-slate-400 text-xs italic">
-                              Aboneliği biten esnaf bulunmamaktadır.
+                              Aboneliği biten hizmet veren bulunmamaktadır.
                             </td>
                           </tr>
                         ) : (

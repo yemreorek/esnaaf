@@ -628,16 +628,16 @@ export default function Home() {
           {/* AI Subtitle Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-550/10 border border-slate-200 backdrop-blur-sm text-[10px] md:text-xs font-black tracking-widest text-slate-600 uppercase mb-2 animate-fade-in shadow-xs">
             <span className="w-2 h-2 rounded-full bg-[#719600] animate-pulse"></span>
-            Yapay Zeka Destekli Mahalle Esnaf Ağı
+            Yapay Zeka Destekli Hizmet Veren Ağı
           </div>
 
           <div className="space-y-4">
             <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-slate-900 tracking-tighter max-w-4xl mx-auto">
               Aynı Mahalleyi Paylaştığın <br />
-              En İyi <span className="bg-gradient-to-r from-[#719600] to-[#88b500] bg-clip-text text-transparent">5 Esnaftan</span> Teklif Al
+              En İyi <span className="bg-gradient-to-r from-[#719600] to-[#88b500] bg-clip-text text-transparent">5 Hizmet Verenden</span> Teklif Al
             </h1>
             <p className="font-body text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi esnaf ve hizmet verenleri saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
+              İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi hizmet verenleri saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
             </p>
           </div>
 
@@ -876,8 +876,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative">
           <div className="text-center mb-10 space-y-4">
             <span className="text-xs font-bold text-[#719600] bg-[#c8f252]/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#c8f252]/20">Kolay Süreç</span>
-            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">3 Kolay Adımla Komşu Esnaftan Hizmet Al</h2>
-            <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu hizmet veren ve esnaflarla buluşun</p>
+            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">3 Kolay Adımla Komşu Hizmet Verenden Hizmet Al</h2>
+            <p className="font-body text-slate-500 text-sm">Zaman kaybetmeden, yorulmadan, komşu hizmet verenlerle buluşun</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -904,7 +904,7 @@ export default function Home() {
                 <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 2</span>
                 <h3 className="font-black text-slate-900 text-lg tracking-tight">Teklifleri Topla</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
-                  Mahallendeki onaylanmış hizmet veren ve esnaflardan gelen teklifleri ve fiyatları gör.
+                  Mahallendeki onaylanmış hizmet verenlerden gelen teklifleri ve fiyatları gör.
                 </p>
               </div>
             </div>
@@ -931,8 +931,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center max-w-2xl mx-auto mb-10 space-y-4">
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-slate-200/50">Neden Esnaaf</span>
-            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Uzağa Arama, Mahallendeki Esnaflara Hızlıca Ulaş</h2>
-            <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalle esnafıyla keyifli bir işbirliğine dönüştürüyoruz.</p>
+            <h2 className="font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">Uzağa Arama, Mahallendeki Hizmet Verenlere Hızlıca Ulaş</h2>
+            <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalledeki hizmet verenle keyifli bir işbirliğine dönüştürüyoruz.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -985,7 +985,7 @@ export default function Home() {
             />
           </div>
           <div className="p-8 md:p-16 space-y-6">
-            <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Komşu Esnaf Olarak Platformumuza Katıl</span>
+            <span className="text-xs font-extrabold text-[#719600] uppercase tracking-widest block">Hizmet Veren Olarak Platformumuza Katıl</span>
             <h2 className="font-bold text-3xl text-slate-900 leading-tight">Müşterilere Kolayca Ulaşın ve İşinizi Büyütün</h2>
             <p className="font-body text-sm text-slate-500 leading-relaxed">
               İşinizi büyütmek, mahalledeki yeni iş fırsatlarına anında ulaşmak ve referans edinmek için hemen aramıza katılın.
@@ -1004,7 +1004,7 @@ export default function Home() {
       <section className="py-10 bg-white border-t border-slate-100 px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
           <h3 className="font-bold text-xl text-slate-900">
-            Mahallendeki En Çok Tercih Edilen <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
+            Mahallendeki En Çok Tercih Edilen <span className="text-[#719600]">Hizmet Verenler ve Hizmetler :</span>
           </h3>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
             {[
@@ -1042,10 +1042,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-900 text-white grid md:grid-cols-12 items-center shadow-lg">
           <div className="md:col-span-7 p-8 md:p-16 space-y-6">
             <h2 className="font-bold text-3xl md:text-4xl text-white tracking-tight">
-              Komşu Esnaflarla Hayatını Kolaylaştır
+              Güvenilir Hizmet Verenlerle Hayatını Kolaylaştır
             </h2>
             <p className="font-body text-slate-350 text-sm leading-relaxed max-w-xl">
-              Mahallendeki güvenilir hizmet veren ve esnafları bulmanın en konforlu yolu. Güvenli ödeme, kaliteli hizmet ve Esnaaf koruma garantisiyle hemen başlayın.
+              Mahallendeki güvenilir hizmet verenleri bulmanın en konforlu yolu. Güvenli ödeme, kaliteli hizmet ve Esnaaf koruma garantisiyle hemen başlayın.
             </p>
             <button
               onClick={() => handleStartChat("Merhaba, hizmet almak istiyorum.")}
@@ -1070,7 +1070,7 @@ export default function Home() {
       <section className="py-10 bg-white px-4 md:px-6">
         <div className="max-w-7xl mx-auto text-center space-y-8">
           <h3 className="font-bold text-xl text-slate-900">
-            En Çok Tercih Edilen İllerde <span className="text-[#719600]">Esnaflar ve Hizmetler :</span>
+            En Çok Tercih Edilen İllerde <span className="text-[#719600]">Hizmet Verenler ve Hizmetler :</span>
           </h3>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto text-sm text-slate-500 font-semibold">
             {[
@@ -1112,13 +1112,13 @@ export default function Home() {
               <span className="material-symbols-outlined text-2xl font-bold">verified</span>
             </div>
             <h2 className="font-bold text-3xl text-slate-900 leading-tight">
-              Mahallede Komşu Esnaf Garantisi
+              Güvenilir Hizmet Veren Garantisi
             </h2>
             <p className="font-body text-sm text-slate-600 leading-relaxed">
               Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır. İletişimden iş teslimine, her anınız güvence altında.
             </p>
             <button
-              onClick={() => handleStartChat("Merhaba, esnaf garantisi hakkında bilgi almak istiyorum.")}
+              onClick={() => handleStartChat("Merhaba, hizmet veren garantisi hakkında bilgi almak istiyorum.")}
               className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md self-start"
             >
               Detayları Öğren

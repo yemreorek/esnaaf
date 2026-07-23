@@ -1443,7 +1443,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         msg.collected_data.categorySlug === 'su-tesisati' ? 'Su Tesisatı' : 
                         msg.collected_data.categorySlug === 'elektrik-tesisati' ? 'Elektrik Tesisatı' : 
                         msg.collected_data.categorySlug === 'ev-tadilat' ? 'Ev Tadilatı' : 
-                        msg.collected_data.categorySlug === 'nakliyat' ? 'Nakliyat / Taşıma' : 'Genel Esnaf Hizmeti'
+                        msg.collected_data.categorySlug === 'nakliyat' ? 'Nakliyat / Taşıma' : 'Genel Hizmet'
                       }</div>
                       <div><strong className="text-slate-900">Ad Soyad:</strong> {msg.collected_data.name}</div>
                       
@@ -1539,7 +1539,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             <div className="flex flex-col gap-1.5">
               <h4 className="font-extrabold text-sm text-slate-900">Teklifler Bekleniyor...</h4>
               <p className="text-xs text-slate-500 leading-relaxed max-w-[280px] font-semibold">
-                Talebiniz bölgedeki en iyi esnaflara iletildi. Teklifler canlı olarak bu ekranda belirecek.
+                Talebiniz bölgedeki en iyi hizmet verenlere iletildi. Teklifler canlı olarak bu ekranda belirecek.
               </p>
             </div>
           </div>

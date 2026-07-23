@@ -1902,7 +1902,7 @@ export class HizmetverenService {
       case 'fotografci': return 'Fotoğrafçı';
       case 'organizasyon': return 'Organizasyon';
       case 'etkinlik': return 'Etkinlik';
-      default: return 'Genel Esnaf Hizmeti';
+      default: return 'Genel Hizmet';
     }
   }
 

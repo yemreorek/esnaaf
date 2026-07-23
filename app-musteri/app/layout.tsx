@@ -4,8 +4,8 @@ import GlobalAlert from "../components/GlobalAlert";
 import FetchInterceptor from "./FetchInterceptor";
 
 export const metadata: Metadata = {
-  title: "Esnaaf — Güvenilir Esnaf ve Hizmet Verenler",
-  description: "Aradığınız güvenilir esnaf ve hizmet verenleri yapay zeka destekli sohbetle kolayca bulun.",
+  title: "Esnaaf — Güvenilir Hizmet Verenler",
+  description: "Aradığınız güvenilir hizmet verenleri yapay zeka destekli sohbetle kolayca bulun.",
 };
 
 export const viewport: Viewport = {

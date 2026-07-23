@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps) {
     if (!res.ok) {
       return {
         title: 'Hizmet Detayı | Esnaaf',
-        description: 'Güvenilir Hizmet Veren ve esnaf bulma platformu.',
+        description: 'Güvenilir Hizmet Veren platformu.',
       };
     }
     const data = await res.json();
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: PageProps) {
   } catch (e) {
     return {
       title: 'Hizmet Detayı | Esnaaf',
-      description: 'Güvenilir usta ve esnaf bulma platformu.',
+      description: 'Güvenilir hizmet veren platformu.',
     };
   }
 }
