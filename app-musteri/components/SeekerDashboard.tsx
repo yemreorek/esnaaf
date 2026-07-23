@@ -4370,17 +4370,16 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
             <div className="bg-white rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 flex flex-col animate-scale-up text-left">
               {/* Sticky Header */}
               <div className="sticky top-0 bg-white/95 backdrop-blur-md px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
+                <span className="font-extrabold text-slate-800 text-base tracking-tight">Usta Profili</span>
                 <button
                   onClick={() => setSelectedProviderProfile(null)}
-                  className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-500"
-                  title="Geri"
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer text-slate-500 hover:text-slate-800"
+                  title="Kapat"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-                <span className="font-extrabold text-slate-800 text-sm tracking-tight">Usta Profili</span>
-                <div className="w-10"></div> {/* Spacer to center title */}
               </div>
 
               {/* Profile Body */}

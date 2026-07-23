@@ -2,6 +2,14 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 ui | Usta Profili Modalı Kapatma (X) Butonu Revizyonu
+
+- **Arayüz & UX Düzenlemesi:**
+  - Hizmet alan paneli "Yorumları İncele" butonuna basıldığında açılan `Usta Profili` detay modal penceresinin sol üst köşesinde yer alan geri ok `<` butonu kaldırıldı.
+  - Modalın sağ üst köşesine sezgisel ve modern `X` kapatma ikonu eklenerek kullanıcıların modalı sağ üstten kolayca kapatabilmesi sağlandı (`SeekerDashboard.tsx`).
+- **Derleme Doğrulama:**
+  - `app-musteri` Next.js önyüz uygulaması sıfır hatayla derlendi.
+
 ## 2026-07-23 ui | Teklif Kartı "Yorumları İncele" Buton Etiket Güncellemesi
 
 - **Arayüz & UX Düzenlemesi:**
