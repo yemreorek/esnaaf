@@ -233,15 +233,10 @@ export class FavoriteService {
   }
 
   /**
-   * Kendi Esnaaf ID'sini getirir.
+   * Kendi Esnaaf ID'sini getirir (yoksa otomatik oluşturur).
    */
   async getProfileEsnaafId(userId: string): Promise<string> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { esnaaf_id: true }
-    });
-    if (!user) throw new NotFoundException('Kullanıcı bulunamadı.');
-    return user.esnaaf_id || '';
+    return this.prisma.ensureEsnaafId(userId);
   }
 
   /**

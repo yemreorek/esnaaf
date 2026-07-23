@@ -661,26 +661,30 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
     fetchRequests();
     fetchFavorites();
     
-    // Fetch Esnaaf ID
-    const fetchEsnaafId = async () => {
-      try {
-        const res = await customFetch("/api/ortak/favoriler/profil-esnaaf-id");
-        if (res.ok) {
-          const data = await res.json();
-          setEsnaafId(data.esnaaf_id);
-        }
-      } catch (err) {
-        console.error("Failed to fetch Esnaaf ID:", err);
-      }
-    };
     fetchEsnaafId();
   }, []);
 
-  // Fetch favorites and loyalty requests on tab change
+  // Fetch Esnaaf ID helper
+  const fetchEsnaafId = async () => {
+    try {
+      const res = await customFetch("/api/ortak/favoriler/profil-esnaaf-id");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.esnaaf_id) {
+          setEsnaafId(data.esnaaf_id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch Esnaaf ID:", err);
+    }
+  };
+
+  // Fetch favorites, loyalty requests and Esnaaf ID on tab change
   useEffect(() => {
     if (activeTab === "favoriler") {
       fetchFavorites();
       fetchLoyaltyRequests();
+      fetchEsnaafId();
     }
   }, [activeTab]);
 
@@ -4041,9 +4045,24 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                           
                           <div className="flex justify-between items-start z-10 gap-3">
                             <div className="text-left space-y-1">
-                              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest font-mono">Kolay Eşleşme ID</span>
-                              <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all font-mono">
-                                {esnaafId || 'Yükleniyor...'}
+                              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest font-mono block">Kolay Eşleşme ID</span>
+                              <div className="flex items-center gap-2 pt-0.5">
+                                <div className="text-xl font-black text-[#c8f252] tracking-wide uppercase select-all font-mono">
+                                  {esnaafId || (
+                                    <span className="text-slate-500 text-xs font-semibold animate-pulse">Yükleniyor...</span>
+                                  )}
+                                </div>
+                                {esnaafId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyCode(esnaafId)}
+                                    className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-[#c8f252] transition-all text-[10px] font-bold flex items-center gap-1 cursor-pointer border border-slate-700/60"
+                                    title="Kolay Eşleşme ID'nizi Kopyalayın"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    {copied ? "Kopyalandı!" : "Kopyala"}
+                                  </button>
+                                )}
                               </div>
                               <p className="text-[9px] text-slate-400 font-semibold leading-relaxed pt-1">
                                 Hizmet veren bu ID'yi kendi panelinde "Sadık Müşterilerim" bölümüne ekleyerek sizinle özel komisyon avantajıyla eşleşebilir.
