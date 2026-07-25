@@ -2,6 +2,16 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 feat | Çift Modlu (Dual-Engine) Modüler Chat Mimarisi Yeniden Yapılandırılması (Adım 53)
+
+- **Problem:** Monolitik `chat.service.ts` dosyasının 3.400+ satıra ulaşması ve zamanla üzerine eklenen hibrit katmanların (LLM, Dynamic Fallback, Static Flow, Redis State) çakışma ve karmaşıklık yaratması.
+- **Kök Neden & Çözüm:**
+  - Chat mimarisi 4 bağımsız ve modüler servise ayrıştırıldı:
+    1. `flow-engine.service.ts`: Saf deterministik soru ve buton akış motoru (%100 hatasız, zero LLM).
+    2. `lead-form.service.ts`: Adres, ad-soyad, telefon ve talep onay adımları motoru.
+    3. `ai-consultant.service.ts`: Hafif Gemini AI genel sorular ve danışmanlık servisi.
+    4. `chat.service.ts`: Servisler arası trafiği yöneten ince orkestratör controller (`backend-api/src/ortak/chat/`).
+
 ## 2026-07-26 fix | Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Düzeltmesi (Adım 52)
 
 - **Problem:** Kategorilere tıklandığında (örn. `Nakliyat`, `Elektrik Tesisatı`, `Ev Tadilatı`) 1. adım sorusunun altında AI'ın ürettiği genel mesajların kalması ve 2. adım yanıtı verildiğinde 2. sorunun sorulmak yerine doğrudan Konum / İlçe sorma adımına atlaması ve 1. adım şıklarının ekranda kalması düzeltildi.

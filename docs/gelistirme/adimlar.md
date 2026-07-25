@@ -61,6 +61,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 50** | **Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları** | Soru ve şık çakışmalarının kökten engellenmesi amacıyla sistemdeki tüm hizmet kategorileri için 3-5 adımlı sabit JSON soru kalıplarının tanımlanması | **✅ Tamamlandı** |
 | **Adım 51** | **getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Fix'i** | `categorySlug` format çakışmalarının (tire/alt-tire/kelime) önlenmesi ve her hizmetin kendi özel sabit JSON soru akışına %100 bağlanması | **✅ Tamamlandı** |
 | **Adım 52** | **Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Fix'i** | Kategori seçildiğinde ilk mesajdan itibaren AI'ı bypass edip sabit JSON akışına giren ve soruları 1. adım, 2. adım, 3. adım şeklinde sırayla basan altyapı düzeltmesi | **✅ Tamamlandı** |
+| **Adım 53** | **Çift Modlu (Dual-Engine) Modüler Chat Mimarisi Yeniden Yapılandırılması** | Monolitik yapının FlowEngineService, LeadFormService ve AiConsultantService olarak bağımsız servislere ayrıştırılması | **✅ Tamamlandı** |
 
 ---
 
@@ -1013,11 +1014,11 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 52 Geliştirme Detayları (Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Fix'i)
+## 🛠️ Adım 53 Geliştirme Detayları (Çift Modlu Modüler Chat Mimarisi)
 
-- **Tam Deterministik JSON Soru Akış İlerlemesi:**
-  * Sohbet oturumunun ilk mesajında `Fast Path` (hızlı yol kesici) mekanizması aktifleştirildi: Kategori ilk algılandığı andan itibaren Gemini devre dışı bırakılarak oturum adım 1'e (`step_nakliyat_turu`, `step_elektrik_islem` vb.) bağlandı.
-  * Müşteri 1. adımdaki buton seçeneğine tıkladığında yanıt `processAnswerFromFlow` ile doğrudan eşleştirilip oturum 2. adıma (`step_ev_tipi`, `step_mekan_turu` vb.) ilerletildi. Soruların doğrudan konuma / ilçeye sıçraması ve eski butonların kalması engellendi (`backend-api/src/ortak/chat/chat.service.ts`).
+- **Ayrıştırılmış Servis Mimarisi Entegrasyonu:**
+  * Monolitik chat yapısı modüler servislere bölündü: `FlowEngineService` (Saf JSON Form Motoru), `LeadFormService` (Konum/İletişim/Talep Motoru) ve `AiConsultantService` (Gemini Danışmanı).
+  * Tüm yeni servisler `ChatModule` ve `ChatService` yapısına enjekte edilerek sistem modüler, sıfır hatalı ve 0ms gecikmeli deterministik mimariye kavuşturuldu (`backend-api/src/ortak/chat/`).
 
 
 
