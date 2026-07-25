@@ -2,6 +2,12 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 fix | Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi (Adım 49)
+
+- **Problem 1 (Elektrik Tesisatı $\rightarrow$ Su Tesisatı Şıkları):** `Elektrik Tesisatı` seçildiğinde sistemin Su Tesisatı şıklarını (`Su Kaçağı Tespiti`, `Tıkanıklık Açma` vb.) getirmesi sorunu çözüldü.
+  - *Kök Neden:* `getSmartCategoryOptions` içindeki `s.includes('tesisat')` kontrolünün `elektrik-tesisati` slug'ındaki "tesisat" kelimesini yakalayarak elektrik kategorisini Su Tesisatına yönlendirmesiydi. Kontrol sırası düzeltilerek `elektrik` araması önceliğe alındı.
+- **Problem 2 (Konum Adımında 1. Adım Şıklarının Kalması):** Konum / İlçe sorma adımına geçildiğinde ("İlçe yazar mısınız?"), 1. adımın buton şıklarının ekranda kalmaya devam etmesi engellendi. `ask_address`, `ask_name` ve `ask_phone` adımlarına geçildiği anda `options` dizisinin sıfırlanması sağlandı.
+
 ## 2026-07-26 fix | Dinamik Sorular İle Buton Seçeneklerinin Senkronize Edilmesi (Adım 48)
 
 - **Problem:** Dinamik AI akışında yapay zeka 2. adımı sorduğunda ("kaç metrekare?"), seçenek butonlarının 1. adımın butonları ile ("Mutfak", "Banyo", "Komple Ev") çakışması ve 1. adım şıklarının ezilmeden ekranda kalması düzeltildi.

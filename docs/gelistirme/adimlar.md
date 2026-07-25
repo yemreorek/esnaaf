@@ -57,6 +57,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 46** | **Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu** | Evde Koltuk Yıkama kategorisine özel 7 adımlı JSON soru akışı (tekli/berjer, ikili/üçlü kanepe, L-köşe, sandalye, yatak ve leke detayları) ve AI niyet algılama entegrasyonu | **✅ Tamamlandı** |
 | **Adım 47** | **Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı** | Sabit JSON şeması olmayan tüm hizmetlerde yapay zekanın dinamik olarak soru ve tıklanabilir buton seçenekleri (`single_choice`) üretmesi ve `getSmartCategoryOptions` yedekleme altyapısı | **✅ Tamamlandı** |
 | **Adım 48** | **Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi** | Sorulan dinamik AI sorusunun metni ile (örn. metrekare, zamanlama, bütçe) buton seçeneklerinin tam eşleştirilmesi ve 1. adım şıklarının ezilmesini önleyen altyapı fix'i | **✅ Tamamlandı** |
+| **Adım 49** | **Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi** | Elektrik Tesisatı seçildiğinde Su Tesisatı şıklarının gelmesi sorununun çözülmesi ve Konum / İlçe adımlarında eski butonların ekranda kalmasının önlenmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -1009,14 +1010,12 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 48 Geliştirme Detayları (Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi)
+## 🛠️ Adım 49 Geliştirme Detayları (Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi)
 
-- **Soru-Şık Metin Eşleşme Düzeltmesi:**
-  * 2. adım sorusunda ("kaç metrekare?") 1. adımın butonlarının (Mutfak, Banyo, Komple Ev) ekranda kalmasına sebep olan out-of-sync `getNextQuestion` ezme mantığı düzeltildi.
-  * `getSmartCategoryOptions` fonksiyonu sorulan sorunun konusuna (metrekare, oda sayısı, zamanlama, bütçe/malzeme) göre dinamik şık havuzu dönecek şekilde geliştirildi:
-    - Metrekare sorularında: `["50 m²'ye kadar", "50 - 100 m²", "100 - 150 m²", "150 - 200 m²", "200 m² ve üzeri"]`
-    - Zamanlama sorularında: `["Hemen (1-3 Gün İçinde)", "Bu Hafta İçinde", "Bu Ay İçinde", "Esnek"]`
-  * Yapay zeka ile buton seçenekleri tam senkronize hale getirildi (`backend-api/src/ortak/chat/chat.service.ts`).
+- **Elektrik Tesisatı Şık Düzeltmesi:**
+  * `elektrik-tesisati` slug'ı içerisindeki "tesisat" kelimesinin yanlışlıkla `su-tesisati` şıklarına yönlenmesi engellendi. `elektrik` araması kontrol sırasının en başına çekilerek Elektrik Tesisatı için doğru şıklar (`Sigorta Arızası`, `Priz & Anahtar Montajı`, `Aydınlatma / Avize Montajı`, `Kablo Çekimi / İnternet`) aktif edildi.
+- **Konum / İlçe Adımı Şık Sıfırlama Fix'i:**
+  * Detay toplama adımı bittiğinde ve sistem konum / ilçe sorma adımına (`ask_address`, `ask_name`, `ask_phone`) geçtiğinde eski kategori butonlarının ekranda görünmeye devam etmesi `options = []` ve `inputType = 'single_choice'` sıfırlaması ile %100 çözüldü (`backend-api/src/ortak/chat/chat.service.ts`).
 
 
 
