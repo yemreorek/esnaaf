@@ -23,6 +23,7 @@ export class SeoService {
     { slug: 'nakliyat', name: 'Nakliyat / Ev Taşıma' },
     { slug: 'hali-yikama', name: 'Halı Yıkama' },
     { slug: 'koltuk-yikama', name: 'Koltuk Yıkama' },
+    { slug: 'evde-koltuk-yikama', name: 'Evde Koltuk Yıkama' },
     { slug: 'insaat-sonrasi-temizlik', name: 'İnşaat / Tadilat Sonrası Temizlik' },
     { slug: 'fayans-doseme', name: 'Fayans Döşeme' },
     { slug: 'parke-doseme', name: 'Parke Döşeme' },

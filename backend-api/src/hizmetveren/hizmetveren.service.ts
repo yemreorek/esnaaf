@@ -1879,7 +1879,9 @@ export class HizmetverenService {
       case 'ev-tadilat': return 'Ev Tadilat';
       case 'nakliyat': return 'Nakliyat / Ev Taşıma';
       case 'hali-yikama': return 'Halı Yıkama';
-      case 'koltuk-yikama': return 'Koltuk Yıkama';
+      case 'koltuk-yikama':
+      case 'evde-koltuk-yikama':
+      case 'evde_koltuk_yikama': return 'Evde Koltuk Yıkama';
       case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
       case 'fayans-doseme': return 'Fayans Döşeme';
       case 'parke-doseme': return 'Parke Döşeme';
@@ -2062,7 +2064,8 @@ export class HizmetverenService {
       case 'Ev Tadilat': return 'ev-tadilat';
       case 'Nakliyat / Ev Taşıma': return 'nakliyat';
       case 'Halı Yıkama': return 'hali-yikama';
-      case 'Koltuk Yıkama': return 'koltuk-yikama';
+      case 'Koltuk Yıkama':
+      case 'Evde Koltuk Yıkama': return 'evde-koltuk-yikama';
       case 'İnşaat / Tadilat Sonrası Temizlik': return 'insaat-sonrasi-temizlik';
       case 'Fayans Döşeme': return 'fayans-doseme';
       case 'Parke Döşeme': return 'parke-doseme';

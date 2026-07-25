@@ -51,10 +51,40 @@ export const SECTOR_PROMPTS: Record<string, string> = {
 - Müşteriye sor: Kaç metrekare halı? Özel bir kumaş türü mü (ör. el dokuması, ipek)?
 `,
   'koltuk-yikama': `
-**Koltuk Yıkama:**
-- Koltuk takımının boyutuna ve yastık sayısına göre fiyat değişir.
-- Genellikle yerinde yıkama makineleri ile yapılır.
-- Müşteriye sor: Kaç kişilik koltuk takımı? Sandalye veya yatak da eklenecek mi? Leke durumu nasıl?
+**Evde Koltuk Yıkama:**
+- Evdeki koltukların (tekli/berjer, ikili/üçlü kanepe, L-köşe), sandalyelerin ve yatakların yıkanma adedine göre fiyat belirlenir.
+- Müşteriye sırasıyla şu adım soruları yönlendirilir:
+  1. Evde kaç adet tekli koltuk (veya berjer) var?
+  2. Evde kaç tane üçlü / ikili kanepe / çekyat var?
+  3. Evde kaç adet L-şeklinde köşe koltuğu var?
+  4. Evde kaç adet sandalye var?
+  5. Evde kaç adet tek kişilik yatak var?
+  6. Evde kaç adet çift kişilik yatak var?
+  7. İhtiyacın detayları (leke durumu, kumaş türü kadife/deri vb.) neler?
+`,
+  'evde-koltuk-yikama': `
+**Evde Koltuk Yıkama:**
+- Evdeki koltukların (tekli/berjer, ikili/üçlü kanepe, L-köşe), sandalyelerin ve yatakların yıkanma adedine göre fiyat belirlenir.
+- Müşteriye sırasıyla şu adım soruları yönlendirilir:
+  1. Evde kaç adet tekli koltuk (veya berjer) var?
+  2. Evde kaç tane üçlü / ikili kanepe / çekyat var?
+  3. Evde kaç adet L-şeklinde köşe koltuğu var?
+  4. Evde kaç adet sandalye var?
+  5. Evde kaç adet tek kişilik yatak var?
+  6. Evde kaç adet çift kişilik yatak var?
+  7. İhtiyacın detayları (leke durumu, kumaş türü kadife/deri vb.) neler?
+`,
+  'evde_koltuk_yikama': `
+**Evde Koltuk Yıkama:**
+- Evdeki koltukların (tekli/berjer, ikili/üçlü kanepe, L-köşe), sandalyelerin ve yatakların yıkanma adedine göre fiyat belirlenir.
+- Müşteriye sırasıyla şu adım soruları yönlendirilir:
+  1. Evde kaç adet tekli koltuk (veya berjer) var?
+  2. Evde kaç tane üçlü / ikili kanepe / çekyat var?
+  3. Evde kaç adet L-şeklinde köşe koltuğu var?
+  4. Evde kaç adet sandalye var?
+  5. Evde kaç adet tek kişilik yatak var?
+  6. Evde kaç adet çift kişilik yatak var?
+  7. İhtiyacın detayları (leke durumu, kumaş türü kadife/deri vb.) neler?
 `,
   'insaat-sonrasi-temizlik': `
 **İnşaat Sonrası Temizlik:**

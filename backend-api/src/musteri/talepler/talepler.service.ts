@@ -406,7 +406,9 @@ export class TaleplerService {
       case 'ev-tadilat': return 'Ev Tadilat';
       case 'nakliyat': return 'Nakliyat / Ev Taşıma';
       case 'hali-yikama': return 'Halı Yıkama';
-      case 'koltuk-yikama': return 'Koltuk Yıkama';
+      case 'koltuk-yikama':
+      case 'evde-koltuk-yikama':
+      case 'evde_koltuk_yikama': return 'Evde Koltuk Yıkama';
       case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
       case 'fayans-doseme': return 'Fayans Döşeme';
       case 'parke-doseme': return 'Parke Döşeme';

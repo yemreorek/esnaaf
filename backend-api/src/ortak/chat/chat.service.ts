@@ -2007,8 +2007,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     if (text.includes('halı')) {
       return { detected: true, categorySlug: 'hali-yikama', categoryName: 'Halı Yıkama', confidence: 0.95 };
     }
-    if (text.includes('koltuk')) {
-      return { detected: true, categorySlug: 'koltuk-yikama', categoryName: 'Koltuk Yıkama', confidence: 0.95 };
+    if (text.includes('koltuk') || text.includes('berjer') || text.includes('çekyat') || text.includes('kanepe')) {
+      return { detected: true, categorySlug: 'evde-koltuk-yikama', categoryName: 'Evde Koltuk Yıkama', confidence: 0.95 };
     }
     if (text.includes('inşaat sonrası') || text.includes('tadilat sonrası temizlik') || text.includes('insaat-sonrasi')) {
       return { detected: true, categorySlug: 'insaat-sonrasi-temizlik', categoryName: 'İnşaat / Tadilat Sonrası Temizlik', confidence: 0.95 };
