@@ -49,6 +49,8 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 38** | **"Yorumları İncele" Buton Etiket Güncellemesi** | Hizmet alan paneli "Tekliflerim" teklif akış kartlarındaki "Profili Gör" buton metninin kullanıcının inceleme amacını daha net yansıtacak şekilde "Yorumları İncele" olarak güncellenmesi | **✅ Tamamlandı** |
 | **Adım 39** | **Usta Profili Modalı Kapatma (X) Butonu Revizyonu** | Hizmet alan paneli "Yorumları İncele" modal penceresindeki sol üst geri ok `<` butonunun kaldırılıp sağ üst köşeye modern kapatma `X` butonunun yerleştirilmesi | **✅ Tamamlandı** |
 | **Adım 40** | **"Hizmet Veren Profili" Modal Başlık Güncellemesi** | Hizmet alan paneli "Yorumları İncele" modalındaki "Usta Profili" başlık yazısının "Hizmet Veren Profili" olarak güncellenmesi | **✅ Tamamlandı** |
+| **Adım 41** | **"Esnaf" -> "Hizmet Veren" Terminoloji Güncellemesi** | Platform genelinde (Müşteri & Hizmet Veren arayüzleri, AI promptları, servis fallback'leri) genel "esnaf" tabirlerinin "Hizmet Veren" olarak refactor edilmesi | **✅ Tamamlandı** |
+| **Adım 42** | **Hizmet Alan Kolay Eşleşme (Esnaaf) ID Otomatik Üretimi ve Düzeltmesi** | Müşteri paneli Favoriler sekmesindeki Kolay Eşleşme ID'nin `ensureEsnaafId` ile otomatik üretilmesi, ekranda kalıcı "YÜKLENİYOR..." hatasının giderilmesi ve kopyalama butonunun eklenmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -964,6 +966,22 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Hizmet alan panelinde "Yorumları İncele" modal penceresinin üst başlığındaki `"Usta Profili"` ifadesi `"Hizmet Veren Profili"` olarak güncellendi (`SeekerDashboard.tsx`).
 - **Derleme Doğrulama:**
   * `app-musteri` uygulaması sıfır hatayla derlendi.
+
+## 🛠️ Adım 41 Geliştirme Detayları ("Esnaf" -> "Hizmet Veren" Terminoloji Güncellemesi)
+
+- **Arayüz & Terminoloji Refaktörü:**
+  * Platformun doktor, öğretmen, danışman, usta vb. tüm profesyonel hizmet sağlayıcılarını kapsayacak genişliğe ulaştırılması amacıyla kullanıcı arayüzlerindeki genel *"esnaf"* tabirleri **"Hizmet Veren"** / **"Hizmet Verenler"** olarak güncellendi.
+  * `app-musteri`: SEO başlık/açıklamaları, landing hero ve 3 adım metinleri, "Neden Esnaaf?" kartları, "Profesyonel Hizmet Veren", "Hizmet Veren Telefon Numarası", "Hizmet Veren Adı", "Genel Hizmetler" etiketleri revize edildi.
+  * `app-hizmetveren`: Layout metinleri, "Hizmet Veren Girişi" başlıkları, "Diğer Hizmet Verenler Teklif Veriyor!" rakip uyarı paneli ve admin rapor başlıkları güncellendi.
+  * `backend-api`: Gemini AI asistanının bilgi bankası prompt talimatları ve servis fallback kategorileri `Genel Hizmet` (`genel-hizmet`) olarak yenilendi.
+
+## 🛠️ Adım 42 Geliştirme Detayları (Hizmet Alan Kolay Eşleşme ID Otomatik Üretimi ve Düzeltmesi)
+
+- **Backend Otomatik ID Üretim Güvencesi:**
+  * `getProfileEsnaafId` servisi `this.prisma.ensureEsnaafId(userId)` yöntemine bağlandı. Veritabanında `esnaaf_id` alanı boş/null olan kullanıcılar için anında benzersiz bir ID (Örn: `ESN-K3T9X`) üretilerek veritabanına işlenmesi sağlandı.
+- **Frontend Yenileme & Kopyalama Butonu:**
+  * `SeekerDashboard.tsx` içerisinde `fetchEsnaafId` fonksiyonu sekme değişikliklerinde re-trigger edilecek şekilde güncellendi ve ekrandaki kalıcı "YÜKLENİYOR..." ifadesi giderildi.
+  * Kullanıcının ID'sini kolayca paylaşabilmesi için ID kartına **"Kopyala"** ikonu ve kopyalandı bildirimi entegre edildi.
 
 
 

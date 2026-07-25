@@ -2,6 +2,24 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-23 fix | Hizmet Alan Kolay Eşleşme ID Otomatik Üretimi & Kopyalama Butonu (Adım 42)
+
+- **Hata Tespiti & Çözüm:**
+  - Müşteri (Hizmet Alan) panelinde "Favori Hizmet Verenlerim" sekmesindeki kartta yer alan **Kolay Eşleşme ID** alanının sürekli *"YÜKLENİYOR..."* olarak kalması sorunu giderildi.
+  - Backend tarafında `getProfileEsnaafId` servisi `this.prisma.ensureEsnaafId(userId)` ile bağlandı. Kullanıcının `esnaaf_id` bilgisi veritabanında yoksa (null/boş) anında benzersiz bir ID (Örn: `ESN-K3T9X`) üretilerek veritabanına işlenmesi ve müşteriye döndürülmesi sağlandı.
+  - Frontend (`SeekerDashboard.tsx`) tarafında `fetchEsnaafId` fonksiyonu sekme değişikliklerinde re-trigger edilecek şekilde güncellendi.
+- **UX İyileştirmesi:**
+  - Kolay Eşleşme ID kartının yanına **"Kopyala"** ikonu ve kopyalama durum bildirimi eklendi.
+
+## 2026-07-23 refactor | "Esnaf" -> "Hizmet Veren" Terminoloji Güncellenmesi (Adım 41)
+
+- **Platform Geneli Terminoloji Yenilemesi:**
+  - Platformun usta haricinde öğretmen, doktor, danışman vb. tüm profesyonel hizmet sağlayıcılarını kapsayacak genişliğe ulaştırılması amacıyla kullanıcı arayüzlerindeki genel *"Esnaf"* tabirleri **"Hizmet Veren"** / **"Hizmet Verenler"** olarak güncellendi.
+- **Etkilenen Katmanlar:**
+  - **Müşteri Platformu (`app-musteri`):** Landing page, SEO layout, AI chat kategorileri, teklif detay kartları ve seeker dashboard alanlarındaki tüm kullanıcıya görünen metinler güncellendi. `"Profili Gör"` butonu yerine `"Yorumları İncele"`, `"Profesyonel Esnaf"` yerine `"Profesyonel Hizmet Veren"`, `"Genel Esnaf Hizmetleri"` yerine `"Genel Hizmetler"` ibareleri kullanıldı.
+  - **Hizmet Veren Platformu (`app-hizmetveren`):** Metadata, giriş başlıkları ("Hizmet Veren Girişi"), rakip teklif uyarıları ("Diğer Hizmet Verenler Teklif Veriyor!") ve Admin Paneli rapor başlıkları ("Aktif Hizmet Veren Sayıları") güncellendi.
+  - **Arka Plan & AI (`backend-api`):** Gemini AI asistanının bilgi bankası prompt yönergeleri, hizmet alanlara bilgi verirken "hizmet verenlerimiz" / "onaylı uzmanlar" ifadelerini kullanacak şekilde güncellendi. Fallback kategoriler `Genel Hizmet` (`genel-hizmet`) yapıldı.
+
 ## 2026-07-23 ui | "Hizmet Veren Profili" Modal Başlık Güncellemesi
 
 - **Arayüz Metin Güncellemesi:**
