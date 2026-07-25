@@ -54,6 +54,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 43** | **Landing Page "Diğer" Butonu Kategori Modalı Yönlendirmesi** | Ana sayfada "Diğer" (3 nokta `...`) kategorisine tıklandığında sohbet yerine "Tüm Hizmet Kategorileri" modalının açılması | **✅ Tamamlandı** |
 | **Adım 44** | **Landing Page Hero Arka Plan Tasarımı Entegrasyonu** | Ana sayfa hero alanına yüksek çözünürlüklü sinematik arka plan görseli (`hero_bg.jpg`), koyu degrade katman ve cam efektli (glassmorphic) AI arama kartı entegrasyonu | **✅ Tamamlandı** |
 | **Adım 45** | **Header Üst Menü Cam Efekti Beyazlatma & İyileştirme** | Üst bar menüsünün kirlenmiş/koyu görünmesini engelleyen `%92` berrak buzlu beyaz cam (`bg-white/92 backdrop-blur-xl`) güncellenmesi | **✅ Tamamlandı** |
+| **Adım 46** | **Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu** | Evde Koltuk Yıkama kategorisine özel 7 adımlı JSON soru akışı (tekli/berjer, ikili/üçlü kanepe, L-köşe, sandalye, yatak ve leke detayları) ve AI niyet algılama entegrasyonu | **✅ Tamamlandı** |
 
 ---
 
@@ -1005,6 +1006,13 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 - **Berrak Beyaz Cam Efekti:**
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
+
+## 🛠️ Adım 46 Geliştirme Detayları (Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu)
+
+- **Dinamik 7 Adımlı JSON Akışı & Algılama:**
+  * "Evde Koltuk Yıkama" (`evde_koltuk_yikama`, `evde-koltuk-yikama`, `koltuk-yikama`) kategorisi için paylaşılan JSON şeması `question-flow.config.ts` ve `sector-prompts.config.ts` yapılandırmalarına işlendi.
+  * Tekli/berjer, ikili/üçlü kanepe/çekyat, L-köşe koltuk, sandalye, tek/çift kişilik yatak sayıları ve leke/kumaş detayları sıralı dinamik seçim adımları olarak bağlandı.
+  * Kullanıcı arayüzde "koltuk yıkama" seçtiğinde veya sohbet kutusuna koltuk, berjer, çekyat, kanepe terimlerini yazdığında sistem bu soruları soracak şekilde güncellendi.
 
 
 

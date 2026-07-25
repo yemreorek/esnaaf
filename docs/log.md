@@ -2,6 +2,21 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 feat | Evde Koltuk Yıkama Kategorisi & Dinamik Soru Akışı Entegrasyonu (Adım 46)
+
+- **JSON Akış Entegrasyonu:**
+  - "Evde Koltuk Yıkama" (`evde_koltuk_yikama`, `evde-koltuk-yikama`, `koltuk-yikama`) kategorisi için verilen 7 adımlı özel JSON soru akışı `question-flow.config.ts` ve `sector-prompts.config.ts` dosyalarına entegre edildi.
+  - Akış Adımları:
+    1. `step_tekli_koltuk`: "Evde kaç adet tekli koltuk (veya berjer) var?" [0, 1, 2, 3, 4, 5+]
+    2. `step_uclu_kanepe`: "Evde kaç tane üçlü / ikili kanepe / çekyat var?" [0, 1, 2, 3, 4+]
+    3. `step_kose_koltugu`: "Evde kaç adet L-şeklinde köşe koltuğu var?" [0, 1, 2, 3+]
+    4. `step_sandalye`: "Evde kaç adet sandalye var?" [0, 1, 2, 4, 5, 6, 8, 10+]
+    5. `step_tek_kisilik_yatak`: "Evde kaç adet tek kişilik yatak var?" [0, 1, 2, 3+]
+    6. `step_cift_kisilik_yatak`: "Evde kaç adet çift kişilik yatak var?" [0, 1, 2, 3+]
+    7. `step_detaylar`: "İhtiyacın detayları neler?" (Leke durumu, kumaş türü vb. serbest metin alanı)
+- **AI Niyet Algılama & Yönlendirme:**
+  - Kullanıcı "koltuk yıkatmak istiyorum", "berjer", "çekyat", "kanepe", "evde koltuk yıkama" yazdığında veya dinamik kategori sayfasına tıklandığında bu akış otomatik başlatılacak şekilde NestJS backend servisleri güncellendi.
+
 ## 2026-07-26 style | Header Üst Menü Cam Efekti Beyazlatma & İyileştirme (Adım 45)
 
 - **Arayüz & UX Düzenlemesi:**
