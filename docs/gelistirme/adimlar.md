@@ -58,6 +58,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 47** | **Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı** | Sabit JSON şeması olmayan tüm hizmetlerde yapay zekanın dinamik olarak soru ve tıklanabilir buton seçenekleri (`single_choice`) üretmesi ve `getSmartCategoryOptions` yedekleme altyapısı | **✅ Tamamlandı** |
 | **Adım 48** | **Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi** | Sorulan dinamik AI sorusunun metni ile (örn. metrekare, zamanlama, bütçe) buton seçeneklerinin tam eşleştirilmesi ve 1. adım şıklarının ezilmesini önleyen altyapı fix'i | **✅ Tamamlandı** |
 | **Adım 49** | **Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi** | Elektrik Tesisatı seçildiğinde Su Tesisatı şıklarının gelmesi sorununun çözülmesi ve Konum / İlçe adımlarında eski butonların ekranda kalmasının önlenmesi | **✅ Tamamlandı** |
+| **Adım 50** | **Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları** | Soru ve şık çakışmalarının kökten engellenmesi amacıyla sistemdeki tüm hizmet kategorileri için 3-5 adımlı sabit JSON soru kalıplarının tanımlanması | **✅ Tamamlandı** |
 
 ---
 
@@ -1010,12 +1011,11 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 49 Geliştirme Detayları (Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi)
+## 🛠️ Adım 50 Geliştirme Detayları (Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları)
 
-- **Elektrik Tesisatı Şık Düzeltmesi:**
-  * `elektrik-tesisati` slug'ı içerisindeki "tesisat" kelimesinin yanlışlıkla `su-tesisati` şıklarına yönlenmesi engellendi. `elektrik` araması kontrol sırasının en başına çekilerek Elektrik Tesisatı için doğru şıklar (`Sigorta Arızası`, `Priz & Anahtar Montajı`, `Aydınlatma / Avize Montajı`, `Kablo Çekimi / İnternet`) aktif edildi.
-- **Konum / İlçe Adımı Şık Sıfırlama Fix'i:**
-  * Detay toplama adımı bittiğinde ve sistem konum / ilçe sorma adımına (`ask_address`, `ask_name`, `ask_phone`) geçtiğinde eski kategori butonlarının ekranda görünmeye devam etmesi `options = []` ve `inputType = 'single_choice'` sıfırlaması ile %100 çözüldü (`backend-api/src/ortak/chat/chat.service.ts`).
+- **Tüm Kategorilere Sabit JSON Akış Entegrasyonu:**
+  * Yapay zekanın dinamik soru üretimindeki olası hata riskini sıfıra indirmek amacıyla platformdaki tüm hizmetler için (Ev Tadilatı, Elektrik Tesisatı, Su Tesisatı, Nakliyat, İnşaat Sonrası Temizlik, Fayans Döşeme, Parke Döşeme, Haşere İlaçlama, Kombi Servisi, Klima Servisi, Mantolama, Marangoz & Mobilya Montajı, Özel Ders, Cam Balkon & PVC Pencere vb.) özel, 3-5 adımlı sabit JSON şemaları hazırlandı.
+  * Tüm şemalar `QUESTION_FLOWS` yapısına kaydedilerek her bir hizmetin butonlarının ve adımlarının tamamen önceden tanımlanmış, hatasız ve deterministik çalışması sağlandı (`backend-api/src/ortak/chat/question-flow.config.ts`).
 
 
 

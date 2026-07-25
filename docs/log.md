@@ -2,6 +2,11 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 feat | Platformdaki Tüm Hizmetler İçin Sabit JSON Soru Akışları Altyapısı (Adım 50)
+
+- **Problem:** Yapay zekanın dinamik olarak soru/şık üretmeye çalıştığı durumlarda soru ve seçenek uyumsuzluklarının tamamen önüne geçilmesi için kullanıcının kesin talimatı üzerine tüm hizmetlerin sabit JSON soru şemasına bağlanması sağlandı.
+- **Yapılan Çalışma:** Platformda bulunan tüm hizmet kategorileri için (`Ev Tadilatı`, `Elektrik Tesisatı`, `Su Tesisatı`, `Nakliyat / Ev Taşıma`, `İnşaat / Tadilat Sonrası Temizlik`, `Fayans Döşeme`, `Parke Döşeme`, `Haşere / Böcek İlaçlama`, `Kombi Servisi`, `Klima Servisi`, `Mantolama / Dış Cephe`, `Marangoz & Mobilya Montajı`, `Özel Ders`, `Cam Balkon & PVC Pencere` vb.) 3-5 adımlı, %100 deterministik ve hatasız JSON soru akışları `question-flow.config.ts` dosyasına eklendi.
+
 ## 2026-07-26 fix | Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi (Adım 49)
 
 - **Problem 1 (Elektrik Tesisatı $\rightarrow$ Su Tesisatı Şıkları):** `Elektrik Tesisatı` seçildiğinde sistemin Su Tesisatı şıklarını (`Su Kaçağı Tespiti`, `Tıkanıklık Açma` vb.) getirmesi sorunu çözüldü.
