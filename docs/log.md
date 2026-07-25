@@ -2,6 +2,12 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 style | Header Üst Menü Cam Efekti Beyazlatma & İyileştirme (Adım 45)
+
+- **Arayüz & UX Düzenlemesi:**
+  - Ana sayfa (`app-musteri/app/page.tsx`) üst bar (`<header>`) menüsünün koyu görünmesine sebep olan `%70` opaklık değeri `%92` seviyesine yükseltildi (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
+  - Arka plandaki sinematik hero görseli üzerinde menünün karanlık gri görünmesi engellenerek ultra berrak, kristal beyaz buzlu cam görünümü sağlandı.
+
 ## 2026-07-26 style | Landing Page Sinematik Hero Arka Plan Görseli & Cam Efektli Arayüz (Adım 44)
 
 - **Tasarım & Görsel Yenileme:**
