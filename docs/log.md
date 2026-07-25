@@ -2,6 +2,14 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 style | Landing Page Sinematik Hero Arka Plan Görseli & Cam Efektli Arayüz (Adım 44)
+
+- **Tasarım & Görsel Yenileme:**
+  - Ana sayfa (`app-musteri/app/page.tsx`) kahraman (Hero) alanının sade beyaz arka planı kaldırıldı.
+  - Hizmet veren profesyoneller ve mutlu aile temalı yüksek çözünürlüklü sinematik arka plan görseli (`hero_bg.jpg`) oluşturularak `public/` dizinine eklendi.
+  - Görsel üzerine derinlik katan koyu sinematik degrade katman (`bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/85`) ve neon marka ışıltıları eklendi.
+  - Başlıklar beyaz ve neon lime renk seçenekleriyle okunabilirliği yüksek hale getirildi; yapay zeka sohbet kutusu ve indirme rozetleri cam efektli (backdrop-blur-xl) lüks kart tasarımına kavuşturuldu.
+
 ## 2026-07-26 fix | Landing Page "Diğer" Kategorisi Tıklandığında Tüm Hizmet Kategorileri Modalı Açılması (Adım 43)
 
 - **Arayüz & UX Düzenlemesi:**
