@@ -51,6 +51,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 40** | **"Hizmet Veren Profili" Modal Başlık Güncellemesi** | Hizmet alan paneli "Yorumları İncele" modalındaki "Usta Profili" başlık yazısının "Hizmet Veren Profili" olarak güncellenmesi | **✅ Tamamlandı** |
 | **Adım 41** | **"Esnaf" -> "Hizmet Veren" Terminoloji Güncellemesi** | Platform genelinde (Müşteri & Hizmet Veren arayüzleri, AI promptları, servis fallback'leri) genel "esnaf" tabirlerinin "Hizmet Veren" olarak refactor edilmesi | **✅ Tamamlandı** |
 | **Adım 42** | **Hizmet Alan Kolay Eşleşme (Esnaaf) ID Otomatik Üretimi ve Düzeltmesi** | Müşteri paneli Favoriler sekmesindeki Kolay Eşleşme ID'nin `ensureEsnaafId` ile otomatik üretilmesi, ekranda kalıcı "YÜKLENİYOR..." hatasının giderilmesi ve kopyalama butonunun eklenmesi | **✅ Tamamlandı** |
+| **Adım 43** | **Landing Page "Diğer" Butonu Kategori Modalı Yönlendirmesi** | Ana sayfada "Diğer" (3 nokta `...`) kategorisine tıklandığında sohbet yerine "Tüm Hizmet Kategorileri" modalının açılması | **✅ Tamamlandı** |
 
 ---
 
@@ -982,6 +983,13 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 - **Frontend Yenileme & Kopyalama Butonu:**
   * `SeekerDashboard.tsx` içerisinde `fetchEsnaafId` fonksiyonu sekme değişikliklerinde re-trigger edilecek şekilde güncellendi ve ekrandaki kalıcı "YÜKLENİYOR..." ifadesi giderildi.
   * Kullanıcının ID'sini kolayca paylaşabilmesi için ID kartına **"Kopyala"** ikonu ve kopyalandı bildirimi entegre edildi.
+
+## 🛠️ Adım 43 Geliştirme Detayları (Landing Page "Diğer" Butonu Kategori Modalı Yönlendirmesi)
+
+- **Kategori Modalı Yönlendirmesi:**
+  * Ana sayfadaki hızlı kategori kartları arasında yer alan **"Diğer" (`...`)** butonunun tıklama mantığı (`onClick`) güncellendi.
+  * Doğrudan canlı sohbet başlatmak yerine `setIsModalOpen(true)` tetiklenerek kullanıcıya **"Tüm Hizmet Kategorileri"** overlay modalı sunuldu.
+  * Kullanıcının modal içerisindeki 20 hizmet kategorisinden dilediğini seçerek ilgili spesifik kategori üzerinden canlı sohbet başlatabilmesi sağlandı (`app-musteri/app/page.tsx`).
 
 
 

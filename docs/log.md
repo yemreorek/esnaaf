@@ -2,6 +2,12 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 fix | Landing Page "Diğer" Kategorisi Tıklandığında Tüm Hizmet Kategorileri Modalı Açılması (Adım 43)
+
+- **Arayüz & UX Düzenlemesi:**
+  - Ana sayfada (`app-musteri/app/page.tsx`) hızlı kategori butonları arasında yer alan **"Diğer" (`...`)** butonuna basıldığında doğrudan genel sohbet açılması davranışı kaldırıldı.
+  - Artık "Diğer" butonuna tıklandığında, AI chat barındaki `+` butonuna basıldığında açılan **"Tüm Hizmet Kategorileri"** overlay modalı (`isModalOpen = true`) açılmaktadır. Kullanıcı 20 hizmet kategorisinden dilediğini seçerek ilgili kategori üzerinden talep başlatabilir.
+
 ## 2026-07-23 fix | Hizmet Alan Kolay Eşleşme ID Otomatik Üretimi & Kopyalama Butonu (Adım 42)
 
 - **Hata Tespiti & Çözüm:**
