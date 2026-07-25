@@ -1377,20 +1377,27 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           
           // Attach options and inputType if we are still collecting details and there's a next question
           if (state.step === 'collecting_details') {
-            const nextQ = (await this.getNextQuestion(state));
-            if (nextQ) {
-              if (state.collected_data.is_graph_flow) {
-                // FORCE the exact text from the graph! No GPT rewriting!
-                responseMessage = nextQ.question;
+            const slug = state.collected_data.categorySlug;
+            if (slug && QUESTION_FLOWS[slug]) {
+              const nextQ = (await this.getNextQuestion(state));
+              if (nextQ) {
+                if (state.collected_data.is_graph_flow) {
+                  // FORCE the exact text from the graph! No GPT rewriting!
+                  responseMessage = nextQ.question;
+                }
+                if (nextQ.options && nextQ.options.length > 0) {
+                  options = nextQ.options;
+                  inputType = nextQ.inputType || 'single_choice';
+                } else if (nextQ.options && nextQ.options.length === 0) {
+                  options = [];
+                  inputType = nextQ.inputType || 'text';
+                }
               }
-              if (nextQ.options && nextQ.options.length > 0) {
-                // ALWAYS prefer the deterministic options from our graph/legacy config over AI hallucinations
-                options = nextQ.options;
-                inputType = nextQ.inputType || 'single_choice';
-              } else if (nextQ.options && nextQ.options.length === 0) {
-                 // If graph explicitly has NO options (open ended text), ignore AI hallucinated options too
-                 options = [];
-                 inputType = nextQ.inputType || 'text';
+            } else {
+              // Dynamic AI Flow: Only populate options if AI didn't already supply matching options
+              if (!options || options.length === 0) {
+                options = this.getSmartCategoryOptions(slug || '', state.collected_data.categoryName, responseMessage);
+                inputType = options.length > 0 ? 'single_choice' : 'textarea';
               }
             }
           } else if ((state.step as any) === 'ask_details') {
@@ -2547,15 +2554,14 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
       rawText = rawText.replace(/```(?:json)?/gi, '').trim();
       const parsed = JSON.parse(rawText);
 
-      const isComplete = !!parsed.isComplete;
-      let opts = Array.isArray(parsed.options) && parsed.options.length > 0
-        ? parsed.options
-        : (!isComplete ? this.getSmartCategoryOptions(slug, catName) : []);
-
       let question = parsed.question;
       if (!question || question.includes('kısaca bahseder')) {
         question = `${catName} hizmeti için yapılmasını istediğiniz alanı veya kapsamı seçiniz:`;
       }
+
+      let opts = Array.isArray(parsed.options) && parsed.options.length > 0
+        ? parsed.options
+        : (!isComplete ? this.getSmartCategoryOptions(slug, catName, question) : []);
 
       return {
         question,
@@ -2994,10 +3000,33 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     return lines.length > 0 ? lines.join('\n') : 'Detay belirtilmedi.';
   }
 
-  private getSmartCategoryOptions(slug: string, categoryName?: string): string[] {
+  private getSmartCategoryOptions(slug: string, categoryName?: string, questionText?: string): string[] {
+    const q = (questionText || '').toLowerCase();
     const s = (slug || '').toLowerCase();
     const name = (categoryName || '').toLowerCase();
 
+    // 1. Question-Specific Matching (Dynamic Step Detection)
+    if (q.includes('metrekare') || q.includes('m²') || q.includes('m2') || q.includes('büyüklük') || q.includes('alanın yaklaşık')) {
+      return ["50 m²'ye kadar", "50 - 100 m²", "100 - 150 m²", "150 - 200 m²", "200 m² ve üzeri"];
+    }
+
+    if (q.includes('kaç oda') || q.includes('oda sayısı') || q.includes('kaç banyo') || q.includes('kaç kat')) {
+      return ["1 Odalı", "2 Odalı", "3 Odalı", "4+ Odalı", "Tüm Ev / Komple"];
+    }
+
+    if (q.includes('ne zaman') || q.includes('tarih') || q.includes('zaman') || q.includes('başlan')) {
+      return ["Hemen (1-3 Gün İçinde)", "Bu Hafta İçinde", "Bu Ay İçinde", "Esnek / Tarih Belli Değil"];
+    }
+
+    if (q.includes('malzeme') || q.includes('bütçe') || q.includes('kalite') || q.includes('temin')) {
+      return ["Malzeme Dahil Olsun", "Sadece İşçilik İstiyorum", "Keşif Yapılıp Fiyat Verilsin"];
+    }
+
+    if (q.includes('eklemek') || q.includes('başka') || q.includes('özel detay') || q.includes('not var mı')) {
+      return [];
+    }
+
+    // 2. Initial Category Scope Question (Step 1 Fallbacks)
     if (s.includes('tadilat') || name.includes('tadilat')) {
       return ["Mutfak Tadilatı", "Banyo Tadilatı", "Komple Ev Tadilatı", "Salon / Oda Tadilatı", "Diğer"];
     }
