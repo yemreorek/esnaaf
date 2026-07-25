@@ -2514,28 +2514,28 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
   private async getAiNextQuestion(state: SessionState): Promise<{ question: string, options: string[], inputType: string, isComplete: boolean, collected_facts?: Record<string, string> }> {
     const slug = state.collected_data.categorySlug || 'genel';
-    const catName = state.collected_data.categoryName || slug;
+    const catName = state.collected_data.categoryName || this.getCategoryName(slug);
     
     const systemPrompt = `Sen profesyonel bir esnaaf.com hizmet asistanısın. Müşteri "${catName}" hizmeti talep ediyor.
 Amacın, bu hizmetle ilgili gerekli tüm detayları müşteriye sırayla sorular sorarak öğrenmek.
 
 KURALLAR:
 1. Müşteriden ALMAN GEREKEN BİLGİLER Hizmet Rehberinde listelenmiştir. Lütfen HİZMET REHBERİNDEKİ İLK EKSİK BİLGİYİ bul ve SADECE ONUNLA İLGİLİ TEK BİR SORU SOR. Asla birden fazla soruyu aynı cümlede birleştirme!
-2. Doğrudan sektöre özel teknik soruyu sor (Örn: "Eviniz kaç odalı?", "Kaç metrekare?").
-3. İLK SORULAR KESİNLİKLE AÇIK UÇLU (textarea) OLAMAZ! Mutlaka tıklanabilir butonlar (options) sunmalısın. Sorduğun soruya UYGUN ve MANTIKLI en az 2, en fazla 6 seçenek (options) sun. Örneğin "Eviniz kaç odalı?" sorusuna ["1+1", "2+1", "3+1"] gibi mantıklı şıklar ver (inputType: "single_choice").
-4. SADECE VE SADECE Hizmet Rehberindeki TÜM soruları sorduktan ve cevaplarını aldıktan sonra, EN SON SORU OLARAK ŞUNU SOR: "Eklemek istediğiniz başka bir detay var mı?". Henüz rehberdeki sorular bitmediyse bu soruyu ASLA SORMA.
+2. Doğrudan sektöre özel teknik soruyu sor (Örn: "Ev tadilatı yapılacak alan neresidir?", "Eviniz kaç odalı?").
+3. KESİNLİKLE AÇIK UÇLU SORU SORMA! Mutlaka müşteriye tıklanabilir buton seçenekleri (options) sunmalısın. Sorduğun soruya UYGUN ve MANTIKLI en az 3, en fazla 6 kısa seçenek (options) sun. Örneğin "${catName} için hangi alanı veya kapsama giren işi tercih edersiniz?" sorusuna tıklanabilir seçenekler ver (inputType: "single_choice").
+4. SADECE VE SADECE Hizmet Rehberindeki TÜM soruları sorduktan ve cevaplarını aldıktan sonra, EN SON SORU OLARAK ŞUNU SOR: "Eklemek istediğiniz başka bir detay var mı?" (bu son soruda inputType: "textarea" ve options: [] yapabilirsin). Henüz rehberdeki sorular bitmediyse bu soruyu ASLA SORMA.
 5. Müşteri son soruya da yanıt verdiyse işin bitmiştir. Soru sorma, "isComplete": true dön.
 6. Sadece JSON formatında çıktı ver. Markdown kullanma, doğrudan JSON stringi olsun.
 
 Hizmet Rehberi (Sorulması gereken genel konular):
 ${this.generatePromptForCategory(slug)}
 
-Şu ana kadar topladığın veya önceki mesajlardan anladığın net bilgileri "collected_facts" içine anahtar-değer (örn: {"Evin Büyüklüğü": "2+1"}) şeklinde koy.
+Şu ana kadar topladığın veya önceki mesajlardan anladığın net bilgileri "collected_facts" içine anahtar-değer (örn: {"Tadilat Alanı": "Mutfak"}) şeklinde koy.
 
 Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin):
 {
-  "question": "Müşteriye soracağın soru (Örn: Eviniz kaç odalı?)",
-  "options": ["Seçenek 1", "Seçenek 2", "Seçenek 3"],
+  "question": "Müşteriye soracağın soru (Örn: Ev tadilatı yapılacak alan neresidir?)",
+  "options": ["Mutfak Tadilatı", "Banyo Tadilatı", "Komple Ev Tadilatı", "Salon / Oda Tadilatı", "Diğer"],
   "inputType": "single_choice",
   "collected_facts": { "Soru Özeti": "Cevap Özeti" },
   "isComplete": false
@@ -2544,22 +2544,33 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     try {
       const response = await this.geminiService.generateResponse(state.messages, systemPrompt, { requireJson: true });
       let rawText = response.text.trim();
-      // Remove all markdown code blocks, even if there is whitespace
       rawText = rawText.replace(/```(?:json)?/gi, '').trim();
       const parsed = JSON.parse(rawText);
+
+      const isComplete = !!parsed.isComplete;
+      let opts = Array.isArray(parsed.options) && parsed.options.length > 0
+        ? parsed.options
+        : (!isComplete ? this.getSmartCategoryOptions(slug, catName) : []);
+
+      let question = parsed.question;
+      if (!question || question.includes('kısaca bahseder')) {
+        question = `${catName} hizmeti için yapılmasını istediğiniz alanı veya kapsamı seçiniz:`;
+      }
+
       return {
-        question: parsed.question || 'İhtiyacınızın detaylarından kısaca bahseder misiniz?',
-        options: parsed.options || [],
-        inputType: parsed.inputType || (parsed.options?.length > 0 ? 'single_choice' : 'textarea'),
-        isComplete: !!parsed.isComplete,
+        question,
+        options: opts,
+        inputType: parsed.inputType || (opts.length > 0 ? 'single_choice' : 'textarea'),
+        isComplete,
         collected_facts: parsed.collected_facts || {}
       };
     } catch (e) {
       console.error('[ChatService] getAiNextQuestion error:', e);
+      const fallbackOpts = this.getSmartCategoryOptions(slug, catName);
       return {
-        question: 'Hizmetin detaylarından kısaca bahseder misiniz? [HATA: ' + (e instanceof Error ? e.message : String(e)) + ']',
-        options: [],
-        inputType: 'textarea',
+        question: `${catName} hizmeti için lütfen yapılmasını istediğiniz alanı veya kapsamı seçiniz:`,
+        options: fallbackOpts,
+        inputType: 'single_choice',
         isComplete: false
       };
     }
@@ -2573,11 +2584,17 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 
     const aiQ = await this.getAiNextQuestion(state);
     if (aiQ.isComplete) return null;
+
+    const catName = state.collected_data.categoryName || this.getCategoryName(slug || '');
+    const opts = (aiQ.options && aiQ.options.length > 0)
+      ? aiQ.options
+      : this.getSmartCategoryOptions(slug || '', catName);
+
     return {
       key: 'dynamic_question',
       question: aiQ.question,
-      options: aiQ.options,
-      inputType: aiQ.inputType,
+      options: opts,
+      inputType: aiQ.inputType || (opts.length > 0 ? 'single_choice' : 'textarea'),
       parse: (msg: string) => msg.trim()
     };
   }
@@ -2977,6 +2994,55 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     return lines.length > 0 ? lines.join('\n') : 'Detay belirtilmedi.';
   }
 
+  private getSmartCategoryOptions(slug: string, categoryName?: string): string[] {
+    const s = (slug || '').toLowerCase();
+    const name = (categoryName || '').toLowerCase();
+
+    if (s.includes('tadilat') || name.includes('tadilat')) {
+      return ["Mutfak Tadilatı", "Banyo Tadilatı", "Komple Ev Tadilatı", "Salon / Oda Tadilatı", "Diğer"];
+    }
+    if (s.includes('boya') || name.includes('boya')) {
+      return ["1+1 Daire Boyama", "2+1 Daire Boyama", "3+1 Daire Boyama", "Tek Oda Boyama", "Diğer"];
+    }
+    if (s.includes('su-tesisat') || s.includes('tesisat') || name.includes('su tesisat')) {
+      return ["Su Kaçağı Tespiti", "Tıkanıklık Açma", "Musluk / Batarya Tamiri", "Klozet / Sifon Tamiri", "Diğer"];
+    }
+    if (s.includes('elektrik') || name.includes('elektrik')) {
+      return ["Sigorta Arızası", "Priz & Anahtar Montajı", "Aydınlatma / Avize Montajı", "Kablo Çekimi / İnternet", "Diğer"];
+    }
+    if (s.includes('nakliyat') || s.includes('tasıma') || name.includes('nakliye')) {
+      return ["Evden Eve Nakliyat", "Parça Eşya Taşıma", "Şehirler Arası Nakliyat", "Ofis / İş Yeri Taşıma", "Diğer"];
+    }
+    if (s.includes('kombi') || name.includes('kombi')) {
+      return ["Kombi Bakımı", "Kombi Arıza / Isıtmıyor", "Petek Temizliği", "Kombi Montajı", "Diğer"];
+    }
+    if (s.includes('klima') || name.includes('klima')) {
+      return ["Klima Bakımı", "Klima Gaz Dolumu", "Klima Arıza / Soğutmuyor", "Klima Söküm / Montaj", "Diğer"];
+    }
+    if (s.includes('fayans') || s.includes('seramik') || name.includes('fayans')) {
+      return ["Banyo Fayansı", "Mutfak Fayansı", "Balkon / Teras Fayansı", "Zemin Seramik", "Diğer"];
+    }
+    if (s.includes('parke') || name.includes('parke')) {
+      return ["Laminat Parke Döşeme", "Lamine Parke", "Süpürgelik Montajı", "Parke Tamiri", "Diğer"];
+    }
+    if (s.includes('ilaclama') || s.includes('hasere') || s.includes('bocek') || name.includes('ilaçlama')) {
+      return ["Böcek / Hamamböceği", "Tahtakurusu", "Pire / Kene", "Fare / Kemirgen", "Diğer"];
+    }
+    if (s.includes('marangoz') || s.includes('mobilya') || name.includes('mobilya')) {
+      return ["Mobilya Montajı", "Dolap Tamiri / Kapak", "Özel Ölçü Mobilya", "Kapı Tamiri", "Diğer"];
+    }
+    if (s.includes('ozel-ders') || name.includes('ders')) {
+      return ["Matematik / Fen", "İngilizce / Yabancı Dil", "İlkokul / Ortaokul Takviye", "LGS / YKS Hazırlık", "Diğer"];
+    }
+    if (s.includes('cam-balkon') || s.includes('pvc') || name.includes('cam balkon')) {
+      return ["Katlanır Cam Balkon", "Sürme Cam Balkon", "Isıcamlı Cam Balkon", "PVC Pencere / Kapı", "Diğer"];
+    }
+    if (s.includes('temizlik') || name.includes('temizlik')) {
+      return ["1+1 Daire Temizliği", "2+1 Daire Temizliği", "3+1 Daire Temizliği", "Detaylı / Derin Temizlik", "Diğer"];
+    }
+    return ["Komple Hizmet", "Kısmi / Tamirat İşleri", "Keşif / Danışmanlık", "Diğer"];
+  }
+
   private getChecklistForCategory(slug: string | null): string[] {
     switch (slug) {
       case 'ev-temizligi':
@@ -3174,7 +3240,16 @@ ${prompt}
     if (slug && SECTOR_PROMPTS[slug]) {
       return SECTOR_PROMPTS[slug];
     }
-    return `İhtiyacınızın detayları nelerdir? Hizmet veren neye dikkat etmeli?`;
+    const catName = this.getCategoryName(slug || '');
+    return `
+**${catName}:**
+- Hizmet talebine ait teknik kapsam, alan büyüklüğü ve özel gereksinimleri müşteriye sırayla sormalısın.
+- Sorulması gereken adımlar (HER SORUDA MUTLAKA TIKLANABİLİR BUTON SEÇENEKLERİ SUNMALISIN):
+  1. Hangi alanda / bölümde hizmet verilecek? (Örn: Mutfak, Banyo, Komple Ev / Daire, İş Yeri vb.)
+  2. Tahmini ölçü, metrekare veya alan büyüklüğü nedir?
+  3. Malzeme durumu veya özel uygulama detayları nelerdir?
+  4. Eklemek istediğiniz başka bir detay var mı? (Bu en son soruda textarea kullanabilirsin)
+`;
   }
 
   private isGeneralOrInformationalQuery(message: string): boolean {
