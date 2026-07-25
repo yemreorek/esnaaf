@@ -2,6 +2,13 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 fix | getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Düzeltmesi (Adım 51)
+
+- **Problem:** Kullanıcı "Elektrik Tesisatı" veya diğer kategorileri seçtiğinde, `categorySlug` formatlarındaki uyuşmazlık (tire `-` vs alt tire `_` çakışmaları veya genel kelimeler) sebebiyle sistemin sabit JSON soru akışını kaçırıp yedek AI sorularına ve yanlış Su Tesisatı şıklarına düşmesi düzeltildi.
+- **Kök Neden & Çözüm:**
+  - `ChatService` içerisine `getFlowForCategory(slug)` akıllı yönlendiricisi eklendi. Slug ne şekilde gelirse gelsin (`elektrik-tesisati`, `elektrik_tesisati`, `elektrik`, `su-tesisati`, `ev-tadilat` vb.) %100 eşleşme ile doğru sabit JSON akışına yönlendirilmesi sağlandı.
+  - Akışa ilk girişte `state.collected_data.current_step_id = flow.steps[0].step_id` adımı zorunlu kılınarak 1. sorunun ve şıkların anında ekrana basılması garanti edildi (`backend-api/src/ortak/chat/chat.service.ts`).
+
 ## 2026-07-26 feat | Platformdaki Tüm Hizmetler İçin Sabit JSON Soru Akışları Altyapısı (Adım 50)
 
 - **Problem:** Yapay zekanın dinamik olarak soru/şık üretmeye çalıştığı durumlarda soru ve seçenek uyumsuzluklarının tamamen önüne geçilmesi için kullanıcının kesin talimatı üzerine tüm hizmetlerin sabit JSON soru şemasına bağlanması sağlandı.

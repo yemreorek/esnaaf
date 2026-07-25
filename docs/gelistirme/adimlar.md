@@ -59,6 +59,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 48** | **Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi** | Sorulan dinamik AI sorusunun metni ile (örn. metrekare, zamanlama, bütçe) buton seçeneklerinin tam eşleştirilmesi ve 1. adım şıklarının ezilmesini önleyen altyapı fix'i | **✅ Tamamlandı** |
 | **Adım 49** | **Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi** | Elektrik Tesisatı seçildiğinde Su Tesisatı şıklarının gelmesi sorununun çözülmesi ve Konum / İlçe adımlarında eski butonların ekranda kalmasının önlenmesi | **✅ Tamamlandı** |
 | **Adım 50** | **Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları** | Soru ve şık çakışmalarının kökten engellenmesi amacıyla sistemdeki tüm hizmet kategorileri için 3-5 adımlı sabit JSON soru kalıplarının tanımlanması | **✅ Tamamlandı** |
+| **Adım 51** | **getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Fix'i** | `categorySlug` format çakışmalarının (tire/alt-tire/kelime) önlenmesi ve her hizmetin kendi özel sabit JSON soru akışına %100 bağlanması | **✅ Tamamlandı** |
 
 ---
 
@@ -1011,11 +1012,11 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 50 Geliştirme Detayları (Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları)
+## 🛠️ Adım 51 Geliştirme Detayları (getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Fix'i)
 
-- **Tüm Kategorilere Sabit JSON Akış Entegrasyonu:**
-  * Yapay zekanın dinamik soru üretimindeki olası hata riskini sıfıra indirmek amacıyla platformdaki tüm hizmetler için (Ev Tadilatı, Elektrik Tesisatı, Su Tesisatı, Nakliyat, İnşaat Sonrası Temizlik, Fayans Döşeme, Parke Döşeme, Haşere İlaçlama, Kombi Servisi, Klima Servisi, Mantolama, Marangoz & Mobilya Montajı, Özel Ders, Cam Balkon & PVC Pencere vb.) özel, 3-5 adımlı sabit JSON şemaları hazırlandı.
-  * Tüm şemalar `QUESTION_FLOWS` yapısına kaydedilerek her bir hizmetin butonlarının ve adımlarının tamamen önceden tanımlanmış, hatasız ve deterministik çalışması sağlandı (`backend-api/src/ortak/chat/question-flow.config.ts`).
+- **Akıllı Akış Yönlendiricisi ve Adım Başlatıcı:**
+  * `ChatService` sınıfına `getFlowForCategory(slug)` metodu eklenerek tire/alt-tire uyuşmazlığı olan veya genel kelimelerle gelen slug isteklerinin (`elektrik-tesisati`, `elektrik_tesisati`, `elektrik`, `su-tesisati` vb.) anında kendi sabit JSON şemasına eşleşmesi sağlandı.
+  * Kategori ilk algılandığında `state.collected_data.current_step_id = flow.steps[0].step_id` tanımlaması yapılarak oturumun doğrudan 1. adımdaki soru ve butonlarla başlaması garanti edildi (`backend-api/src/ortak/chat/chat.service.ts`).
 
 
 
