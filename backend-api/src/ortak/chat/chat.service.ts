@@ -1405,6 +1405,9 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               options = this.getChecklistForCategory(state.collected_data.categorySlug || null);
             }
             inputType = 'multi_choice';
+          } else if (state.step === 'ask_address' || state.step === 'ask_name' || state.step === 'ask_phone') {
+            options = [];
+            inputType = state.step === 'ask_address' ? 'single_choice' : 'text';
           }
         }
 
@@ -3033,11 +3036,11 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     if (s.includes('boya') || name.includes('boya')) {
       return ["1+1 Daire Boyama", "2+1 Daire Boyama", "3+1 Daire Boyama", "Tek Oda Boyama", "Diğer"];
     }
-    if (s.includes('su-tesisat') || s.includes('tesisat') || name.includes('su tesisat')) {
-      return ["Su Kaçağı Tespiti", "Tıkanıklık Açma", "Musluk / Batarya Tamiri", "Klozet / Sifon Tamiri", "Diğer"];
-    }
     if (s.includes('elektrik') || name.includes('elektrik')) {
       return ["Sigorta Arızası", "Priz & Anahtar Montajı", "Aydınlatma / Avize Montajı", "Kablo Çekimi / İnternet", "Diğer"];
+    }
+    if (s.includes('su-tesisat') || s === 'su-tesisati' || name.includes('su tesisat') || (s.includes('tesisat') && !s.includes('elektrik'))) {
+      return ["Su Kaçağı Tespiti", "Tıkanıklık Açma", "Musluk / Batarya Tamiri", "Klozet / Sifon Tamiri", "Diğer"];
     }
     if (s.includes('nakliyat') || s.includes('tasıma') || name.includes('nakliye')) {
       return ["Evden Eve Nakliyat", "Parça Eşya Taşıma", "Şehirler Arası Nakliyat", "Ofis / İş Yeri Taşıma", "Diğer"];
