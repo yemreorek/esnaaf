@@ -555,7 +555,7 @@ export default function Home() {
       )}
 
       {/* 🧭 Header (TopNavBar) */}
-      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 border-b border-slate-100 h-14 md:h-20 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
+      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-xl bg-white/92 border-b border-white/40 h-14 md:h-20 shadow-[0_4px_25px_rgba(0,0,0,0.04)] transition-all">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
           <div className="flex items-center gap-12">
             <a href="/" className="flex items-center">
