@@ -343,21 +343,39 @@ export class ChatService {
     }
 
     // --- FAST PATH FOR DETERMINISTIC JSON FLOW ---
-    const slug = state.collected_data.categorySlug;
+    let slug = state.collected_data.categorySlug;
+    if (!slug && (state.step === 'greeting' || state.step === 'category_detection')) {
+      const detection = await this.detectCategory(filteredMessage);
+      if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
+        slug = detection.categorySlug;
+        state.collected_data.categorySlug = slug;
+        state.collected_data.categoryName = detection.categoryName || undefined;
+      }
+    }
+
     const flow = this.getFlowForCategory(slug);
-    if ((state.step === 'collecting_details' || state.step === 'ask_details') && slug && flow) {
+    if (slug && flow && state.step !== 'ask_address' && state.step !== 'ask_name' && state.step !== 'ask_phone' && state.step !== 'confirm_form' && state.step !== 'completed') {
       state.step = 'collecting_details'; // Normalize
-      
-      const processed = await this.processAnswerFromFlow(state, filteredMessage);
+
+      // If current_step_id is not set yet, initialize to step 0
+      const isInitialCategoryMsg = !state.collected_data.current_step_id;
+      if (isInitialCategoryMsg) {
+        state.collected_data.current_step_id = flow.steps[0].step_id;
+      }
+
+      let processed = false;
+      if (!isInitialCategoryMsg) {
+        processed = await this.processAnswerFromFlow(state, filteredMessage);
+      }
+
       let nextQ: any = null;
-      
-      if (!processed) {
+      if (!isInitialCategoryMsg && !processed) {
         nextQ = this.getNextQuestionFromFlow(state);
         if (nextQ) responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
       } else {
         nextQ = this.getNextQuestionFromFlow(state);
       }
-      
+
       if (!nextQ) {
         state.step = 'ask_address';
         state.collected_data.hasAskedDetails = true;
@@ -365,7 +383,11 @@ export class ChatService {
         options = [];
         inputType = 'single_choice';
       } else {
-        responseMessage = responseMessage || nextQ.question;
+        if (isInitialCategoryMsg) {
+          responseMessage = `${state.collected_data.categoryName || flow.category_name} talebiniz için detayları alalım.\n\n${nextQ.question}`;
+        } else {
+          responseMessage = responseMessage || nextQ.question;
+        }
         options = nextQ.options || [];
         inputType = nextQ.inputType || 'single_choice';
       }
