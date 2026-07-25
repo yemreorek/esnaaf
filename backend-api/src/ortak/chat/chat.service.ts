@@ -12,6 +12,10 @@ import { sanitizeForWin1254, sanitizeObjectForWin1254 } from '../../common/utils
 import { SECTOR_PROMPTS } from './sector-prompts.config';
 import { QUESTION_FLOWS, FlowStep } from './question-flow.config';
 
+import { FlowEngineService } from './flow-engine.service';
+import { LeadFormService } from './lead-form.service';
+import { AiConsultantService } from './ai-consultant.service';
+
 interface SessionState {
   step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_time' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
@@ -101,6 +105,9 @@ export class ChatService {
     @InjectQueue('talepler-distribution') private distributionQueue: Bull.Queue,
     private geminiService: GeminiService,
     private openaiService: OpenAIService,
+    private flowEngineService: FlowEngineService,
+    private leadFormService: LeadFormService,
+    private aiConsultantService: AiConsultantService,
   ) {}
 
   private filterPii(text: string): string {
