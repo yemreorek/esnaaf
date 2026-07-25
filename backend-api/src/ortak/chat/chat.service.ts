@@ -344,7 +344,8 @@ export class ChatService {
 
     // --- FAST PATH FOR DETERMINISTIC JSON FLOW ---
     const slug = state.collected_data.categorySlug;
-    if ((state.step === 'collecting_details' || state.step === 'ask_details') && slug && QUESTION_FLOWS[slug]) {
+    const flow = this.getFlowForCategory(slug);
+    if ((state.step === 'collecting_details' || state.step === 'ask_details') && slug && flow) {
       state.step = 'collecting_details'; // Normalize
       
       const processed = await this.processAnswerFromFlow(state, filteredMessage);
@@ -398,7 +399,9 @@ export class ChatService {
             state.collected_data.categoryName = detection.categoryName || undefined;
             state.step = 'collecting_details';
             
-            if (QUESTION_FLOWS[detection.categorySlug]) {
+            const flowDetected = this.getFlowForCategory(detection.categorySlug);
+            if (flowDetected) {
+               state.collected_data.current_step_id = flowDetected.steps[0].step_id;
                const nextQ = this.getNextQuestionFromFlow(state);
                if (nextQ) {
                   responseMessage = `${detection.categoryName} talebiniz için detayları alalım.\n\n${nextQ.question}`;
@@ -1218,7 +1221,9 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             state.collected_data.categorySlug = categorySlug;
             state.step = 'collecting_details';
 
-            if (QUESTION_FLOWS[categorySlug]) {
+            const flowDetectedTool = this.getFlowForCategory(categorySlug);
+            if (flowDetectedTool) {
+               state.collected_data.current_step_id = flowDetectedTool.steps[0].step_id;
                const nextQ = this.getNextQuestionFromFlow(state);
                if (nextQ) {
                   responseMessage = `${this.getCategoryName(categorySlug)} talebiniz için detayları alalım.\n\n${nextQ.question}`;
@@ -1378,7 +1383,8 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           // Attach options and inputType if we are still collecting details and there's a next question
           if (state.step === 'collecting_details') {
             const slug = state.collected_data.categorySlug;
-            if (slug && QUESTION_FLOWS[slug]) {
+            const flowAttach = this.getFlowForCategory(slug);
+            if (slug && flowAttach) {
               const nextQ = (await this.getNextQuestion(state));
               if (nextQ) {
                 if (state.collected_data.is_graph_flow) {
@@ -2585,9 +2591,40 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     }
   }
 
+  private getFlowForCategory(slug?: string | null): any | null {
+    if (!slug) return null;
+    const raw = slug.toLowerCase().trim();
+    const hyphenated = raw.replace(/_/g, '-');
+    const underscored = raw.replace(/-/g, '_');
+
+    if (QUESTION_FLOWS[raw]) return QUESTION_FLOWS[raw];
+    if (QUESTION_FLOWS[hyphenated]) return QUESTION_FLOWS[hyphenated];
+    if (QUESTION_FLOWS[underscored]) return QUESTION_FLOWS[underscored];
+
+    if (raw.includes('elektrik')) return QUESTION_FLOWS['elektrik-tesisati'] || QUESTION_FLOWS['elektrik_tesisati'];
+    if (raw.includes('su-tesisat') || (raw.includes('tesisat') && !raw.includes('elektrik') && !raw.includes('dogalgaz'))) {
+      return QUESTION_FLOWS['su-tesisati'] || QUESTION_FLOWS['su_tesisati'];
+    }
+    if (raw.includes('tadilat')) return QUESTION_FLOWS['ev-tadilat'] || QUESTION_FLOWS['ev_tadilat'];
+    if (raw.includes('boya') || raw.includes('badana')) return QUESTION_FLOWS['boya-badana'] || QUESTION_FLOWS['boya_badana'];
+    if (raw.includes('nakliyat') || raw.includes('tasima') || raw.includes('nakliye')) return QUESTION_FLOWS['nakliyat'];
+    if (raw.includes('insaat-sonrasi') || raw.includes('insaat_sonrasi')) return QUESTION_FLOWS['insaat-sonrasi-temizlik'];
+    if (raw.includes('fayans') || raw.includes('seramik')) return QUESTION_FLOWS['fayans-doseme'];
+    if (raw.includes('parke')) return QUESTION_FLOWS['parke-doseme'];
+    if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('hasere')) return QUESTION_FLOWS['hasere-ilaclama'];
+    if (raw.includes('kombi')) return QUESTION_FLOWS['kombi-servisi'];
+    if (raw.includes('klima')) return QUESTION_FLOWS['klima-servisi'];
+    if (raw.includes('marangoz') || raw.includes('mobilya')) return QUESTION_FLOWS['mobilya-montaji'];
+    if (raw.includes('ders')) return QUESTION_FLOWS['ozel-ders'];
+    if (raw.includes('cam-balkon') || raw.includes('cam_balkon') || raw.includes('pvc')) return QUESTION_FLOWS['cam-balkon'];
+
+    return null;
+  }
+
   private async getNextQuestion(state: SessionState): Promise<any | null> {
     const slug = state.collected_data.categorySlug;
-    if (slug && QUESTION_FLOWS[slug]) {
+    const flow = this.getFlowForCategory(slug);
+    if (slug && flow) {
       return this.getNextQuestionFromFlow(state);
     }
 
@@ -2610,10 +2647,11 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 
   private getNextQuestionFromFlow(state: SessionState): any | null {
     const slug = state.collected_data.categorySlug;
-    if (!slug || !QUESTION_FLOWS[slug]) return null;
+    const flow = this.getFlowForCategory(slug);
+    if (!slug || !flow) return null;
     
-    const flow = QUESTION_FLOWS[slug];
     const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
+    state.collected_data.current_step_id = currentStepId;
     
     if (currentStepId === 'END') return null;
 
@@ -2631,7 +2669,8 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 
   private async processAnswerFromFlow(state: SessionState, message: string): Promise<boolean> {
     const slug = state.collected_data.categorySlug;
-    if (!slug || !QUESTION_FLOWS[slug]) return false;
+    const flow = this.getFlowForCategory(slug);
+    if (!slug || !flow) return false;
 
     const flow = QUESTION_FLOWS[slug];
     const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
