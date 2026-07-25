@@ -2,6 +2,17 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 fix | Dinamik Sorular İle Buton Seçeneklerinin Senkronize Edilmesi (Adım 48)
+
+- **Problem:** Dinamik AI akışında yapay zeka 2. adımı sorduğunda ("kaç metrekare?"), seçenek butonlarının 1. adımın butonları ile ("Mutfak", "Banyo", "Komple Ev") çakışması ve 1. adım şıklarının ezilmeden ekranda kalması düzeltildi.
+- **Kök Neden & Çözüm:**
+  1. `getNextQuestion` metodunun ana yapay zeka yanıt döngüsünden önce out-of-sync çağrılarak 1. adım şıklarını ikinci kez ezmesi engellendi (`chat.service.ts`).
+  2. `getSmartCategoryOptions` fonksiyonuna `questionText` parametresi eklendi: Sorulan metnin içeriği analiz edilerek sorulan soruya tam uyumlu seçenek kümesi üretiliyor:
+     - Metrekare / Alan sorularında: `["50 m²'ye kadar", "50 - 100 m²", "100 - 150 m²", "150 - 200 m²", "200 m² ve üzeri"]`
+     - Oda / Kat sorularında: `["1 Odalı", "2 Odalı", "3 Odalı", "4+ Odalı", "Tüm Ev / Komple"]`
+     - Zamanlama sorularında: `["Hemen (1-3 Gün İçinde)", "Bu Hafta İçinde", "Bu Ay İçinde", "Esnek"]`
+     - Malzeme / Bütçe sorularında: `["Malzeme Dahil Olsun", "Sadece İşçilik İstiyorum", "Keşif İstiyorum"]`
+
 ## 2026-07-26 feat | Tüm Hizmetler İçin Dinamik AI JSON Soru Akışı & Buton Seçenekleri Altyapısı (Adım 47)
 
 - **Dinamik Soru & Buton Oluşturucu:**

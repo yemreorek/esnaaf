@@ -56,6 +56,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 45** | **Header Üst Menü Cam Efekti Beyazlatma & İyileştirme** | Üst bar menüsünün kirlenmiş/koyu görünmesini engelleyen `%92` berrak buzlu beyaz cam (`bg-white/92 backdrop-blur-xl`) güncellenmesi | **✅ Tamamlandı** |
 | **Adım 46** | **Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu** | Evde Koltuk Yıkama kategorisine özel 7 adımlı JSON soru akışı (tekli/berjer, ikili/üçlü kanepe, L-köşe, sandalye, yatak ve leke detayları) ve AI niyet algılama entegrasyonu | **✅ Tamamlandı** |
 | **Adım 47** | **Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı** | Sabit JSON şeması olmayan tüm hizmetlerde yapay zekanın dinamik olarak soru ve tıklanabilir buton seçenekleri (`single_choice`) üretmesi ve `getSmartCategoryOptions` yedekleme altyapısı | **✅ Tamamlandı** |
+| **Adım 48** | **Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi** | Sorulan dinamik AI sorusunun metni ile (örn. metrekare, zamanlama, bütçe) buton seçeneklerinin tam eşleştirilmesi ve 1. adım şıklarının ezilmesini önleyen altyapı fix'i | **✅ Tamamlandı** |
 
 ---
 
@@ -1008,12 +1009,14 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 47 Geliştirme Detayları (Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı)
+## 🛠️ Adım 48 Geliştirme Detayları (Dinamik Soru & Buton Seçenekleri Senkronizasyon Düzeltmesi)
 
-- **Otomatik Dinamik JSON Soru & Şık Üretici:**
-  * Sabit soru akışı tanımlanmamış olan tüm kategorilerde ("Ev Tadilatı", "Su Tesisatı", "Elektrik Tesisatı", "Nakliyat", "Kombi Servisi", "Mantolama", "Cam Balkon", "Fayans Döşeme" vb.) yapay zekanın boş metin kutusu sorması ("Kısaca bahseder misiniz?") engellendi.
-  * Yapay zekaya (Gemini) verilen sistem promptu güncellenerek, her dinamik soruda müşteriye tıklanabilir kısa ve net seçenek butonları (`inputType: "single_choice"`) üretmesi zorunlu kılındı.
-  * `getSmartCategoryOptions` metodu eklenerek; AI tarafından şık üretilememesi veya ağ bağlantısı gecikmeleri durumunda dahi kategorinin yapısına uygun (örneğin Ev Tadilat için: Mutfak Tadilatı, Banyo Tadilatı, Komple Ev Tadilatı, Salon / Oda vb.) şıkların buton olarak ekrana basılması garanti edildi (`backend-api/src/ortak/chat/chat.service.ts`).
+- **Soru-Şık Metin Eşleşme Düzeltmesi:**
+  * 2. adım sorusunda ("kaç metrekare?") 1. adımın butonlarının (Mutfak, Banyo, Komple Ev) ekranda kalmasına sebep olan out-of-sync `getNextQuestion` ezme mantığı düzeltildi.
+  * `getSmartCategoryOptions` fonksiyonu sorulan sorunun konusuna (metrekare, oda sayısı, zamanlama, bütçe/malzeme) göre dinamik şık havuzu dönecek şekilde geliştirildi:
+    - Metrekare sorularında: `["50 m²'ye kadar", "50 - 100 m²", "100 - 150 m²", "150 - 200 m²", "200 m² ve üzeri"]`
+    - Zamanlama sorularında: `["Hemen (1-3 Gün İçinde)", "Bu Hafta İçinde", "Bu Ay İçinde", "Esnek"]`
+  * Yapay zeka ile buton seçenekleri tam senkronize hale getirildi (`backend-api/src/ortak/chat/chat.service.ts`).
 
 
 
