@@ -618,31 +618,39 @@ export default function Home() {
       </header>
 
       {/* 🚀 Hero Section */}
-      <section className="relative min-h-[85vh] flex flex-col justify-center items-center pt-24 pb-8 overflow-hidden bg-[#ffffff] text-slate-900 text-center tech-grid">
-        {/* Glow ambient meshes */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full mesh-glow-green pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2 opacity-60"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full mesh-glow-indigo pointer-events-none z-0 transform translate-x-1/2 translate-y-1/2 opacity-40"></div>
-        <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] rounded-full mesh-glow-purple pointer-events-none z-0 transform -translate-x-1/2 -translate-y-1/2 opacity-30"></div>
+      <section className="relative min-h-[85vh] flex flex-col justify-center items-center pt-28 pb-12 overflow-hidden text-center">
+        {/* Background Image with Dark Gradient Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/hero_bg.jpg"
+            alt="Esnaaf Hizmet Veren Ağı"
+            className="w-full h-full object-cover object-center scale-105 filter brightness-[0.85]"
+          />
+          {/* Rich Cinematic Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/85"></div>
+          {/* Subtle Ambient Brand Glow */}
+          <div className="absolute top-1/3 left-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c8f252]/15 blur-3xl pointer-events-none"></div>
+        </div>
         
         <div className="relative z-10 max-w-5xl mx-auto px-4 w-full flex flex-col items-center space-y-6">
           {/* AI Subtitle Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-550/10 border border-slate-200 backdrop-blur-sm text-[10px] md:text-xs font-black tracking-widest text-slate-600 uppercase mb-2 animate-fade-in shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#719600] animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-700/60 backdrop-blur-md text-[10px] md:text-xs font-black tracking-widest text-slate-200 uppercase mb-2 animate-fade-in shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-[#c8f252] animate-pulse"></span>
             Yapay Zeka Destekli Hizmet Veren Ağı
           </div>
 
           <div className="space-y-4">
-            <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-slate-900 tracking-tighter max-w-4xl mx-auto">
+            <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-white tracking-tighter max-w-4xl mx-auto drop-shadow-lg">
               Aynı Mahalleyi Paylaştığın <br />
-              En İyi <span className="bg-gradient-to-r from-[#719600] to-[#88b500] bg-clip-text text-transparent">5 Hizmet Verenden</span> Teklif Al
+              En İyi <span className="bg-gradient-to-r from-[#c8f252] via-[#d4f54e] to-[#a3d924] bg-clip-text text-transparent">5 Hizmet Verenden</span> Teklif Al
             </h1>
-            <p className="font-body text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
+            <p className="font-body text-base md:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-sm">
               İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi hizmet verenleri saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
             </p>
           </div>
 
           {/* Premium AI Chat Box */}
-          <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-[28px] p-4 shadow-[0_15px_40px_rgba(0,0,0,0.03)] focus-within:ring-4 focus-within:ring-[#c8f252]/10 focus-within:border-slate-300 transition-all duration-300 mb-6 flex flex-col gap-2.5">
+          <div className="w-full max-w-2xl bg-white/95 backdrop-blur-xl border border-white/60 rounded-[28px] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] focus-within:ring-4 focus-within:ring-[#c8f252]/30 focus-within:border-white transition-all duration-300 mb-6 flex flex-col gap-2.5">
             <textarea
               ref={searchInputRef}
               value={inputValue}
@@ -740,19 +748,19 @@ export default function Home() {
           </div>
 
           {/* Down Arrow Indicator & App Downloads */}
-          <div className="pt-8 flex flex-col items-center gap-6">
-            <a href="#categories-section" className="w-11 h-11 rounded-full bg-white border border-slate-200 hover:border-[#c8f252] hover:bg-[#c8f252]/5 flex items-center justify-center text-slate-650 hover:text-slate-900 shadow-sm transition-colors cursor-pointer animate-bounce">
+          <div className="pt-4 flex flex-col items-center gap-6">
+            <a href="#categories-section" className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-md border border-white/30 hover:border-[#c8f252] hover:bg-[#c8f252] flex items-center justify-center text-white hover:text-slate-950 shadow-md transition-all cursor-pointer animate-bounce">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
               </svg>
             </a>
 
             {/* App Store & Google Play Download Badges */}
-            <div className="flex gap-4 items-center justify-center pt-2 select-none z-10">
-              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[56px] rounded-2xl overflow-hidden">
+            <div className="flex gap-4 items-center justify-center pt-1 select-none z-10">
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[52px] rounded-2xl overflow-hidden shadow-lg border border-white/20">
                 <img src="/app-store.jpg" alt="App Store'dan İndirin" className="h-full w-auto object-contain" />
               </a>
-              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[56px] rounded-2xl overflow-hidden">
+              <a href="#" className="hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer h-[52px] rounded-2xl overflow-hidden shadow-lg border border-white/20">
                 <img src="/google-play.jpg" alt="Google Play'den Alın" className="h-full w-auto object-contain" />
               </a>
             </div>
