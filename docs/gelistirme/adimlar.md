@@ -55,6 +55,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 44** | **Landing Page Hero Arka Plan Tasarımı Entegrasyonu** | Ana sayfa hero alanına yüksek çözünürlüklü sinematik arka plan görseli (`hero_bg.jpg`), koyu degrade katman ve cam efektli (glassmorphic) AI arama kartı entegrasyonu | **✅ Tamamlandı** |
 | **Adım 45** | **Header Üst Menü Cam Efekti Beyazlatma & İyileştirme** | Üst bar menüsünün kirlenmiş/koyu görünmesini engelleyen `%92` berrak buzlu beyaz cam (`bg-white/92 backdrop-blur-xl`) güncellenmesi | **✅ Tamamlandı** |
 | **Adım 46** | **Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu** | Evde Koltuk Yıkama kategorisine özel 7 adımlı JSON soru akışı (tekli/berjer, ikili/üçlü kanepe, L-köşe, sandalye, yatak ve leke detayları) ve AI niyet algılama entegrasyonu | **✅ Tamamlandı** |
+| **Adım 47** | **Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı** | Sabit JSON şeması olmayan tüm hizmetlerde yapay zekanın dinamik olarak soru ve tıklanabilir buton seçenekleri (`single_choice`) üretmesi ve `getSmartCategoryOptions` yedekleme altyapısı | **✅ Tamamlandı** |
 
 ---
 
@@ -1007,12 +1008,12 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 46 Geliştirme Detayları (Evde Koltuk Yıkama Kategorisi JSON Akış Entegrasyonu)
+## 🛠️ Adım 47 Geliştirme Detayları (Tüm Hizmetler İçin Dinamik AI JSON Soru & Buton Akışı Altyapısı)
 
-- **Dinamik 7 Adımlı JSON Akışı & Algılama:**
-  * "Evde Koltuk Yıkama" (`evde_koltuk_yikama`, `evde-koltuk-yikama`, `koltuk-yikama`) kategorisi için paylaşılan JSON şeması `question-flow.config.ts` ve `sector-prompts.config.ts` yapılandırmalarına işlendi.
-  * Tekli/berjer, ikili/üçlü kanepe/çekyat, L-köşe koltuk, sandalye, tek/çift kişilik yatak sayıları ve leke/kumaş detayları sıralı dinamik seçim adımları olarak bağlandı.
-  * Kullanıcı arayüzde "koltuk yıkama" seçtiğinde veya sohbet kutusuna koltuk, berjer, çekyat, kanepe terimlerini yazdığında sistem bu soruları soracak şekilde güncellendi.
+- **Otomatik Dinamik JSON Soru & Şık Üretici:**
+  * Sabit soru akışı tanımlanmamış olan tüm kategorilerde ("Ev Tadilatı", "Su Tesisatı", "Elektrik Tesisatı", "Nakliyat", "Kombi Servisi", "Mantolama", "Cam Balkon", "Fayans Döşeme" vb.) yapay zekanın boş metin kutusu sorması ("Kısaca bahseder misiniz?") engellendi.
+  * Yapay zekaya (Gemini) verilen sistem promptu güncellenerek, her dinamik soruda müşteriye tıklanabilir kısa ve net seçenek butonları (`inputType: "single_choice"`) üretmesi zorunlu kılındı.
+  * `getSmartCategoryOptions` metodu eklenerek; AI tarafından şık üretilememesi veya ağ bağlantısı gecikmeleri durumunda dahi kategorinin yapısına uygun (örneğin Ev Tadilat için: Mutfak Tadilatı, Banyo Tadilatı, Komple Ev Tadilatı, Salon / Oda vb.) şıkların buton olarak ekrana basılması garanti edildi (`backend-api/src/ortak/chat/chat.service.ts`).
 
 
 

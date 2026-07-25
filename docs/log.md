@@ -2,6 +2,14 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 feat | Tüm Hizmetler İçin Dinamik AI JSON Soru Akışı & Buton Seçenekleri Altyapısı (Adım 47)
+
+- **Dinamik Soru & Buton Oluşturucu:**
+  - Sabit JSON akışı bulunmayan tüm hizmetlerde ("Ev Tadilatı", "Su Tesisatı", "Elektrik Tesisatı", "Nakliyat", "Kombi Servisi", "Mantolama", "Cam Balkon", "Fayans Döşeme" vb.) yapay zekanın açık uçlu yazı alanı yerine otomatik olarak **tıklanabilir buton seçenekleri (`single_choice`)** üretmesi sağlandı.
+  - Gemini AI sistem talimatı güncellendi: Herhangi bir hizmet seçildiğinde yapay zeka sırayla teknik sorular sorarak altına 3-6 adet kısa ve net tıklanabilir buton şıkkı koyuyor.
+  - Akıllı Kategori Seçenek Güvencesi (`getSmartCategoryOptions`): Yapay zekadan yanıt gelmemesi veya bağlantı gecikmesi durumlarında dahi kullanıcının buton seçeneğinden mahrum kalmaması için tüm kategorilere özel dinamik seçenek havuzları entegre edildi.
+  - Açık uçlu metin sorma ("Kısaca bahseder misiniz?") kalıbı kaldırılarak kullanıcı deneyimi (UX) maksimum seviyeye çıkarıldı.
+
 ## 2026-07-26 feat | Evde Koltuk Yıkama Kategorisi & Dinamik Soru Akışı Entegrasyonu (Adım 46)
 
 - **JSON Akış Entegrasyonu:**
