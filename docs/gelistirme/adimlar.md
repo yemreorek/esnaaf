@@ -60,6 +60,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 49** | **Elektrik Tesisatı Seçenek Eşleşmesi & Konum Adımı Şık Sızıntısı Düzeltmesi** | Elektrik Tesisatı seçildiğinde Su Tesisatı şıklarının gelmesi sorununun çözülmesi ve Konum / İlçe adımlarında eski butonların ekranda kalmasının önlenmesi | **✅ Tamamlandı** |
 | **Adım 50** | **Tüm Platform Hizmetleri İçin Deterministik JSON Soru Akışları** | Soru ve şık çakışmalarının kökten engellenmesi amacıyla sistemdeki tüm hizmet kategorileri için 3-5 adımlı sabit JSON soru kalıplarının tanımlanması | **✅ Tamamlandı** |
 | **Adım 51** | **getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Fix'i** | `categorySlug` format çakışmalarının (tire/alt-tire/kelime) önlenmesi ve her hizmetin kendi özel sabit JSON soru akışına %100 bağlanması | **✅ Tamamlandı** |
+| **Adım 52** | **Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Fix'i** | Kategori seçildiğinde ilk mesajdan itibaren AI'ı bypass edip sabit JSON akışına giren ve soruları 1. adım, 2. adım, 3. adım şeklinde sırayla basan altyapı düzeltmesi | **✅ Tamamlandı** |
 
 ---
 
@@ -1012,11 +1013,11 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Ana sayfa üst menüsünün (`<header>`) arkadaki karanlık hero görseli sebebiyle kirli/gri görünmesini önlemek için opaklık %70'ten %92 seviyesine çıkarıldı (`bg-white/92 backdrop-blur-xl border-b border-white/40`).
   * Üst menünün son derece berrak, ferah ve kristal beyaz renkte lüks bir cam görünüme kavuşması sağlandı (`app-musteri/app/page.tsx`).
 
-## 🛠️ Adım 51 Geliştirme Detayları (getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Fix'i)
+## 🛠️ Adım 52 Geliştirme Detayları (Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Fix'i)
 
-- **Akıllı Akış Yönlendiricisi ve Adım Başlatıcı:**
-  * `ChatService` sınıfına `getFlowForCategory(slug)` metodu eklenerek tire/alt-tire uyuşmazlığı olan veya genel kelimelerle gelen slug isteklerinin (`elektrik-tesisati`, `elektrik_tesisati`, `elektrik`, `su-tesisati` vb.) anında kendi sabit JSON şemasına eşleşmesi sağlandı.
-  * Kategori ilk algılandığında `state.collected_data.current_step_id = flow.steps[0].step_id` tanımlaması yapılarak oturumun doğrudan 1. adımdaki soru ve butonlarla başlaması garanti edildi (`backend-api/src/ortak/chat/chat.service.ts`).
+- **Tam Deterministik JSON Soru Akış İlerlemesi:**
+  * Sohbet oturumunun ilk mesajında `Fast Path` (hızlı yol kesici) mekanizması aktifleştirildi: Kategori ilk algılandığı andan itibaren Gemini devre dışı bırakılarak oturum adım 1'e (`step_nakliyat_turu`, `step_elektrik_islem` vb.) bağlandı.
+  * Müşteri 1. adımdaki buton seçeneğine tıkladığında yanıt `processAnswerFromFlow` ile doğrudan eşleştirilip oturum 2. adıma (`step_ev_tipi`, `step_mekan_turu` vb.) ilerletildi. Soruların doğrudan konuma / ilçeye sıçraması ve eski butonların kalması engellendi (`backend-api/src/ortak/chat/chat.service.ts`).
 
 
 

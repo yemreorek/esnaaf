@@ -2,6 +2,14 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 fix | Deterministik Hızlı Akış Kesicisi & Adım Adım Soru İlerleme Düzeltmesi (Adım 52)
+
+- **Problem:** Kategorilere tıklandığında (örn. `Nakliyat`, `Elektrik Tesisatı`, `Ev Tadilatı`) 1. adım sorusunun altında AI'ın ürettiği genel mesajların kalması ve 2. adım yanıtı verildiğinde 2. sorunun sorulmak yerine doğrudan Konum / İlçe sorma adımına atlaması ve 1. adım şıklarının ekranda kalması düzeltildi.
+- **Kök Neden & Çözüm:**
+  - `ChatService` hızlı yol kesicisi (`Fast Path`) güncellendi: Oturum adımı ne olursa olsun kategori algılandığı an doğrudan sabit JSON hızlı yoluna girmesi sağlandı.
+  - İlk mesajda `current_step_id` 1. adıma (`step_nakliyat_turu`, `step_elektrik_islem` vb.) eşitlendi ve Gemini bypass edildi.
+  - Kullanıcı 1. adıma tıkladığında `processAnswerFromFlow` yanıtı eşleştirip `current_step_id`'yi 2. adıma (`step_ev_tipi`, `step_mekan_turu` vb.) ilerletecek ve ekrana tam 2. adımın soru ile butonlarını basacak şekilde akış %100 deterministik hale getirildi (`backend-api/src/ortak/chat/chat.service.ts`).
+
 ## 2026-07-26 fix | getFlowForCategory Yönlendirme & Adım Başlatıcı Altyapı Düzeltmesi (Adım 51)
 
 - **Problem:** Kullanıcı "Elektrik Tesisatı" veya diğer kategorileri seçtiğinde, `categorySlug` formatlarındaki uyuşmazlık (tire `-` vs alt tire `_` çakışmaları veya genel kelimeler) sebebiyle sistemin sabit JSON soru akışını kaçırıp yedek AI sorularına ve yanlış Su Tesisatı şıklarına düşmesi düzeltildi.
