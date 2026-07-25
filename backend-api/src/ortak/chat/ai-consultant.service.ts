@@ -25,9 +25,12 @@ export class AiConsultantService {
     }
 
     try {
-      const prompt = `Sen Esnaaf platformunun müşteri temsilcisisin. Nazik, yardımsever ve kısa Türkçe yanıt ver.\nMüşteri Sorusu: ${message}`;
-      const response = await this.geminiService.generateText(prompt);
-      return response || 'Size yardımcı olmaktan mutluluk duyarım. Hangi hizmet için usta arıyorsunuz?';
+      const prompt = `Müşteri Sorusu: ${message}`;
+      const res = await this.geminiService.generateResponse(
+        [{ role: 'user', content: prompt }],
+        'Sen Esnaaf platformunun müşteri temsilcisisin. Nazik, yardımsever ve kısa Türkçe yanıt ver.'
+      );
+      return res.text || 'Size yardımcı olmaktan mutluluk duyarım. Hangi hizmet için usta arıyorsunuz?';
     } catch (e: any) {
       this.logger.error('Gemini error in AiConsultantService:', e);
       return 'Size yardımcı olmaktan mutlu oluruz. Lütfen ihtiyacınız olan hizmet kategorisini seçiniz.';

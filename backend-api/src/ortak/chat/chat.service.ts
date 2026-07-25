@@ -1440,9 +1440,9 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
               options = this.getChecklistForCategory(state.collected_data.categorySlug || null);
             }
             inputType = 'multi_choice';
-          } else if (state.step === 'ask_address' || state.step === 'ask_name' || state.step === 'ask_phone') {
+          } else if ((state.step as any) === 'ask_address' || (state.step as any) === 'ask_name' || (state.step as any) === 'ask_phone') {
             options = [];
-            inputType = state.step === 'ask_address' ? 'single_choice' : 'text';
+            inputType = (state.step as any) === 'ask_address' ? 'single_choice' : 'text';
           }
         }
 
@@ -2587,10 +2587,14 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
 }`;
 
     try {
-      const response = await this.geminiService.generateResponse(state.messages, systemPrompt, { requireJson: true });
-      let rawText = response.text.trim();
-      rawText = rawText.replace(/```(?:json)?/gi, '').trim();
-      const parsed = JSON.parse(rawText);
+      const prompt = `Kategori: ${catName}. Kullanıcı yanıtları: ${JSON.stringify(state.collected_data)}`;
+      const res = await this.geminiService.generateResponse(
+        state.messages,
+        `Sen Esnaaf platformu asistanısın. Kategori: ${catName}. İhtiyaç detaylarını netleştirmek için bir sonraki Türkçe soruyu JSON formatında üret: {"question": "...", "options": ["..."], "inputType": "single_choice"|"multi_choice"|"text"|"textarea", "isComplete": false}`
+      );
+
+      const parsed = JSON.parse(res.text || '{}');
+      const isComplete = parsed.isComplete || false;
 
       let question = parsed.question;
       if (!question || question.includes('kısaca bahseder')) {
@@ -2701,7 +2705,6 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     const flow = this.getFlowForCategory(slug);
     if (!slug || !flow) return false;
 
-    const flow = QUESTION_FLOWS[slug];
     const currentStepId = state.collected_data.current_step_id || flow.steps[0].step_id;
     
     // single_select or multi_select
