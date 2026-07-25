@@ -596,5 +596,1415 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "next_step": "END"
       }
     ]
+  },
+
+  // ----------------------------------------------------
+  // EV TADİLAT
+  // ----------------------------------------------------
+  'ev-tadilat': {
+    "category_id": "ev_tadilat",
+    "category_name": "Ev Tadilat",
+    "steps": [
+      {
+        "step_id": "step_tadilat_alani",
+        "step_title": "Tadilat yapılacak alan neresidir?",
+        "description": "Lütfen tadilat yaptırmak istediğiniz ana alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mutfak Tadilatı", "value": "mutfak", "next_step": "step_tadilat_m2" },
+          { "label": "Banyo Tadilatı", "value": "banyo", "next_step": "step_tadilat_m2" },
+          { "label": "Komple Ev Tadilatı", "value": "komple", "next_step": "step_tadilat_m2" },
+          { "label": "Salon / Oda Tadilatı", "value": "salon_oda", "next_step": "step_tadilat_m2" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_tadilat_m2" }
+        ]
+      },
+      {
+        "step_id": "step_tadilat_m2",
+        "step_title": "Tadilat yapılacak alan yaklaşık kaç metrekaredir?",
+        "description": "Tahmini alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_islem_kapsami" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_islem_kapsami" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_islem_kapsami" },
+          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_islem_kapsami" },
+          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_islem_kapsami" }
+        ]
+      },
+      {
+        "step_id": "step_islem_kapsami",
+        "step_title": "Yapılacak ana işlemler nelerdir?",
+        "description": "Öncelikli uygulama türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boya & Alçı İşleri", "value": "boya_alci", "next_step": "step_malzeme_durumu" },
+          { "label": "Fayans & Seramik Döşeme", "value": "fayans", "next_step": "step_malzeme_durumu" },
+          { "label": "Parke & Zemin Kaplama", "value": "parke", "next_step": "step_malzeme_durumu" },
+          { "label": "Tesisat & Elektrik Yenileme", "value": "tesisat", "next_step": "step_malzeme_durumu" },
+          { "label": "Komple İmalat & Montaj", "value": "komple_imalat", "next_step": "step_malzeme_durumu" }
+        ]
+      },
+      {
+        "step_id": "step_malzeme_durumu",
+        "step_title": "Malzeme tedariği nasıl yapılacak?",
+        "description": "Malzeme ve işçilik tercihiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Malzemeler Dahil Olsun", "value": "dahil", "next_step": "step_detaylar" },
+          { "label": "Sadece İşçilik İstiyorum", "value": "iscilik", "next_step": "step_detaylar" },
+          { "label": "Usta Keşif Yapıp Fiyat Versin", "value": "kesif", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Belirtmek istediğiniz özel bir istek, malzeme markası veya durum var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfak dolabı değişecek, tezgah çimstone olacak vb.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'ev_tadilat': {
+    "category_id": "ev_tadilat",
+    "category_name": "Ev Tadilat",
+    "steps": [
+      {
+        "step_id": "step_tadilat_alani",
+        "step_title": "Tadilat yapılacak alan neresidir?",
+        "description": "Lütfen tadilat yaptırmak istediğiniz ana alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mutfak Tadilatı", "value": "mutfak", "next_step": "step_tadilat_m2" },
+          { "label": "Banyo Tadilatı", "value": "banyo", "next_step": "step_tadilat_m2" },
+          { "label": "Komple Ev Tadilatı", "value": "komple", "next_step": "step_tadilat_m2" },
+          { "label": "Salon / Oda Tadilatı", "value": "salon_oda", "next_step": "step_tadilat_m2" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_tadilat_m2" }
+        ]
+      },
+      {
+        "step_id": "step_tadilat_m2",
+        "step_title": "Tadilat yapılacak alan yaklaşık kaç metrekaredir?",
+        "description": "Tahmini alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_islem_kapsami" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_islem_kapsami" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_islem_kapsami" },
+          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_islem_kapsami" },
+          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_islem_kapsami" }
+        ]
+      },
+      {
+        "step_id": "step_islem_kapsami",
+        "step_title": "Yapılacak ana işlemler nelerdir?",
+        "description": "Öncelikli uygulama türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boya & Alçı İşleri", "value": "boya_alci", "next_step": "step_malzeme_durumu" },
+          { "label": "Fayans & Seramik Döşeme", "value": "fayans", "next_step": "step_malzeme_durumu" },
+          { "label": "Parke & Zemin Kaplama", "value": "parke", "next_step": "step_malzeme_durumu" },
+          { "label": "Tesisat & Elektrik Yenileme", "value": "tesisat", "next_step": "step_malzeme_durumu" },
+          { "label": "Komple İmalat & Montaj", "value": "komple_imalat", "next_step": "step_malzeme_durumu" }
+        ]
+      },
+      {
+        "step_id": "step_malzeme_durumu",
+        "step_title": "Malzeme tedariği nasıl yapılacak?",
+        "description": "Malzeme ve işçilik tercihiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Malzemeler Dahil Olsun", "value": "dahil", "next_step": "step_detaylar" },
+          { "label": "Sadece İşçilik İstiyorum", "value": "iscilik", "next_step": "step_detaylar" },
+          { "label": "Usta Keşif Yapıp Fiyat Versin", "value": "kesif", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Belirtmek istediğiniz özel bir istek, malzeme markası veya durum var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfak dolabı değişecek, tezgah çimstone olacak vb.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // ELEKTRİK TESİSATI
+  // ----------------------------------------------------
+  'elektrik-tesisati': {
+    "category_id": "elektrik_tesisati",
+    "category_name": "Elektrik Tesisatı",
+    "steps": [
+      {
+        "step_id": "step_elektrik_islem",
+        "step_title": "Yapılacak elektrik işlemi nedir?",
+        "description": "İhtiyaç duyduğunuz elektrik hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Sigorta Arızası & Değişimi", "value": "sigorta", "next_step": "step_mekan_turu" },
+          { "label": "Priz & Anahtar Montajı", "value": "priz", "next_step": "step_mekan_turu" },
+          { "label": "Aydınlatma / Avize Montajı", "value": "avize", "next_step": "step_mekan_turu" },
+          { "label": "İnternet & Kablo Çekimi", "value": "kablo", "next_step": "step_mekan_turu" },
+          { "label": "Komple Elektrik Tesisatı", "value": "komple", "next_step": "step_mekan_turu" }
+        ]
+      },
+      {
+        "step_id": "step_mekan_turu",
+        "step_title": "İşlem yapılacak mekan türü nedir?",
+        "description": "Hizmetin verileceği alan türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Daire / Ev", "value": "ev", "next_step": "step_elektrik_acil" },
+          { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_elektrik_acil" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_elektrik_acil" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_elektrik_acil" }
+        ]
+      },
+      {
+        "step_id": "step_elektrik_acil",
+        "step_title": "Hizmet ne zaman verilmeli?",
+        "description": "Aciliyet durumunuzu seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Acil (Hemen / Aynı Gün)", "value": "acil", "next_step": "step_detaylar" },
+          { "label": "Bu Hafta İçinde", "value": "hafta_icinde", "next_step": "step_detaylar" },
+          { "label": "Esnek / Tarih Belli Değil", "value": "esnek", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Elektrik arızası veya işlemle ilgili eklemek istediğiniz detaylar var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Sigorta atıyor, 3 adet avize takılacak vb.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'elektrik_tesisati': {
+    "category_id": "elektrik_tesisati",
+    "category_name": "Elektrik Tesisatı",
+    "steps": [
+      {
+        "step_id": "step_elektrik_islem",
+        "step_title": "Yapılacak elektrik işlemi nedir?",
+        "description": "İhtiyaç duyduğunuz elektrik hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Sigorta Arızası & Değişimi", "value": "sigorta", "next_step": "step_mekan_turu" },
+          { "label": "Priz & Anahtar Montajı", "value": "priz", "next_step": "step_mekan_turu" },
+          { "label": "Aydınlatma / Avize Montajı", "value": "avize", "next_step": "step_mekan_turu" },
+          { "label": "İnternet & Kablo Çekimi", "value": "kablo", "next_step": "step_mekan_turu" },
+          { "label": "Komple Elektrik Tesisatı", "value": "komple", "next_step": "step_mekan_turu" }
+        ]
+      },
+      {
+        "step_id": "step_mekan_turu",
+        "step_title": "İşlem yapılacak mekan türü nedir?",
+        "description": "Hizmetin verileceği alan türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Daire / Ev", "value": "ev", "next_step": "step_elektrik_acil" },
+          { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_elektrik_acil" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_elektrik_acil" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_elektrik_acil" }
+        ]
+      },
+      {
+        "step_id": "step_elektrik_acil",
+        "step_title": "Hizmet ne zaman verilmeli?",
+        "description": "Aciliyet durumunuzu seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Acil (Hemen / Aynı Gün)", "value": "acil", "next_step": "step_detaylar" },
+          { "label": "Bu Hafta İçinde", "value": "hafta_icinde", "next_step": "step_detaylar" },
+          { "label": "Esnek / Tarih Belli Değil", "value": "esnek", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Elektrik arızası veya işlemle ilgili eklemek istediğiniz detaylar var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Sigorta atıyor, 3 adet avize takılacak vb.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // SU TESİSATI
+  // ----------------------------------------------------
+  'su-tesisati': {
+    "category_id": "su_tesisati",
+    "category_name": "Su Tesisatı",
+    "steps": [
+      {
+        "step_id": "step_su_islem",
+        "step_title": "Yaşadığınız tesisat sorunu veya işlem nedir?",
+        "description": "Yapılmasını istediğiniz tesisat hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Su Kaçağı Tespiti & Tamiri", "value": "su_kacagi", "next_step": "step_su_alan" },
+          { "label": "Tıkanıklık Açma (Gider/Klozet)", "value": "tikaniklik", "next_step": "step_su_alan" },
+          { "label": "Musluk / Batarya / Sifon Tamiri", "value": "batarya", "next_step": "step_su_alan" },
+          { "label": "Kalorifer / Petek Tesisatı", "value": "petek", "next_step": "step_su_alan" },
+          { "label": "Komple Tesisat Yenileme", "value": "komple", "next_step": "step_su_alan" }
+        ]
+      },
+      {
+        "step_id": "step_su_alan",
+        "step_title": "Sorun nerede yaşanıyor?",
+        "description": "Hizmet verilecek alan.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Banyo", "value": "banyo", "next_step": "step_su_acil" },
+          { "label": "Mutfak", "value": "mutfak", "next_step": "step_su_acil" },
+          { "label": "Tuvalet / WC", "value": "wc", "next_step": "step_su_acil" },
+          { "label": "Tüm Ev / Tesisat", "value": "tum_ev", "next_step": "step_su_acil" }
+        ]
+      },
+      {
+        "step_id": "step_su_acil",
+        "step_title": "Sorun ne kadar acil?",
+        "description": "Müdahale zamanlaması.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Çok Acil (Su Kaçağı / Taşma Var)", "value": "cok_acil", "next_step": "step_detaylar" },
+          { "label": "Aynı Gün İçinde", "value": "ayni_gun", "next_step": "step_detaylar" },
+          { "label": "Bu Hafta İçinde", "value": "hafta_icinde", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Tesisat sorunu ile ilgili belirtmek istediğiniz detaylar nelerdir?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfak lavabosu altından su sızıyor, acil usta lazım.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'su_tesisati': {
+    "category_id": "su_tesisati",
+    "category_name": "Su Tesisatı",
+    "steps": [
+      {
+        "step_id": "step_su_islem",
+        "step_title": "Yaşadığınız tesisat sorunu veya işlem nedir?",
+        "description": "Yapılmasını istediğiniz tesisat hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Su Kaçağı Tespiti & Tamiri", "value": "su_kacagi", "next_step": "step_su_alan" },
+          { "label": "Tıkanıklık Açma (Gider/Klozet)", "value": "tikaniklik", "next_step": "step_su_alan" },
+          { "label": "Musluk / Batarya / Sifon Tamiri", "value": "batarya", "next_step": "step_su_alan" },
+          { "label": "Kalorifer / Petek Tesisatı", "value": "petek", "next_step": "step_su_alan" },
+          { "label": "Komple Tesisat Yenileme", "value": "komple", "next_step": "step_su_alan" }
+        ]
+      },
+      {
+        "step_id": "step_su_alan",
+        "step_title": "Sorun nerede yaşanıyor?",
+        "description": "Hizmet verilecek alan.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Banyo", "value": "banyo", "next_step": "step_su_acil" },
+          { "label": "Mutfak", "value": "mutfak", "next_step": "step_su_acil" },
+          { "label": "Tuvalet / WC", "value": "wc", "next_step": "step_su_acil" },
+          { "label": "Tüm Ev / Tesisat", "value": "tum_ev", "next_step": "step_su_acil" }
+        ]
+      },
+      {
+        "step_id": "step_su_acil",
+        "step_title": "Sorun ne kadar acil?",
+        "description": "Müdahale zamanlaması.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Çok Acil (Su Kaçağı / Taşma Var)", "value": "cok_acil", "next_step": "step_detaylar" },
+          { "label": "Aynı Gün İçinde", "value": "ayni_gun", "next_step": "step_detaylar" },
+          { "label": "Bu Hafta İçinde", "value": "hafta_icinde", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Tesisat sorunu ile ilgili belirtmek istediğiniz detaylar nelerdir?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfak lavabosu altından su sızıyor, acil usta lazım.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // NAKLİYAT / EV TAŞIMA
+  // ----------------------------------------------------
+  'nakliyat': {
+    "category_id": "nakliyat",
+    "category_name": "Nakliyat / Ev Taşıma",
+    "steps": [
+      {
+        "step_id": "step_nakliyat_turu",
+        "step_title": "Ne tür bir taşıma hizmeti istiyorsunuz?",
+        "description": "Taşınma türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evden Eve Nakliyat", "value": "evden_eve", "next_step": "step_ev_tipi" },
+          { "label": "Parça Eşya Taşıma", "value": "parca_esya", "next_step": "step_ev_tipi" },
+          { "label": "Ofis / İş Yeri Taşıma", "value": "ofis_tasima", "next_step": "step_ev_tipi" },
+          { "label": "Şehirler Arası Nakliyat", "value": "sehirler_arasi", "next_step": "step_ev_tipi" }
+        ]
+      },
+      {
+        "step_id": "step_ev_tipi",
+        "step_title": "Taşınacak oda sayısı / ev tipi nedir?",
+        "description": "Oda sayısı bilgisi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1+0 / 1+1 Daire", "value": "1_1", "next_step": "step_asansor_durumu" },
+          { "label": "2+1 Daire", "value": "2_1", "next_step": "step_asansor_durumu" },
+          { "label": "3+1 Daire", "value": "3_1", "next_step": "step_asansor_durumu" },
+          { "label": "4+1 ve üzeri", "value": "4_1_plus", "next_step": "step_asansor_durumu" },
+          { "label": "Tek / Birkaç Parça Eşya", "value": "tek_parca", "next_step": "step_asansor_durumu" }
+        ]
+      },
+      {
+        "step_id": "step_asansor_durumu",
+        "step_title": "Binalarda asansör durumu nedir?",
+        "description": "Yük / bina asansörü durumu.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "İki Binada da Asansör Var", "value": "her_iki_asansor", "next_step": "step_paketleme" },
+          { "label": "Yalnızca Birinde Asansör Var", "value": "tek_asansor", "next_step": "step_paketleme" },
+          { "label": "Asansör Yok (Merdiven)", "value": "asansor_yok", "next_step": "step_paketleme" },
+          { "label": "Dış Cephe Asansörü İstiyorum", "value": "dis_asansor", "next_step": "step_paketleme" }
+        ]
+      },
+      {
+        "step_id": "step_paketleme",
+        "step_title": "Paketleme ve ambalaj hizmeti istiyor musunuz?",
+        "description": "Eşyaların kolilenmesi ve sarılması.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tüm Eşyaları Usta Paketlesin", "value": "tam_paketleme", "next_step": "step_detaylar" },
+          { "label": "Sadece Mobilyalar Sökülsün / Sarılsın", "value": "kaba_paketleme", "next_step": "step_detaylar" },
+          { "label": "Paketlemeyi Ben Yapacağım", "value": "paketleme_yok", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Nereden nereye taşınacak, tarih ve özel ağır eşyalar (piyano, kasa vb.) var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Çankaya 3. kattan Karşıyaka 2. kata taşınacak, gardırop sökülecek vb.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // İNŞAAT / TADİLAT SONRASI TEMİZLİK
+  // ----------------------------------------------------
+  'insaat-sonrasi-temizlik': {
+    "category_id": "insaat_sonrasi_temizlik",
+    "category_name": "İnşaat / Tadilat Sonrası Temizlik",
+    "steps": [
+      {
+        "step_id": "step_insaat_mekan",
+        "step_title": "Temizlik yapılacak mekan tipi nedir?",
+        "description": "Temizlenecek alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Daire / Ev", "value": "daire", "next_step": "step_insaat_m2" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_insaat_m2" },
+          { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_insaat_m2" },
+          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_m2",
+        "step_title": "Temizlenecek alanın büyüklüğü nedir?",
+        "description": "Tahmini alan büyüklüğü.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_insaat_durum" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_insaat_durum" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_insaat_durum" },
+          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_insaat_durum" },
+          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_insaat_durum" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_durum",
+        "step_title": "İnşaat / tadilat kalıntısı durumu nedir?",
+        "description": "Kirlilik yoğunluğunu seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Sıfır Bina (İlk Temizlik)", "value": "sifir_bina", "next_step": "step_detaylar" },
+          { "label": "Tadilat Sonrası (Boya/Harç Lekeleri)", "value": "tadilat_sonrasi", "next_step": "step_detaylar" },
+          { "label": "Kaba İnşaat Tozu Var", "value": "kaba_toz", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Temizlik malzemesi ve ekipman taleplerinizi giriniz.",
+        "input_type": "textarea",
+        "placeholder": "Örn: Camlarda etiket ve boya lekeleri var, vakum makinesi gerekecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'insaat_sonrasi_temizlik': {
+    "category_id": "insaat_sonrasi_temizlik",
+    "category_name": "İnşaat / Tadilat Sonrası Temizlik",
+    "steps": [
+      {
+        "step_id": "step_insaat_mekan",
+        "step_title": "Temizlik yapılacak mekan tipi nedir?",
+        "description": "Temizlenecek alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Daire / Ev", "value": "daire", "next_step": "step_insaat_m2" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_insaat_m2" },
+          { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_insaat_m2" },
+          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_m2",
+        "step_title": "Temizlenecek alanın büyüklüğü nedir?",
+        "description": "Tahmini alan büyüklüğü.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_insaat_durum" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_insaat_durum" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_insaat_durum" },
+          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_insaat_durum" },
+          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_insaat_durum" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_durum",
+        "step_title": "İnşaat / tadilat kalıntısı durumu nedir?",
+        "description": "Kirlilik yoğunluğunu seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Sıfır Bina (İlk Temizlik)", "value": "sifir_bina", "next_step": "step_detaylar" },
+          { "label": "Tadilat Sonrası (Boya/Harç Lekeleri)", "value": "tadilat_sonrasi", "next_step": "step_detaylar" },
+          { "label": "Kaba İnşaat Tozu Var", "value": "kaba_toz", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Temizlik malzemesi ve ekipman taleplerinizi giriniz.",
+        "input_type": "textarea",
+        "placeholder": "Örn: Camlarda etiket ve boya lekeleri var, vakum makinesi gerekecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // FAYANS DÖŞEME
+  // ----------------------------------------------------
+  'fayans-doseme': {
+    "category_id": "fayans_doseme",
+    "category_name": "Fayans Döşeme",
+    "steps": [
+      {
+        "step_id": "step_fayans_alani",
+        "step_title": "Fayans döşenecek alan neresidir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Banyo Zemin & Duvar", "value": "banyo", "next_step": "step_fayans_m2" },
+          { "label": "Mutfak Tezgah Arası / Zemin", "value": "mutfak", "next_step": "step_fayans_m2" },
+          { "label": "Balkon / Teras", "value": "balkon", "next_step": "step_fayans_m2" },
+          { "label": "Koridor / Antre", "value": "koridor", "next_step": "step_fayans_m2" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_fayans_m2" }
+        ]
+      },
+      {
+        "step_id": "step_fayans_m2",
+        "step_title": "Tahmini kaplama alanı kaç metrekaredir?",
+        "description": "Alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "10 m²'ye kadar", "value": "10_m2", "next_step": "step_fayans_sokum" },
+          { "label": "10 - 25 m²", "value": "25_m2", "next_step": "step_fayans_sokum" },
+          { "label": "25 - 50 m²", "value": "50_m2", "next_step": "step_fayans_sokum" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_fayans_sokum" },
+          { "label": "100 m² ve üzeri", "value": "100_plus_m2", "next_step": "step_fayans_sokum" }
+        ]
+      },
+      {
+        "step_id": "step_fayans_sokum",
+        "step_title": "Eski fayansların sökülmesi (kırım) gerekiyor mu?",
+        "description": "Kırım ve hafriyat durumu.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Eski Fayanslar Sökülecek", "value": "sokum_var", "next_step": "step_detaylar" },
+          { "label": "Hayır, Zemin / Duvar Hazır", "value": "zemin_hazir", "next_step": "step_detaylar" },
+          { "label": "Fayans Üzerine Döşenecek", "value": "fayans_ustu", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Fayans malzemesi hazır mı? Derz ve harç durumuyla ilgili detayları giriniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 60x120 graniti ben aldım, usta derz ve yapıştırıcı getirecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'fayans_doseme': {
+    "category_id": "fayans_doseme",
+    "category_name": "Fayans Döşeme",
+    "steps": [
+      {
+        "step_id": "step_fayans_alani",
+        "step_title": "Fayans döşenecek alan neresidir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Banyo Zemin & Duvar", "value": "banyo", "next_step": "step_fayans_m2" },
+          { "label": "Mutfak Tezgah Arası / Zemin", "value": "mutfak", "next_step": "step_fayans_m2" },
+          { "label": "Balkon / Teras", "value": "balkon", "next_step": "step_fayans_m2" },
+          { "label": "Koridor / Antre", "value": "koridor", "next_step": "step_fayans_m2" },
+          { "label": "Diğer", "value": "diger", "next_step": "step_fayans_m2" }
+        ]
+      },
+      {
+        "step_id": "step_fayans_m2",
+        "step_title": "Tahmini kaplama alanı kaç metrekaredir?",
+        "description": "Alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "10 m²'ye kadar", "value": "10_m2", "next_step": "step_fayans_sokum" },
+          { "label": "10 - 25 m²", "value": "25_m2", "next_step": "step_fayans_sokum" },
+          { "label": "25 - 50 m²", "value": "50_m2", "next_step": "step_fayans_sokum" },
+          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_fayans_sokum" },
+          { "label": "100 m² ve üzeri", "value": "100_plus_m2", "next_step": "step_fayans_sokum" }
+        ]
+      },
+      {
+        "step_id": "step_fayans_sokum",
+        "step_title": "Eski fayansların sökülmesi (kırım) gerekiyor mu?",
+        "description": "Kırım ve hafriyat durumu.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Eski Fayanslar Sökülecek", "value": "sokum_var", "next_step": "step_detaylar" },
+          { "label": "Hayır, Zemin / Duvar Hazır", "value": "zemin_hazir", "next_step": "step_detaylar" },
+          { "label": "Fayans Üzerine Döşenecek", "value": "fayans_ustu", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Fayans malzemesi hazır mı? Derz ve harç durumuyla ilgili detayları giriniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 60x120 graniti ben aldım, usta derz ve yapıştırıcı getirecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // PARKE DÖŞEME
+  // ----------------------------------------------------
+  'parke-doseme': {
+    "category_id": "parke_doseme",
+    "category_name": "Parke Döşeme",
+    "steps": [
+      {
+        "step_id": "step_parke_turu",
+        "step_title": "Döşenecek parke türü nedir?",
+        "description": "Malzeme türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Laminat Parke", "value": "laminat", "next_step": "step_parke_m2" },
+          { "label": "Lamine Parke", "value": "lamine", "next_step": "step_parke_m2" },
+          { "label": "Ahşap / Masif Parke", "value": "masif", "next_step": "step_parke_m2" },
+          { "label": "Parke Tamiri & Süpürgelik", "value": "tamir", "next_step": "step_parke_m2" }
+        ]
+      },
+      {
+        "step_id": "step_parke_m2",
+        "step_title": "Döşeme yapılacak alan yaklaşık kaç metrekaredir?",
+        "description": "Alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "30 m²'ye kadar", "value": "30_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "30 - 60 m²", "value": "60_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "60 - 100 m²", "value": "100_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "150 m² ve üzeri", "value": "150_plus_m2", "next_step": "step_parke_supurgelik" }
+        ]
+      },
+      {
+        "step_id": "step_parke_supurgelik",
+        "step_title": "Süpürgelik ve şilte montajı dahil mi?",
+        "description": "Ek uygulama tercihi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Süpürgelik ve Şilte Dahil", "value": "supurgelik_dahil", "next_step": "step_detaylar" },
+          { "label": "Sadece Parke Döşeme", "value": "sadece_parke", "next_step": "step_detaylar" },
+          { "label": "Eski Parkeler de Sökülecek", "value": "eski_sokum", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Parkeyi aldınız mı, süpürgelik yüksekliği vb. detaylar:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 8mm laminat parke 3 oda 1 salon döşenecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'parke_doseme': {
+    "category_id": "parke_doseme",
+    "category_name": "Parke Döşeme",
+    "steps": [
+      {
+        "step_id": "step_parke_turu",
+        "step_title": "Döşenecek parke türü nedir?",
+        "description": "Malzeme türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Laminat Parke", "value": "laminat", "next_step": "step_parke_m2" },
+          { "label": "Lamine Parke", "value": "lamine", "next_step": "step_parke_m2" },
+          { "label": "Ahşap / Masif Parke", "value": "masif", "next_step": "step_parke_m2" },
+          { "label": "Parke Tamiri & Süpürgelik", "value": "tamir", "next_step": "step_parke_m2" }
+        ]
+      },
+      {
+        "step_id": "step_parke_m2",
+        "step_title": "Döşeme yapılacak alan yaklaşık kaç metrekaredir?",
+        "description": "Alan büyüklüğünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "30 m²'ye kadar", "value": "30_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "30 - 60 m²", "value": "60_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "60 - 100 m²", "value": "100_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_parke_supurgelik" },
+          { "label": "150 m² ve üzeri", "value": "150_plus_m2", "next_step": "step_parke_supurgelik" }
+        ]
+      },
+      {
+        "step_id": "step_parke_supurgelik",
+        "step_title": "Süpürgelik ve şilte montajı dahil mi?",
+        "description": "Ek uygulama tercihi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Süpürgelik ve Şilte Dahil", "value": "supurgelik_dahil", "next_step": "step_detaylar" },
+          { "label": "Sadece Parke Döşeme", "value": "sadece_parke", "next_step": "step_detaylar" },
+          { "label": "Eski Parkeler de Sökülecek", "value": "eski_sokum", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Parkeyi aldınız mı, süpürgelik yüksekliği vb. detaylar:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 8mm laminat parke 3 oda 1 salon döşenecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // HAŞERE / BÖCEK İLAÇLAMA
+  // ----------------------------------------------------
+  'hasere-ilaclama': {
+    "category_id": "hasere_ilaclama",
+    "category_name": "Haşere İlaçlama",
+    "steps": [
+      {
+        "step_id": "step_hasere_turu",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Haşere türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_alani" },
+          { "label": "Tahta Kurusu", "value": "tahta_kurusu", "next_step": "step_ilaclama_alani" },
+          { "label": "Pire / Kene", "value": "pire", "next_step": "step_ilaclama_alani" },
+          { "label": "Fare / Kemirgen", "value": "fare", "next_step": "step_ilaclama_alani" },
+          { "label": "Akrep / Gümüş Böceği / Karınca", "value": "karinca_diger", "next_step": "step_ilaclama_alani" },
+          { "label": "Bilmiyorum / Genel İlaçlama", "value": "genel", "next_step": "step_ilaclama_alani" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_alani",
+        "step_title": "İlaçlama yapılacak mekan neresidir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Ev / Daire", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Bahçe", "value": "villa_bahce", "next_step": "step_ilaclama_m2" },
+          { "label": "Restaurant / Kafe / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Depo / Bodrum", "value": "depo", "next_step": "step_ilaclama_m2" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_m2",
+        "step_title": "Alanın büyüklüğü nedir?",
+        "description": "Tahmini metrekare.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "100 m²'ye kadar", "value": "100_m2", "next_step": "step_detaylar" },
+          { "label": "100 - 200 m²", "value": "200_m2", "next_step": "step_detaylar" },
+          { "label": "200 - 500 m²", "value": "500_m2", "next_step": "step_detaylar" },
+          { "label": "500 m² ve üzeri", "value": "500_plus_m2", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Evcil hayvan var mı veya ilaçlama sıklığı ilgili detaylar:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfakta hamam böceği görüldü, kedi besliyoruz kokusuz ilaç olsun.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'hasere_ilaclama': {
+    "category_id": "hasere_ilaclama",
+    "category_name": "Haşere İlaçlama",
+    "steps": [
+      {
+        "step_id": "step_hasere_turu",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Haşere türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_alani" },
+          { "label": "Tahta Kurusu", "value": "tahta_kurusu", "next_step": "step_ilaclama_alani" },
+          { "label": "Pire / Kene", "value": "pire", "next_step": "step_ilaclama_alani" },
+          { "label": "Fare / Kemirgen", "value": "fare", "next_step": "step_ilaclama_alani" },
+          { "label": "Akrep / Gümüş Böceği / Karınca", "value": "karinca_diger", "next_step": "step_ilaclama_alani" },
+          { "label": "Bilmiyorum / Genel İlaçlama", "value": "genel", "next_step": "step_ilaclama_alani" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_alani",
+        "step_title": "İlaçlama yapılacak mekan neresidir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Ev / Daire", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Bahçe", "value": "villa_bahce", "next_step": "step_ilaclama_m2" },
+          { "label": "Restaurant / Kafe / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Depo / Bodrum", "value": "depo", "next_step": "step_ilaclama_m2" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_m2",
+        "step_title": "Alanın büyüklüğü nedir?",
+        "description": "Tahmini metrekare.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "100 m²'ye kadar", "value": "100_m2", "next_step": "step_detaylar" },
+          { "label": "100 - 200 m²", "value": "200_m2", "next_step": "step_detaylar" },
+          { "label": "200 - 500 m²", "value": "500_m2", "next_step": "step_detaylar" },
+          { "label": "500 m² ve üzeri", "value": "500_plus_m2", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Evcil hayvan var mı veya ilaçlama sıklığı ilgili detaylar:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfakta hamam böceği görüldü, kedi besliyoruz kokusuz ilaç olsun.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'bocek-ilaclama': {
+    "category_id": "hasere_ilaclama",
+    "category_name": "Haşere İlaçlama",
+    "steps": [
+      {
+        "step_id": "step_hasere_turu",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Haşere türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_alani" },
+          { "label": "Tahta Kurusu", "value": "tahta_kurusu", "next_step": "step_ilaclama_alani" },
+          { "label": "Pire / Kene", "value": "pire", "next_step": "step_ilaclama_alani" },
+          { "label": "Fare / Kemirgen", "value": "fare", "next_step": "step_ilaclama_alani" },
+          { "label": "Akrep / Gümüş Böceği / Karınca", "value": "karinca_diger", "next_step": "step_ilaclama_alani" },
+          { "label": "Bilmiyorum / Genel İlaçlama", "value": "genel", "next_step": "step_ilaclama_alani" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_alani",
+        "step_title": "İlaçlama yapılacak mekan neresidir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Ev / Daire", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Bahçe", "value": "villa_bahce", "next_step": "step_ilaclama_m2" },
+          { "label": "Restaurant / Kafe / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Depo / Bodrum", "value": "depo", "next_step": "step_ilaclama_m2" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_m2",
+        "step_title": "Alanın büyüklüğü nedir?",
+        "description": "Tahmini metrekare.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "100 m²'ye kadar", "value": "100_m2", "next_step": "step_detaylar" },
+          { "label": "100 - 200 m²", "value": "200_m2", "next_step": "step_detaylar" },
+          { "label": "200 - 500 m²", "value": "500_m2", "next_step": "step_detaylar" },
+          { "label": "500 m² ve üzeri", "value": "500_plus_m2", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Evcil hayvan var mı veya ilaçlama sıklığı ilgili detaylar:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfakta hamam böceği görüldü, kedi besliyoruz kokusuz ilaç olsun.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // KOMBİ SERVİSİ
+  // ----------------------------------------------------
+  'kombi-servisi': {
+    "category_id": "kombi_servisi",
+    "category_name": "Kombi Servisi",
+    "steps": [
+      {
+        "step_id": "step_kombi_islem",
+        "step_title": "Kombi için yapılacak işlem nedir?",
+        "description": "Hizmet türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Yıllık Periyodik Bakım", "value": "bakim", "next_step": "step_kombi_marka" },
+          { "label": "Kombi Arıza / Isıtmıyor / Su Kaçırıyor", "value": "ariza", "next_step": "step_kombi_marka" },
+          { "label": "Petek Temizliği", "value": "petek_temizligi", "next_step": "step_kombi_marka" },
+          { "label": "Kombi Montajı / Demontajı", "value": "montaj", "next_step": "step_kombi_marka" }
+        ]
+      },
+      {
+        "step_id": "step_kombi_marka",
+        "step_title": "Kombinizin markası nedir?",
+        "description": "Marka bilgisini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Vaillant / Demirdöküm / ECA", "value": "demirdokum_eca", "next_step": "step_detaylar" },
+          { "label": "Buderus / Bosch / Baymak", "value": "bosch_baymak", "next_step": "step_detaylar" },
+          { "label": "Ariston / Viessmann / Protherm", "value": "viessmann", "next_step": "step_detaylar" },
+          { "label": "Diğer Marka", "value": "diger_marka", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Cihazdaki arıza kodunu veya şikayetinizi detaylı yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Kombi petekleri ısıtmıyor, ekranda F4 arıza kodu veriyor.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'kombi_servisi': {
+    "category_id": "kombi_servisi",
+    "category_name": "Kombi Servisi",
+    "steps": [
+      {
+        "step_id": "step_kombi_islem",
+        "step_title": "Kombi için yapılacak işlem nedir?",
+        "description": "Hizmet türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Yıllık Periyodik Bakım", "value": "bakim", "next_step": "step_kombi_marka" },
+          { "label": "Kombi Arıza / Isıtmıyor / Su Kaçırıyor", "value": "ariza", "next_step": "step_kombi_marka" },
+          { "label": "Petek Temizliği", "value": "petek_temizligi", "next_step": "step_kombi_marka" },
+          { "label": "Kombi Montajı / Demontajı", "value": "montaj", "next_step": "step_kombi_marka" }
+        ]
+      },
+      {
+        "step_id": "step_kombi_marka",
+        "step_title": "Kombinizin markası nedir?",
+        "description": "Marka bilgisini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Vaillant / Demirdöküm / ECA", "value": "demirdokum_eca", "next_step": "step_detaylar" },
+          { "label": "Buderus / Bosch / Baymak", "value": "bosch_baymak", "next_step": "step_detaylar" },
+          { "label": "Ariston / Viessmann / Protherm", "value": "viessmann", "next_step": "step_detaylar" },
+          { "label": "Diğer Marka", "value": "diger_marka", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Cihazdaki arıza kodunu veya şikayetinizi detaylı yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Kombi petekleri ısıtmıyor, ekranda F4 arıza kodu veriyor.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // KLİMA SERVİSİ
+  // ----------------------------------------------------
+  'klima-servisi': {
+    "category_id": "klima_servisi",
+    "category_name": "Klima Servisi",
+    "steps": [
+      {
+        "step_id": "step_klima_islem",
+        "step_title": "Klima için yapılacak işlem nedir?",
+        "description": "İhtiyaç duyduğunuz klima hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Yıllık Klima Bakımı & Temizliği", "value": "bakim", "next_step": "step_klima_btu" },
+          { "label": "Klima Gaz Dolumu", "value": "gaz_dolumu", "next_step": "step_klima_btu" },
+          { "label": "Klima Arıza / Soğutmuyor", "value": "ariza", "next_step": "step_klima_btu" },
+          { "label": "Klima Söküm & Montaj", "value": "montaj", "next_step": "step_klima_btu" }
+        ]
+      },
+      {
+        "step_id": "step_klima_btu",
+        "step_title": "Klimanızın tahmini kapasitesi (BTU) nedir?",
+        "description": "Klima kapasitesini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "9.000 - 12.000 BTU (Küçük Oda)", "value": "12000_btu", "next_step": "step_detaylar" },
+          { "label": "18.000 BTU (Salon / Orta Alan)", "value": "18000_btu", "next_step": "step_detaylar" },
+          { "label": "24.000 BTU ve üzeri", "value": "24000_btu", "next_step": "step_detaylar" },
+          { "label": "Bilmiyorum", "value": "bilmiyorum", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Klimanızın markasını ve sorununuzu açıklayınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Arçelik 12000 BTU klima soğutmuyor, gazı eksik olabilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'klima_servisi': {
+    "category_id": "klima_servisi",
+    "category_name": "Klima Servisi",
+    "steps": [
+      {
+        "step_id": "step_klima_islem",
+        "step_title": "Klima için yapılacak işlem nedir?",
+        "description": "İhtiyaç duyduğunuz klima hizmetini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Yıllık Klima Bakımı & Temizliği", "value": "bakim", "next_step": "step_klima_btu" },
+          { "label": "Klima Gaz Dolumu", "value": "gaz_dolumu", "next_step": "step_klima_btu" },
+          { "label": "Klima Arıza / Soğutmuyor", "value": "ariza", "next_step": "step_klima_btu" },
+          { "label": "Klima Söküm & Montaj", "value": "montaj", "next_step": "step_klima_btu" }
+        ]
+      },
+      {
+        "step_id": "step_klima_btu",
+        "step_title": "Klimanızın tahmini kapasitesi (BTU) nedir?",
+        "description": "Klima kapasitesini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "9.000 - 12.000 BTU (Küçük Oda)", "value": "12000_btu", "next_step": "step_detaylar" },
+          { "label": "18.000 BTU (Salon / Orta Alan)", "value": "18000_btu", "next_step": "step_detaylar" },
+          { "label": "24.000 BTU ve üzeri", "value": "24000_btu", "next_step": "step_detaylar" },
+          { "label": "Bilmiyorum", "value": "bilmiyorum", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Klimanızın markasını ve sorununuzu açıklayınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Arçelik 12000 BTU klima soğutmuyor, gazı eksik olabilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // MARANGOZ & MOBİLYA MONTAJI
+  // ----------------------------------------------------
+  'mobilya-montaji': {
+    "category_id": "mobilya_montaji",
+    "category_name": "Mobilya Montajı",
+    "steps": [
+      {
+        "step_id": "step_mobilya_islem",
+        "step_title": "Yapılacak mobilya / marangoz işlemi nedir?",
+        "description": "İşlem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mobilya Kurulumu / Montajı (Demonte)", "value": "montaj", "next_step": "step_urun_sayisi" },
+          { "label": "Gardırop / Mutfak Dolabı Tamiri", "value": "tamir", "next_step": "step_urun_sayisi" },
+          { "label": "Özel Ölçü Mobilya İmalatı", "value": "imalat", "next_step": "step_urun_sayisi" },
+          { "label": "Kapı Tamiri / Menteşe Ayarı", "value": "kapi", "next_step": "step_urun_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_urun_sayisi",
+        "step_title": "Kaç parça ürün işlem görecek?",
+        "description": "Montaj / tamir yapılacak ürün sayısı.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 Parça Ürün", "value": "1_parca", "next_step": "step_detaylar" },
+          { "label": "2 - 3 Parça Ürün", "value": "3_parca", "next_step": "step_detaylar" },
+          { "label": "4 - 6 Parça Ürün", "value": "6_parca", "next_step": "step_detaylar" },
+          { "label": "Komple Ev Mobilyası", "value": "komple_ev", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Mobilyanın markası (IKEA, Koçtaş vb.) ve tamir gereksinimlerini yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 3 kapılı IKEA gardırop ve 1 TV ünitesi kurulacak.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'mobilya_montaji': {
+    "category_id": "mobilya_montaji",
+    "category_name": "Mobilya Montajı",
+    "steps": [
+      {
+        "step_id": "step_mobilya_islem",
+        "step_title": "Yapılacak mobilya / marangoz işlemi nedir?",
+        "description": "İşlem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mobilya Kurulumu / Montajı (Demonte)", "value": "montaj", "next_step": "step_urun_sayisi" },
+          { "label": "Gardırop / Mutfak Dolabı Tamiri", "value": "tamir", "next_step": "step_urun_sayisi" },
+          { "label": "Özel Ölçü Mobilya İmalatı", "value": "imalat", "next_step": "step_urun_sayisi" },
+          { "label": "Kapı Tamiri / Menteşe Ayarı", "value": "kapi", "next_step": "step_urun_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_urun_sayisi",
+        "step_title": "Kaç parça ürün işlem görecek?",
+        "description": "Montaj / tamir yapılacak ürün sayısı.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 Parça Ürün", "value": "1_parca", "next_step": "step_detaylar" },
+          { "label": "2 - 3 Parça Ürün", "value": "3_parca", "next_step": "step_detaylar" },
+          { "label": "4 - 6 Parça Ürün", "value": "6_parca", "next_step": "step_detaylar" },
+          { "label": "Komple Ev Mobilyası", "value": "komple_ev", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Mobilyanın markası (IKEA, Koçtaş vb.) ve tamir gereksinimlerini yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 3 kapılı IKEA gardırop ve 1 TV ünitesi kurulacak.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'marangoz': {
+    "category_id": "mobilya_montaji",
+    "category_name": "Marangoz",
+    "steps": [
+      {
+        "step_id": "step_mobilya_islem",
+        "step_title": "Yapılacak mobilya / marangoz işlemi nedir?",
+        "description": "İşlem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mobilya Kurulumu / Montajı (Demonte)", "value": "montaj", "next_step": "step_urun_sayisi" },
+          { "label": "Gardırop / Mutfak Dolabı Tamiri", "value": "tamir", "next_step": "step_urun_sayisi" },
+          { "label": "Özel Ölçü Mobilya İmalatı", "value": "imalat", "next_step": "step_urun_sayisi" },
+          { "label": "Kapı Tamiri / Menteşe Ayarı", "value": "kapi", "next_step": "step_urun_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_urun_sayisi",
+        "step_title": "Kaç parça ürün işlem görecek?",
+        "description": "Montaj / tamir yapılacak ürün sayısı.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 Parça Ürün", "value": "1_parca", "next_step": "step_detaylar" },
+          { "label": "2 - 3 Parça Ürün", "value": "3_parca", "next_step": "step_detaylar" },
+          { "label": "4 - 6 Parça Ürün", "value": "6_parca", "next_step": "step_detaylar" },
+          { "label": "Komple Ev Mobilyası", "value": "komple_ev", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Mobilyanın markası (IKEA, Koçtaş vb.) ve tamir gereksinimlerini yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 3 kapılı IKEA gardırop ve 1 TV ünitesi kurulacak.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // ÖZEL DERS
+  // ----------------------------------------------------
+  'ozel-ders': {
+    "category_id": "ozel_ders",
+    "category_name": "Özel Ders",
+    "steps": [
+      {
+        "step_id": "step_ders_bransi",
+        "step_title": "Hangi branşta ders almak istiyorsunuz?",
+        "description": "Ders alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Matematik / Geometri", "value": "matematik", "next_step": "step_ders_seviyesi" },
+          { "label": "Fen Bilimleri / Fizik / Kimya", "value": "fen_fizik", "next_step": "step_ders_seviyesi" },
+          { "label": "İngilizce / Yabancı Dil", "value": "ingilizce", "next_step": "step_ders_seviyesi" },
+          { "label": "İlkokul Okuma / Takviye", "value": "ilkokul", "next_step": "step_ders_seviyesi" },
+          { "label": "LGS / YKS Sınav Hazırlık", "value": "sinav_hazirlik", "next_step": "step_ders_seviyesi" },
+          { "label": "Müzik / Enstrüman", "value": "muzik", "next_step": "step_ders_seviyesi" }
+        ]
+      },
+      {
+        "step_id": "step_ders_seviyesi",
+        "step_title": "Öğrencinin eğitim seviyesi nedir?",
+        "description": "Seviye bilgisini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "İlkokul", "value": "ilkokul_seviye", "next_step": "step_ders_formati" },
+          { "label": "Ortaokul", "value": "ortaokul_seviye", "next_step": "step_ders_formati" },
+          { "label": "Lise", "value": "lise_seviye", "next_step": "step_ders_formati" },
+          { "label": "Üniversite / Yetişkin", "value": "yetiskin_seviye", "next_step": "step_ders_formati" }
+        ]
+      },
+      {
+        "step_id": "step_ders_formati",
+        "step_title": "Dersler nasıl işlensin?",
+        "description": "Ders yer ve format tercihi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Öğrencinin Evinde (Yüz Yüze)", "value": "yuz_yuze_ogrenci", "next_step": "step_detaylar" },
+          { "label": "Eğitmenin Evinde (Yüz Yüze)", "value": "yuz_yuze_egitmen", "next_step": "step_detaylar" },
+          { "label": "Online (Canlı Ders)", "value": "online", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Haftada kaç saat ders planlıyorsunuz ve özel hedefleriniz nelerdir?",
+        "input_type": "textarea",
+        "placeholder": "Örn: LGS sınavına hazırlık için haftada 2 saat Matematik yüz yüze ders.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'ozel_ders': {
+    "category_id": "ozel_ders",
+    "category_name": "Özel Ders",
+    "steps": [
+      {
+        "step_id": "step_ders_bransi",
+        "step_title": "Hangi branşta ders almak istiyorsunuz?",
+        "description": "Ders alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Matematik / Geometri", "value": "matematik", "next_step": "step_ders_seviyesi" },
+          { "label": "Fen Bilimleri / Fizik / Kimya", "value": "fen_fizik", "next_step": "step_ders_seviyesi" },
+          { "label": "İngilizce / Yabancı Dil", "value": "ingilizce", "next_step": "step_ders_seviyesi" },
+          { "label": "İlkokul Okuma / Takviye", "value": "ilkokul", "next_step": "step_ders_seviyesi" },
+          { "label": "LGS / YKS Sınav Hazırlık", "value": "sinav_hazirlik", "next_step": "step_ders_seviyesi" },
+          { "label": "Müzik / Enstrüman", "value": "muzik", "next_step": "step_ders_seviyesi" }
+        ]
+      },
+      {
+        "step_id": "step_ders_seviyesi",
+        "step_title": "Öğrencinin eğitim seviyesi nedir?",
+        "description": "Seviye bilgisini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "İlkokul", "value": "ilkokul_seviye", "next_step": "step_ders_formati" },
+          { "label": "Ortaokul", "value": "ortaokul_seviye", "next_step": "step_ders_formati" },
+          { "label": "Lise", "value": "lise_seviye", "next_step": "step_ders_formati" },
+          { "label": "Üniversite / Yetişkin", "value": "yetiskin_seviye", "next_step": "step_ders_formati" }
+        ]
+      },
+      {
+        "step_id": "step_ders_formati",
+        "step_title": "Dersler nasıl işlensin?",
+        "description": "Ders yer ve format tercihi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Öğrencinin Evinde (Yüz Yüze)", "value": "yuz_yuze_ogrenci", "next_step": "step_detaylar" },
+          { "label": "Eğitmenin Evinde (Yüz Yüze)", "value": "yuz_yuze_egitmen", "next_step": "step_detaylar" },
+          { "label": "Online (Canlı Ders)", "value": "online", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Haftada kaç saat ders planlıyorsunuz ve özel hedefleriniz nelerdir?",
+        "input_type": "textarea",
+        "placeholder": "Örn: LGS sınavına hazırlık için haftada 2 saat Matematik yüz yüze ders.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // CAM BALKON & PVC PENCERE
+  // ----------------------------------------------------
+  'cam-balkon': {
+    "category_id": "cam_balkon",
+    "category_name": "Cam Balkon",
+    "steps": [
+      {
+        "step_id": "step_cambalkon_turu",
+        "step_title": "İstediğiniz sistem türü nedir?",
+        "description": "Sistem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Katlanır Cam Balkon", "value": "katlanir", "next_step": "step_balkon_olcu" },
+          { "label": "Sürme Cam Balkon", "value": "surme", "next_step": "step_balkon_olcu" },
+          { "label": "Isıcamlı Cam Balkon", "value": "isicamli", "next_step": "step_balkon_olcu" },
+          { "label": "PVC Pencere / Kapı Sistemleri", "value": "pvc", "next_step": "step_balkon_olcu" }
+        ]
+      },
+      {
+        "step_id": "step_balkon_olcu",
+        "step_title": "Balkonun / Alanın tahmini şekli ve ölçüsü nedir?",
+        "description": "Genişlik bilgisi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düz Balkon (3 - 5 Metre)", "value": "duz_balkon", "next_step": "step_detaylar" },
+          { "label": "L Şeklinde Balkon", "value": "l_balkon", "next_step": "step_detaylar" },
+          { "label": "U Şeklinde Balkon", "value": "u_balkon", "next_step": "step_detaylar" },
+          { "label": "Fransız Balkon / Pencere", "value": "fransiz", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Cam rengi (füme, şeffaf vb.) ve keşif isteğinizi belirtiniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Füme cam katlanır balkon yapılacak, keşe usta gelebilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'cam_balkon': {
+    "category_id": "cam_balkon",
+    "category_name": "Cam Balkon",
+    "steps": [
+      {
+        "step_id": "step_cambalkon_turu",
+        "step_title": "İstediğiniz sistem türü nedir?",
+        "description": "Sistem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Katlanır Cam Balkon", "value": "katlanir", "next_step": "step_balkon_olcu" },
+          { "label": "Sürme Cam Balkon", "value": "surme", "next_step": "step_balkon_olcu" },
+          { "label": "Isıcamlı Cam Balkon", "value": "isicamli", "next_step": "step_balkon_olcu" },
+          { "label": "PVC Pencere / Kapı Sistemleri", "value": "pvc", "next_step": "step_balkon_olcu" }
+        ]
+      },
+      {
+        "step_id": "step_balkon_olcu",
+        "step_title": "Balkonun / Alanın tahmini şekli ve ölçüsü nedir?",
+        "description": "Genişlik bilgisi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düz Balkon (3 - 5 Metre)", "value": "duz_balkon", "next_step": "step_detaylar" },
+          { "label": "L Şeklinde Balkon", "value": "l_balkon", "next_step": "step_detaylar" },
+          { "label": "U Şeklinde Balkon", "value": "u_balkon", "next_step": "step_detaylar" },
+          { "label": "Fransız Balkon / Pencere", "value": "fransiz", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Cam rengi (füme, şeffaf vb.) ve keşif isteğinizi belirtiniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Füme cam katlanır balkon yapılacak, keşe usta gelebilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'pvc-pencere': {
+    "category_id": "cam_balkon",
+    "category_name": "PVC Pencere",
+    "steps": [
+      {
+        "step_id": "step_cambalkon_turu",
+        "step_title": "İstediğiniz sistem türü nedir?",
+        "description": "Sistem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Katlanır Cam Balkon", "value": "katlanir", "next_step": "step_balkon_olcu" },
+          { "label": "Sürme Cam Balkon", "value": "surme", "next_step": "step_balkon_olcu" },
+          { "label": "Isıcamlı Cam Balkon", "value": "isicamli", "next_step": "step_balkon_olcu" },
+          { "label": "PVC Pencere / Kapı Sistemleri", "value": "pvc", "next_step": "step_balkon_olcu" }
+        ]
+      },
+      {
+        "step_id": "step_balkon_olcu",
+        "step_title": "Balkonun / Alanın tahmini şekli ve ölçüsü nedir?",
+        "description": "Genişlik bilgisi.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düz Balkon (3 - 5 Metre)", "value": "duz_balkon", "next_step": "step_detaylar" },
+          { "label": "L Şeklinde Balkon", "value": "l_balkon", "next_step": "step_detaylar" },
+          { "label": "U Şeklinde Balkon", "value": "u_balkon", "next_step": "step_detaylar" },
+          { "label": "Fransız Balkon / Pencere", "value": "fransiz", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Cam rengi (füme, şeffaf vb.) ve keşif isteğinizi belirtiniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Füme cam katlanır balkon yapılacak, keşe usta gelebilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
   }
 };
