@@ -406,6 +406,20 @@ export class ChatService {
       };
     }
 
+    if (state.step === 'otp_verification') {
+      const result = this.leadFormService.handleOtpStep(state, filteredMessage);
+      state.messages.push({ role: 'assistant', content: result.responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+      return {
+        step: result.step,
+        responseMessage: result.responseMessage,
+        collected_data: state.collected_data,
+        options: result.options,
+        inputType: result.inputType,
+      };
+    }
+
     // --- 2. FAST PATH FOR DETERMINISTIC CATEGORY QUESTION FLOW ---
     let slug = state.collected_data.categorySlug;
     if (!slug && (state.step === 'greeting' || state.step === 'category_detection')) {

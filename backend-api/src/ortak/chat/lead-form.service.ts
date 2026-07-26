@@ -106,7 +106,7 @@ export class LeadFormService {
   }
 
   /**
-   * Process customer phone collection step
+   * Process customer phone collection step -> transitions to OTP verification
    */
   public handlePhoneStep(state: SessionState, message: string): {
     step: string;
@@ -126,6 +126,35 @@ export class LeadFormService {
 
     state.collected_data.customerPhone = cleanPhone;
     state.collected_data.phone = cleanPhone;
+    state.step = 'otp_verification';
+
+    return {
+      step: state.step,
+      responseMessage: 'Lütfen telefonunuza gelen 6 haneli SMS doğrulama kodunu giriniz (Test için: 123456).',
+      options: [],
+      inputType: 'text',
+    };
+  }
+
+  /**
+   * Process SMS OTP verification step -> transitions to confirm_form
+   */
+  public handleOtpStep(state: SessionState, message: string): {
+    step: string;
+    responseMessage: string;
+    options: string[];
+    inputType: string;
+  } {
+    const cleanOtp = message.replace(/\D/g, '');
+    if (cleanOtp.length < 6) {
+      return {
+        step: 'otp_verification',
+        responseMessage: 'Lütfen telefonunuza gelen 6 haneli doğrulama kodunu giriniz (Test için: 123456).',
+        options: [],
+        inputType: 'text',
+      };
+    }
+
     state.step = 'confirm_form';
 
     return {

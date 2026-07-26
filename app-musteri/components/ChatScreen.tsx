@@ -1452,10 +1452,24 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                           <div><strong className="text-slate-900">Çıkış Konumu:</strong> {msg.collected_data.neighborhood ? `${msg.collected_data.neighborhood}, ${msg.collected_data.district}, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : `${msg.collected_data.district}, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}`}</div>
                           <div><strong className="text-slate-900">Varış Konumu:</strong> {msg.collected_data.destinationDistrict}, {msg.collected_data.destinationCity || msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.destinationDistrict)}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history'];
+                            const ignoredKeys = ['name', 'phone', 'customerName', 'customerPhone', 'address', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history', 'step_detay_var_mi', 'tarih'];
                             if (ignoredKeys.includes(key)) return null;
                             if (!val) return null;
-                            const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || key;
+                            const stepMap: Record<string, string> = {
+                              step_su_islem: 'Yapılacak İşlem',
+                              step_su_alan: 'İşlem Alanı',
+                              step_su_acil: 'Aciliyet Durumu',
+                              step_elektrik_islem: 'Yapılacak İşlem',
+                              step_mekan_turu: 'Mekan Türü',
+                              step_hizmet_zamani: 'Hizmet Zamanı',
+                              step_boya_islem: 'Yapılacak İşlem',
+                              step_oda_sayisi: 'Oda Sayısı',
+                              step_nakliyat_turu: 'Taşınma Türü',
+                              step_ev_tipi: 'Mülk Tipi',
+                              step_temizlik_turu: 'Temizlik Türü',
+                              aciliyet: 'Aciliyet'
+                            };
+                            const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || stepMap[key] || (key.startsWith('step_') ? key.replace(/^step_/, '').replace(/_/g, ' ') : key);
                             return (
                               <div key={key}><strong className="text-slate-900">{label}:</strong> {String(val)}</div>
                             );
@@ -1465,10 +1479,24 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                         <>
                           <div><strong className="text-slate-900">Konum:</strong> {msg.collected_data.neighborhood ? `${msg.collected_data.neighborhood}, ${msg.collected_data.district}, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : (msg.collected_data.district ? `${msg.collected_data.district}, ${msg.collected_data.city || resolveCityFromDistrict(msg.collected_data.district)}` : 'Belirtilmedi')}</div>
                           {Object.entries(msg.collected_data).map(([key, val]) => {
-                            const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history'];
+                            const ignoredKeys = ['name', 'phone', 'customerName', 'customerPhone', 'address', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history', 'step_detay_var_mi', 'tarih'];
                             if (ignoredKeys.includes(key)) return null;
                             if (!val) return null;
-                            const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || key;
+                            const stepMap: Record<string, string> = {
+                              step_su_islem: 'Yapılacak İşlem',
+                              step_su_alan: 'İşlem Alanı',
+                              step_su_acil: 'Aciliyet Durumu',
+                              step_elektrik_islem: 'Yapılacak İşlem',
+                              step_mekan_turu: 'Mekan Türü',
+                              step_hizmet_zamani: 'Hizmet Zamanı',
+                              step_boya_islem: 'Yapılacak İşlem',
+                              step_oda_sayisi: 'Oda Sayısı',
+                              step_nakliyat_turu: 'Taşınma Türü',
+                              step_ev_tipi: 'Mülk Tipi',
+                              step_temizlik_turu: 'Temizlik Türü',
+                              aciliyet: 'Aciliyet'
+                            };
+                            const label = msg.collected_data.graph_labels?.[key] || FIELD_LABELS[key] || stepMap[key] || (key.startsWith('step_') ? key.replace(/^step_/, '').replace(/_/g, ' ') : key);
                             return (
                               <div key={key}><strong className="text-slate-900">{label}:</strong> {String(val)}</div>
                             );
