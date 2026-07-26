@@ -888,7 +888,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           if (onJobCompleted) {
             onJobCompleted(foundJobId);
           } else {
-            router.push(data.redirectUrl || `/talep/${foundJobId}`);
+            window.location.href = data.redirectUrl || `/talep/${foundJobId}`;
           }
         }, 1200);
       }
