@@ -442,7 +442,7 @@ export class ChatService {
               data: {
                 name: state.collected_data.name || state.collected_data.customerName || 'Müşteri',
                 phone: encryptPhone(cleanPhone),
-                role: 'SEEKER',
+                role: 'seeker' as any,
               },
             });
           }
@@ -452,10 +452,12 @@ export class ChatService {
           throw new BadRequestException('Müşteri kaydı oluşturulamadı.');
         }
 
+        const categoryId = category?.id || (await this.prisma.category.findFirst())?.id || 'default-category-id';
+
         const job = await this.prisma.serviceRequest.create({
           data: {
             seeker_id: seeker.id,
-            category_id: category.id,
+            category_id: categoryId,
             form_data: sanitizeObjectForWin1254({
               ...state.collected_data,
               details: this.generateRequestSummary(state.collected_data),
