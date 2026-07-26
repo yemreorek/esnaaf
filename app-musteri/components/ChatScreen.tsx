@@ -2096,6 +2096,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             </div>
           </div>
         </div>
+      )}
+
       {/* 🪟 Tüm Hizmet Kategorileri Modal */}
       {isCategoryModalOpen && (
         <div 
