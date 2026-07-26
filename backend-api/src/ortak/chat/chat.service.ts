@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, HttpException, HttpStatus, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import * as Bull from 'bull';
 import { randomUUID } from 'crypto';
@@ -18,23 +18,9 @@ import { AiConsultantService } from './ai-consultant.service';
 
 interface SessionState {
   step: string;
-  messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
-  collected_data: {
-    categorySlug?: string;
-    categoryName?: string;
-    current_step_id?: string;
-    city?: string;
-    district?: string;
-    neighborhood?: string;
-    name?: string;
-    phone?: string;
-    details?: string;
-    hasAskedDetails?: boolean;
-    current_node_id?: string | null;
-    node_queue?: string[];
-    [key: string]: any;
-  };
-  token_count: number;
+  messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
+  collected_data: Record<string, any>;
+  token_count?: number;
   ab_variant?: 'control' | 'variant';
   ab_model?: string;
   ab_temp?: number;
@@ -58,24 +44,24 @@ export function getUrgentDates() {
 }
 
 @Injectable()
-export class ChatService {
-  private CITY_DISTRICTS: Record<string, string[]> = {
-    'Adana': [
-      'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 'kozan', 
-      'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 'yumurtalık', 
-      'tufanbeyli', 'feke', 'aladağ', 'saimbeyli'
+export class ChatService implements OnModuleInit {
+  private CITIES_DISTRICTS: Record<string, string[]> = {
+    'adana': [
+      'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 
+      'kozan', 'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 
+      'yumurtalık', 'tufanbeyli', 'feke', 'aladağ', 'saimbeyli'
     ],
-    'İstanbul': [
+    'istanbul': [
       'kadıköy', 'şişli', 'beşiktaş', 'ümraniye', 'üsküdar', 
       'fatih', 'beyoğlu', 'sarıyer', 'maltepe', 'kartal', 
       'pendik', 'başakşehir', 'esenyurt', 'bahçelievler', 
       'bakırköy', 'ataşehir', 'beylikdüzü'
     ],
-    'Ankara': [
+    'ankara': [
       'çankaya', 'keçiören', 'yenimahalle', 'mamak', 
       'etimesgut', 'sincan', 'altındağ', 'gölbaşı', 'pursaklar'
     ],
-    'İzmir': [
+    'izmir': [
       'karşıyaka', 'konak', 'bornova', 'buca', 'karabağlar', 
       'çiğli', 'gaziemir', 'balçova', 'narlıdere', 'güzelbahçe', 
       'bayraklı', 'urla'
@@ -109,6 +95,34 @@ export class ChatService {
     private leadFormService: LeadFormService,
     private aiConsultantService: AiConsultantService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      const pendingJobs = await this.prisma.serviceRequest.findMany({
+        where: { status: 'pending' },
+        include: { category: true },
+      });
+
+      if (pendingJobs.length > 0) {
+        console.log(`[ChatService] Backfilling distribution for ${pendingJobs.length} pending jobs...`);
+        const { TaleplerProcessor } = require('../../musteri/talepler/talepler.processor');
+        const processor = new TaleplerProcessor(this.prisma, this.chatGateway, null as any);
+
+        for (const pJob of pendingJobs) {
+          const count = await this.prisma.responseTime.count({ where: { job_id: pJob.id } });
+          if (count === 0) {
+            console.log(`[ChatService] Distributing pending job ${pJob.id} to matching providers...`);
+            await processor.handleDistribution({
+              data: { jobId: pJob.id },
+              queue: this.distributionQueue,
+            } as any);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('[ChatService] Backfill distribution error:', err);
+    }
+  }
 
   private filterPii(text: string): string {
     let filtered = text;
@@ -550,6 +564,25 @@ export class ChatService {
             status: 'pending',
           },
         });
+
+        // Trigger smart distribution (creates ResponseTime mapping & sends real-time notifications to providers)
+        try {
+          await this.distributionQueue.add('distribute', { jobId: job.id });
+        } catch (qErr) {
+          console.error('[ChatService] Queue error:', qErr);
+        }
+
+        // Inline distribution failsafe for Cloud Run & instant provider matching
+        try {
+          const { TaleplerProcessor } = require('../../musteri/talepler/talepler.processor');
+          const processor = new TaleplerProcessor(this.prisma, this.chatGateway, null as any);
+          processor.handleDistribution({
+            data: { jobId: job.id },
+            queue: this.distributionQueue,
+          } as any).catch(distErr => console.error('[ChatService] Inline distribution failsafe error:', distErr));
+        } catch (pErr) {
+          console.error('[ChatService] Processor instantiation error:', pErr);
+        }
 
         state.step = 'completed';
         const responseMessage = `Talebiniz başarıyla oluşturuldu! (Talep #${job.id}). Teklifleriniz hazırlanıyor, teklif kontrol paneline yönlendiriliyorsunuz...`;
