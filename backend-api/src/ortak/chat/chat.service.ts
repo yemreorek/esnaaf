@@ -17,7 +17,7 @@ import { LeadFormService } from './lead-form.service';
 import { AiConsultantService } from './ai-consultant.service';
 
 interface SessionState {
-  step: 'greeting' | 'category_detection' | 'collecting_details' | 'ask_details' | 'ask_address' | 'ask_time' | 'ask_name' | 'ask_phone' | 'otp_verification' | 'confirm_form' | 'completed';
+  step: string;
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   collected_data: {
     categorySlug?: string;
