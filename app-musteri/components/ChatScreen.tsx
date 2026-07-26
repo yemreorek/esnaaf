@@ -349,6 +349,35 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
+  const categories = [
+    { name: "Ev Temizliği", icon: "🏠" },
+    { name: "Boya Badana", icon: "🎨" },
+    { name: "Nakliyat", icon: "📦" },
+    { name: "Su Tesisatı", icon: "🔧" },
+    { name: "Elektrik Tesisatı", icon: "⚡" },
+    { name: "Ev Tadilat", icon: "🔨" },
+    { name: "Halı Yıkama", icon: "🧼" },
+    { name: "Koltuk Yıkama", icon: "🛋️" },
+    { name: "Tadilat Sonrası Temizlik", icon: "🧹" },
+    { name: "Fayans Döşeme", icon: "🧱" },
+    { name: "Parke Döşeme", icon: "🪵" },
+    { name: "Haşere İlaçlama", icon: "🐜" },
+    { name: "Böcek İlaçlama", icon: "🪲" },
+    { name: "Kombi Servisi", icon: "🔥" },
+    { name: "Klima Servisi", icon: "❄️" },
+    { name: "Mantolama", icon: "🏢" },
+    { name: "Marangoz", icon: "🪚" },
+    { name: "Mobilya Montajı", icon: "🪑" },
+    { name: "Özel Ders", icon: "📚" },
+    { name: "Cam Balkon", icon: "🪟" },
+    { name: "PVC Pencere", icon: "🪟" },
+    { name: "Ofis Temizliği", icon: "🏢" },
+    { name: "Doğalgaz Tesisatı", icon: "🔥" },
+    { name: "İç Mimar", icon: "📐" },
+    { name: "Organizasyon", icon: "🎉" }
+  ];
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -598,6 +627,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               id: `assistant-welcome`,
               role: "assistant",
               content: startData.message || "Size bugün hangi konuda yardımcı olabilirim? (Örn: Ev temizliği, boya badana, tesisat veya elektrik işi...)",
+              options: ["Ev Temizliği", "Boya Badana", "Su Tesisatı", "Nakliyat / Taşıma", "📋 Tüm Hizmetleri Gör"],
               isStreaming: true,
             }
           ]);
@@ -1921,6 +1951,19 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           </div>
         ) : (
           <div className="w-full md:max-w-[720px] md:mx-auto flex items-end gap-3 relative bg-slate-50 rounded-[20px] border border-slate-200 focus-within:border-[#c8f252] focus-within:ring-2 focus-within:ring-[#c8f252]/15 transition-all p-2">
+          {/* Left: Category Picker Modal Trigger (+ button) */}
+          <button
+            type="button"
+            onClick={() => setIsCategoryModalOpen(true)}
+            title="Tüm Hizmet Kategorileri"
+            disabled={isLoading || currentStep === "confirm_form" || currentStep === "completed"}
+            className="w-10 h-10 rounded-[12px] border border-slate-200 hover:border-slate-300 hover:bg-white flex items-center justify-center text-slate-600 cursor-pointer transition-all active:scale-95 shrink-0 bg-white shadow-xs"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <line x1="12" x2="12" y1="5" y2="19" />
+              <line x1="5" x2="19" y1="12" y2="12" />
+            </svg>
+          </button>
           <textarea
             ref={textareaRef}
             rows={1}
@@ -2053,9 +2096,53 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
             </div>
           </div>
         </div>
+      {/* 🪟 Tüm Hizmet Kategorileri Modal */}
+      {isCategoryModalOpen && (
+        <div 
+          className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-xs p-0 sm:p-4 animate-fade-in"
+          onClick={() => setIsCategoryModalOpen(false)}
+        >
+          <div
+            className="w-full sm:max-w-[560px] bg-white rounded-t-[24px] sm:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[75vh] animate-slide-up border border-slate-100 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-white sticky top-0 z-10">
+              <div className="flex flex-col text-left">
+                <h3 className="font-extrabold text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
+                <p className="text-xs text-slate-400 font-medium">İhtiyacınız olan hizmeti seçerek chata aktarın</p>
+              </div>
+              <button
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="text-slate-400 hover:text-slate-800 p-2 rounded-full hover:bg-slate-100 cursor-pointer transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Grid list of categories */}
+            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-3">
+              {categories.map((cat, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setIsCategoryModalOpen(false);
+                    sendMessage(`Merhaba, ben ${cat.name} hizmeti almak istiyorum.`);
+                  }}
+                  className="flex items-center gap-3 p-3.5 border border-slate-150 rounded-2xl hover:border-[#c8f252] hover:bg-[#c8f252]/10 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
+                >
+                  <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
+                  <span className="font-bold text-xs md:text-sm text-slate-800 truncate">
+                    {cat.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
-
-
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes scaleUp {

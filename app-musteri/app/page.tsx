@@ -536,6 +536,7 @@ export default function Home() {
           triggerNotification("Çıkış yapıldı.");
         }}
         onStartChat={(initialMessage?: string) => {
+          startNewSession();
           setChatInitialMessage(initialMessage || "");
           setActiveView("chat");
         }}

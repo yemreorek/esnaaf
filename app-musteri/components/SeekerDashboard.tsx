@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import Image from "next/image";
 import { io, Socket } from "socket.io-client";
-import { customFetch, logout, getAuthUser } from "../lib/session";
+import { customFetch, logout, getAuthUser, startNewSession } from "../lib/session";
 import { 
   FileText, 
   Play, 
@@ -1863,7 +1863,11 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
         {/* Sidebar bottom action button */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
           <button
-            onClick={() => { onStartChat?.(); setMobileMenuOpen(false); }}
+            onClick={() => {
+              startNewSession();
+              onStartChat?.();
+              setMobileMenuOpen(false);
+            }}
             className="w-full bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs py-3.5 rounded-2xl cursor-pointer shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-transparent"
           >
             <PlusCircle className="w-4.5 h-4.5 shrink-0 stroke-[2.2]" />
