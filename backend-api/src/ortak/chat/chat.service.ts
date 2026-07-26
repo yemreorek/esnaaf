@@ -349,7 +349,50 @@ export class ChatService {
       };
     }
 
-    // --- FAST PATH FOR DETERMINISTIC JSON FLOW ---
+    // --- 1. LEAD FORM STEPS INTERCEPTOR (STRICT DETERMINISTIC SEQUENCING) ---
+    if (state.step === 'ask_address') {
+      const result = this.leadFormService.handleAddressStep(state, filteredMessage);
+      state.messages.push({ role: 'assistant', content: result.responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+      return {
+        step: result.step,
+        responseMessage: result.responseMessage,
+        collected_data: state.collected_data,
+        options: result.options,
+        inputType: result.inputType,
+      };
+    }
+
+    if (state.step === 'ask_name') {
+      const result = this.leadFormService.handleNameStep(state, filteredMessage);
+      state.messages.push({ role: 'assistant', content: result.responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+      return {
+        step: result.step,
+        responseMessage: result.responseMessage,
+        collected_data: state.collected_data,
+        options: result.options,
+        inputType: result.inputType,
+      };
+    }
+
+    if (state.step === 'ask_phone') {
+      const result = this.leadFormService.handlePhoneStep(state, filteredMessage);
+      state.messages.push({ role: 'assistant', content: result.responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+      return {
+        step: result.step,
+        responseMessage: result.responseMessage,
+        collected_data: state.collected_data,
+        options: result.options,
+        inputType: result.inputType,
+      };
+    }
+
+    // --- 2. FAST PATH FOR DETERMINISTIC CATEGORY QUESTION FLOW ---
     let slug = state.collected_data.categorySlug;
     if (!slug && (state.step === 'greeting' || state.step === 'category_detection')) {
       const detection = await this.detectCategory(filteredMessage);
@@ -360,56 +403,18 @@ export class ChatService {
       }
     }
 
-    const flow = this.getFlowForCategory(slug);
-    if (slug && flow && state.step !== 'ask_address' && state.step !== 'ask_name' && state.step !== 'ask_phone' && state.step !== 'confirm_form' && state.step !== 'completed') {
-      state.step = 'collecting_details'; // Normalize
-
-      // If current_step_id is not set yet, initialize to step 0
-      const isInitialCategoryMsg = !state.collected_data.current_step_id;
-      if (isInitialCategoryMsg) {
-        state.collected_data.current_step_id = flow.steps[0].step_id;
-      }
-
-      let processed = false;
-      if (!isInitialCategoryMsg) {
-        processed = await this.processAnswerFromFlow(state, filteredMessage);
-      }
-
-      let nextQ: any = null;
-      if (!isInitialCategoryMsg && !processed) {
-        nextQ = this.getNextQuestionFromFlow(state);
-        if (nextQ) responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
-      } else {
-        nextQ = this.getNextQuestionFromFlow(state);
-      }
-
-      if (!nextQ) {
-        state.step = 'ask_address';
-        state.collected_data.hasAskedDetails = true;
-        responseMessage = `Hizmetin verileceği konumu seçebilir misiniz?`;
-        options = [];
-        inputType = 'single_choice';
-      } else {
-        if (isInitialCategoryMsg) {
-          responseMessage = `${state.collected_data.categoryName || flow.category_name} talebiniz için detayları alalım.\n\n${nextQ.question}`;
-        } else {
-          responseMessage = responseMessage || nextQ.question;
-        }
-        options = nextQ.options || [];
-        inputType = nextQ.inputType || 'single_choice';
-      }
-
-      state.messages.push({ role: 'user', content: message });
-      state.messages.push({ role: 'assistant', content: responseMessage });
+    const flowResult = await this.flowEngineService.executeFlowStep(state, filteredMessage);
+    if (flowResult && flowResult.isHandled) {
+      state.messages.push({ role: 'assistant', content: flowResult.responseMessage });
       await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
       await this.trackTokens(sessionKey, tokensUsed);
 
       return {
-        step: state.step,
-        responseMessage,
+        step: flowResult.step,
+        responseMessage: flowResult.responseMessage,
         collected_data: state.collected_data,
-        options,
-        inputType,
+        options: flowResult.options,
+        inputType: flowResult.inputType,
       };
     }
     // --- END FAST PATH ---
