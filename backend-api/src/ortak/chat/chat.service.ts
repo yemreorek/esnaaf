@@ -440,9 +440,12 @@ export class ChatService {
           if (!seeker) {
             seeker = await this.prisma.user.create({
               data: {
-                name: state.collected_data.name || state.collected_data.customerName || 'Müşteri',
+                name: sanitizeForWin1254(state.collected_data.name || state.collected_data.customerName || 'Müşteri'),
                 phone: encryptPhone(cleanPhone),
-                role: 'seeker' as any,
+                phone_masked: maskPhone(cleanPhone),
+                role: 'service_seeker',
+                is_active: true,
+                kvkk_consent: true,
               },
             });
           }
