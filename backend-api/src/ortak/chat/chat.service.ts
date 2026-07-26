@@ -45,7 +45,7 @@ export function getUrgentDates() {
 
 @Injectable()
 export class ChatService implements OnModuleInit {
-  private CITIES_DISTRICTS: Record<string, string[]> = {
+  private CITY_DISTRICTS: Record<string, string[]> = {
     'adana': [
       'seyhan', 'çukurova', 'yüreğir', 'sarıçam', 'ceyhan', 
       'kozan', 'imamoğlu', 'karataş', 'karaisalı', 'pozantı', 
