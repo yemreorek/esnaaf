@@ -57,8 +57,31 @@ export class FlowEngineService {
 
     if (currentStepId === 'END') return null;
 
+    // Intercept detail decision step if current step is step_detaylar or textarea detail step and decision hasn't been made
+    if ((currentStepId === 'step_detaylar' || currentStepId === 'step_detaylar_aciklama' || currentStepId === 'step_ekstra_detay_text') &&
+        state.collected_data['step_detay_var_mi'] === undefined) {
+      return {
+        key: 'step_detay_var_mi',
+        question: 'İhtiyacın detaylarında hizmet verenin bilmesi gereken veya dikkat etmesi gereken bir durum var mı?',
+        options: ['Hayır Yok', 'Evet Var'],
+        inputType: 'single_choice',
+        isComplete: false,
+      };
+    }
+
     const step = flow.steps.find((s: any) => s.step_id === currentStepId);
     if (!step) return null;
+
+    // If step is textarea/text details step, check if decision step was skipped or answered "Hayır Yok"
+    if ((step.input_type === 'textarea' || step.step_id.includes('detay')) && state.collected_data['step_detay_var_mi'] === undefined) {
+      return {
+        key: 'step_detay_var_mi',
+        question: 'İhtiyacın detaylarında hizmet verenin bilmesi gereken veya dikkat etmesi gereken bir durum var mı?',
+        options: ['Hayır Yok', 'Evet Var'],
+        inputType: 'single_choice',
+        isComplete: false,
+      };
+    }
 
     return {
       key: step.step_id,
@@ -90,18 +113,29 @@ export class FlowEngineService {
 
     if (currentStepId === 'END') return false;
 
-    const step = flow.steps.find((s: any) => s.step_id === currentStepId);
-    if (!step) return false;
-
     const advanceStep = (nextStepId: string) => {
       if (!state.collected_data.step_history) state.collected_data.step_history = [];
       state.collected_data.step_history.push(currentStepId);
-
-      if (!state.collected_data.graph_labels) state.collected_data.graph_labels = {};
-      state.collected_data.graph_labels[step.step_id] = step.step_title;
-
       state.collected_data.current_step_id = nextStepId;
     };
+
+    // Process decision question interceptor: step_detay_var_mi
+    if (state.collected_data['step_detay_var_mi'] === undefined &&
+        (currentStepId === 'step_detay_var_mi' || currentStepId === 'step_detaylar' || currentStepId === 'step_detaylar_aciklama' || currentStepId === 'step_ekstra_detay_text')) {
+      if (lowerMsg.includes('hayır') || lowerMsg.includes('hayir')) {
+        state.collected_data['step_detay_var_mi'] = 'Hayır Yok';
+        advanceStep('END');
+        return true;
+      }
+      if (lowerMsg.includes('evet')) {
+        state.collected_data['step_detay_var_mi'] = 'Evet Var';
+        advanceStep('step_detaylar');
+        return true;
+      }
+    }
+
+    const step = flow.steps.find((s: any) => s.step_id === currentStepId);
+    if (!step) return false;
 
     if (step.input_type === 'textarea' || step.input_type === 'text') {
       state.collected_data[step.step_id] = message;
