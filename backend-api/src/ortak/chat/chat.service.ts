@@ -137,6 +137,33 @@ export class ChatService {
     const uuid = sessionUuid || randomUUID();
     const sessionKey = userId ? `ai_session:${userId}:${uuid}` : `temp_session:${uuid}`;
 
+    // Check if active session already exists under sessionKey or temp_session:${uuid}
+    let existingRaw = await this.redis.get(sessionKey);
+    if (!existingRaw && userId) {
+      const tempKey = `temp_session:${uuid}`;
+      existingRaw = await this.redis.get(tempKey);
+      if (existingRaw) {
+        await this.redis.set(sessionKey, existingRaw, 'EX', 86400);
+      }
+    }
+
+    if (existingRaw) {
+      try {
+        const parsed: SessionState = JSON.parse(existingRaw);
+        if (parsed && parsed.step && parsed.step !== 'greeting') {
+          console.log(`[ChatService] Preserving active session for ${sessionKey} at step ${parsed.step}`);
+          const lastMsg = parsed.messages[parsed.messages.length - 1]?.content;
+          return {
+            session_uuid: uuid,
+            step: parsed.step,
+            message: lastMsg || 'Size bugün hangi konuda yardımcı olabilirim?',
+          };
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+    }
+
     const chatModel = await this.redis.get('ab_test:chat_model') || 'gemini-2.5-flash';
     const tempStr = await this.redis.get('ab_test:temperature');
     const temperature = tempStr ? parseFloat(tempStr) : 0.7;
@@ -219,9 +246,20 @@ export class ChatService {
       const tempSession = await this.redis.get(tempKey);
       if (tempSession) {
         await this.redis.set(sessionKey, tempSession, 'EX', 86400); // Migrate to 24h TTL
-        await this.redis.del(tempKey);
         rawSession = tempSession;
         console.log(`[ChatService] Dynamically migrated ${tempKey} to ${sessionKey} during handleMessage`);
+      }
+    }
+
+    if (!rawSession && !userId) {
+      // Fallback: Check if session was migrated under any ai_session:*:${sessionId}
+      const userKeys = await this.redis.keys(`ai_session:*:${sessionId}`);
+      if (userKeys && userKeys.length > 0) {
+        rawSession = await this.redis.get(userKeys[0]);
+        if (rawSession) {
+          sessionKey = userKeys[0];
+          console.log(`[ChatService] Found user session key ${sessionKey} for anonymous request`);
+        }
       }
     }
 
@@ -437,6 +475,10 @@ export class ChatService {
 
       state.messages.push({ role: 'assistant', content: result.responseMessage });
       await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      if (seeker) {
+        const userSessionKey = `ai_session:${seeker.id}:${sessionId}`;
+        await this.redis.set(userSessionKey, JSON.stringify(state), 'EX', 86400);
+      }
       await this.trackTokens(sessionKey, tokensUsed);
       return {
         step: result.step,
@@ -450,7 +492,9 @@ export class ChatService {
     }
 
     if (state.step === 'confirm_form') {
-      if (filteredMessage.toLowerCase().includes('onayla') || filteredMessage.toLowerCase().includes('evet') || filteredMessage.toLowerCase().includes('doğru')) {
+      const cleanInput = filteredMessage.toLowerCase().trim();
+      const isConfirmation = cleanInput.includes('onayla') || cleanInput.includes('evet') || cleanInput.includes('doğru') || cleanInput === '1' || cleanInput === 'onay';
+      if (isConfirmation) {
         const categoryName = state.collected_data.categoryName || this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
         let category = await this.prisma.category.findUnique({
           where: { name: categoryName },
