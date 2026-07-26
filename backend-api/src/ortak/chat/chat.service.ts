@@ -364,6 +364,20 @@ export class ChatService {
       };
     }
 
+    if (state.step === 'ask_time') {
+      const result = this.leadFormService.handleTimeStep(state, filteredMessage);
+      state.messages.push({ role: 'assistant', content: result.responseMessage });
+      await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+      await this.trackTokens(sessionKey, tokensUsed);
+      return {
+        step: result.step,
+        responseMessage: result.responseMessage,
+        collected_data: state.collected_data,
+        options: result.options,
+        inputType: result.inputType,
+      };
+    }
+
     if (state.step === 'ask_name') {
       const result = this.leadFormService.handleNameStep(state, filteredMessage);
       state.messages.push({ role: 'assistant', content: result.responseMessage });

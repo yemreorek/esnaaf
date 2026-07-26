@@ -29,7 +29,41 @@ export class LeadFormService {
       };
     }
 
-    state.collected_data.address = trimmed;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.city) state.collected_data.city = parsed.city;
+      if (parsed.district) state.collected_data.district = parsed.district;
+      if (parsed.neighborhood) state.collected_data.neighborhood = parsed.neighborhood;
+      state.collected_data.address = `${parsed.city || ''}, ${parsed.district || ''}, ${parsed.neighborhood || ''}`;
+    } catch {
+      state.collected_data.address = trimmed;
+    }
+
+    state.step = 'ask_time';
+
+    return {
+      step: state.step,
+      responseMessage: 'Talebiniz ne zaman gerçekleşsin?',
+      options: [
+        'Belirli Bir Zamanda (Üç Hafta İçinde veya bugün hemen)',
+        'İki ay içinde',
+        'Altı ay içinde'
+      ],
+      inputType: 'single_choice',
+    };
+  }
+
+  /**
+   * Process time collection step
+   */
+  public handleTimeStep(state: SessionState, message: string): {
+    step: string;
+    responseMessage: string;
+    options: string[];
+    inputType: string;
+  } {
+    const timeVal = message.trim();
+    state.collected_data.tarih = timeVal;
     state.step = 'ask_name';
 
     return {
@@ -60,6 +94,7 @@ export class LeadFormService {
     }
 
     state.collected_data.customerName = trimmed;
+    state.collected_data.name = trimmed;
     state.step = 'ask_phone';
 
     return {
@@ -90,6 +125,7 @@ export class LeadFormService {
     }
 
     state.collected_data.customerPhone = cleanPhone;
+    state.collected_data.phone = cleanPhone;
     state.step = 'confirm_form';
 
     return {
