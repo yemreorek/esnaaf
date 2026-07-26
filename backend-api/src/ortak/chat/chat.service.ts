@@ -103,6 +103,17 @@ export class ChatService implements OnModuleInit {
         include: { category: true },
       });
 
+      // Clean up auto-generated demo pending offers
+      await this.prisma.offer.deleteMany({
+        where: {
+          status: 'pending',
+          OR: [
+            { message: { contains: 'Adana genelinde' } },
+            { message: { contains: 'efendim!' } }
+          ]
+        }
+      });
+
       if (pendingJobs.length > 0) {
         console.log(`[ChatService] Backfilling distribution for ${pendingJobs.length} pending jobs...`);
         const { TaleplerProcessor } = require('../../musteri/talepler/talepler.processor');
@@ -3223,6 +3234,17 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     
     // Turkish translations for form keys
     const labels: { [key: string]: string } = {
+      step_su_islem: "Yapılacak İşlem",
+      step_su_alan: "Hizmet Alanı",
+      step_su_acil: "Aciliyet",
+      step_nakliyat_turu: "Nakliyat Türü",
+      step_ev_tipi: "Ev Tipi",
+      step_asansor_durumu: "Asansör Durumu",
+      step_paketleme: "Paketleme Durumu",
+      step_evin_buyuklugu: "Evin Büyüklüğü",
+      step_banyo_sayisi: "Banyo Sayısı",
+      step_temizlik_sikligi: "Temizlik Sıklığı",
+      step_evcil_hayvan: "Evcil Hayvan",
       city: "Şehir",
       district: "İlçe",
       destinationDistrict: "Varış İlçesi",
@@ -3260,7 +3282,13 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     };
 
     const keys = Object.keys(formData);
-    const ignoredKeys = ['name', 'phone', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug', 'details', 'sendToFavoritesOnly', 'devOtpCode', 'hasAskedDetails', 'current_node_id', 'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood', 'graph_labels', 'current_step_id', 'step_history', 'History'];
+    const ignoredKeys = [
+      'name', 'phone', 'customerName', 'customerPhone', 'customer_name', 'customer_phone',
+      'address', 'city', 'district', 'destinationDistrict', 'destinationCity', 'categorySlug',
+      'details', 'sendToFavoritesOnly', 'devOtpCode', 'hasAskedDetails', 'current_node_id',
+      'node_queue', 'is_graph_flow', 'node_history', 'categoryName', 'neighborhood',
+      'graph_labels', 'current_step_id', 'step_history', 'History', 'step_detay_var_mi', 'step_detaylar'
+    ];
 
     keys.forEach(key => {
       if (ignoredKeys.includes(key)) {
@@ -3280,10 +3308,24 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
       }
     });
 
-    // Append raw details text at the bottom if provided
+    // Append raw details text at the bottom if provided (filtering out any leaked technical keys or phone numbers)
     if (formData.details && formData.details !== 'Detay girilmedi.' && formData.details.trim() !== '') {
-      lines.push(`\n📝 Müşteri Açıklaması:`);
-      lines.push(`"${formData.details}"`);
+      const cleanDetails = formData.details
+        .split('\n')
+        .filter((l: string) => {
+          const lower = l.toLowerCase().trim();
+          return !lower.includes('customername:') &&
+                 !lower.includes('customerphone:') &&
+                 !lower.includes('address:') &&
+                 !lower.includes('step_detay_var_mi:') &&
+                 !lower.includes('step_detaylar:');
+        })
+        .join('\n')
+        .trim();
+
+      if (cleanDetails && !lines.includes(cleanDetails)) {
+        lines.push(`\nMüşteri Açıklaması:\n"${cleanDetails}"`);
+      }
     }
 
     return lines.length > 0 ? lines.join('\n') : 'Detay belirtilmedi.';

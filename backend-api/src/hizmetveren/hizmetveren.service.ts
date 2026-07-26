@@ -114,12 +114,40 @@ export class HizmetverenService {
       });
 
       const formData = job.form_data as any;
+      const rawDetails = formData.details || '';
+      const cleanDetails = rawDetails
+        .split('\n')
+        .filter((l: string) => {
+          const lower = l.toLowerCase().trim();
+          return !lower.includes('customername:') &&
+                 !lower.includes('customerphone:') &&
+                 !lower.includes('address:') &&
+                 !lower.includes('step_detay_var_mi:') &&
+                 !lower.includes('step_detaylar:');
+        })
+        .map((l: string) => {
+          let line = l;
+          line = line.replace(/step_su_islem/gi, 'Yapılacak İşlem');
+          line = line.replace(/step_su_alan/gi, 'Hizmet Alanı');
+          line = line.replace(/step_su_acil/gi, 'Aciliyet');
+          line = line.replace(/step_nakliyat_turu/gi, 'Nakliyat Türü');
+          line = line.replace(/step_ev_tipi/gi, 'Ev Tipi');
+          line = line.replace(/step_asansor_durumu/gi, 'Asansör Durumu');
+          line = line.replace(/step_paketleme/gi, 'Paketleme Durumu');
+          line = line.replace(/step_evin_buyuklugu/gi, 'Evin Büyüklüğü');
+          line = line.replace(/step_banyo_sayisi/gi, 'Banyo Sayısı');
+          line = line.replace(/step_temizlik_sikligi/gi, 'Temizlik Sıklığı');
+          line = line.replace(/step_evcil_hayvan/gi, 'Evcil Hayvan');
+          return line;
+        })
+        .join('\n')
+        .trim();
 
       gelenIsler.push({
         id: job.id,
         categoryName: job.category.name,
         district: formatFullLocation(formData),
-        details: formData.details || '',
+        details: cleanDetails,
         name: formData.name || 'Müşteri',
         created_at: job.created_at,
         viewerCount,
@@ -840,6 +868,35 @@ export class HizmetverenService {
 
     return activeOffers.map((o) => {
       const formData = o.job.form_data as any;
+      const rawDetails = formData.details || '';
+      const cleanDetails = rawDetails
+        .split('\n')
+        .filter((l: string) => {
+          const lower = l.toLowerCase().trim();
+          return !lower.includes('customername:') &&
+                 !lower.includes('customerphone:') &&
+                 !lower.includes('address:') &&
+                 !lower.includes('step_detay_var_mi:') &&
+                 !lower.includes('step_detaylar:');
+        })
+        .map((l: string) => {
+          let line = l;
+          line = line.replace(/step_su_islem/gi, 'Yapılacak İşlem');
+          line = line.replace(/step_su_alan/gi, 'Hizmet Alanı');
+          line = line.replace(/step_su_acil/gi, 'Aciliyet');
+          line = line.replace(/step_nakliyat_turu/gi, 'Nakliyat Türü');
+          line = line.replace(/step_ev_tipi/gi, 'Ev Tipi');
+          line = line.replace(/step_asansor_durumu/gi, 'Asansör Durumu');
+          line = line.replace(/step_paketleme/gi, 'Paketleme Durumu');
+          line = line.replace(/step_evin_buyuklugu/gi, 'Evin Büyüklüğü');
+          line = line.replace(/step_banyo_sayisi/gi, 'Banyo Sayısı');
+          line = line.replace(/step_temizlik_sikligi/gi, 'Temizlik Sıklığı');
+          line = line.replace(/step_evcil_hayvan/gi, 'Evcil Hayvan');
+          return line;
+        })
+        .join('\n')
+        .trim();
+
       return {
         id: o.id,
         price: Number(o.price),
@@ -851,7 +908,7 @@ export class HizmetverenService {
           id: o.job.id,
           categoryName: o.job.category.name,
           district: formatFullLocation(formData),
-          details: formData.details || '',
+          details: cleanDetails,
           name: formData.name || 'Müşteri',
           status: o.job.status,
         },

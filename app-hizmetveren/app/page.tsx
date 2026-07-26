@@ -162,10 +162,41 @@ export function formatRelativeTime(dateString: string): string {
 
 export function formatDetails(text?: string): string {
   if (!text) return '';
-  return text.split(/[•\n]+/)
+  return text
+    .split(/[•\n]+/)
     .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .map(line => `• ${line}`)
+    .filter(line => {
+      const lower = line.toLowerCase();
+      return line.length > 0 &&
+             !lower.startsWith('customername:') &&
+             !lower.startsWith('customerphone:') &&
+             !lower.startsWith('customer_name:') &&
+             !lower.startsWith('customer_phone:') &&
+             !lower.startsWith('address:') &&
+             !lower.startsWith('step_detay_var_mi:') &&
+             !lower.startsWith('step_detaylar:');
+    })
+    .map(line => {
+      let l = line;
+      l = l.replace(/^step_su_islem:/gi, 'Yapılacak İşlem:');
+      l = l.replace(/^step_su_alan:/gi, 'Hizmet Alanı:');
+      l = l.replace(/^step_su_acil:/gi, 'Aciliyet:');
+      l = l.replace(/^step_nakliyat_turu:/gi, 'Nakliyat Türü:');
+      l = l.replace(/^step_ev_tipi:/gi, 'Ev Tipi:');
+      l = l.replace(/^step_asansor_durumu:/gi, 'Asansör Durumu:');
+      l = l.replace(/^step_paketleme:/gi, 'Paketleme Durumu:');
+      l = l.replace(/^step_evin_buyuklugu:/gi, 'Evin Büyüklüğü:');
+      l = l.replace(/^step_banyo_sayisi:/gi, 'Banyo Sayısı:');
+      l = l.replace(/^step_temizlik_sikligi:/gi, 'Temizlik Sıklığı:');
+      l = l.replace(/^step_evcil_hayvan:/gi, 'Evcil Hayvan:');
+      if (l.startsWith('step_')) {
+        const parts = l.split(':');
+        const key = parts[0].replace('step_', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        const val = parts.slice(1).join(':');
+        l = `${key}:${val}`;
+      }
+      return `• ${l}`;
+    })
     .join('\n');
 }
 
