@@ -968,6 +968,11 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
   // Connect to Socket.io globally on mount and listen to events
   useEffect(() => {
     const authUser = getAuthUser();
+    if (authUser) {
+      setUser(authUser);
+      setProfileName(authUser.name || '');
+      setProfileEmail(authUser.email || '');
+    }
     if (!authUser) return;
 
     console.log("[Dashboard WS] Connecting global socket");
@@ -1268,6 +1273,17 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
       if (res.ok) {
         const data = await res.json();
         setRequests(data);
+
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const jobIdParam = urlParams.get('jobId');
+          if (jobIdParam && Array.isArray(data)) {
+            const targetReq = data.find((r: any) => r.id === jobIdParam);
+            if (targetReq) {
+              setSelectedRequest(targetReq);
+            }
+          }
+        }
       }
     } catch (err) {
       console.error("Fetch requests failed:", err);

@@ -408,6 +408,33 @@ export class ChatService {
 
     if (state.step === 'otp_verification') {
       const result = this.leadFormService.handleOtpStep(state, filteredMessage);
+
+      let seeker: any = null;
+      if (state.collected_data.phone) {
+        const cleanPhone = state.collected_data.phone.replace(/\D/g, '');
+        const customerName = state.collected_data.customerName || state.collected_data.name || 'Müşteri';
+        seeker = await this.prisma.user.findFirst({
+          where: { phone: encryptPhone(cleanPhone) },
+        });
+        if (!seeker) {
+          seeker = await this.prisma.user.create({
+            data: {
+              name: sanitizeForWin1254(customerName),
+              phone: encryptPhone(cleanPhone),
+              phone_masked: maskPhone(cleanPhone),
+              role: 'service_seeker',
+              is_active: true,
+              kvkk_consent: true,
+            },
+          });
+        } else if (customerName && customerName !== 'Müşteri' && customerName !== 'Misafir Kullanıcı' && seeker.name !== customerName) {
+          seeker = await this.prisma.user.update({
+            where: { id: seeker.id },
+            data: { name: sanitizeForWin1254(customerName) },
+          });
+        }
+      }
+
       state.messages.push({ role: 'assistant', content: result.responseMessage });
       await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
       await this.trackTokens(sessionKey, tokensUsed);
@@ -417,6 +444,8 @@ export class ChatService {
         collected_data: state.collected_data,
         options: result.options,
         inputType: result.inputType,
+        sessionMigrated: !!seeker,
+        user: seeker ? { id: seeker.id, name: seeker.name, role: seeker.role, phone: seeker.phone } : undefined,
       };
     }
 
@@ -434,19 +463,25 @@ export class ChatService {
         }
         if (!seeker && state.collected_data.phone) {
           const cleanPhone = state.collected_data.phone.replace(/\D/g, '');
+          const customerName = state.collected_data.customerName || state.collected_data.name || 'Müşteri';
           seeker = await this.prisma.user.findFirst({
             where: { phone: encryptPhone(cleanPhone) },
           });
           if (!seeker) {
             seeker = await this.prisma.user.create({
               data: {
-                name: sanitizeForWin1254(state.collected_data.name || state.collected_data.customerName || 'Müşteri'),
+                name: sanitizeForWin1254(customerName),
                 phone: encryptPhone(cleanPhone),
                 phone_masked: maskPhone(cleanPhone),
                 role: 'service_seeker',
                 is_active: true,
                 kvkk_consent: true,
               },
+            });
+          } else if (customerName && customerName !== 'Müşteri' && customerName !== 'Misafir Kullanıcı' && seeker.name !== customerName) {
+            seeker = await this.prisma.user.update({
+              where: { id: seeker.id },
+              data: { name: sanitizeForWin1254(customerName) },
             });
           }
         }
@@ -464,7 +499,7 @@ export class ChatService {
             form_data: sanitizeObjectForWin1254({
               ...state.collected_data,
               details: this.generateRequestSummary(state.collected_data),
-              name: state.collected_data.name || 'Müşteri',
+              name: state.collected_data.name || state.collected_data.customerName || seeker.name || 'Müşteri',
               city: state.collected_data.city || 'Adana',
               district: state.collected_data.district || 'Seyhan',
             }),
@@ -473,7 +508,7 @@ export class ChatService {
         });
 
         state.step = 'completed';
-        const responseMessage = `Talebiniz başarıyla oluşturuldu! (Talep #${job.id}). Teklifleriniz hazırlanıyor, teklif sayfasına yönlendiriliyorsunuz...`;
+        const responseMessage = `Talebiniz başarıyla oluşturuldu! (Talep #${job.id}). Teklifleriniz hazırlanıyor, teklif kontrol paneline yönlendiriliyorsunuz...`;
         state.messages.push({ role: 'assistant', content: responseMessage });
         await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
         await this.trackTokens(sessionKey, tokensUsed);
@@ -483,7 +518,9 @@ export class ChatService {
           responseMessage,
           collected_data: state.collected_data,
           jobId: job.id,
-          redirectUrl: `/talep/${job.id}`,
+          sessionMigrated: true,
+          user: { id: seeker.id, name: seeker.name, role: seeker.role, phone: seeker.phone },
+          redirectUrl: `/tekliflerim?jobId=${job.id}`,
         };
       }
     }

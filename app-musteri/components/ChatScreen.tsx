@@ -869,12 +869,14 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         },
       ]);
 
-      // Store JWT tokens if session has migrated (OTP verified)
-      if (data.sessionMigrated && data.accessToken && data.accessToken !== 'undefined' && data.accessToken !== 'null') {
+      // Store JWT tokens & user info if session has migrated or user returned
+      if (data.user) {
         localStorage.setItem("esnaaf_is_logged_in", 'true');
-        localStorage.setItem("esnaaf_access_token", data.accessToken);
-        localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
-        localStorage.setItem("esnaaf_user", JSON.stringify(data.user || null));
+        localStorage.setItem("esnaaf_user", JSON.stringify(data.user));
+        if (data.accessToken && data.accessToken !== 'undefined' && data.accessToken !== 'null') {
+          localStorage.setItem("esnaaf_access_token", data.accessToken);
+          localStorage.setItem("esnaaf_refresh_token", data.refreshToken || "");
+        }
         console.log("[ChatScreen] Auto-logged in service seeker:", data.user);
       }
 
