@@ -420,6 +420,69 @@ export class ChatService {
       };
     }
 
+    if (state.step === 'confirm_form') {
+      if (filteredMessage.toLowerCase().includes('onayla') || filteredMessage.toLowerCase().includes('evet') || filteredMessage.toLowerCase().includes('doğru')) {
+        const categoryName = state.collected_data.categoryName || this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
+        let category = await this.prisma.category.findUnique({
+          where: { name: categoryName },
+        });
+        if (!category) category = await this.prisma.category.findFirst();
+
+        let seeker: any = null;
+        if (userId) {
+          seeker = await this.prisma.user.findUnique({ where: { id: userId } });
+        }
+        if (!seeker && state.collected_data.phone) {
+          const cleanPhone = state.collected_data.phone.replace(/\D/g, '');
+          seeker = await this.prisma.user.findFirst({
+            where: { phone: encryptPhone(cleanPhone) },
+          });
+          if (!seeker) {
+            seeker = await this.prisma.user.create({
+              data: {
+                name: state.collected_data.name || state.collected_data.customerName || 'Müşteri',
+                phone: encryptPhone(cleanPhone),
+                role: 'SEEKER',
+              },
+            });
+          }
+        }
+
+        if (!seeker) {
+          throw new BadRequestException('Müşteri kaydı oluşturulamadı.');
+        }
+
+        const job = await this.prisma.serviceRequest.create({
+          data: {
+            seeker_id: seeker.id,
+            category_id: category.id,
+            form_data: sanitizeObjectForWin1254({
+              ...state.collected_data,
+              details: this.generateRequestSummary(state.collected_data),
+              name: state.collected_data.name || 'Müşteri',
+              city: state.collected_data.city || 'Adana',
+              district: state.collected_data.district || 'Seyhan',
+            }),
+            status: 'pending',
+          },
+        });
+
+        state.step = 'completed';
+        const responseMessage = `Talebiniz başarıyla oluşturuldu! (Talep #${job.id}). Teklifleriniz hazırlanıyor, teklif sayfasına yönlendiriliyorsunuz...`;
+        state.messages.push({ role: 'assistant', content: responseMessage });
+        await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
+        await this.trackTokens(sessionKey, tokensUsed);
+
+        return {
+          step: 'completed',
+          responseMessage,
+          collected_data: state.collected_data,
+          jobId: job.id,
+          redirectUrl: `/talep/${job.id}`,
+        };
+      }
+    }
+
     // --- 2. FAST PATH FOR DETERMINISTIC CATEGORY QUESTION FLOW ---
     let slug = state.collected_data.categorySlug;
     if (!slug && (state.step === 'greeting' || state.step === 'category_detection')) {

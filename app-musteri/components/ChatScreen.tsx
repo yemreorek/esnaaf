@@ -883,12 +883,14 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         const foundJobId = data.jobId || (data.responseMessage.match(/#([a-fA-F0-9-]{36})/i)?.[1] || "mock-job-uuid-12345");
         setJobId(foundJobId);
 
-        // Redirect to Seeker Dashboard after a brief delay
-        if (onJobCompleted) {
-          setTimeout(() => {
+        // Redirect to Seeker Dashboard / Proposal page after a brief delay
+        setTimeout(() => {
+          if (onJobCompleted) {
             onJobCompleted(foundJobId);
-          }, 1500);
-        }
+          } else {
+            router.push(data.redirectUrl || `/talep/${foundJobId}`);
+          }
+        }, 1200);
       }
     } catch (err: any) {
       console.error("Message send error:", err);
