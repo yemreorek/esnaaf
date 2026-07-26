@@ -1,6 +1,14 @@
 # Esnaaf Geliştirme Günlüğü (log.md)
  
-Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
+Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
+
+## 2026-07-26 feat | Talep Oluşturma Akışına 3 Şıklı Zaman Adımı Entegrasyonu (`ask_time`) (Adım 55)
+
+- **UX İhtiyacı:** Konum / İlçe seçildikten sonra Ad-Soyad sorma adımına geçmeden önce müşteriye hizmetin ne zaman yapılacağını soran 3 butonlu zaman adımının (`"Talebiniz ne zaman gerçekleşsin?"`) çalıştırılması.
+- **Yapılan Uygulama:**
+  - `LeadFormService` servisine `handleTimeStep` metodu eklendi (`backend-api/src/ortak/chat/lead-form.service.ts`).
+  - Adres seçildikten sonra oturum adımı `ask_time`'a yönlendirildi ve 3 şık (`"Belirli Bir Zamanda..."`, `"İki ay içinde"`, `"Altı ay içinde"`) buton olarak tanımlandı.
+  - Zaman seçimi tamamlandıktan sonra sırasıyla `ask_name` (Ad-Soyad), `ask_phone` (Telefon) ve `confirm_form` (Onay) adımlarına geçiş kesinleştirildi (`b0ad7e2`).
 
 ## 2026-07-26 feat | Tüm Hizmet Kategorilerine 2 Seçenekli Detay Karar Adımı Entegrasyonu (Adım 54)
 
