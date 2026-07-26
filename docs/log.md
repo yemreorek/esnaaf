@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme ve altyapı çalışmalarının kaydı.
 
+## 2026-07-26 feat | Tüm Hizmet Kategorilerine 2 Seçenekli Detay Karar Adımı Entegrasyonu (Adım 54)
+
+- **UX İhtiyacı:** Seçenekli sorular bittiğinde doğrudan `"İhtiyacın detayları neler?"` açık uçlu yazım alanının gelmesi yerine kullanıcı deneyimini artırmak adına müşteriye önce *"İhtiyacın detaylarında hizmet verenin bilmesi gereken veya dikkat etmesi gereken bir durum var mı?"* karar sorusunun yöneltilmesi ve 2 buton şıkkı (`"Hayır Yok"`, `"Evet Var"`) sunulması.
+- **Yapılan Uygulama:**
+  - `FlowEngineService` akış motoruna merkezi detay kesicisi (`step_detay_var_mi`) eklendi (`backend-api/src/ortak/chat/flow-engine.service.ts`).
+  - Müşteri `"Hayır Yok"` seçtiğinde oturum doğrudan Konum / İlçe seçimi adımına (`ask_address`) geçer (1 tıkla anında hızlı geçiş).
+  - Müşteri `"Evet Var"` seçtiğinde `"İhtiyacın detayları neler?"` sorusu ekrana gelir ve metin/textarea kutusu açılarak detay girmesi sağlanır.
+  - Bu yapı istisnasız platformdaki tüm 20+ hizmet kategorisi için standartlaştırıldı ve Google Cloud Run ortamına yüklendi (`d4848ec`).
+
 ## 2026-07-26 feat | Çift Modlu (Dual-Engine) Modüler Chat Mimarisi Yeniden Yapılandırılması (Adım 53)
 
 - **Problem:** Monolitik `chat.service.ts` dosyasının 3.400+ satıra ulaşması ve zamanla üzerine eklenen hibrit katmanların (LLM, Dynamic Fallback, Static Flow, Redis State) çakışma ve karmaşıklık yaratması.
