@@ -1983,29 +1983,29 @@ export class HizmetverenService {
       case 'hali-yikama': return 'Halı Yıkama';
       case 'koltuk-yikama':
       case 'evde-koltuk-yikama':
-      case 'evde_koltuk_yikama': return 'Evde Koltuk Yıkama';
+      case 'evde_koltuk_yikama': return 'Koltuk Yıkama';
       case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
-      case 'fayans-doseme': return 'Fayans Döşeme';
-      case 'parke-doseme': return 'Parke Döşeme';
-      case 'hasere-ilaclama': return 'Haşere İlaçlama';
-      case 'bocek-ilaclama': return 'Böcek İlaçlama';
-      case 'kombi-servisi': return 'Kombi Servisi';
-      case 'klima-servisi': return 'Klima Servisi';
-      case 'mantolama': return 'Mantolama';
-      case 'dis-cephe': return 'Dış Cephe';
-      case 'marangoz': return 'Marangoz';
-      case 'mobilya-montaji': return 'Mobilya Montajı';
+      case 'fayans-doseme':
+      case 'parke-doseme': return 'Fayans & Parke Döşeme';
+      case 'hasere-ilaclama':
+      case 'bocek-ilaclama': return 'Haşere & Böcek İlaçlama';
+      case 'kombi-servisi':
+      case 'klima-servisi': return 'Kombi & Klima Bakımı';
+      case 'mantolama':
+      case 'dis-cephe': return 'Mantolama & Dış Cephe';
+      case 'marangoz':
+      case 'mobilya-montaji': return 'Marangoz & Mobilya Montajı';
       case 'ozel-ders': return 'Özel Ders';
-      case 'cam-balkon': return 'Cam Balkon';
-      case 'pvc-pencere': return 'PVC Pencere';
-      case 'ofis-temizligi': return 'Ofis Temizliği';
-      case 'is-yeri-temizligi': return 'İş Yeri Temizliği';
+      case 'cam-balkon':
+      case 'pvc-pencere': return 'Cam Balkon & PVC Pencere';
+      case 'ofis-temizligi':
+      case 'is-yeri-temizligi': return 'Ofis & İş Yeri Temizliği';
       case 'dogalgaz-tesisati': return 'Doğalgaz Tesisatı';
-      case 'ic-mimar': return 'İç Mimar';
-      case 'dekorasyon': return 'Dekorasyon';
+      case 'ic-mimar':
+      case 'dekorasyon': return 'İç Mimar & Dekorasyon';
       case 'fotografci': return 'Fotoğrafçı';
-      case 'organizasyon': return 'Organizasyon';
-      case 'etkinlik': return 'Etkinlik';
+      case 'organizasyon':
+      case 'etkinlik': return 'Organizasyon & Etkinlik';
       default: return 'Genel Hizmet';
     }
   }

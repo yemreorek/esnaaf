@@ -521,10 +521,7 @@ export class ChatService implements OnModuleInit {
       const isConfirmation = cleanInput.includes('onayla') || cleanInput.includes('evet') || cleanInput.includes('doğru') || cleanInput === '1' || cleanInput === 'onay';
       if (isConfirmation) {
         const categoryName = state.collected_data.categoryName || this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
-        let category = await this.prisma.category.findUnique({
-          where: { name: categoryName },
-        });
-        if (!category) category = await this.prisma.category.findFirst();
+        let category = await this.findCategoryByNameOrSlug(categoryName, state.collected_data.categorySlug);
 
         let seeker: any = null;
         if (userId) {
@@ -849,13 +846,7 @@ export class ChatService implements OnModuleInit {
         if (state.step === 'confirm_form') {
           if (message.toLowerCase().includes('onayla') || message.toLowerCase().includes('evet') || message.toLowerCase().includes('doğru')) {
             const categoryName = this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
-            let category = await this.prisma.category.findUnique({
-              where: { name: categoryName },
-            });
-
-            if (!category) {
-              category = await this.prisma.category.findFirst();
-            }
+            let category = await this.findCategoryByNameOrSlug(categoryName, state.collected_data.categorySlug);
 
             if (!category) {
               throw new BadRequestException('Hizmet kategorisi veritabanında bulunamadı.');
@@ -1882,13 +1873,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       } else if (state.step === 'confirm_form') {
         if (message.toLowerCase().includes('onayla') || message.toLowerCase().includes('evet') || message.toLowerCase().includes('doğru')) {
           const categoryName = this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
-          let category = await this.prisma.category.findUnique({
-            where: { name: categoryName },
-          });
-
-          if (!category) {
-            category = await this.prisma.category.findFirst();
-          }
+          let category = await this.findCategoryByNameOrSlug(categoryName, state.collected_data.categorySlug);
 
           if (!category) {
             throw new BadRequestException('Hizmet kategorisi veritabanında bulunamadı.');
@@ -2061,12 +2046,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           if (message.toLowerCase().includes('onayla') || message.toLowerCase().includes('evet') || message.toLowerCase().includes('doğru')) {
             try {
               const categoryName = this.getCategoryName(state.collected_data.categorySlug || 'ev-temizligi');
-              let category = await this.prisma.category.findUnique({
-                where: { name: categoryName },
-              });
-              if (!category) {
-                category = await this.prisma.category.findFirst();
-              }
+              let category = await this.findCategoryByNameOrSlug(categoryName, state.collected_data.categorySlug);
               if (!category) {
                 fallbackResponse = 'Hizmet kategorisi bulunamadı. Lütfen tekrar deneyin.';
               } else {
@@ -2332,10 +2312,32 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     return { district: null, city: null };
   }
 
+  private async findCategoryByNameOrSlug(categoryName: string, categorySlug?: string) {
+    let category = await this.prisma.category.findUnique({
+      where: { name: categoryName },
+    });
+    if (!category && categoryName) {
+      const keyword = categoryName.split(' ')[0];
+      category = await this.prisma.category.findFirst({
+        where: { name: { contains: keyword, mode: 'insensitive' } },
+      });
+    }
+    if (!category && categorySlug) {
+      const slugKey = categorySlug.split('-')[0];
+      category = await this.prisma.category.findFirst({
+        where: { name: { contains: slugKey, mode: 'insensitive' } },
+      });
+    }
+    if (!category) {
+      category = await this.prisma.category.findFirst();
+    }
+    return category;
+  }
+
   private getCategoryName(slug: string | null): string {
     switch (slug) {
-      case 'ev-temizligi': return 'Ev Temizliği';
-      case 'bos-ev-temizligi': return 'Boş Ev Temizliği';
+      case 'ev-temizligi':
+      case 'bos-ev-temizligi': return 'Ev Temizliği';
       case 'boya-badana': return 'Boya Badana';
       case 'su-tesisati': return 'Su Tesisatı';
       case 'elektrik-tesisati': return 'Elektrik Tesisatı';
@@ -2344,28 +2346,28 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
       case 'hali-yikama': return 'Halı Yıkama';
       case 'koltuk-yikama': return 'Koltuk Yıkama';
       case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
-      case 'fayans-doseme': return 'Fayans Döşeme';
-      case 'parke-doseme': return 'Parke Döşeme';
-      case 'hasere-ilaclama': return 'Haşere İlaçlama';
-      case 'bocek-ilaclama': return 'Böcek İlaçlama';
-      case 'kombi-servisi': return 'Kombi Servisi';
-      case 'klima-servisi': return 'Klima Servisi';
-      case 'mantolama': return 'Mantolama';
-      case 'dis-cephe': return 'Dış Cephe';
-      case 'marangoz': return 'Marangoz';
-      case 'mobilya-montaji': return 'Mobilya Montajı';
+      case 'fayans-doseme':
+      case 'parke-doseme': return 'Fayans & Parke Döşeme';
+      case 'hasere-ilaclama':
+      case 'bocek-ilaclama': return 'Haşere & Böcek İlaçlama';
+      case 'kombi-servisi':
+      case 'klima-servisi': return 'Kombi & Klima Bakımı';
+      case 'mantolama':
+      case 'dis-cephe': return 'Mantolama & Dış Cephe';
+      case 'marangoz':
+      case 'mobilya-montaji': return 'Marangoz & Mobilya Montajı';
       case 'ozel-ders': return 'Özel Ders';
-      case 'cam-balkon': return 'Cam Balkon';
-      case 'pvc-pencere': return 'PVC Pencere';
-      case 'ofis-temizligi': return 'Ofis Temizliği';
-      case 'is-yeri-temizligi': return 'İş Yeri Temizliği';
+      case 'cam-balkon':
+      case 'pvc-pencere': return 'Cam Balkon & PVC Pencere';
+      case 'ofis-temizligi':
+      case 'is-yeri-temizligi': return 'Ofis & İş Yeri Temizliği';
       case 'dogalgaz-tesisati': return 'Doğalgaz Tesisatı';
-      case 'ic-mimar': return 'İç Mimar';
-      case 'dekorasyon': return 'Dekorasyon';
+      case 'ic-mimar':
+      case 'dekorasyon': return 'İç Mimar & Dekorasyon';
       case 'fotografci': return 'Fotoğrafçı';
-      case 'organizasyon': return 'Organizasyon';
-      case 'etkinlik': return 'Etkinlik';
-      default: return 'Genel Hizmet';
+      case 'organizasyon':
+      case 'etkinlik': return 'Organizasyon & Etkinlik';
+      default: return 'Ev Temizliği';
     }
   }
 

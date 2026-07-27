@@ -172,25 +172,34 @@ export class FavoriteService {
         case 'Halı Yıkama': return 'hali-yikama';
         case 'Koltuk Yıkama': return 'koltuk-yikama';
         case 'İnşaat / Tadilat Sonrası Temizlik': return 'insaat-sonrasi-temizlik';
+        case 'Fayans & Parke Döşeme':
         case 'Fayans Döşeme': return 'fayans-doseme';
         case 'Parke Döşeme': return 'parke-doseme';
+        case 'Haşere & Böcek İlaçlama':
         case 'Haşere İlaçlama': return 'hasere-ilaclama';
         case 'Böcek İlaçlama': return 'bocek-ilaclama';
+        case 'Kombi & Klima Bakımı':
         case 'Kombi Servisi': return 'kombi-servisi';
         case 'Klima Servisi': return 'klima-servisi';
+        case 'Mantolama & Dış Cephe':
         case 'Mantolama': return 'mantolama';
         case 'Dış Cephe': return 'dis-cephe';
+        case 'Marangoz & Mobilya Montajı':
         case 'Marangoz': return 'marangoz';
         case 'Mobilya Montajı': return 'mobilya-montaji';
         case 'Özel Ders': return 'ozel-ders';
+        case 'Cam Balkon & PVC Pencere':
         case 'Cam Balkon': return 'cam-balkon';
         case 'PVC Pencere': return 'pvc-pencere';
+        case 'Ofis & İş Yeri Temizliği':
         case 'Ofis Temizliği': return 'ofis-temizligi';
         case 'İş Yeri Temizliği': return 'is-yeri-temizligi';
         case 'Doğalgaz Tesisatı': return 'dogalgaz-tesisati';
+        case 'İç Mimar & Dekorasyon':
         case 'İç Mimar': return 'ic-mimar';
         case 'Dekorasyon': return 'dekorasyon';
         case 'Fotoğrafçı': return 'fotografci';
+        case 'Organizasyon & Etkinlik':
         case 'Organizasyon': return 'organizasyon';
         case 'Etkinlik': return 'etkinlik';
         default: return 'genel-hizmet';
