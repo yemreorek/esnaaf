@@ -372,27 +372,27 @@ const OpportunityCard = ({
       detailsLower.includes("kaçak") ||
       detailsLower.includes("bugün");
 
-    if (isUrgent || rawAcil === "ACİL İŞ") {
-      return { text: "🚨 ACİL İŞ", type: "urgent" };
+    if (isUrgent || rawAcil === "ACİL İŞ" || rawAcil === "ACİL") {
+      return { text: "ACİL", type: "urgent" };
     }
 
     if (lowerAcil.includes("yüksek") || detailsLower.includes("yüksek")) {
-      return { text: "⚡ YÜKSEK ÖNCELİK", type: "high" };
+      return { text: "YÜKSEK", type: "high" };
     }
 
     if (lowerAcil.includes("plan") || detailsLower.includes("planlı")) {
-      return { text: "📅 PLANLI İŞ", type: "planned" };
+      return { text: "PLANLI", type: "planned" };
     }
 
-    if (rawAcil && rawAcil !== "STANDART İŞ") {
+    if (rawAcil && rawAcil !== "STANDART İŞ" && rawAcil !== "STANDART") {
       return { text: rawAcil.toUpperCase(), type: "standard" };
     }
 
-    if (jobItem.categoryName?.includes("Temizlik")) return { text: "🚨 ACİL TALEP", type: "urgent" };
-    if (jobItem.categoryName?.includes("Nakliyat")) return { text: "📅 PLANLI İŞ", type: "planned" };
-    if (jobItem.categoryName?.includes("Tadilat")) return { text: "⚡ YÜKSEK ÖNCELİK", type: "high" };
+    if (jobItem.categoryName?.includes("Temizlik")) return { text: "ACİL", type: "urgent" };
+    if (jobItem.categoryName?.includes("Nakliyat")) return { text: "PLANLI", type: "planned" };
+    if (jobItem.categoryName?.includes("Tadilat")) return { text: "YÜKSEK", type: "high" };
 
-    return { text: "STANDART İŞ", type: "standard" };
+    return { text: "STANDART", type: "standard" };
   };
 
   const { text: badgeText, type: badgeType } = getJobBadgeInfo(job);
@@ -443,10 +443,10 @@ const OpportunityCard = ({
             )}
             <div className="flex flex-col text-left">
               <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono flex items-center gap-1 shadow-sm border ${
-                badgeType === "urgent" ? "bg-red-600 text-white border-red-700 font-extrabold shadow-sm" :
-                badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border-[#c8f252]/30" :
-                badgeType === "planned" ? "bg-slate-100 text-slate-700 border-slate-200/40" : "bg-slate-50 text-slate-500 border-slate-100"
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase mt-1 self-start tracking-widest font-mono inline-flex items-center justify-center border transition-all ${
+                badgeType === "urgent" ? "bg-rose-50 text-rose-600 border-rose-200/90 shadow-xs" :
+                badgeType === "high" ? "bg-[#c8f252]/20 text-[#3f5208] border-[#c8f252]/35" :
+                badgeType === "planned" ? "bg-sky-50 text-sky-700 border-sky-200/80" : "bg-slate-100/80 text-slate-600 border-slate-200/60"
               }`}>
                 {badgeText}
               </span>

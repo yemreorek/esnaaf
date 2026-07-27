@@ -167,7 +167,7 @@ export class HizmetverenService {
   }
 
   private determineUrgency(formData: any, createdAt: Date): string {
-    if (!formData) return 'STANDART İŞ';
+    if (!formData) return 'STANDART';
 
     const rawAcil = (
       formData.aciliyet ||
@@ -178,17 +178,17 @@ export class HizmetverenService {
     ).toString().toLowerCase();
 
     if (rawAcil.includes('acil') || rawAcil.includes('hemen') || rawAcil.includes('taşma') || rawAcil.includes('kaçak') || rawAcil.includes('bugün')) {
-      return 'ACİL İŞ';
+      return 'ACİL';
     }
 
     const detailsText = (formData.details || '').toString().toLowerCase();
     if (detailsText.includes('çok acil') || detailsText.includes('aciliyet: acil') || detailsText.includes('aciliyet: çok acil') || detailsText.includes('acil iş')) {
-      return 'ACİL İŞ';
+      return 'ACİL';
     }
 
     const tarihStr = (formData.tarih || '').toString().toLowerCase();
     if (tarihStr.includes('bugün') || tarihStr.includes('hemen') || tarihStr.includes('aynı gün') || tarihStr.includes('24 saat')) {
-      return 'ACİL İŞ';
+      return 'ACİL';
     }
 
     if (createdAt) {
@@ -199,11 +199,11 @@ export class HizmetverenService {
       const todayStr = `${day} ${month}`.toLowerCase();
 
       if (tarihStr.includes(todayStr)) {
-        return 'ACİL İŞ';
+        return 'ACİL';
       }
     }
 
-    return 'STANDART İŞ';
+    return 'STANDART';
   }
 
   /**
