@@ -3246,14 +3246,18 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
       if (typeof value === 'string' && /^\d+_\d+(?:_plus)?$/.test(value)) {
         value = value.replace('_plus', '+').replace('_', '+');
       }
+      // Strip leaked Müşteri Açıklaması from individual values
+      if (typeof value === 'string' && value.includes('Müşteri Açıklaması:')) {
+        value = value.split(/Müşteri Açıklaması:/i)[0].trim();
+      }
       if (value !== undefined && value !== null && value !== "") {
         lines.push(`• ${label}: ${value}`);
       }
     });
 
-    // Append raw details text at the bottom if provided (filtering out any leaked technical keys or phone numbers)
+    // Append raw details text at the bottom as a dedicated bullet item
     if (formData.details && formData.details !== 'Detay girilmedi.' && formData.details.trim() !== '') {
-      const cleanDetails = formData.details
+      let cleanDetails = formData.details
         .split('\n')
         .filter((l: string) => {
           const lower = l.toLowerCase().trim();
@@ -3264,10 +3268,11 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
                  !lower.includes('step_detaylar:');
         })
         .join('\n')
+        .replace(/^Müşteri Açıklaması:\s*/gi, '')
         .trim();
 
       if (cleanDetails && !lines.includes(cleanDetails)) {
-        lines.push(`\nMüşteri Açıklaması:\n"${cleanDetails}"`);
+        lines.push(`• Müşteri Açıklaması: "${cleanDetails}"`);
       }
     }
 

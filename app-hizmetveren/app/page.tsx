@@ -162,7 +162,11 @@ export function formatRelativeTime(dateString: string): string {
 
 export function formatDetails(text?: string): string {
   if (!text) return '';
-  return text
+  
+  // Separate inline 'Müşteri Açıklaması:' onto a new line if it was appended inline
+  const processedText = text.replace(/(\s*)(Müşteri Açıklaması:|Müşteri Notu:)/gi, '\n$2 ');
+
+  return processedText
     .split(/[•\n]+/)
     .map(line => line.trim())
     .filter(line => {
