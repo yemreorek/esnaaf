@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-07-28 feat | Teklif Kartlarına Yorum Sayısı, Başarılı İş Rozeti ve Güvenlik Rozetleri Entegrasyonu (Adım 55)
+
+- **UX/Güven İhtiyacı:** Müşteri platformunda gelen teklif kartlarında sadece `5.0 / 5.0` yıldızın görünmesi yerine kaç kişinin değerlendirdiğinin netleşmesi, ustanın tecrübesini temsil eden başarılı iş rozetinin ve platform doğrulama rozetlerinin (Kimlik & Vergi Levhası Onaylı) kart üzerinde vurgulanması.
+- **Yapılan Uygulama:**
+  - `app-musteri`: `SeekerDashboard.tsx` bileşenindeki teklif kartı başlığı güncellendi. Yıldız puanının yanına parantez içinde toplam değerlendirme sayısı `★ 5.0 / 5.0 (48 Değerlendirme)` olarak eklendi.
+  - Kart üzerine ustanın platformdaki tecrübesini belirten `✔️ 62 Başarılı İş` rozeti ile güvenilirlik rozetleri (`🛡️ Kimlik Onaylı`, `📜 Vergi Levhası Onaylı`) entegre edildi.
+  - `backend-api`: `TaleplerService` üzerindeki teklif getirme sorgularına (`findAll`, `findOne`) `_count` ilişkileri ve `reviewCount` / `completedJobsCount` veri hesaplamaları eklendi.
+  - Yapılan değişiklikler derlendi, `12d6c7a` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-07-27 feat | Tüm Hizmet Talepleri İçin Maksimum Teklif Limitinin 4'ten 5'e Çıkarılması (Adım 54)
 
 - **İhtiyaç:** Platform genelinde hizmet verenlerden 4 teklif alındığında talebin otomatik kapanması kuralı yerine tüm hizmet alan taleplerinin 5 teklif alacak şekilde sistemin güncellenmesi.

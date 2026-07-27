@@ -3108,14 +3108,14 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                             {Number(offer.provider.avg_rating || 5.0).toFixed(1)} / 5.0
                                           </span>
                                           <span className="text-xs font-extrabold text-slate-500 ml-1">
-                                            ({(offer.provider as any).reviewCount || offer.provider._count?.reviews_received || (offer.provider.user?.name?.includes('Kemal') ? 48 : 12)} Değerlendirme)
+                                            ({(offer.provider as any).reviewCount || (offer.provider as any)._count?.reviews_received || (offer.provider.user?.name?.includes('Kemal') ? 48 : 12)} Değerlendirme)
                                           </span>
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                                           <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-200/80">
                                             <span>✔️</span>
-                                            <span>{(offer.provider as any).completedJobsCount || offer.provider.total_jobs || (offer.provider.user?.name?.includes('Kemal') ? 62 : 18)} Başarılı İş</span>
+                                            <span>{(offer.provider as any).completedJobsCount || (offer.provider as any).total_jobs || (offer.provider.user?.name?.includes('Kemal') ? 62 : 18)} Başarılı İş</span>
                                           </span>
                                           <span className="inline-flex items-center gap-1 bg-slate-100/90 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200/70">
                                             <span>🛡️</span>
