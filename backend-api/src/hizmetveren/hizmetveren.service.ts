@@ -157,13 +157,53 @@ export class HizmetverenService {
         created_at: job.created_at,
         viewerCount,
         butce: formData.butce || null,
-        aciliyet: formData.aciliyet || null,
+        aciliyet: this.determineUrgency(formData, job.created_at),
         offersCount,
         expiresTime,
       });
     }
 
     return gelenIsler;
+  }
+
+  private determineUrgency(formData: any, createdAt: Date): string {
+    if (!formData) return 'STANDART İŞ';
+
+    const rawAcil = (
+      formData.aciliyet ||
+      formData.step_su_acil ||
+      formData.step_acil ||
+      formData.aciliyetTuru ||
+      ''
+    ).toString().toLowerCase();
+
+    if (rawAcil.includes('acil') || rawAcil.includes('hemen') || rawAcil.includes('taşma') || rawAcil.includes('kaçak') || rawAcil.includes('bugün')) {
+      return 'ACİL İŞ';
+    }
+
+    const detailsText = (formData.details || '').toString().toLowerCase();
+    if (detailsText.includes('çok acil') || detailsText.includes('aciliyet: acil') || detailsText.includes('aciliyet: çok acil') || detailsText.includes('acil iş')) {
+      return 'ACİL İŞ';
+    }
+
+    const tarihStr = (formData.tarih || '').toString().toLowerCase();
+    if (tarihStr.includes('bugün') || tarihStr.includes('hemen') || tarihStr.includes('aynı gün') || tarihStr.includes('24 saat')) {
+      return 'ACİL İŞ';
+    }
+
+    if (createdAt) {
+      const cDate = new Date(createdAt);
+      const day = cDate.getDate().toString();
+      const monthsTR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+      const month = monthsTR[cDate.getMonth()];
+      const todayStr = `${day} ${month}`.toLowerCase();
+
+      if (tarihStr.includes(todayStr)) {
+        return 'ACİL İŞ';
+      }
+    }
+
+    return 'STANDART İŞ';
   }
 
   /**

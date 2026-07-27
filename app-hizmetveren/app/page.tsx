@@ -356,20 +356,46 @@ const OpportunityCard = ({
       : (job.created_at ? getRequestExpiryInfo(job.created_at).isExpired : false)
   );
 
-  const badgeText = job.aciliyet || (
-    job.categoryName?.includes("Temizlik") ? "ACİL TALEP" :
-    job.categoryName?.includes("Nakliyat") ? "PLANLI İŞ" :
-    job.categoryName?.includes("Tadilat") ? "YÜKSEK ÖNCELİK" : "STANDART İŞ"
-  );
-  const badgeType = job.aciliyet ? (
-    job.aciliyet.toLowerCase().includes("acil") ? "urgent" :
-    job.aciliyet.toLowerCase().includes("yüksek") ? "high" :
-    job.aciliyet.toLowerCase().includes("plan") ? "planned" : "standard"
-  ) : (
-    job.categoryName?.includes("Temizlik") ? "urgent" :
-    job.categoryName?.includes("Nakliyat") ? "planned" :
-    job.categoryName?.includes("Tadilat") ? "high" : "standard"
-  );
+  const getJobBadgeInfo = (jobItem: any) => {
+    const rawAcil = (jobItem.aciliyet || "").toString();
+    const lowerAcil = rawAcil.toLowerCase();
+    const detailsLower = (jobItem.details || "").toString().toLowerCase();
+
+    // Check if aciliyet or details contains urgency indicators or same-day indicators
+    const isUrgent =
+      lowerAcil.includes("acil") ||
+      lowerAcil.includes("hemen") ||
+      detailsLower.includes("aciliyet: çok acil") ||
+      detailsLower.includes("aciliyet: acil") ||
+      detailsLower.includes("çok acil") ||
+      detailsLower.includes("taşma") ||
+      detailsLower.includes("kaçak") ||
+      detailsLower.includes("bugün");
+
+    if (isUrgent || rawAcil === "ACİL İŞ") {
+      return { text: "🚨 ACİL İŞ", type: "urgent" };
+    }
+
+    if (lowerAcil.includes("yüksek") || detailsLower.includes("yüksek")) {
+      return { text: "⚡ YÜKSEK ÖNCELİK", type: "high" };
+    }
+
+    if (lowerAcil.includes("plan") || detailsLower.includes("planlı")) {
+      return { text: "📅 PLANLI İŞ", type: "planned" };
+    }
+
+    if (rawAcil && rawAcil !== "STANDART İŞ") {
+      return { text: rawAcil.toUpperCase(), type: "standard" };
+    }
+
+    if (jobItem.categoryName?.includes("Temizlik")) return { text: "🚨 ACİL TALEP", type: "urgent" };
+    if (jobItem.categoryName?.includes("Nakliyat")) return { text: "📅 PLANLI İŞ", type: "planned" };
+    if (jobItem.categoryName?.includes("Tadilat")) return { text: "⚡ YÜKSEK ÖNCELİK", type: "high" };
+
+    return { text: "STANDART İŞ", type: "standard" };
+  };
+
+  const { text: badgeText, type: badgeType } = getJobBadgeInfo(job);
 
   const offersCount = job.offersCount || 0;
   const isClosed = offersCount >= 4 || isExpired;
@@ -403,10 +429,11 @@ const OpportunityCard = ({
   };
 
   return (
-    <div 
-      className="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-slate-250 shadow-[0_4px_20px_rgba(15,23,42,0.01)] hover:shadow-md transition-all flex flex-col justify-between gap-5 animate-scale-up text-left"
-    >
-      <div className="space-y-4">
+    <div className={`bg-white rounded-3xl p-5 border transition-all duration-300 relative flex flex-col justify-between gap-4.5 ${
+      isClosed ? "opacity-75 grayscale-[20%] border-slate-200" : "border-slate-100 shadow-xl shadow-slate-100/70 hover:shadow-2xl hover:border-slate-200"
+    }`}>
+      <div className="flex flex-col gap-3">
+        {/* Header */}
         <div className="flex justify-between items-start gap-4">
           <div className="flex items-center gap-3">
             {renderMockupIcon(
@@ -417,7 +444,7 @@ const OpportunityCard = ({
             <div className="flex flex-col text-left">
               <span className="font-extrabold text-sm text-slate-900 leading-snug">{job.categoryName}</span>
               <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase mt-0.5 self-start tracking-wider font-mono flex items-center gap-1 shadow-sm border ${
-                badgeType === "urgent" ? "bg-rose-100/70 text-red-700 border-rose-200/80 font-black" :
+                badgeType === "urgent" ? "bg-red-600 text-white border-red-700 font-extrabold shadow-sm" :
                 badgeType === "high" ? "bg-[#c8f252]/20 text-[#4c630a] border-[#c8f252]/30" :
                 badgeType === "planned" ? "bg-slate-100 text-slate-700 border-slate-200/40" : "bg-slate-50 text-slate-500 border-slate-100"
               }`}>
