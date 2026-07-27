@@ -336,6 +336,8 @@ export function generateTimeOptions() {
     options.push(formatted);
   }
   return options;
+}
+
 export const getCategoryVectorIcon = (categoryName: string, className: string = "w-5 h-5 stroke-[2.2]") => {
   const name = categoryName.toLowerCase();
   
