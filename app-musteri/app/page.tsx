@@ -43,7 +43,7 @@ const categories = [
 
 // Helper function to render a thin, elegant, mono-colored SVG outline icon for categories
 const renderCategoryIcon = (icon: string) => {
-  const baseClass = "w-5 h-5 text-slate-500 shrink-0 stroke-[2.2]";
+  const baseClass = "w-5 h-5 shrink-0 stroke-[2.2]";
   switch (icon) {
     case "🏠": // Ev Temizliği (Clean House Icon)
       return (
