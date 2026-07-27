@@ -1786,9 +1786,10 @@ export default function ProviderDashboard() {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       const jobsData = await jobsRes.json();
-      if (jobsRes.ok) {
-        setJobs(jobsData);
-        addLog(`${jobsData.length} adet yeni gelen iş listelendi.`);
+      if (jobsRes.ok && Array.isArray(jobsData)) {
+        const uniqueJobs = jobsData.filter((job, index, self) => index === self.findIndex((j) => j.id === job.id));
+        setJobs(uniqueJobs);
+        addLog(`${uniqueJobs.length} adet yeni gelen iş listelendi.`);
       }
 
       await fetchUnreadMessages(accessToken);

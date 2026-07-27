@@ -68,6 +68,11 @@ export class HizmetverenService {
         },
       });
 
+      // Deduplicate: If this job has already been added to gelenIsler, skip duplicate responseTime entry
+      if (gelenIsler.some(g => g.id === rt.job_id)) {
+        continue;
+      }
+
       // Eğer iş silindiyse, iptal edildiyse, tamamlandıysa veya usta zaten teklif verdiyse es geç
       if (!job || job.status === 'completed' || job.status === 'cancelled') {
         continue;

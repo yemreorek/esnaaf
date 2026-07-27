@@ -161,13 +161,22 @@ export class TaleplerProcessor {
       }
 
       // Çoklu Şehir Sınır Koruması: Talebin ili ile hizmet verenin ili eşleşmeli
-      if (providerCity.toLowerCase() !== requestCity.toLowerCase()) {
+      const normProviderCity = providerCity.trim().toLocaleLowerCase('tr-TR');
+      const normRequestCity = requestCity.trim().toLocaleLowerCase('tr-TR');
+
+      if (normProviderCity !== normRequestCity && !normRequestCity.includes(normProviderCity)) {
         this.logger.log(`HV ${provider.user?.name || provider.id} şehir uyuşmazlığı nedeniyle dağıtımdan elendi (Talep Şehir: ${requestCity}, HV Şehir: ${providerCity}).`);
         continue;
       }
 
-      // İlçe Koruması: Talebin ilçesi, ustanın hizmet verebileceği ilçeler arasında olmalı
-      if (!providerDistricts.map(d => d.toLowerCase()).includes(requestDistrict.toLowerCase())) {
+      // İlçe Koruması: Talebin ilçesi, ustanın hizmet verebileceği ilçeler arasında olmalı (Fuzzy/Contains aware)
+      const normRequestDist = requestDistrict.trim().toLocaleLowerCase('tr-TR');
+      const isDistrictMatched = providerDistricts.some(d => {
+        const normD = d.trim().toLocaleLowerCase('tr-TR');
+        return normD === normRequestDist || normRequestDist.includes(normD) || normD.includes(normRequestDist);
+      });
+
+      if (!isDistrictMatched) {
         this.logger.log(`HV ${provider.user?.name || provider.id} ilçe uyuşmazlığı nedeniyle dağıtımdan elendi (Talep İlçe: ${requestDistrict}, HV İlçeleri: ${providerDistricts.join(', ')}).`);
         continue;
       }
@@ -294,14 +303,26 @@ export class TaleplerProcessor {
       const notifiedAt = new Date(Date.now() + delayMs);
       const isInstant = notifiedAt.getTime() <= Date.now();
 
-      await this.prisma.responseTime.create({
-        data: {
+      // Deduplication guard to ensure double-matching never inserts duplicate records
+      const existingRt = await this.prisma.responseTime.findFirst({
+        where: {
           provider_id: provider.id,
           job_id: request.id,
-          notified_at: notifiedAt,
-          notified_sent: isInstant,
         },
       });
+
+      if (existingRt) {
+        this.logger.log(`ResponseTime record already exists for provider ${provider.id} on job ${request.id}, skipping duplicate insertion.`);
+      } else {
+        await this.prisma.responseTime.create({
+          data: {
+            provider_id: provider.id,
+            job_id: request.id,
+            notified_at: notifiedAt,
+            notified_sent: isInstant,
+          },
+        });
+      }
 
       const isFav = await this.prisma.favoriteProvider.findUnique({
         where: {
