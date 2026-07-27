@@ -173,6 +173,7 @@ const renderCategoryIcon = (icon: string) => {
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalSearchQuery, setModalSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("marketplace"); // Marketplace highlighted in mockup
   const [notification, setNotification] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -1278,46 +1279,135 @@ export default function Home() {
         </button>
       </nav>
 
-      {/* 🪟 Category Overlay Sheet (Modal) */}
+      {/* 🪟 Akıllı Hizmet Arama & Seçim Modalı */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs animate-fade-in p-0 sm:p-4"
-          onClick={() => setIsModalOpen(false)}
+          className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs animate-fade-in p-3 sm:p-4"
+          onClick={() => {
+            setIsModalOpen(false);
+            setModalSearchQuery("");
+          }}
         >
           <div
-            className="w-full sm:max-w-[560px] bg-white rounded-t-[20px] sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[70vh] animate-slide-up border border-slate-100"
+            className="w-full sm:max-w-[560px] bg-white rounded-3xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[75vh] animate-slide-up border border-slate-100 overflow-hidden mt-12 sm:mt-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-              <div className="flex flex-col">
-                <h3 className="font-bold text-sm md:text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
-                <p className="text-[11px] text-slate-400 font-medium">Lütfen ihtiyaç duyduğunuz iş kolunu seçin</p>
+            {/* Header with Search Input Bar */}
+            <div className="p-5 bg-white border-b border-slate-100 sticky top-0 z-10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">Hangi Hizmete İhtiyacınız Var?</h3>
+                  <p className="text-xs text-slate-400 font-medium">Arayın veya listeden istediğiniz hizmeti seçin</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setModalSearchQuery("");
+                  }}
+                  className="text-slate-400 hover:text-slate-800 p-2 rounded-full hover:bg-slate-100 cursor-pointer transition-all"
+                >
+                  <span className="material-symbols-outlined text-xl">close</span>
+                </button>
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-800 p-1.5 rounded-full hover:bg-slate-50 cursor-pointer transition-all"
-              >
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
+
+              {/* 🔍 Search Input Bar */}
+              <div className="relative flex items-center">
+                <div className="absolute left-4 text-slate-400 pointer-events-none">
+                  <span className="material-symbols-outlined text-xl">search</span>
+                </div>
+                <input
+                  type="text"
+                  autoFocus
+                  value={modalSearchQuery}
+                  onChange={(e) => setModalSearchQuery(e.target.value)}
+                  placeholder="Hizmet arayın... (Örn: Klima, Boya, Nakliyat)"
+                  className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-200 focus:border-[#c8f252] focus:bg-white focus:ring-2 focus:ring-[#c8f252]/20 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all"
+                />
+                {modalSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setModalSearchQuery("")}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-200/60 cursor-pointer transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 🔥 Quick Popular Chips when search is empty */}
+              {!modalSearchQuery && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold text-slate-500">
+                  <span className="shrink-0 text-slate-400 font-bold">Popüler:</span>
+                  {["Ev Temizliği", "Boya Badana", "Nakliyat", "Su Tesisatı", "Klima Servisi"].map((pop, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setModalSearchQuery(pop)}
+                      className="shrink-0 bg-slate-100 hover:bg-[#c8f252]/20 hover:text-slate-900 hover:border-[#c8f252] border border-slate-200 px-3 py-1 rounded-full text-slate-700 transition-all cursor-pointer"
+                    >
+                      {pop}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Grid list of categories */}
-            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-2.5">
-              {categories.map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectCategory(cat.name)}
-                  className="flex items-center gap-3.5 p-3 border border-slate-100 rounded-2xl hover:border-primary hover:bg-primary-container/20 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-sm"
-                >
-                  {renderCategoryIcon(cat.icon)}
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-sm text-slate-800 truncate">
-                      {cat.name}
+            {/* Filtered Autocomplete Result List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {(() => {
+                const normQuery = modalSearchQuery
+                  .toLocaleLowerCase("tr-TR")
+                  .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                  .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u")
+                  .trim();
+
+                const filtered = categories.filter((cat) => {
+                  if (!normQuery) return true;
+                  const catName = cat.name.toLocaleLowerCase("tr-TR")
+                    .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                    .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u");
+                  return catName.includes(normQuery);
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="p-8 text-center space-y-2">
+                      <span className="text-3xl">🔍</span>
+                      <h4 className="font-bold text-slate-800 text-sm">Aradığınız kriterde hizmet bulunamadı</h4>
+                      <p className="text-xs text-slate-400">Farklı bir arama kelimesi yazmayı veya popüler kategorileri seçmeyi deneyin.</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((cat, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setModalSearchQuery("");
+                      handleSelectCategory(cat.name);
+                    }}
+                    className="flex items-center justify-between p-3.5 border border-slate-150 hover:border-[#c8f252] hover:bg-[#c8f252]/10 rounded-2xl text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      {renderCategoryIcon(cat.icon)}
+                      <div className="flex flex-col">
+                        <span className="font-extrabold text-sm text-slate-850 group-hover:text-slate-950">
+                          {cat.name}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">
+                          Soru-cevap başlat ve teklif topla
+                        </span>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-800 text-lg group-hover:translate-x-1 transition-all">
+                      arrow_forward
                     </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ));
+              })()}
             </div>
           </div>
         </div>

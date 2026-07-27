@@ -350,33 +350,34 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
 
   const categories = [
-    { name: "Ev Temizliği", icon: "🏠" },
-    { name: "Boya Badana", icon: "🎨" },
-    { name: "Nakliyat", icon: "📦" },
-    { name: "Su Tesisatı", icon: "🔧" },
-    { name: "Elektrik Tesisatı", icon: "⚡" },
-    { name: "Ev Tadilat", icon: "🔨" },
-    { name: "Halı Yıkama", icon: "🧼" },
-    { name: "Koltuk Yıkama", icon: "🛋️" },
-    { name: "Tadilat Sonrası Temizlik", icon: "🧹" },
-    { name: "Fayans Döşeme", icon: "🧱" },
-    { name: "Parke Döşeme", icon: "🪵" },
-    { name: "Haşere İlaçlama", icon: "🐜" },
-    { name: "Böcek İlaçlama", icon: "🪲" },
-    { name: "Kombi Servisi", icon: "🔥" },
-    { name: "Klima Servisi", icon: "❄️" },
-    { name: "Mantolama", icon: "🏢" },
-    { name: "Marangoz", icon: "🪚" },
-    { name: "Mobilya Montajı", icon: "🪑" },
-    { name: "Özel Ders", icon: "📚" },
-    { name: "Cam Balkon", icon: "🪟" },
-    { name: "PVC Pencere", icon: "🪟" },
-    { name: "Ofis Temizliği", icon: "🏢" },
-    { name: "Doğalgaz Tesisatı", icon: "🔥" },
-    { name: "İç Mimar", icon: "📐" },
-    { name: "Organizasyon", icon: "🎉" }
+    { name: "Ev Temizliği", icon: "🏠", keywords: ["temizlik", "ev", "gündelikçi", "günlük", "hijyen"] },
+    { name: "Boya Badana", icon: "🎨", keywords: ["boya", "badana", "duvar", "boyacı", "tavan", "badana işleri"] },
+    { name: "Nakliyat", icon: "📦", keywords: ["nakliye", "taşınma", "evden eve", "kamyon", "eşya taşıma", "şehirlerarası"] },
+    { name: "Su Tesisatı", icon: "🔧", keywords: ["tesisat", "su", "musluk", "gider", "borular", "tıkanıklık", "sucu"] },
+    { name: "Elektrik Tesisatı", icon: "⚡", keywords: ["elektrik", "priz", "sigorta", "avize", "kablo", "elektrikçi"] },
+    { name: "Ev Tadilat", icon: "🔨", keywords: ["tadilat", "dekorasyon", "yenileme", "inşaat", "anahtar teslim"] },
+    { name: "Halı Yıkama", icon: "🧼", keywords: ["halı", "yıkama", "kilim", "overlok"] },
+    { name: "Koltuk Yıkama", icon: "🛋️", keywords: ["koltuk", "çekyat", "berjer", "yatak yıkama", "döşeme"] },
+    { name: "Tadilat Sonrası Temizlik", icon: "🧹", keywords: ["inşaat sonrası", "dükkan temizliği", "kaba temizlik", "detaylı"] },
+    { name: "Fayans Döşeme", icon: "🧱", keywords: ["fayans", "kalebodur", "seramik", "banyo", "mutfak fayans"] },
+    { name: "Parke Döşeme", icon: "🪵", keywords: ["parke", "laminat", "süpürgelik", "zemin döşeme"] },
+    { name: "Haşere İlaçlama", icon: "🐜", keywords: ["haşere", "ilaçlama", "dezenfekte", "akrep", "pire"] },
+    { name: "Böcek İlaçlama", icon: "🪲", keywords: ["böcek", "hamam böceği", "karafatma", "fare", "pire"] },
+    { name: "Kombi Servisi", icon: "🔥", keywords: ["kombi", "petek temizleme", "kalorifer", "ısıtma", "bakım", "arıza"] },
+    { name: "Klima Servisi", icon: "❄️", keywords: ["klima", "montaj", "gaz dolumu", "sökme", "tamir", "soğutma", "temizliği"] },
+    { name: "Mantolama", icon: "🏢", keywords: ["mantolama", "yalıtım", "ısı yalıtımı", "dış cephe"] },
+    { name: "Marangoz", icon: "🪚", keywords: ["marangoz", "ahşap", "dolap imalatı", "kapı", "mobilya tamiri"] },
+    { name: "Mobilya Montajı", icon: "🪑", keywords: ["montaj", "ikea", "demonte", "kurulum", "gardırop"] },
+    { name: "Özel Ders", icon: "📚", keywords: ["ders", "matematik", "ingilizce", "sınav", "hoca", "özel ders"] },
+    { name: "Cam Balkon", icon: "🪟", keywords: ["cam balkon", "katlanır cam", "balkon kapatma", "sineklik"] },
+    { name: "PVC Pencere", icon: "🪟", keywords: ["pencere", "pvc", "pimapen", "doğrama", "çift cam"] },
+    { name: "Ofis Temizliği", icon: "🏢", keywords: ["ofis", "işyeri", "büro", "şirket temizliği"] },
+    { name: "Doğalgaz Tesisatı", icon: "🔥", keywords: ["doğalgaz", "proje", "gaz tesisatı", "kolon"] },
+    { name: "İç Mimar", icon: "📐", keywords: ["mimar", "tasarım", "çizim", "3d", "dekoratör"] },
+    { name: "Organizasyon", icon: "🎉", keywords: ["düğün", "nişan", "doğum günü", "etkinlik", "kına"] }
   ];
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -2101,49 +2102,149 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
         </div>
       )}
 
-      {/* 🪟 Tüm Hizmet Kategorileri Modal */}
+      {/* 🪟 Akıllı Hizmet Arama & Seçim Modalı */}
       {isCategoryModalOpen && (
         <div 
-          className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-xs p-0 sm:p-4 animate-fade-in"
-          onClick={() => setIsCategoryModalOpen(false)}
+          className="fixed inset-0 z-[10000] flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-fade-in"
+          onClick={() => {
+            setIsCategoryModalOpen(false);
+            setCategorySearchQuery("");
+          }}
         >
           <div
-            className="w-full sm:max-w-[560px] bg-white rounded-t-[24px] sm:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[75vh] animate-slide-up border border-slate-100 overflow-hidden"
+            className="w-full sm:max-w-[560px] bg-white rounded-3xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[75vh] animate-slide-up border border-slate-100 overflow-hidden mt-12 sm:mt-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-white sticky top-0 z-10">
-              <div className="flex flex-col text-left">
-                <h3 className="font-extrabold text-base text-slate-900">Tüm Hizmet Kategorileri</h3>
-                <p className="text-xs text-slate-400 font-medium">İhtiyacınız olan hizmeti seçerek chata aktarın</p>
-              </div>
-              <button
-                onClick={() => setIsCategoryModalOpen(false)}
-                className="text-slate-400 hover:text-slate-800 p-2 rounded-full hover:bg-slate-100 cursor-pointer transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Grid list of categories */}
-            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-3">
-              {categories.map((cat, idx) => (
+            {/* Header with Search Input Bar */}
+            <div className="p-5 bg-white border-b border-slate-100 sticky top-0 z-10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">Hangi Hizmete İhtiyacınız Var?</h3>
+                  <p className="text-xs text-slate-400 font-medium">Arayın veya listeden istediğiniz hizmeti seçin</p>
+                </div>
                 <button
-                  key={idx}
+                  type="button"
                   onClick={() => {
                     setIsCategoryModalOpen(false);
-                    sendMessage(`Merhaba, ben ${cat.name} hizmeti almak istiyorum.`);
+                    setCategorySearchQuery("");
                   }}
-                  className="flex items-center gap-3 p-3.5 border border-slate-150 rounded-2xl hover:border-[#c8f252] hover:bg-[#c8f252]/10 text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
+                  className="text-slate-400 hover:text-slate-800 p-2 rounded-full hover:bg-slate-100 cursor-pointer transition-all"
                 >
-                  <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                  <span className="font-bold text-xs md:text-sm text-slate-800 truncate">
-                    {cat.name}
-                  </span>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              ))}
+              </div>
+
+              {/* 🔍 Search Input Bar */}
+              <div className="relative flex items-center">
+                <div className="absolute left-4 text-slate-400 pointer-events-none">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  autoFocus
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  placeholder="Hizmet arayın... (Örn: Klima, Boya, Nakliyat)"
+                  className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-200 focus:border-[#c8f252] focus:bg-white focus:ring-2 focus:ring-[#c8f252]/20 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all"
+                />
+                {categorySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setCategorySearchQuery("")}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-200/60 cursor-pointer transition-all"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* 🔥 Quick Popular Chips when search is empty */}
+              {!categorySearchQuery && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold text-slate-500">
+                  <span className="shrink-0 text-slate-400 font-bold">Popüler:</span>
+                  {["Ev Temizliği", "Boya Badana", "Nakliyat", "Su Tesisatı", "Klima Servisi"].map((pop, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCategorySearchQuery(pop)}
+                      className="shrink-0 bg-slate-100 hover:bg-[#c8f252]/20 hover:text-slate-900 hover:border-[#c8f252] border border-slate-200 px-3 py-1 rounded-full text-slate-700 transition-all cursor-pointer"
+                    >
+                      {pop}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Filtered Autocomplete Result List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {(() => {
+                const normQuery = categorySearchQuery
+                  .toLocaleLowerCase("tr-TR")
+                  .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                  .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u")
+                  .trim();
+
+                const filtered = categories.filter((cat) => {
+                  if (!normQuery) return true;
+                  const catName = cat.name.toLocaleLowerCase("tr-TR")
+                    .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                    .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u");
+                  const nameMatch = catName.includes(normQuery);
+                  const kwMatch = cat.keywords?.some((kw) => {
+                    const normKw = kw.toLocaleLowerCase("tr-TR")
+                      .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                      .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u");
+                    return normKw.includes(normQuery);
+                  });
+                  return nameMatch || kwMatch;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="p-8 text-center space-y-2">
+                      <span className="text-3xl">🔍</span>
+                      <h4 className="font-bold text-slate-800 text-sm">Aradığınız kriterde hizmet bulunamadı</h4>
+                      <p className="text-xs text-slate-400">Farklı bir arama kelimesi yazmayı veya popüler kategorileri seçmeyi deneyin.</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((cat, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setIsCategoryModalOpen(false);
+                      setCategorySearchQuery("");
+                      sendMessage(`Merhaba, ben ${cat.name} hizmeti almak istiyorum.`);
+                    }}
+                    className="flex items-center justify-between p-3.5 border border-slate-150 hover:border-[#c8f252] hover:bg-[#c8f252]/10 rounded-2xl text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
+                      <div className="flex flex-col">
+                        <span className="font-extrabold text-sm text-slate-850 group-hover:text-slate-950">
+                          {cat.name}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">
+                          Soru-cevap başlat ve teklif topla
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-slate-300 group-hover:text-slate-800 text-lg group-hover:translate-x-1 transition-all">
+                      →
+                    </span>
+                  </button>
+                ));
+              })()}
             </div>
           </div>
         </div>
