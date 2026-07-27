@@ -378,7 +378,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                     </p>
                     <div className="flex items-center gap-4 text-primary font-bold">
                       <span className="material-symbols-outlined">request_quote</span>
-                      <span>Ortalama 4 farklı teklif</span>
+                      <span>Ortalama 5 farklı teklif</span>
                     </div>
                   </div>
                 </div>

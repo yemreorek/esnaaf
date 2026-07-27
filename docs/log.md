@@ -2,6 +2,14 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-07-27 feat | Tüm Hizmet Talepleri İçin Maksimum Teklif Limitinin 4'ten 5'e Çıkarılması (Adım 54)
+
+- **İhtiyaç:** Platform genelinde hizmet verenlerden 4 teklif alındığında talebin otomatik kapanması kuralı yerine tüm hizmet alan taleplerinin 5 teklif alacak şekilde sistemin güncellenmesi.
+- **Yapılan Uygulama:**
+  - `backend-api`: `HizmetverenService` üzerindeki `offersCount >= 4` gelen kutusu filtreleri, `offerCount >= 4` guard fırlatmaları (`BadRequestException`), bildirim şartları ve `isClosed` teklif kapanma koşulları `>= 5` teklif sınırına güncellendi.
+  - `app-hizmetveren`: `page.tsx` içindeki `renderOfferDots` fonksiyonundan 5. teklif için olan özel sarı slot sınırlaması kaldırıldı; 5 standart temiz teklif noktası (`0/5`, `1/5` ... `5/5`) render edilecek şekilde güncellendi.
+  - `app-musteri`: `SeekerDashboard.tsx` teklif kapanma durum rozeti `Teklife Kapatıldı (5 Teklif Sınırı)` olarak revize edildi. Kategori lansman sayfalarındaki teklif ortalaması metinleri `Ortalama 5 farklı teklif` olarak güncellendi.
+
 ## 2026-07-26 feat | Talep Oluşturma Akışına 3 Şıklı Zaman Adımı Entegrasyonu (`ask_time`) (Adım 55)
 
 - **UX İhtiyacı:** Konum / İlçe seçildikten sonra Ad-Soyad sorma adımına geçmeden önce müşteriye hizmetin ne zaman yapılacağını soran 3 butonlu zaman adımının (`"Talebiniz ne zaman gerçekleşsin?"`) çalıştırılması.

@@ -1020,16 +1020,10 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * Monolitik chat yapısı modüler servislere bölündü: `FlowEngineService` (Saf JSON Form Motoru), `LeadFormService` (Konum/İletişim/Talep Motoru) ve `AiConsultantService` (Gemini Danışmanı).
   * Tüm yeni servisler `ChatModule` ve `ChatService` yapısına enjekte edilerek sistem modüler, sıfır hatalı ve 0ms gecikmeli deterministik mimariye kavuşturuldu (`backend-api/src/ortak/chat/`).
 
+## 🛠️ Adım 54 Geliştirme Detayları (Maksimum Teklif Limitinin 4'ten 5'e Çıkarılması)
 
-
-
-
-
-
-
-
-
-
-
-
-
+- **Genel Teklif Limiti Revizyonu:**
+  * Tüm hizmet alan talepleri için maksimum teklif alım sınırı **4'ten 5'e** çıkarıldı.
+  * `backend-api`: `HizmetverenService` içerisindeki gelen kutusu filtreleri, teklif oluşturma guard'ları (`BadRequestException`), bildirim gönderim şartları ve teklif kapandı (`isClosed`) kontrolleri `>= 5` teklif sınırına güncellendi.
+  * `app-hizmetveren`: Fırsat kartlarında `renderOfferDots` gösterimindeki 5. özel slot sınırlaması kaldırılarak 5 temiz standart teklif noktası (`0/5`, `1/5`, ... `5/5`) render edilecek şekilde güncellendi.
+  * `app-musteri`: `SeekerDashboard` bileşenindeki teklife kapatıldı etiketi `5 Teklif Sınırı` olarak güncellendi. Kategori lansman sayfalarındaki ortalama teklif metinleri `Ortalama 5 farklı teklif` olarak revize edildi.

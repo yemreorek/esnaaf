@@ -2092,9 +2092,9 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                       </span>
                                     )}
 
-                                    {offerCount >= 4 ? (
+                                    {offerCount >= 5 ? (
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">
-                                        Teklife Kapatıldı (4 Teklif Sınırı)
+                                        Teklife Kapatıldı (5 Teklif Sınırı)
                                       </span>
                                     ) : getRequestExpiryInfo(req.created_at).isExpired && offerCount === 0 ? (
                                       <span className="bg-rose-50 text-rose-700 text-[10px] font-black tracking-wide uppercase px-2.5 py-1 rounded-lg border border-rose-100">

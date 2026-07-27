@@ -97,7 +97,7 @@ export class HizmetverenService {
         continue;
       }
 
-      // 30 dk zaman sayacı ve 4 teklif sınırı kontrolü
+      // 30 dk zaman sayacı ve 5 teklif sınırı kontrolü
       const jobOffers = await this.prisma.offer.findMany({
         where: {
           job_id: job.id,
@@ -109,7 +109,7 @@ export class HizmetverenService {
 
       const { isExpired, expiresTime } = getRequestExpiryInfo(job.created_at, Date.now(), jobOffers);
 
-      if (offersCount >= 4 || isExpired) {
+      if (offersCount >= 5 || isExpired) {
         continue; // teklif dolduysa veya zaman aşımına uğradıysa gelen kutusundan kaldır
       }
 
@@ -335,8 +335,8 @@ export class HizmetverenService {
     });
     const offerCount = jobOffers.length;
 
-    if (offerCount >= 4) {
-      throw new BadRequestException('Bu talep maksimum teklif sınırına (4 teklif) ulaşmış ve teklif girişine kapanmıştır.');
+    if (offerCount >= 5) {
+      throw new BadRequestException('Bu talep maksimum teklif sınırına (5 teklif) ulaşmış ve teklif girişine kapanmıştır.');
     }
 
     const { isExpired, label } = getRequestExpiryInfo(job.created_at, Date.now(), jobOffers);
@@ -1568,7 +1568,7 @@ export class HizmetverenService {
 
         const { isExpired } = getRequestExpiryInfo(job.created_at, now.getTime(), jobOffers);
 
-        if (offerCount >= 4 || isExpired || job.status === 'completed' || job.status === 'cancelled') {
+        if (offerCount >= 5 || isExpired || job.status === 'completed' || job.status === 'cancelled') {
           // Teklife kapanmışsa sadece gönderildi işaretle, bildirim atma
           await this.prisma.responseTime.update({
             where: { id: rt.id },
@@ -1650,7 +1650,7 @@ export class HizmetverenService {
         if (!job) continue;
 
         const { isExpired } = getRequestExpiryInfo(job.created_at, Date.now(), job.offers);
-        const isClosed = job.status === 'completed' || job.status === 'cancelled' || job.offers.length >= 4;
+        const isClosed = job.status === 'completed' || job.status === 'cancelled' || job.offers.length >= 5;
 
         if (isExpired || isClosed) {
           const provider = await this.prisma.serviceProvider.findUnique({

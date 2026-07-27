@@ -398,22 +398,18 @@ const OpportunityCard = ({
   const { text: badgeText, type: badgeType } = getJobBadgeInfo(job);
 
   const offersCount = job.offersCount || 0;
-  const isClosed = offersCount >= 4 || isExpired;
+  const isClosed = offersCount >= 5 || isExpired;
 
   const renderOfferDots = (count: number) => {
     const dots = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       if (i < count) {
         dots.push(
-          <span key={i} className="w-2.5 h-2.5 rounded-full bg-[#4c630a] inline-block shadow-[0_0_6px_rgba(76,99,10,0.3)] transition-all duration-305" title={`${count}/4 Teklif Verildi`} />
-        );
-      } else if (i === 3) {
-        dots.push(
-          <span key={i} className="w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-500/30 inline-block animate-pulse transition-all duration-305" title="4. Teklif: Yeni/Temel Paket Üyelerine Özel Slot!" />
+          <span key={i} className="w-2.5 h-2.5 rounded-full bg-[#4c630a] inline-block shadow-[0_0_6px_rgba(76,99,10,0.3)] transition-all duration-305" title={`${count}/5 Teklif Verildi`} />
         );
       } else {
         dots.push(
-          <span key={i} className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-350 inline-block transition-all duration-305" title={`${count}/4 Teklif Verildi`} />
+          <span key={i} className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-350 inline-block transition-all duration-305" title={`${count}/5 Teklif Verildi`} />
         );
       }
     }
@@ -423,7 +419,7 @@ const OpportunityCard = ({
         <div className="flex gap-1.5">
           {dots}
         </div>
-        <span className="text-[10px] text-[#4c630a] font-mono font-black ml-0.5">{count}/4</span>
+        <span className="text-[10px] text-[#4c630a] font-mono font-black ml-0.5">{count}/5</span>
       </div>
     );
   };
@@ -497,7 +493,7 @@ const OpportunityCard = ({
             disabled
             className="bg-slate-55 text-slate-400 font-extrabold text-xs py-3 px-5 rounded-2xl transition-all shadow-none cursor-not-allowed border border-slate-150"
           >
-            {offersCount >= 4 ? "Teklife Kapandı (4/4)" : "Süre Doldu"}
+            {offersCount >= 5 ? "Teklife Kapandı (5/5)" : "Süre Doldu"}
           </button>
         ) : (
           <div className="flex items-center gap-2">
