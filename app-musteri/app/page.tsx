@@ -1392,7 +1392,9 @@ export default function Home() {
                     className="flex items-center justify-between p-3.5 border border-slate-150 hover:border-[#c8f252] hover:bg-[#c8f252]/10 rounded-2xl text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
                   >
                     <div className="flex items-center gap-3.5">
-                      {renderCategoryIcon(cat.icon)}
+                      <div className="w-10 h-10 rounded-2xl bg-slate-100/90 group-hover:bg-[#c8f252] text-slate-700 group-hover:text-slate-950 flex items-center justify-center shrink-0 transition-all shadow-xs group-hover:scale-105">
+                        {renderCategoryIcon(cat.icon)}
+                      </div>
                       <div className="flex flex-col">
                         <span className="font-extrabold text-sm text-slate-850 group-hover:text-slate-950">
                           {cat.name}

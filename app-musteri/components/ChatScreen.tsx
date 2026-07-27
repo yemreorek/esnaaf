@@ -336,7 +336,157 @@ export function generateTimeOptions() {
     options.push(formatted);
   }
   return options;
-}
+export const getCategoryVectorIcon = (categoryName: string, className: string = "w-5 h-5 stroke-[2.2]") => {
+  const name = categoryName.toLowerCase();
+  
+  if (name.includes("ev temizliği") || name.includes("temizlik")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    );
+  }
+  if (name.includes("boya")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3" />
+      </svg>
+    );
+  }
+  if (name.includes("nakliyat") || name.includes("taşıma")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 17a2 2 0 11-4 0 2 2 0 014 0zM7 17a2 2 0 11-4 0 2 2 0 014 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 17h10M19 17h2v-6l-3-3h-3V5H3v10h2" />
+      </svg>
+    );
+  }
+  if (name.includes("su tesisat")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
+      </svg>
+    );
+  }
+  if (name.includes("elektrik")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    );
+  }
+  if (name.includes("tadilat")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    );
+  }
+  if (name.includes("halı")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+      </svg>
+    );
+  }
+  if (name.includes("koltuk")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v2M3 13v6a2 2 0 002 2h14a2 2 0 002-2v-6M3 13a2 2 0 012-2h14a2 2 0 012 2M3 13h18" />
+      </svg>
+    );
+  }
+  if (name.includes("fayans")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16v16H4V4zm8 0v16M4 12h16" />
+      </svg>
+    );
+  }
+  if (name.includes("parke")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16M10 6v6m4 6v-6" />
+      </svg>
+    );
+  }
+  if (name.includes("haşere") || name.includes("böcek") || name.includes("ilaçlama")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12a3 3 0 100-6 3 3 0 000 6zm-7 0h4m6 0h4m-7-5V3m0 18v-4m-4-1.5L5 19m4-13.5L5 5m10 10.5l4 3.5m-4-10.5l4-3.5" />
+      </svg>
+    );
+  }
+  if (name.includes("kombi")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.58a8.5 8.5 0 11-11.314 0zM12 15a3 3 0 11-3-3" />
+      </svg>
+    );
+  }
+  if (name.includes("klima")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m9-9H3m15-6l-6 6 6 6m-12 0l6-6-6-6" />
+      </svg>
+    );
+  }
+  if (name.includes("mantolama") || name.includes("cephe") || name.includes("ofis")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    );
+  }
+  if (name.includes("marangoz")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    );
+  }
+  if (name.includes("mobilya") || name.includes("montaj")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v2M3 13v6a2 2 0 002 2h14a2 2 0 002-2v-6M3 13a2 2 0 012-2h14a2 2 0 012 2M3 13h18" />
+      </svg>
+    );
+  }
+  if (name.includes("ders")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6M12 21a9.003 9.003 0 008.361-5.639M12 21a9.003 9.003 0 01-8.361-5.639" />
+      </svg>
+    );
+  }
+  if (name.includes("cam") || name.includes("pvc") || name.includes("pencere")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm8-1v16M4 12h16" />
+      </svg>
+    );
+  }
+  if (name.includes("mimar")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    );
+  }
+  if (name.includes("organizasyon") || name.includes("etkinlik")) {
+    return (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  );
+};
 
 export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: ChatScreenProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -2228,8 +2378,9 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     }}
                     className="flex items-center justify-between p-3.5 border border-slate-150 hover:border-[#c8f252] hover:bg-[#c8f252]/10 rounded-2xl text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
+                      <div className="w-10 h-10 rounded-2xl bg-slate-100/90 group-hover:bg-[#c8f252] text-slate-700 group-hover:text-slate-950 flex items-center justify-center shrink-0 transition-all shadow-xs group-hover:scale-105">
+                        {getCategoryVectorIcon(cat.name, "w-5 h-5 stroke-[2.2]")}
+                      </div>
                       <div className="flex flex-col">
                         <span className="font-extrabold text-sm text-slate-850 group-hover:text-slate-950">
                           {cat.name}
