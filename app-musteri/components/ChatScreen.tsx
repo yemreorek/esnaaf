@@ -1346,12 +1346,15 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                       {msg.options.map((opt, idx) => {
                         const isSelected = selectedMultiOptions.includes(opt);
                         const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
+                        const isAllServices = opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör");
                         return (
                           <div key={idx} className="w-full flex flex-col gap-2">
                             <button
                               disabled={isLoading}
                               onClick={() => {
-                                if (msg.inputType === 'multi_choice') {
+                                if (isAllServices) {
+                                  setIsCategoryModalOpen(true);
+                                } else if (msg.inputType === 'multi_choice') {
                                   setSelectedMultiOptions(prev => 
                                     prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
                                   );
