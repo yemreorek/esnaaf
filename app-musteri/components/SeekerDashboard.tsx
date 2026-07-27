@@ -3117,14 +3117,29 @@ export default function SeekerDashboard({ initialJobId, onLogout, onStartChat }:
                                             <span>✔️</span>
                                             <span>{(offer.provider as any).completedJobsCount || (offer.provider as any).total_jobs || (offer.provider.user?.name?.includes('Kemal') ? 62 : 18)} Başarılı İş</span>
                                           </span>
-                                          <span className="inline-flex items-center gap-1 bg-slate-100/90 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200/70">
-                                            <span>🛡️</span>
-                                            <span>Kimlik Onaylı</span>
-                                          </span>
-                                          <span className="inline-flex items-center gap-1 bg-slate-100/90 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200/70">
-                                            <span>📜</span>
-                                            <span>Vergi Levhası Onaylı</span>
-                                          </span>
+                                          {((offer.provider as any).isIdentityApproved !== false && (offer.provider.is_approved || (offer.provider as any).isIdentityApproved)) ? (
+                                            <span className="inline-flex items-center gap-1 bg-emerald-50/90 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-200/80">
+                                              <span>🛡️</span>
+                                              <span>Kimlik Onaylı</span>
+                                            </span>
+                                          ) : (
+                                            <span className="inline-flex items-center gap-1 bg-amber-50/90 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200/80">
+                                              <span>🛡️</span>
+                                              <span>Kimlik Doğrulanıyor</span>
+                                            </span>
+                                          )}
+
+                                          {((offer.provider as any).isTaxApproved !== false && (offer.provider.is_approved || (offer.provider as any).isTaxApproved)) ? (
+                                            <span className="inline-flex items-center gap-1 bg-emerald-50/90 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-200/80">
+                                              <span>📜</span>
+                                              <span>Vergi Levhası Onaylandı</span>
+                                            </span>
+                                          ) : (
+                                            <span className="inline-flex items-center gap-1 bg-slate-100/90 text-slate-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200/70">
+                                              <span>📜</span>
+                                              <span>Vergi Levhası İncelemede</span>
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
                                     </div>

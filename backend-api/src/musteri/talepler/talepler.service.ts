@@ -173,6 +173,8 @@ export class TaleplerService {
 
             (offer.provider as any).reviewCount = revCount;
             (offer.provider as any).completedJobsCount = compJobs;
+            (offer.provider as any).isIdentityApproved = offer.provider.is_approved || onboardingData.identityVerified === true || onboardingData.isIdentityApproved === true;
+            (offer.provider as any).isTaxApproved = offer.provider.is_approved || onboardingData.taxPlateVerified === true || onboardingData.isTaxApproved === true;
           }
         });
       }
@@ -273,6 +275,8 @@ export class TaleplerService {
 
           (offer.provider as any).reviewCount = revCount;
           (offer.provider as any).completedJobsCount = compJobs;
+          (offer.provider as any).isIdentityApproved = offer.provider.is_approved || onboardingData.identityVerified === true || onboardingData.isIdentityApproved === true;
+          (offer.provider as any).isTaxApproved = offer.provider.is_approved || onboardingData.taxPlateVerified === true || onboardingData.isTaxApproved === true;
         }
       });
     }
