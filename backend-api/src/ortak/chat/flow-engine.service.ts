@@ -37,9 +37,12 @@ export class FlowEngineService {
     if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('hasere')) return QUESTION_FLOWS['hasere-ilaclama'];
     if (raw.includes('kombi')) return QUESTION_FLOWS['kombi-servisi'];
     if (raw.includes('klima')) return QUESTION_FLOWS['klima-servisi'];
-    if (raw.includes('marangoz') || raw.includes('mobilya')) return QUESTION_FLOWS['mobilya-montaji'];
-    if (raw.includes('ders')) return QUESTION_FLOWS['ozel-ders'];
-    if (raw.includes('cam-balkon') || raw.includes('cam_balkon') || raw.includes('pvc')) return QUESTION_FLOWS['cam-balkon'];
+    if (raw.includes('fotograf')) return QUESTION_FLOWS['fotografci'];
+    if (raw.includes('etkinlik') || raw.includes('organizasyon')) return QUESTION_FLOWS['organizasyon-etkinlik'] || QUESTION_FLOWS['etkinlik'];
+    if (raw.includes('mimar') || raw.includes('dekorasyon')) return QUESTION_FLOWS['ic-mimar-dekorasyon'] || QUESTION_FLOWS['dekorasyon'];
+    if (raw.includes('dogalgaz')) return QUESTION_FLOWS['dogalgaz-tesisati'];
+    if (raw.includes('mantolama') || raw.includes('discephe') || raw.includes('dis-cephe')) return QUESTION_FLOWS['mantolama-discephe'];
+    if (raw.includes('ofis')) return QUESTION_FLOWS['ofis-temizligi'];
 
     return null;
   }

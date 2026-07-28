@@ -3347,10 +3347,28 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     if (s.includes('cam-balkon') || s.includes('pvc') || name.includes('cam balkon')) {
       return ["Katlanır Cam Balkon", "Sürme Cam Balkon", "Isıcamlı Cam Balkon", "PVC Pencere / Kapı", "Diğer"];
     }
+    if (s.includes('fotograf') || name.includes('fotoğraf')) {
+      return ["Düğün / Nişan / Dış Çekim", "Ürün / Katalog Çekimi", "Doğum / Bebek / Aile", "Etkinlik / Organizasyon Çekimi", "Diğer"];
+    }
+    if (s.includes('etkinlik') || s.includes('organizasyon') || name.includes('etkinlik') || name.includes('organizasyon')) {
+      return ["Düğün / Nişan / Kına Organizasyonu", "Doğum Günü / Parti", "Kurumsal Etkinlik / Lansman", "Süsleme & Ses/Işık Sistemi", "Diğer"];
+    }
+    if (s.includes('mimar') || s.includes('dekorasyon') || name.includes('dekorasyon') || name.includes('mimar')) {
+      return ["Komple Ev / Ofis Dekorasyonu", "3D Tasarım & Proje Danışmanlığı", "Mutfak / Banyo Yenileme Tasarımı", "Mobilya & Stil Danışmanlığı", "Diğer"];
+    }
+    if (s.includes('dogalgaz') || name.includes('doğalgaz')) {
+      return ["Doğalgaz Projesi & Gaz Açma", "Sıfırdan Tesisat Çekimi", "Kombi & Radyatör Tesisatı", "Kaçak & Arıza Tespiti", "Diğer"];
+    }
+    if (s.includes('mantolama') || s.includes('discephe') || name.includes('mantolama')) {
+      return ["Dış Cephe Isı Yalıtımı (Mantolama)", "Dış Cephe Boyama", "Çatı İzolasyonu & Su Yalıtımı", "Sıva & Çatlak Tamiratı", "Diğer"];
+    }
+    if (s.includes('ofis') || name.includes('ofis')) {
+      return ["Periyodik Ofis Temizliği", "İnşaat / Taşınma Sonrası Temizlik", "Cam & Dış Cephe Temizliği", "Diğer"];
+    }
     if (s.includes('temizlik') || name.includes('temizlik')) {
       return ["1+1 Daire Temizliği", "2+1 Daire Temizliği", "3+1 Daire Temizliği", "Detaylı / Derin Temizlik", "Diğer"];
     }
-    return ["Komple Hizmet", "Kısmi / Tamirat İşleri", "Keşif / Danışmanlık", "Diğer"];
+    return ["Komple Hizmet / Danışmanlık", "Kısmi Hizmet / Parça İş", "Keşif / Bilgi & Fiyat Alma", "Diğer"];
   }
 
   private getChecklistForCategory(slug: string | null): string[] {

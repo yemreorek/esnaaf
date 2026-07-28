@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-07-28 feat | Tüm 20 Hizmet Kategorisine Özel Soru Ağacı Entegrasyonu ve Genel Fallback Temizliği (Adım 57)
+
+- **UX İhtiyacı:** Fotoğrafçı, Organizasyon & Etkinlik, İç Mimar & Dekorasyon, Doğalgaz Tesisatı, Mantolama, Ofis Temizliği gibi hizmetlerde müşteriye sektörle ilgisi olmayan genel `"Kısmi / Tamirat İşleri"` yedek şıklarının ekrana gelmesi sorununun kökten çözülmesi.
+- **Yapılan Uygulama:**
+  - `backend-api`: `question-flow.config.ts` dosyasına `fotografci`, `organizasyon-etkinlik`, `ic-mimar-dekorasyon`, `dogalgaz-tesisati`, `mantolama-discephe`, `ofis-temizligi` ve `boya-badana` için sektöre özel şıklar, sorular ve yönlendirme adımsal yapıları entegre edildi.
+  - `FlowEngineService`: `getFlowForCategory(slug)` metodu Türkçe anahtar kelimeler ve 20 kategorinin slug karşılıklarıyla eşleşecek şekilde genişletildi.
+  - `ChatService`: `getDynamicOptionsForStep` metodu içerisindeki genel yedek seçenek metinleri `"Komple Hizmet / Danışmanlık"`, `"Kısmi Hizmet / Parça İş"`, `"Keşif / Bilgi & Fiyat Alma"` şeklinde profesyonel ve sektörden bağımsız kapsayıcı ifadelere yenilendi.
+  - Yapılan değişiklikler derlendi, `d30cf82` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-07-28 feat | Admin KPI Paneli 4 Ana Sekmeli Mimari Komuta Merkezi Entegrasyonu (Adım 56)
 
 - **Stratejik & Operasyonel İhtiyaç:** Admin panelinde hem günlük operasyonu hem de büyüme, esnaf sağlığı, müşteri dönüşümü ve finansal hedefleri anlık izlemeyi sağlayan 4 ana sekmeli KPI komuta merkezinin kurulması.

@@ -2001,7 +2001,358 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "step_title": "İhtiyacın detayları neler?",
         "description": "Cam rengi (füme, şeffaf vb.) ve keşif isteğinizi belirtiniz:",
         "input_type": "textarea",
-        "placeholder": "Örn: Füme cam katlanır balkon yapılacak, keşe usta gelebilir.",
+        "placeholder": "Örn: Füme cam katlanır balkon yapılacak, keşfe usta gelebilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'boya-badana': {
+    "category_id": "boya_badana",
+    "category_name": "Boya Badana",
+    "steps": [
+      {
+        "step_id": "step_boya_alan",
+        "step_title": "Boyanacak alanın türü ve büyüklüğü nedir?",
+        "description": "Boyanacak mekan türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1+1 Daire Boyama", "value": "1_1", "next_step": "step_boya_malzeme" },
+          { "label": "2+1 Daire Boyama", "value": "2_1", "next_step": "step_boya_malzeme" },
+          { "label": "3+1 Daire Boyama", "value": "3_1", "next_step": "step_boya_malzeme" },
+          { "label": "Tek Oda / Bölgesel Boyama", "value": "tek_oda", "next_step": "step_boya_malzeme" },
+          { "label": "Ofis / İş Yeri Boyama", "value": "ofis", "next_step": "step_boya_malzeme" },
+          { "label": "Dış Cephe / Villa Boyama", "value": "dis_cephe", "next_step": "step_boya_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_boya_malzeme",
+        "step_title": "Boya malzemesi kim tarafından temin edilecek?",
+        "description": "Malzeme seçimini yapınız.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boya Malzemesi Ustadan Olsun (Anahtar Teslim)", "value": "malzeme_ustadan", "next_step": "step_detaylar" },
+          { "label": "Boya Malzemesini Ben Alacağım (Sadece İşçilik)", "value": "sadece_iscilik", "next_step": "step_detaylar" },
+          { "label": "Usta Keşif Yapıp Fiyat Versin", "value": "kesif", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Alçı, çöp, eşyalı daire durumu veya renk tercihinizi belirtiniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Dairemiz eşyalıdır, tavanlarda alçı ve tamirat işi mevcuttur.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'boya_badana': {
+    "category_id": "boya_badana",
+    "category_name": "Boya Badana",
+    "steps": [
+      {
+        "step_id": "step_boya_alan",
+        "step_title": "Boyanacak alanın türü ve büyüklüğü nedir?",
+        "description": "Boyanacak mekan türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1+1 Daire Boyama", "value": "1_1", "next_step": "step_boya_malzeme" },
+          { "label": "2+1 Daire Boyama", "value": "2_1", "next_step": "step_boya_malzeme" },
+          { "label": "3+1 Daire Boyama", "value": "3_1", "next_step": "step_boya_malzeme" },
+          { "label": "Tek Oda / Bölgesel Boyama", "value": "tek_oda", "next_step": "step_boya_malzeme" },
+          { "label": "Ofis / İş Yeri Boyama", "value": "ofis", "next_step": "step_boya_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_boya_malzeme",
+        "step_title": "Boya malzemesi kim tarafından temin edilecek?",
+        "description": "Malzeme seçimini yapınız.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boya Malzemesi Ustadan Olsun (Anahtar Teslim)", "value": "malzeme_ustadan", "next_step": "step_detaylar" },
+          { "label": "Boya Malzemesini Ben Alacağım (Sadece İşçilik)", "value": "sadece_iscilik", "next_step": "step_detaylar" },
+          { "label": "Usta Keşif Yapıp Fiyat Versin", "value": "kesif", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Detayları yazınız.",
+        "input_type": "textarea",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'fotografci': {
+    "category_id": "fotografci",
+    "category_name": "Fotoğrafçı",
+    "steps": [
+      {
+        "step_id": "step_fotograf_tur",
+        "step_title": "Fotoğraf çekimi türü ve konsepti nedir?",
+        "description": "İhtiyacınız olan çekim türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düğün / Nişan / Kına / Dış Çekim", "value": "dugun_nisan", "next_step": "step_fotograf_lokasyon" },
+          { "label": "Ürün / Katalog / Moda / Reklam Çekimi", "value": "urun_katalog", "next_step": "step_fotograf_lokasyon" },
+          { "label": "Doğum / Bebek / Aile / Portre Çekimi", "value": "dogum_bebek", "next_step": "step_fotograf_lokasyon" },
+          { "label": "Etkinlik / Parti / Kurumsal Çekim", "value": "etkinlik_party", "next_step": "step_fotograf_lokasyon" },
+          { "label": "Emlak / İç Mekan / Otel Çekimi", "value": "emlak_mimari", "next_step": "step_fotograf_lokasyon" }
+        ]
+      },
+      {
+        "step_id": "step_fotograf_lokasyon",
+        "step_title": "Çekim nerede gerçekleştirilecek?",
+        "description": "Çekim mekanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Dış Mekan (Plato / Doğa / Tarihi Mekan)", "value": "dis_mekan", "next_step": "step_detaylar" },
+          { "label": "Stüdyo Çekimi", "value": "studyo", "next_step": "step_detaylar" },
+          { "label": "Etkinlik Salonu / Otel", "value": "salon_otel", "next_step": "step_detaylar" },
+          { "label": "Evde / Kendi İş Yerimde", "value": "ev_isyeri", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Çekim tarihi, albüm/video (klip) isteği veya özel detaylarınızı yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Dış çekim ve albüm paketi istiyorum, havadan dron çekimi de dahil olsun.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'organizasyon-etkinlik': {
+    "category_id": "organizasyon_etkinlik",
+    "category_name": "Organizasyon & Etkinlik",
+    "steps": [
+      {
+        "step_id": "step_etkinlik_tur",
+        "step_title": "Organizasyon veya etkinlik türünüz nedir?",
+        "description": "Planladığınız etkinliği seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düğün / Nişan / Kına Organizasyonu", "value": "dugun_nisan", "next_step": "step_etkinlik_kisi" },
+          { "label": "Doğum Günü / Babyshower / Parti", "value": "dogum_gunu", "next_step": "step_etkinlik_kisi" },
+          { "label": "Kurumsal Etkinlik / Lansman / Seminer", "value": "kurumsal", "next_step": "step_etkinlik_kisi" },
+          { "label": "Mekan Süsleme / Balon / Ses & Işık", "value": "susleme_ses", "next_step": "step_etkinlik_kisi" },
+          { "label": "Catering / Yemek & İkram Hizmeti", "value": "catering", "next_step": "step_etkinlik_kisi" }
+        ]
+      },
+      {
+        "step_id": "step_etkinlik_kisi",
+        "step_title": "Etkinliğe tahminen kaç kişi katılacak?",
+        "description": "Kişi sayısı aralığını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 50 Kişilik (Butik Etkinlik)", "value": "1_50", "next_step": "step_detaylar" },
+          { "label": "50 - 150 Kişilik", "value": "50_150", "next_step": "step_detaylar" },
+          { "label": "150 - 300 Kişilik", "value": "150_300", "next_step": "step_detaylar" },
+          { "label": "300+ Kişilik (Büyük Etkinlik)", "value": "300_plus", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Mekan, konsept, müzik/DJ veya özel isteklerinizi yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Kır düğünü konseptinde 200 kişilik masa/sandalye giydirme ve orkestra gerekiyor.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'etkinlik': {
+    "category_id": "organizasyon_etkinlik",
+    "category_name": "Organizasyon & Etkinlik",
+    "steps": [
+      {
+        "step_id": "step_etkinlik_tur",
+        "step_title": "Organizasyon veya etkinlik türünüz nedir?",
+        "description": "Planladığınız etkinliği seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Düğün / Nişan / Kına Organizasyonu", "value": "dugun_nisan", "next_step": "step_etkinlik_kisi" },
+          { "label": "Doğum Günü / Babyshower / Parti", "value": "dogum_gunu", "next_step": "step_etkinlik_kisi" },
+          { "label": "Kurumsal Etkinlik / Lansman / Seminer", "value": "kurumsal", "next_step": "step_etkinlik_kisi" },
+          { "label": "Mekan Süsleme / Balon / Ses & Işık", "value": "susleme_ses", "next_step": "step_etkinlik_kisi" }
+        ]
+      },
+      {
+        "step_id": "step_etkinlik_kisi",
+        "step_title": "Etkinliğe tahminen kaç kişi katılacak?",
+        "description": "Kişi sayısı.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 50 Kişilik", "value": "1_50", "next_step": "step_detaylar" },
+          { "label": "50 - 150 Kişilik", "value": "50_150", "next_step": "step_detaylar" },
+          { "label": "150+ Kişilik", "value": "150_plus", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Detayları yazınız.",
+        "input_type": "textarea",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'ic-mimar-dekorasyon': {
+    "category_id": "ic_mimar_dekorasyon",
+    "category_name": "İç Mimar & Dekorasyon",
+    "steps": [
+      {
+        "step_id": "step_dekorasyon_tur",
+        "step_title": "İç mimarlık & dekorasyon hizmet alanınız nedir?",
+        "description": "Tasarım yapılacak alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Komple Ev Dekorasyonu & Yenileme", "value": "komple_ev", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Mutfak / Banyo Tasarım & Dekorasyonu", "value": "mutfak_banyo", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Ofis / Mağaza / Kafe / Restoran Dekorasyonu", "value": "isyeri", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Salon / Yatak Odası Dekorasyonu", "value": "tek_oda", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Sadece 3D Çizim & Mimari Görselleştirme", "value": "cizim", "next_step": "step_dekorasyon_hizmet" }
+        ]
+      },
+      {
+        "step_id": "step_dekorasyon_hizmet",
+        "step_title": "Hangi kapsamda mimarlık hizmeti istiyorsunuz?",
+        "description": "Hizmet kapsamını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Anahtar Teslim Proje Uygulama (Tüm İşçilik Dahil)", "value": "anahtar_teslim", "next_step": "step_detaylar" },
+          { "label": "Proje Çizimi & 3D Tasarım Danışmanlığı", "value": "sadece_proje", "next_step": "step_detaylar" },
+          { "label": "Stil & Mobilya / Renk Seçimi Danışmanlığı", "value": "danismanlik", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Mekan büyüklüğü (m²), tarz tercihleriniz (modern, klas vb.) veya bütçenizi yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 120 m² 3+1 daire için modern tarzda salon ve mutfak tasarımı yaptırmak istiyorum.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'dekorasyon': {
+    "category_id": "ic_mimar_dekorasyon",
+    "category_name": "İç Mimar & Dekorasyon",
+    "steps": [
+      {
+        "step_id": "step_dekorasyon_tur",
+        "step_title": "Dekorasyon hizmet alanı nedir?",
+        "description": "Dekorasyon yapılacak alanı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Komple Ev Dekorasyonu & Yenileme", "value": "komple_ev", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Mutfak / Banyo Dekorasyonu", "value": "mutfak_banyo", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "Ofis / İş Yeri Dekorasyonu", "value": "isyeri", "next_step": "step_dekorasyon_hizmet" },
+          { "label": "3D Görselleştirme & Proje Çizimi", "value": "cizim", "next_step": "step_dekorasyon_hizmet" }
+        ]
+      },
+      {
+        "step_id": "step_dekorasyon_hizmet",
+        "step_title": "Hizmet kapsamı nedir?",
+        "description": "Kapsamı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Anahtar Teslim Proje Uygulama", "value": "anahtar_teslim", "next_step": "step_detaylar" },
+          { "label": "3D Tasarım & Danışmanlık", "value": "sadece_proje", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Detayları yazınız.",
+        "input_type": "textarea",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'dogalgaz-tesisati': {
+    "category_id": "dogalgaz_tesisati",
+    "category_name": "Doğalgaz Tesisatı",
+    "steps": [
+      {
+        "step_id": "step_dogalgaz_islem",
+        "step_title": "Doğalgaz tesisatınız için yapılacak işlem nedir?",
+        "description": "İşlem türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Doğalgaz Projesi Çizimi & Gaz Açma Onayı", "value": "proje_gaz_acma", "next_step": "step_detaylar" },
+          { "label": "Sıfırdan Daire İçi Tesisat Çekimi", "value": "daire_tesisati", "next_step": "step_detaylar" },
+          { "label": "Kombi & Radyatör Bağlantısı / Değişimi", "value": "kombi_radyator", "next_step": "step_detaylar" },
+          { "label": "Doğalgaz Kaçağı / Arıza / Tesisat Tamiri", "value": "kacak_tamir", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Bina durumu, daire katı ve isteklerinizi yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: Dairemize sıfırdan doğalgaz çekilecek ve gaz açma projesi çizilecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'mantolama-discephe': {
+    "category_id": "mantolama_discephe",
+    "category_name": "Mantolama & Dış Cephe",
+    "steps": [
+      {
+        "step_id": "step_mantolama_tur",
+        "step_title": "Dış cephe & mantolama hizmet türünüz nedir?",
+        "description": "Hizmet türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Dış Cephe Isı Yalıtımı (Mantolama)", "value": "isi_yalitimi", "next_step": "step_detaylar" },
+          { "label": "Dış Cephe Boyama & Temizlik", "value": "dis_boya", "next_step": "step_detaylar" },
+          { "label": "Çatı İzolasyonu & Su Yalıtımı", "value": "cati_yalitim", "next_step": "step_detaylar" },
+          { "label": "Sıva, Derz & Çatlak Tamiratı", "value": "siva_tamir", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Bina kat sayısı, yaklaşık m² veya iskele durumu hakkında detay veriniz:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 4 katlı binanın dış cephe mantolaması ve boyası yapılacak.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'ofis-temizligi': {
+    "category_id": "ofis_temizligi",
+    "category_name": "Ofis & İş Yeri Temizliği",
+    "steps": [
+      {
+        "step_id": "step_ofis_temizlik_tur",
+        "step_title": "Ofis / iş yeri temizliği kapsamınız nedir?",
+        "description": "Temizlik türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Periyodik Ofis Temizliği (Haftalık / Günlük)", "value": "periyodik", "next_step": "step_detaylar" },
+          { "label": "İnşaat / Taşınma Sonrası Ofis Temizliği", "value": "insaat_tasinma", "next_step": "step_detaylar" },
+          { "label": "Ofis Cam & Dış Cephe Temizliği", "value": "cam_discephe", "next_step": "step_detaylar" },
+          { "label": "Ofis Halı & Koltuk Yıkama", "value": "hali_koltuk", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "İhtiyacın detayları neler?",
+        "description": "Ofis m², personel sayısı veya özel isteklerinizi yazınız:",
+        "input_type": "textarea",
+        "placeholder": "Örn: 150 m² ofisimiz için haftada 2 gün düzenli temizlik elemanı arıyoruz.",
         "is_optional": true,
         "next_step": "END"
       }
