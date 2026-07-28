@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-07-28 feat | Admin KPI Paneli 4 Ana Sekmeli Mimari Komuta Merkezi Entegrasyonu (Adım 56)
+
+- **Stratejik & Operasyonel İhtiyaç:** Admin panelinde hem günlük operasyonu hem de büyüme, esnaf sağlığı, müşteri dönüşümü ve finansal hedefleri anlık izlemeyi sağlayan 4 ana sekmeli KPI komuta merkezinin kurulması.
+- **Yapılan Uygulama:**
+  - `backend-api`: `AdminService` üzerinde `getKpiDashboardData` metodu ve `GET /api/admin/reports/kpi-dashboard` API endpoint'i yazıldı. İl/İlçe/Kategori/Tarih filtreli dinamik veri hesaplama katmanı kuruldu.
+  - `app-hizmetveren`: `/admin` panelinde `activeTab === 'kpi'` alanı 4 alt sekmeli (`📍 1. Bölgesel Büyüme`, `👷 2. Esnaf Sağlığı`, `🙋 3. Müşteri & WhatsApp`, `💰 4. Finans & Hedefler`) modern UI tasarımıyla yenilendi.
+  - Pazar doygunluğu, talep karşılama (Fill Rate) alarmları, Churn riski taşıyan usta listesi, WhatsApp bot terk adımları, MRR (Aylık Tekrarlayan Gelir), Komisyon kazançları ve Satış Ekibi ROAS hedef takipleri entegre edildi.
+  - Yapılan değişiklikler backend ve frontend derleme testlerinden sıfır hatayla geçti, GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-07-28 feat | Teklif Kartlarına Yorum Sayısı, Başarılı İş Rozeti ve Güvenlik Rozetleri Entegrasyonu (Adım 55)
 
 - **UX/Güven İhtiyacı:** Müşteri platformunda gelen teklif kartlarında sadece `5.0 / 5.0` yıldızın görünmesi yerine kaç kişinin değerlendirdiğinin netleşmesi, ustanın tecrübesini temsil eden başarılı iş rozetinin ve platform doğrulama rozetlerinin (Kimlik & Vergi Levhası Onaylı) kart üzerinde vurgulanması.

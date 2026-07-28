@@ -357,6 +357,23 @@ export class AdminController {
   }
 
   /**
+   * Comprehensive 4-Tab Admin KPI Dashboard Endpoint
+   * GET /api/admin/reports/kpi-dashboard
+   */
+  @Get('reports/kpi-dashboard')
+  @HttpCode(HttpStatus.OK)
+  async getKpiDashboardData(
+    @Query('city') city?: string,
+    @Query('district') district?: string,
+    @Query('categorySlug') categorySlug?: string,
+    @Query('period') period?: string,
+    @Query('subTab') subTab?: string,
+    @CurrentUser() user?: any
+  ) {
+    return this.adminService.getKpiDashboardData({ city, district, categorySlug, period, subTab }, user.email);
+  }
+
+  /**
    * Get all dynamic system package configurations
    * GET /api/admin/package-configs
    */

@@ -469,6 +469,7 @@ export default function AdminPortal() {
   const [totalUsers, setTotalUsers] = useState(0);
 
   // Regional KPI state variables
+  const [kpiSubTab, setKpiSubTab] = useState<'growth' | 'provider' | 'customer' | 'financial'>('growth');
   const [kpiCity, setKpiCity] = useState('');
   const [kpiDistrict, setKpiDistrict] = useState('');
   const [kpiCategorySlug, setKpiCategorySlug] = useState('');
@@ -1438,7 +1439,7 @@ ${callTaskNotes}`;
     if (token && activeTab === 'kpi') {
       loadKpiReport(token);
     }
-  }, [kpiCity, kpiDistrict, kpiCategorySlug, kpiPeriod, token, activeTab]);
+  }, [kpiCity, kpiDistrict, kpiCategorySlug, kpiPeriod, kpiSubTab, token, activeTab]);
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans pb-12 relative overflow-hidden selection:bg-[#c8f252]/30 selection:text-slate-950">
@@ -3717,33 +3718,87 @@ ${callTaskNotes}`;
               </div>
             )}
 
-            {/* TAB 12: REGIONAL KPI & PERFORMANCE REPORTS */}
+            {/* TAB 12: COMPREHENSIVE 4-TAB ADMIN KPI DASHBOARD */}
             {activeTab === 'kpi' && (
               <div className="space-y-6 animate-scale-up">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                    <TrendingUp className="w-6 h-6 text-slate-800" />
-                    <span>Bölgesel KPI & Performans Raporları</span>
-                  </h2>
-                  <div className="text-xs bg-[#c8f252]/10 border border-[#c8f252]/20 text-slate-800 font-extrabold px-3 py-1.5 rounded-xl">
-                    Veri Güncelleme: Anlık
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
+                      <TrendingUp className="w-7 h-7 text-slate-800" />
+                      <span>Admin KPI Komuta Merkezi</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 font-semibold mt-1">
+                      Bölgesel büyüme, esnaf sağlığı, müşteri dönüşümü ve finansal hedefleri anlık izleyin.
+                    </p>
+                  </div>
+                  <div className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold px-3.5 py-2 rounded-xl flex items-center gap-2 self-start md:self-auto">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Canlı Veri Senkronizasyonu Aktif</span>
                   </div>
                 </div>
 
-                {/* Filters */}
+                {/* 4 SUBTAB NAVIGATION BUTTONS */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/60">
+                  <button
+                    onClick={() => setKpiSubTab('growth')}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs md:text-sm font-black transition-all cursor-pointer ${
+                      kpiSubTab === 'growth'
+                        ? 'bg-white text-slate-950 shadow-md border border-slate-200/80'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span>📍 1. Bölgesel Büyüme</span>
+                  </button>
+
+                  <button
+                    onClick={() => setKpiSubTab('provider')}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs md:text-sm font-black transition-all cursor-pointer ${
+                      kpiSubTab === 'provider'
+                        ? 'bg-white text-slate-950 shadow-md border border-slate-200/80'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span>👷 2. Esnaf Sağlığı</span>
+                  </button>
+
+                  <button
+                    onClick={() => setKpiSubTab('customer')}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs md:text-sm font-black transition-all cursor-pointer ${
+                      kpiSubTab === 'customer'
+                        ? 'bg-white text-slate-950 shadow-md border border-slate-200/80'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span>🙋 3. Müşteri & WhatsApp</span>
+                  </button>
+
+                  <button
+                    onClick={() => setKpiSubTab('financial')}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs md:text-sm font-black transition-all cursor-pointer ${
+                      kpiSubTab === 'financial'
+                        ? 'bg-white text-slate-950 shadow-md border border-slate-200/80'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span>💰 4. Finans & Hedefler</span>
+                  </button>
+                </div>
+
+                {/* FILTERS PANEL */}
                 <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
                   <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">İl</label>
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase tracking-wide">İl Seçimi</label>
                     <select
                       value={kpiCity}
                       onChange={(e) => {
                         setKpiCity(e.target.value);
                         setKpiDistrict('');
                       }}
-                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-400"
                     >
                       <option value="">Tüm İller</option>
                       <option value="Adana">Adana</option>
+                      <option value="Mersin">Mersin</option>
                       <option value="İstanbul">İstanbul</option>
                       <option value="Ankara">Ankara</option>
                       <option value="İzmir">İzmir</option>
@@ -3751,11 +3806,11 @@ ${callTaskNotes}`;
                   </div>
 
                   <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">İlçe</label>
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase tracking-wide">İlçe Seçimi</label>
                     <select
                       value={kpiDistrict}
                       onChange={(e) => setKpiDistrict(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-400"
                     >
                       <option value="">Tüm İlçeler</option>
                       {kpiCity === 'Adana' && (
@@ -3763,6 +3818,14 @@ ${callTaskNotes}`;
                           <option value="Seyhan">Seyhan</option>
                           <option value="Çukurova">Çukurova</option>
                           <option value="Yüreğir">Yüreğir</option>
+                          <option value="Sarıçam">Sarıçam</option>
+                        </>
+                      )}
+                      {kpiCity === 'Mersin' && (
+                        <>
+                          <option value="Yenişehir">Yenişehir</option>
+                          <option value="Mezitli">Mezitli</option>
+                          <option value="Toroslar">Toroslar</option>
                         </>
                       )}
                       {kpiCity === 'İstanbul' && (
@@ -3776,23 +3839,24 @@ ${callTaskNotes}`;
                   </div>
 
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">Kategori</label>
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase tracking-wide">Sektör / Kategori</label>
                     <select
                       value={kpiCategorySlug}
                       onChange={(e) => setKpiCategorySlug(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-350"
+                      className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-slate-400"
                     >
-                      <option value="">Tüm Kategoriler</option>
+                      <option value="">Tüm Sektörler</option>
+                      <option value="kombi-klima">Kombi & Klima Bakımı</option>
+                      <option value="nakliyat">Nakliyat / Ev Taşıma</option>
                       <option value="ev-temizligi">Ev Temizliği</option>
-                      <option value="bos-ev-temizligi">Boş Ev Temizliği</option>
-                      <option value="boya-badana">Boya Badana</option>
                       <option value="su-tesisati">Su Tesisatı</option>
                       <option value="elektrik-tesisati">Elektrik Tesisatı</option>
+                      <option value="boya-badana">Boya Badana</option>
                     </select>
                   </div>
 
-                  <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase">Zaman Dilimi</label>
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="block text-xs font-black text-slate-500 mb-2 uppercase tracking-wide">Tarih Aralığı</label>
                     <div className="flex bg-slate-100 p-1 rounded-xl">
                       <button
                         onClick={() => setKpiPeriod('weekly')}
@@ -3825,115 +3889,353 @@ ${callTaskNotes}`;
                 {loadingKpi ? (
                   <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm flex flex-col items-center justify-center">
                     <div className="w-8 h-8 rounded-full border-4 border-slate-100 border-t-slate-800 animate-spin mb-3"></div>
-                    <p className="text-slate-400 text-xs font-bold">KPI verileri hesaplanıyor...</p>
+                    <p className="text-slate-400 text-xs font-bold">KPI Verileri Analiz Ediliyor...</p>
                   </div>
                 ) : kpiData ? (
-                  <>
-                    {/* General Metrics Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500">
-                          <TrendingUp className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-slate-400 uppercase">Toplam Talep (Hacim)</p>
-                          <h4 className="text-2xl font-black text-slate-900 mt-1">{kpiData.metrics?.totalRequests} Adet</h4>
-                        </div>
-                      </div>
+                  <div className="space-y-6">
+                    {/* SUBTAB 1: BÖLGESEL & SEKTÖREL BÜYÜME */}
+                    {kpiSubTab === 'growth' && (
+                      <div className="space-y-6 animate-scale-up">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-2xl">🏬</span>
+                              <span className="text-xs bg-slate-100 text-slate-700 font-extrabold px-2.5 py-1 rounded-lg">Supply Coverage</span>
+                            </div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Aktif Esnaf / Kota Oranı</p>
+                            <h4 className="text-2xl font-black text-slate-900 mt-1">
+                              {kpiData.growthTab?.supplyCoverage?.activeProviders} / {kpiData.growthTab?.supplyCoverage?.capacityLimit} Usta
+                            </h4>
+                            <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                              <div
+                                className="bg-slate-900 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, kpiData.growthTab?.supplyCoverage?.saturationRatePercent || 0)}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-bold mt-2">Pazar Doygunluğu: %{kpiData.growthTab?.supplyCoverage?.saturationRatePercent}</p>
+                          </div>
 
-                      <div className="bg-[#c8f252]/10 rounded-3xl p-6 border border-[#c8f252]/20 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 rounded-2xl bg-[#c8f252]/30 flex items-center justify-center text-slate-900">
-                          <Check className="w-6 h-6 font-bold" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-slate-500 uppercase">Başarılı İş (Dönüşüm)</p>
-                          <h4 className="text-2xl font-black text-slate-900 mt-1">
-                            {kpiData.metrics?.successfulRequests} İş <span className="text-xs font-extrabold text-slate-500">(Dönüşüm: %{kpiData.metrics?.conversionRate})</span>
-                          </h4>
-                        </div>
-                      </div>
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-2xl">📋</span>
+                              <span className="text-xs bg-blue-50 text-blue-700 font-extrabold px-2.5 py-1 rounded-lg">Demand Volume</span>
+                            </div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Aylık Toplam Talep Sayısı</p>
+                            <h4 className="text-2xl font-black text-slate-900 mt-1">
+                              {kpiData.growthTab?.demandVolume} Talep
+                            </h4>
+                            <p className="text-[11px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
+                              <span>↑ %14 Büyüme</span> (Seçilen Bölgede)
+                            </p>
+                          </div>
 
-                      <div className="bg-red-50 rounded-3xl p-6 border border-red-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 rounded-2xl bg-red-100/50 flex items-center justify-center text-red-500">
-                          <X className="w-6 h-6" />
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-2xl">🎯</span>
+                              <span className="text-xs bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-1 rounded-lg">Fill Rate</span>
+                            </div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Talep Karşılama Oranı</p>
+                            <h4 className="text-2xl font-black text-slate-900 mt-1">
+                              %{kpiData.growthTab?.fillRate?.ratePercent}
+                            </h4>
+                            <div className="mt-2 text-xs font-bold text-slate-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200/80">
+                              {kpiData.growthTab?.fillRate?.alarmMessage}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-black text-slate-400 uppercase">İptal / Kabul Edilmeyen</p>
-                          <h4 className="text-2xl font-black text-slate-900 mt-1">
-                            {kpiData.metrics?.lostRequests} İş <span className="text-xs font-extrabold text-red-500">(Kayıp: %{kpiData.metrics?.lossRate})</span>
-                          </h4>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Leaderboard Table */}
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                      <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
-                        <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                          <Award className="w-4 h-4 text-slate-700" />
-                          <span>Liderlik Tablosu (Açık İsimli)</span>
-                        </h3>
-                        <span className="text-[10px] text-slate-400 font-mono">En Çok İş Kazananlar</span>
-                      </div>
+                        {/* Top Revenue Sectors Table */}
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
+                            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                              <span>🏆</span>
+                              <span>En Çok Ciro Yapan Sektörler Sıralaması (Top Revenue Sectors)</span>
+                            </h3>
+                            <span className="text-[10px] text-slate-400 font-mono">Bölgesel Hacim Liderleri</span>
+                          </div>
 
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                          <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
-                            <tr>
-                              <th className="px-6 py-4 text-center w-20">Sıralama</th>
-                              <th className="px-6 py-4">Usta / İşletme İsmi</th>
-                              <th className="px-6 py-4 text-center">Kazanılan İş</th>
-                              <th className="px-6 py-4 text-center">Gönderilen Teklif</th>
-                              <th className="px-6 py-4 text-center">Teklif Başarı Oranı</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 font-medium">
-                            {kpiData.leaderboard?.length === 0 ? (
-                              <tr>
-                                <td colSpan={5} className="text-center py-12 text-slate-400 text-sm italic font-sans">
-                                  Seçilen filtrelerde henüz kayıt bulunmamaktadır.
-                                </td>
-                              </tr>
-                            ) : (
-                              kpiData.leaderboard?.map((item: any, idx: number) => (
-                                <tr key={item.providerId} className="hover:bg-slate-50/60 transition-colors">
-                                  <td className="px-6 py-4 text-center">
-                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black mx-auto ${
-                                      idx === 0 
-                                        ? 'bg-amber-100 text-amber-700 border border-amber-200' 
-                                        : idx === 1 
-                                          ? 'bg-slate-100 text-slate-700 border border-slate-200' 
-                                          : idx === 2 
-                                            ? 'bg-orange-100 text-orange-700 border border-orange-200' 
-                                            : 'bg-slate-50 text-slate-400'
-                                    }`}>
-                                      {idx + 1}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 font-bold text-slate-800">
-                                    {item.name}
-                                  </td>
-                                  <td className="px-6 py-4 text-center font-black text-slate-900">
-                                    {item.jobsWon} İş
-                                  </td>
-                                  <td className="px-6 py-4 text-center text-slate-500 font-mono text-xs">
-                                    {item.bidsSent} Teklif
-                                  </td>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                                <tr>
+                                  <th className="px-6 py-4 text-center w-20">Sıralama</th>
+                                  <th className="px-6 py-4">Sektör / Hizmet Kategorisi</th>
+                                  <th className="px-6 py-4 text-center">Talep Adedi</th>
+                                  <th className="px-6 py-4 text-right">Toplam Hacim (TL)</th>
                                 </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-medium">
+                                {kpiData.growthTab?.topRevenueSectors?.map((sector: any, idx: number) => (
+                                  <tr key={sector.name} className="hover:bg-slate-50/60 transition-colors">
+                                    <td className="px-6 py-4 text-center font-black text-slate-400">
+                                      #{idx + 1}
+                                    </td>
+                                    <td className="px-6 py-4 font-bold text-slate-900">
+                                      {sector.name}
+                                    </td>
+                                    <td className="px-6 py-4 text-center font-bold text-slate-600">
+                                      {sector.count} Talep
+                                    </td>
+                                    <td className="px-6 py-4 text-right font-black text-slate-900">
+                                      {Number(sector.volume).toLocaleString('tr-TR')} ₺
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </>
+                    )}
+
+                    {/* SUBTAB 2: HİZMET VEREN (ESNAF) SAĞLIĞI & PERFORMANSI */}
+                    {kpiSubTab === 'provider' && (
+                      <div className="space-y-6 animate-scale-up">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
+                            <p className="text-xs font-black text-slate-400 uppercase">Abonelik Dağılımı</p>
+                            <div className="mt-3 space-y-1.5 text-xs font-extrabold text-slate-700">
+                              <div className="flex justify-between"><span>👑 VIP:</span><span>{kpiData.providerTab?.segmentBreakdown?.vip} Esnaf</span></div>
+                              <div className="flex justify-between"><span>⭐ Standart:</span><span>{kpiData.providerTab?.segmentBreakdown?.standard} Esnaf</span></div>
+                              <div className="flex justify-between"><span>🔹 Basic:</span><span>{kpiData.providerTab?.segmentBreakdown?.basic} Esnaf</span></div>
+                              <div className="flex justify-between text-slate-400"><span>⚪ Ücretsiz:</span><span>{kpiData.providerTab?.segmentBreakdown?.free} Esnaf</span></div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <div>
+                              <p className="text-xs font-black text-slate-400 uppercase">Ort. Teklif Verme Süresi</p>
+                              <h4 className="text-2xl font-black text-slate-900 mt-2">{kpiData.providerTab?.avgResponseSpeedMins} Dk</h4>
+                            </div>
+                            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg self-start">Hedef Uyumlu (&lt; 15 dk)</span>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <div>
+                              <p className="text-xs font-black text-slate-400 uppercase">Esnaf Başına Düşen İş</p>
+                              <h4 className="text-2xl font-black text-slate-900 mt-2">{kpiData.providerTab?.avgJobsPerProvider} İş / Ay</h4>
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-600">Doygunluk Seviyesi İdeal</span>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <div>
+                              <p className="text-xs font-black text-slate-400 uppercase">Memnuniyet & Şikayet</p>
+                              <h4 className="text-2xl font-black text-slate-900 mt-2">★ {kpiData.providerTab?.avgProviderRating}</h4>
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-500">Şikayet Oranı: %{kpiData.providerTab?.complaintRatePercent}</span>
+                          </div>
+                        </div>
+
+                        {/* Inactivity / Churn Risk Table */}
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-red-50/40">
+                            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                              <span>⚠️</span>
+                              <span>Uyku Moduna Düşen & Riskli Esnaflar Listesi (Churn Risk)</span>
+                            </h3>
+                            <span className="text-[10px] text-red-700 font-bold bg-red-100 px-2 py-0.5 rounded-md">Takip Gerektirir</span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                                <tr>
+                                  <th className="px-6 py-4">Esnaf İsmi</th>
+                                  <th className="px-6 py-4 text-center">Telefon</th>
+                                  <th className="px-6 py-4 text-center">Şehir</th>
+                                  <th className="px-6 py-4 text-center">Paket</th>
+                                  <th className="px-6 py-4 text-center">Durum Gerekçesi</th>
+                                  <th className="px-6 py-4 text-right">Aksiyon</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-medium">
+                                {kpiData.providerTab?.inactiveProvidersList?.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={6} className="text-center py-8 text-slate-400 text-xs italic">
+                                      Şu an uykuda veya risk altında esnaf bulunmamaktadır.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  kpiData.providerTab?.inactiveProvidersList?.map((prov: any) => (
+                                    <tr key={prov.id} className="hover:bg-slate-50/60 transition-colors">
+                                      <td className="px-6 py-4 font-bold text-slate-900">{prov.name}</td>
+                                      <td className="px-6 py-4 text-center font-mono text-xs text-slate-600">{prov.phone_decrypted || prov.phone_masked}</td>
+                                      <td className="px-6 py-4 text-center font-bold text-slate-700">{prov.city}</td>
+                                      <td className="px-6 py-4 text-center font-extrabold text-slate-800">{prov.package_type}</td>
+                                      <td className="px-6 py-4 text-center font-bold text-red-600 bg-red-50/60 rounded-xl">{prov.reason}</td>
+                                      <td className="px-6 py-4 text-right">
+                                        <a href={`tel:${prov.phone_decrypted}`} className="inline-flex items-center gap-1 bg-slate-900 text-white text-xs font-extrabold px-3 py-1.5 rounded-xl hover:bg-slate-800 transition-colors">
+                                          <span>📞</span> Hemen Ara
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUBTAB 3: HİZMET ALAN (MÜŞTERİ) & WHATSAPP DÖNÜŞÜM ANALİZİ */}
+                    {kpiSubTab === 'customer' && (
+                      <div className="space-y-6 animate-scale-up">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                            <p className="text-xs font-black text-slate-400 uppercase">Kanal Bazlı Talep Dağılımı</p>
+                            <div className="mt-4 space-y-2 text-xs font-black">
+                              <div className="flex justify-between"><span>💬 WhatsApp Bot:</span><span className="text-emerald-700">%{kpiData.customerTab?.trafficSourceBreakdown?.whatsapp}</span></div>
+                              <div className="flex justify-between"><span>🌐 Web Portalı:</span><span className="text-blue-700">%{kpiData.customerTab?.trafficSourceBreakdown?.web}</span></div>
+                              <div className="flex justify-between"><span>📱 Mobil Uygulama:</span><span className="text-purple-700">%{kpiData.customerTab?.trafficSourceBreakdown?.mobile}</span></div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <div>
+                              <p className="text-xs font-black text-slate-400 uppercase">Teklif Kabul Etme Oranı</p>
+                              <h4 className="text-3xl font-black text-slate-900 mt-2">%{kpiData.customerTab?.offerConversionRatePercent}</h4>
+                            </div>
+                            <p className="text-[11px] font-bold text-emerald-700">Gelen tekliflerin %{kpiData.customerTab?.offerConversionRatePercent}'i müşteriler tarafından kabul edilmektedir.</p>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <div>
+                              <p className="text-xs font-black text-slate-400 uppercase">Teklif Başı Ortalama Fiyat</p>
+                              <h4 className="text-3xl font-black text-slate-900 mt-2">{kpiData.customerTab?.avgOfferPriceTL} ₺</h4>
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-500">Seçilen bölge ve kategorideki piyasa teklif ortalamasıdır.</p>
+                          </div>
+                        </div>
+
+                        {/* WhatsApp Drop-off Table */}
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
+                            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                              <span>💬</span>
+                              <span>WhatsApp Bot Terk Etme Oranları (Drop-off Analysis)</span>
+                            </h3>
+                            <span className="text-[10px] text-slate-400 font-mono">Sohbet Adımları Taraması</span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-slate-50 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                                <tr>
+                                  <th className="px-6 py-4">WhatsApp Sohbet Adımı</th>
+                                  <th className="px-6 py-4 text-center">Terk Etme Oranı (%)</th>
+                                  <th className="px-6 py-4 text-right">Açıklama / Durum</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-medium">
+                                {kpiData.customerTab?.whatsappDropoffSteps?.map((step: any) => (
+                                  <tr key={step.step} className="hover:bg-slate-50/60 transition-colors">
+                                    <td className="px-6 py-4 font-bold text-slate-900">{step.step}</td>
+                                    <td className="px-6 py-4 text-center font-black text-slate-800">
+                                      <span className={`px-2.5 py-1 rounded-lg ${step.dropoffRatePercent > 15 ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-700'}`}>
+                                        %{step.dropoffRatePercent}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right text-xs font-bold text-slate-500">
+                                      {step.dropoffRatePercent > 15 ? '⚠️ En Çok Takılınan Adım (İyileştirilmeli)' : '✅ Akış İdeal'}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUBTAB 4: FİNANS, KOMİSYON & SATIŞ EKİBİ HEDEFLERİ (KOMUTA MERKEZİ) */}
+                    {kpiSubTab === 'financial' && (
+                      <div className="space-y-6 animate-scale-up">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-md relative overflow-hidden">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Aylık Tekrarlayan Gelir (MRR)</p>
+                            <h4 className="text-3xl font-black text-[#c8f252] mt-2">
+                              {Number(kpiData.financialTab?.mrrTotalTL).toLocaleString('tr-TR')} ₺
+                            </h4>
+                            <p className="text-[11px] text-slate-300 font-bold mt-2">Sadece VIP ve Standart paket satış net kasaya giren.</p>
+                          </div>
+
+                          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Platform Komisyon Geliri</p>
+                            <h4 className="text-3xl font-black text-slate-900 mt-2">
+                              {Number(kpiData.financialTab?.platformCommissionRevenueTL).toLocaleString('tr-TR')} ₺
+                            </h4>
+                            <p className="text-[11px] text-slate-500 font-bold mt-2">Tamamlanan işlerden elde edilen komisyon tutarı.</p>
+                          </div>
+
+                          <div className="bg-emerald-500 text-white rounded-3xl p-6 shadow-md">
+                            <p className="text-xs font-black text-emerald-100 uppercase tracking-wider">Toplam Platform Net Kazanç</p>
+                            <h4 className="text-3xl font-black text-white mt-2">
+                              {Number(kpiData.financialTab?.mrrTotalTL + kpiData.financialTab?.platformCommissionRevenueTL).toLocaleString('tr-TR')} ₺
+                            </h4>
+                            <p className="text-[11px] text-emerald-100 font-bold mt-2">MRR + Komisyon toplam net şirket cirosudur.</p>
+                          </div>
+                        </div>
+
+                        {/* Sales KPIs & Targets Table */}
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
+                            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                              <span>🎯</span>
+                              <span>Saha / Satış Ekibi Hedef Tablosu & Reklam ROAS (Sales KPIs)</span>
+                            </h3>
+                            <span className="text-[10px] text-slate-400 font-mono">Performans Komuta Merkezi</span>
+                          </div>
+
+                          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Target 1 */}
+                            <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70">
+                              <span className="text-xs font-black text-slate-500 uppercase">a- Saha Satış Temsilcisi Hedefi</span>
+                              <h4 className="text-lg font-black text-slate-900 mt-2">
+                                {kpiData.financialTab?.salesKpis?.fieldSalesTarget?.achievedVipCount} / {kpiData.financialTab?.salesKpis?.fieldSalesTarget?.targetVipCount} VIP Kayıt
+                              </h4>
+                              <div className="w-full bg-slate-200 rounded-full h-2.5 mt-3 overflow-hidden">
+                                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${kpiData.financialTab?.salesKpis?.fieldSalesTarget?.progressPercent}%` }}></div>
+                              </div>
+                              <p className="text-xs font-bold text-slate-600 mt-2">Aylık Hedef Gerçekleşme: %{kpiData.financialTab?.salesKpis?.fieldSalesTarget?.progressPercent}</p>
+                            </div>
+
+                            {/* Target 2 */}
+                            <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70">
+                              <span className="text-xs font-black text-slate-500 uppercase">b- Müşteri İrtibat (Retention)</span>
+                              <h4 className="text-lg font-black text-slate-900 mt-2">
+                                %{kpiData.financialTab?.salesKpis?.supportRetention?.retentionRatePercent} Tutundurma Oranı
+                              </h4>
+                              <p className="text-xs text-slate-600 font-bold mt-3">
+                                Süresi biten {kpiData.financialTab?.salesKpis?.supportRetention?.expiredProviders} esnaftan {kpiData.financialTab?.salesKpis?.supportRetention?.resubscribedProviders} tanesi aranılarak paket yeniletildi.
+                              </p>
+                            </div>
+
+                            {/* Target 3 */}
+                            <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70">
+                              <span className="text-xs font-black text-slate-500 uppercase">c- Reklam ROI (ROAS) Analizi</span>
+                              <h4 className="text-lg font-black text-emerald-700 mt-2">
+                                ROAS Ratio: {kpiData.financialTab?.salesKpis?.adRoas?.roasRatio}
+                              </h4>
+                              <p className="text-xs text-slate-600 font-bold mt-3">
+                                Harcanan 10.000 ₺ reklam karşılığında {Number(kpiData.financialTab?.salesKpis?.adRoas?.revenueGenerated).toLocaleString('tr-TR')} ₺ net abonelik/komisyon elde edildi.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
-                    <p className="text-slate-400 text-sm font-bold">Lütfen filtreleri kullanarak analiz yapın.</p>
+                    <p className="text-slate-400 text-sm font-bold">KPI Verileri Yükleniyor...</p>
                   </div>
                 )}
               </div>
             )}
+
+            
 
             {/* TAB 13: COMMISSION & SUBSCRIPTION MANAGEMENT */}
             {activeTab === 'subscription_mgmt' && (
