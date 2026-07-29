@@ -1607,13 +1607,13 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
 
           if (!state.collected_data.categorySlug || state.step === 'category_detection' || state.step === 'greeting') {
             options = options.map(o => (o === 'Diğer' || o.toLowerCase().includes('diğer')) ? 'Tüm Hizmetleri Gör' : o);
-            if (options.length > 0 && !options.some(o => o.includes('Tüm Hizmet') || o.toLowerCase().includes('hizmetleri gör'))) {
-              if (options.length >= 5) {
-                options[4] = 'Tüm Hizmetleri Gör';
-                options = options.slice(0, 5);
-              } else {
-                options.push('Tüm Hizmetleri Gör');
-              }
+            const allSvcIdx = options.findIndex(o => o.includes('Tüm Hizmet') || o.toLowerCase().includes('hizmetleri gör'));
+            if (allSvcIdx !== -1) {
+              const [allSvc] = options.splice(allSvcIdx, 1);
+              options.unshift(allSvc);
+            } else if (options.length > 0) {
+              if (options.length >= 5) options.pop();
+              options.unshift('Tüm Hizmetleri Gör');
             }
           }
         }
@@ -3321,7 +3321,7 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
 
     // 2. Initial Category Scope Question (Step 1 Fallbacks)
     if (!s && !name) {
-      return ["Ev Temizliği", "Boya Badana", "Nakliyat", "Kombi Bakımı", "Tüm Hizmetleri Gör"];
+      return ["Tüm Hizmetleri Gör", "Ev Temizliği", "Boya Badana", "Nakliyat", "Kombi Servisi"];
     }
 
     if (s.includes('tadilat') || name.includes('tadilat')) {

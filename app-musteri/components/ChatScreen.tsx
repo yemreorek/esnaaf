@@ -780,7 +780,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
               id: `assistant-welcome`,
               role: "assistant",
               content: startData.message || "Size bugün hangi konuda yardımcı olabilirim? (Örn: Ev temizliği, boya badana, tesisat veya elektrik işi...)",
-              options: ["Ev Temizliği", "Boya Badana", "Su Tesisatı", "Nakliyat / Taşıma", "📋 Tüm Hizmetleri Gör"],
+              options: ["📋 Tüm Hizmetleri Gör (Arama Yap)", "Ev Temizliği", "Boya Badana", "Su Tesisatı", "Nakliyat / Taşıma"],
               isStreaming: true,
             }
           ]);
@@ -1498,15 +1498,18 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     <div className="flex flex-col gap-2.5 w-full">
                       {(() => {
                         const hasCategory = messages.some(m => m.collected_data?.categorySlug);
-                        let displayOptions = (msg.options || []).map(o => (o === "Diğer" || o.toLowerCase().includes("diğer")) ? "Tüm Hizmetleri Gör" : o);
-                        if (!hasCategory && !displayOptions.some(o => o.includes("Tüm Hizmet") || o.toLowerCase().includes("hizmetleri gör"))) {
-                          if (displayOptions.length >= 5) {
-                            displayOptions[4] = "Tüm Hizmetleri Gör";
-                            displayOptions = displayOptions.slice(0, 5);
-                          } else {
-                            displayOptions.push("Tüm Hizmetleri Gör");
-                          }
+                        let displayOptions = (msg.options || []).map(o => (o === "Diğer" || o.toLowerCase().includes("diğer")) ? "📋 Tüm Hizmetleri Gör (Arama Yap)" : o);
+                        
+                        // Find if all services option exists
+                        const allSvcIdx = displayOptions.findIndex(o => o.includes("Tüm Hizmet") || o.toLowerCase().includes("hizmetleri gör"));
+                        if (allSvcIdx !== -1) {
+                          const [allSvc] = displayOptions.splice(allSvcIdx, 1);
+                          displayOptions.unshift(allSvc);
+                        } else if (!hasCategory) {
+                          if (displayOptions.length >= 5) displayOptions.pop();
+                          displayOptions.unshift("📋 Tüm Hizmetleri Gör (Arama Yap)");
                         }
+
                         return displayOptions.map((opt, idx) => {
                           const isSelected = selectedMultiOptions.includes(opt);
                           const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
@@ -1530,17 +1533,24 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                                   }
                                 }
                               }}
-                              className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
+                              className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
                                 isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
                               } ${
-                                isSelected || (isTimeCustom && showDateTimePicker)
-                                  ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01]' 
-                                  : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5'
+                                isAllServices
+                                  ? 'bg-[#c8f252] border-[#c8f252] text-slate-950 font-extrabold shadow-md hover:bg-[#b8e242] hover:shadow-lg hover:scale-[1.015]'
+                                  : isSelected || (isTimeCustom && showDateTimePicker)
+                                  ? 'bg-[#c8f252]/20 border-[#c8f252] text-slate-900 shadow-md scale-[1.01] font-semibold' 
+                                  : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 font-medium'
                               }`}
                             >
-                              <span className="pr-4">{opt}</span>
+                              <span className="pr-4 flex items-center gap-2">
+                                {isAllServices && <span className="text-lg">🔍</span>}
+                                {opt}
+                              </span>
                               <span className={`text-xl transition-transform duration-200 ${
-                                isSelected || (isTimeCustom && showDateTimePicker)
+                                isAllServices
+                                  ? 'translate-x-1 text-slate-950 font-black'
+                                  : isSelected || (isTimeCustom && showDateTimePicker)
                                   ? 'translate-x-1 text-slate-900' 
                                   : 'text-slate-300 group-hover:translate-x-1 group-hover:text-slate-600'
                               }`}>
