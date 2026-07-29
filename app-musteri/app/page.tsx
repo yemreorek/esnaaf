@@ -817,12 +817,12 @@ export default function Home() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {[
-            { name: "Ev Temizliği", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=65&w=350&fm=webp&fit=crop", rating: "4.8", count: "9.861", commentCount: "8.875" },
-            { name: "Boya Badana", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=65&w=350&fm=webp&fit=crop", rating: "4.9", count: "5.546", commentCount: "4.920" },
+            { name: "Ev Temizliği", image: "/ev_temizligi.jpg", rating: "4.8", count: "9.861", commentCount: "8.875" },
+            { name: "Boya Badana", image: "/boya_badana.jpg", rating: "4.9", count: "5.546", commentCount: "4.920" },
             { name: "Nakliyat", image: "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?q=65&w=350&fm=webp&fit=crop", rating: "4.7", count: "2.976", commentCount: "2.540" },
-            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?q=65&w=350&fm=webp&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
-            { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=65&w=350&fm=webp&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
-            { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=65&w=350&fm=webp&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
+            { name: "Su Tesisatı", image: "/su_tesisati.jpg", rating: "4.8", count: "4.120", commentCount: "3.680" },
+            { name: "Elektrik Tesisatı", image: "/elektrik_tesisati.jpg", rating: "4.9", count: "3.245", commentCount: "2.890" },
+            { name: "Ev Tadilat", image: "/ev_tadilat.jpg", rating: "4.8", count: "1.890", commentCount: "1.520" },
             { name: "Kombi Servisi", image: "/kombi_servisi.jpg", rating: "4.7", count: "2.100", commentCount: "1.840" },
             { name: "Koltuk Yıkama", image: "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?q=65&w=350&fm=webp&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
