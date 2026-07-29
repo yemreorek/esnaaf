@@ -690,8 +690,11 @@ export default function Home() {
 
               {/* Right: AI Version & Actions */}
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                  Esnaaf AI v2.5
+                <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                  <svg className="w-3 h-3 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="currentColor" />
+                  </svg>
+                  Esnaaf AI v3.6
                 </span>
 
                 {/* Sound Wave Visualizer when recording */}

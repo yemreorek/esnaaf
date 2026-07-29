@@ -136,22 +136,50 @@ export default function Footer() {
               </div>
 
               {/* ESNAAF AI Feature Badges */}
-              <div className="flex flex-col gap-2.5 pt-2">
+              <div className="flex flex-col gap-3 pt-2">
                 <h4 className="font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
                   ESNAAF AI <span className="w-2 h-2 rounded-full bg-[#c8f252] animate-pulse"></span>
                 </h4>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-lg">
-                    🌐 Gemini 2.5 Flash
+                <div className="flex flex-wrap gap-2.5">
+                  {/* Badge 1: Google Gemini 3.6 Flash */}
+                  <span className="text-xs font-extrabold bg-slate-900/90 text-blue-100 border border-blue-500/35 px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 hover:border-blue-400 transition-colors">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                      <defs>
+                        <linearGradient id="gemini-sparkle-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#4e80ee" />
+                          <stop offset="50%" stopColor="#8ab4f8" />
+                          <stop offset="100%" stopColor="#c58af9" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="url(#gemini-sparkle-footer)" />
+                    </svg>
+                    Gemini 3.6 Flash
                   </span>
-                  <span className="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-lg">
-                    ⚡ 0ms Akıllı Yanıt
+
+                  {/* Badge 2: 0ms Akıllı Yanıt */}
+                  <span className="text-xs font-bold bg-slate-900/90 text-slate-200 border border-[#c8f252]/35 px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 hover:border-[#c8f252] transition-colors">
+                    <svg className="w-3.5 h-3.5 text-[#c8f252] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13 2L3 14h7v8l10-12h-7V2z" />
+                    </svg>
+                    0ms Akıllı Yanıt
                   </span>
-                  <span className="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-lg">
-                    🔒 PII Koruması
+
+                  {/* Badge 3: PII Koruması */}
+                  <span className="text-xs font-bold bg-slate-900/90 text-emerald-100 border border-emerald-500/35 px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 hover:border-emerald-400 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                    </svg>
+                    PII Koruması
                   </span>
-                  <span className="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-lg">
-                    🎯 Doğrudan Eşleşme
+
+                  {/* Badge 4: Doğrudan Eşleşme */}
+                  <span className="text-xs font-bold bg-slate-900/90 text-rose-100 border border-rose-500/35 px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 hover:border-rose-400 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="5" />
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                    </svg>
+                    Doğrudan Eşleşme
                   </span>
                 </div>
               </div>
