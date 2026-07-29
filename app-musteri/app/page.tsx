@@ -898,13 +898,13 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCt95JwkhE8yRw-lN5LVufHeysmo_Tx4g422kygjbcknm6iYM2kog6FNP9p10ilUdzet_-eEK_SmQDdAJ4gn7R4z7vOckZxEvP5fDhe73okFxbdqMqafgfFiwBq84_RWdHVsTKUPj6lHCy_i2OCuU-KzCgL5dlgPgAL2mQHnSy1z-BwbsNDJL0c53IiOCBJoqeiQFxWm1h3qLDsKL9RIYLwZgUVv0ffvyVMhOHpejkMcHbgGx2Vf1398QJOMtLE3M0mpzQPn6Tewi" alt="Adım 1" className="max-h-full max-w-full object-contain" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-100 p-6 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)] hover:border-[#c8f252]/80 group">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 relative flex items-center justify-center p-4 border border-slate-100/80">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCt95JwkhE8yRw-lN5LVufHeysmo_Tx4g422kygjbcknm6iYM2kog6FNP9p10ilUdzet_-eEK_SmQDdAJ4gn7R4z7vOckZxEvP5fDhe73okFxbdqMqafgfFiwBq84_RWdHVsTKUPj6lHCy_i2OCuU-KzCgL5dlgPgAL2mQHnSy1z-BwbsNDJL0c53IiOCBJoqeiQFxWm1h3qLDsKL9RIYLwZgUVv0ffvyVMhOHpejkMcHbgGx2Vf1398QJOMtLE3M0mpzQPn6Tewi" alt="Adım 1" className="max-h-full max-w-full object-contain group-hover:scale-103 transition-transform duration-500" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 1</span>
-                <h3 className="font-black text-slate-900 text-lg tracking-tight">İhtiyacını AI Asistanına Anlat</h3>
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block bg-[#c8f252]/15 px-3 py-1 rounded-full w-fit mx-auto border border-[#c8f252]/30">Adım 1</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight group-hover:text-[#719600] transition-colors">İhtiyacını AI Asistanına Anlat</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Akıllı asistanımızla birkaç basit soruda ihtiyacını belirle, sistem arka planda çalışsın.
                 </p>
@@ -912,13 +912,13 @@ export default function Home() {
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvamRiNA9s2c-7R_M4F9BcxAWPUJLHbzE9o0YDOl8-g4r_XrZNxXGzMpr2AIxNg4xok-xwAz4fH7iHXQLgdfSr8ChKPzehv5XV7ogXSlf_LU6L2NpueS6GmecAa-0GEy3bSmsq6GM1r_rH87VOGMbWoS2CpBy5niUiiLGBKlCbkaSu1X5GrMh4uPT5-qVApMRhtU4x5GTz1cWfZK6loc4sGGiW4jmQu47GG5Fxnml_3U0SYOCTDRiyb51fzdbrUHABuUzNHCyhYyc" alt="Adım 2" className="max-h-full max-w-full object-contain" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-100 p-6 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)] hover:border-[#c8f252]/80 group">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 relative flex items-center justify-center p-4 border border-slate-100/80">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuASvamRiNA9s2c-7R_M4F9BcxAWPUJLHbzE9o0YDOl8-g4r_XrZNxXGzMpr2AIxNg4xok-xwAz4fH7iHXQLgdfSr8ChKPzehv5XV7ogXSlf_LU6L2NpueS6GmecAa-0GEy3bSmsq6GM1r_rH87VOGMbWoS2CpBy5niUiiLGBKlCbkaSu1X5GrMh4uPT5-qVApMRhtU4x5GTz1cWfZK6loc4sGGiW4jmQu47GG5Fxnml_3U0SYOCTDRiyb51fzdbrUHABuUzNHCyhYyc" alt="Adım 2" className="max-h-full max-w-full object-contain group-hover:scale-103 transition-transform duration-500" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 2</span>
-                <h3 className="font-black text-slate-900 text-lg tracking-tight">Teklifleri Topla</h3>
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block bg-[#c8f252]/15 px-3 py-1 rounded-full w-fit mx-auto border border-[#c8f252]/30">Adım 2</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight group-hover:text-[#719600] transition-colors">Teklifleri Topla</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Mahallendeki onaylanmış hizmet verenlerden gelen teklifleri ve fiyatları gör.
                 </p>
@@ -926,13 +926,13 @@ export default function Home() {
             </div>
 
             {/* Step 3 */}
-            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-150/60 p-6 rounded-3xl hover:border-[#c8f252]/30 transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-md">
-              <div className="w-full h-64 overflow-hidden rounded-2xl bg-slate-50 relative flex items-center justify-center p-4">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsDiQBcW0vdCtjUNBiLOoqy-em53AITIxtj9_DgZ84-iqVWZM2uIOgrqs4w5NCPgEbSZ0eiijGGSea493LmQNUFZae3zifPcaskbAS2Zq24mS1xd5vqXCZP_Cd0O5xNqqLenI9K1yT4e3QuBddL6sNTZDe4Z51sHyRuDq1J6wXjMAxUndCUpbG1LfSHPHQMDERGPtdBd1RQvUU3lUCALmRC0F5mwoe2BGwMFXmkWW8Ai5iZId15lE7t_JIftDQYBlPX8UFGd1G34J" alt="Adım 3" className="max-h-full max-w-full object-contain" />
+            <div className="flex flex-col items-center text-center space-y-6 bg-white border border-slate-100 p-6 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)] hover:border-[#c8f252]/80 group">
+              <div className="w-full h-64 overflow-hidden rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 relative flex items-center justify-center p-4 border border-slate-100/80">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArsDiQBcW0vdCtjUNBiLOoqy-em53AITIxtj9_DgZ84-iqVWZM2uIOgrqs4w5NCPgEbSZ0eiijGGSea493LmQNUFZae3zifPcaskbAS2Zq24mS1xd5vqXCZP_Cd0O5xNqqLenI9K1yT4e3QuBddL6sNTZDe4Z51sHyRuDq1J6wXjMAxUndCUpbG1LfSHPHQMDERGPtdBd1RQvUU3lUCALmRC0F5mwoe2BGwMFXmkWW8Ai5iZId15lE7t_JIftDQYBlPX8UFGd1G34J" alt="Adım 3" className="max-h-full max-w-full object-contain group-hover:scale-103 transition-transform duration-500" />
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block">Adım 3</span>
-                <h3 className="font-black text-slate-900 text-lg tracking-tight">Karşılaştır ve Seç</h3>
+                <span className="text-[10px] font-black text-[#719600] uppercase tracking-wider block bg-[#c8f252]/15 px-3 py-1 rounded-full w-fit mx-auto border border-[#c8f252]/30">Adım 3</span>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight group-hover:text-[#719600] transition-colors">Karşılaştır ve Seç</h3>
                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">
                   Hizmet veren profillerini, referansları inceleyin; fiyatları karşılaştırıp en uygununu seçin.
                 </p>
