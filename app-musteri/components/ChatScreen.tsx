@@ -1514,6 +1514,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                           const isSelected = selectedMultiOptions.includes(opt);
                           const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
                           const isAllServices = opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör") || opt === "Diğer" || opt.toLowerCase().includes("diğer");
+                          const displayLabel = opt.replace(/^(📋|🔍|\s)+/, '');
+
                         return (
                           <div key={idx} className="w-full flex flex-col gap-2">
                             <button
@@ -1533,7 +1535,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                                   }
                                 }
                               }}
-                              className={`group w-full flex items-center justify-between px-5 py-3.5 text-[15px] rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
+                              className={`group w-full flex items-center justify-between px-4 md:px-5 py-3.5 text-[15px] rounded-xl border-2 transition-all duration-200 text-left leading-snug ${
                                 isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
                               } ${
                                 isAllServices
@@ -1543,9 +1545,16 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                                   : 'bg-white border-slate-200 text-slate-700 hover:border-[#c8f252] hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 font-medium'
                               }`}
                             >
-                              <span className="pr-4 flex items-center gap-2">
-                                {isAllServices && <span className="text-lg">🔍</span>}
-                                {opt}
+                              <span className="pr-4 flex items-center gap-3">
+                                {isAllServices && (
+                                  <div className="w-8 h-8 rounded-lg bg-slate-950 text-[#c8f252] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 group-hover:bg-slate-900 transition-all duration-200">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                                      <circle cx="11" cy="11" r="6.5" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="m19 19-3.8-3.8" />
+                                    </svg>
+                                  </div>
+                                )}
+                                <span className={isAllServices ? "font-extrabold tracking-tight text-slate-950" : ""}>{displayLabel}</span>
                               </span>
                               <span className={`text-xl transition-transform duration-200 ${
                                 isAllServices
