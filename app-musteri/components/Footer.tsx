@@ -161,11 +161,11 @@ export default function Footer() {
             <div className="lg:col-span-4 flex flex-col items-start lg:items-end text-left lg:text-right gap-5">
               
               {/* Logo */}
-              <a href="/" className="inline-block hover:opacity-90 transition-opacity">
+              <a href="/" className="inline-block hover:scale-105 transition-transform">
                 <img
-                  src="/logo.png"
+                  src="/logo_white.png"
                   alt="Esnaaf Logo"
-                  className="h-11 w-auto object-contain brightness-0 invert"
+                  className="h-16 w-auto md:h-20 lg:h-24 object-contain drop-shadow-[0_4px_20px_rgba(200,242,82,0.25)]"
                 />
               </a>
 
