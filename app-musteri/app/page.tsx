@@ -819,12 +819,12 @@ export default function Home() {
           {[
             { name: "Ev Temizliği", image: "/ev_temizligi.jpg", rating: "4.8", count: "9.861", commentCount: "8.875" },
             { name: "Boya Badana", image: "/boya_badana.jpg", rating: "4.9", count: "5.546", commentCount: "4.920" },
-            { name: "Nakliyat", image: "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?q=65&w=350&fm=webp&fit=crop", rating: "4.7", count: "2.976", commentCount: "2.540" },
+            { name: "Nakliyat", image: "/nakliyat.jpg", rating: "4.7", count: "2.976", commentCount: "2.540" },
             { name: "Su Tesisatı", image: "/su_tesisati.jpg", rating: "4.8", count: "4.120", commentCount: "3.680" },
             { name: "Elektrik Tesisatı", image: "/elektrik_tesisati.jpg", rating: "4.9", count: "3.245", commentCount: "2.890" },
             { name: "Ev Tadilat", image: "/ev_tadilat.jpg", rating: "4.8", count: "1.890", commentCount: "1.520" },
             { name: "Kombi Servisi", image: "/kombi_servisi.jpg", rating: "4.7", count: "2.100", commentCount: "1.840" },
-            { name: "Koltuk Yıkama", image: "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?q=65&w=350&fm=webp&fit=crop", rating: "4.6", count: "1.540", commentCount: "1.230" },
+            { name: "Koltuk Yıkama", image: "/koltuk_yikama.jpg", rating: "4.6", count: "1.540", commentCount: "1.230" },
           ].map((srv, idx) => (
             <div key={idx} className="bg-white border border-[#c8f252]/60 rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(0,0,0,0.05)] -translate-y-1 transition-all duration-300 group relative hover:shadow-xs hover:border-slate-150/60 hover:translate-y-0">
               <div className="relative h-28 md:h-48 w-full overflow-hidden shrink-0">
