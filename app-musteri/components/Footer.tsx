@@ -253,11 +253,13 @@ export default function Footer() {
           {/* Row A: Security, Regulatory & Partner Badges */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
             {/* Left: Esnaaf Brand Emblem */}
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-              <span className="w-7 h-7 rounded-lg bg-[#c8f252] text-slate-950 font-black flex items-center justify-center text-xs">
-                e.
-              </span>
-              <span>Esnaaf 100% Güvenli Hizmet Ağı</span>
+            <div className="flex items-center gap-3 text-xs font-bold text-slate-200">
+              <img
+                src="/esnaaf_pin.png"
+                alt="Esnaaf Pin Logo"
+                className="h-10 w-auto md:h-12 object-contain shrink-0 drop-shadow-md hover:scale-105 transition-transform"
+              />
+              <span className="text-xs md:text-sm font-extrabold text-slate-200 tracking-tight">Esnaaf 100% Güvenli Hizmet Ağı</span>
             </div>
 
             {/* Right: Security Badges (TÖDEB, PCI, KVKK, SSL, T.C. Ticaret Bakanlığı) */}
