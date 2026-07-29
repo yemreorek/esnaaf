@@ -1055,7 +1055,7 @@ export default function Home() {
 
       {/* Cleaners Banner Section */}
       <section className="py-8 bg-white px-4 md:px-6">
-        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-900 text-white grid md:grid-cols-12 items-center shadow-lg">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white grid md:grid-cols-12 items-center shadow-[0_20px_50px_rgba(0,0,0,0.18)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.25)] border border-slate-800/60 transition-all duration-500">
           <div className="md:col-span-7 p-8 md:p-16 space-y-6">
             <h2 className="font-bold text-3xl md:text-4xl text-white tracking-tight">
               Güvenilir Hizmet Verenlerle Hayatını Kolaylaştır
@@ -1115,15 +1115,17 @@ export default function Home() {
 
       {/* Guarantee Banner Section */}
       <section className="py-8 bg-white px-4 md:px-6">
-        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-slate-50 border border-slate-150/50 grid md:grid-cols-12 items-center shadow-sm">
+        <div className="max-w-7xl mx-auto overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 grid md:grid-cols-12 items-center shadow-[0_16px_45px_rgba(0,0,0,0.07)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-500">
           <div className="md:col-span-6 h-80 md:h-[400px] relative">
-            <img
+            <Image
               alt="Esnaaf Guarantee"
-              className="w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
+              className="object-cover"
+              src="/ev_temizligi.jpg"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
-          <div className="md:col-span-6 p-8 md:p-16 bg-[#c8f252]/10 h-full flex flex-col justify-center space-y-6">
+          <div className="md:col-span-6 p-8 md:p-16 bg-gradient-to-br from-[#c8f252]/15 via-[#c8f252]/5 to-transparent h-full flex flex-col justify-center space-y-6">
             <div className="w-14 h-14 rounded-full bg-[#c8f252] flex items-center justify-center text-slate-950 shadow-md">
               <span className="material-symbols-outlined text-2xl font-bold">verified</span>
             </div>
@@ -1135,7 +1137,7 @@ export default function Home() {
             </p>
             <button
               onClick={() => handleStartChat("Merhaba, hizmet veren garantisi hakkında bilgi almak istiyorum.")}
-              className="bg-slate-950 hover:bg-slate-850 text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md self-start"
+              className="bg-slate-950 hover:bg-[#719600] text-white px-8 py-4 rounded-xl font-bold transition-all active:scale-95 cursor-pointer shadow-md self-start"
             >
               Detayları Öğren
             </button>
