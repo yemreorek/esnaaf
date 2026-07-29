@@ -1604,6 +1604,18 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
             options = [];
             inputType = (state.step as any) === 'ask_address' ? 'single_choice' : 'text';
           }
+
+          if (!state.collected_data.categorySlug || state.step === 'category_detection' || state.step === 'greeting') {
+            options = options.map(o => (o === 'Diğer' || o.toLowerCase().includes('diğer')) ? 'Tüm Hizmetleri Gör' : o);
+            if (options.length > 0 && !options.some(o => o.includes('Tüm Hizmet') || o.toLowerCase().includes('hizmetleri gör'))) {
+              if (options.length >= 5) {
+                options[4] = 'Tüm Hizmetleri Gör';
+                options = options.slice(0, 5);
+              } else {
+                options.push('Tüm Hizmetleri Gör');
+              }
+            }
+          }
         }
 
         state.messages.push({ role: 'assistant', content: responseMessage });

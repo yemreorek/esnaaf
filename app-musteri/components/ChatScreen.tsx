@@ -1496,10 +1496,21 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                 {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
                   <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-slate-100/50">
                     <div className="flex flex-col gap-2.5 w-full">
-                      {msg.options.map((opt, idx) => {
-                        const isSelected = selectedMultiOptions.includes(opt);
-                        const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
-                        const isAllServices = opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör");
+                      {(() => {
+                        const hasCategory = messages.some(m => m.collected_data?.categorySlug);
+                        let displayOptions = (msg.options || []).map(o => (o === "Diğer" || o.toLowerCase().includes("diğer")) ? "Tüm Hizmetleri Gör" : o);
+                        if (!hasCategory && !displayOptions.some(o => o.includes("Tüm Hizmet") || o.toLowerCase().includes("hizmetleri gör"))) {
+                          if (displayOptions.length >= 5) {
+                            displayOptions[4] = "Tüm Hizmetleri Gör";
+                            displayOptions = displayOptions.slice(0, 5);
+                          } else {
+                            displayOptions.push("Tüm Hizmetleri Gör");
+                          }
+                        }
+                        return displayOptions.map((opt, idx) => {
+                          const isSelected = selectedMultiOptions.includes(opt);
+                          const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
+                          const isAllServices = opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör") || opt === "Diğer" || opt.toLowerCase().includes("diğer");
                         return (
                           <div key={idx} className="w-full flex flex-col gap-2">
                             <button
@@ -1582,7 +1593,8 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                             )}
                           </div>
                         );
-                      })}
+                      });
+                    })()}
                     </div>
                     {msg.inputType === 'multi_choice' && selectedMultiOptions.length > 0 && (
                       <button
