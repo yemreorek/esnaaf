@@ -193,7 +193,7 @@ export default function Footer() {
                 <img
                   src="/logo_white.png"
                   alt="Esnaaf Logo"
-                  className="h-16 w-auto md:h-20 lg:h-24 object-contain drop-shadow-[0_4px_20px_rgba(200,242,82,0.25)]"
+                  className="h-20 w-auto md:h-24 lg:h-28 object-contain drop-shadow-[0_4px_25px_rgba(200,242,82,0.35)] shrink-0"
                 />
               </a>
 
