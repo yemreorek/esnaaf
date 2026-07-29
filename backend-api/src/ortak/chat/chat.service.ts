@@ -3308,67 +3308,71 @@ Kullanıcının cevabı hangi geçerli seçeneğe karşılık geliyor? SADECE se
     }
 
     // 2. Initial Category Scope Question (Step 1 Fallbacks)
+    if (!s && !name) {
+      return ["Ev Temizliği", "Boya Badana", "Nakliyat", "Kombi Bakımı", "Tüm Hizmetleri Gör"];
+    }
+
     if (s.includes('tadilat') || name.includes('tadilat')) {
-      return ["Mutfak Tadilatı", "Banyo Tadilatı", "Komple Ev Tadilatı", "Salon / Oda Tadilatı", "Diğer"];
+      return ["Mutfak Tadilatı", "Banyo Tadilatı", "Komple Ev Tadilatı", "Salon / Oda Tadilatı", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('boya') || name.includes('boya')) {
-      return ["1+1 Daire Boyama", "2+1 Daire Boyama", "3+1 Daire Boyama", "Tek Oda Boyama", "Diğer"];
+      return ["1+1 Daire Boyama", "2+1 Daire Boyama", "3+1 Daire Boyama", "Tek Oda Boyama", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('elektrik') || name.includes('elektrik')) {
-      return ["Sigorta Arızası", "Priz & Anahtar Montajı", "Aydınlatma / Avize Montajı", "Kablo Çekimi / İnternet", "Diğer"];
+      return ["Sigorta Arızası", "Priz & Anahtar Montajı", "Aydınlatma / Avize Montajı", "Kablo Çekimi / İnternet", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('su-tesisat') || s === 'su-tesisati' || name.includes('su tesisat') || (s.includes('tesisat') && !s.includes('elektrik'))) {
-      return ["Su Kaçağı Tespiti", "Tıkanıklık Açma", "Musluk / Batarya Tamiri", "Klozet / Sifon Tamiri", "Diğer"];
+      return ["Su Kaçağı Tespiti", "Tıkanıklık Açma", "Musluk / Batarya Tamiri", "Klozet / Sifon Tamiri", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('nakliyat') || s.includes('tasıma') || name.includes('nakliye')) {
-      return ["Evden Eve Nakliyat", "Parça Eşya Taşıma", "Şehirler Arası Nakliyat", "Ofis / İş Yeri Taşıma", "Diğer"];
+      return ["Evden Eve Nakliyat", "Parça Eşya Taşıma", "Şehirler Arası Nakliyat", "Ofis / İş Yeri Taşıma", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('kombi') || name.includes('kombi')) {
-      return ["Kombi Bakımı", "Kombi Arıza / Isıtmıyor", "Petek Temizliği", "Kombi Montajı", "Diğer"];
+      return ["Kombi Bakımı", "Kombi Arıza / Isıtmıyor", "Petek Temizliği", "Kombi Montajı", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('klima') || name.includes('klima')) {
-      return ["Klima Bakımı", "Klima Gaz Dolumu", "Klima Arıza / Soğutmuyor", "Klima Söküm / Montaj", "Diğer"];
+      return ["Klima Bakımı", "Klima Gaz Dolumu", "Klima Arıza / Soğutmuyor", "Klima Söküm / Montaj", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('fayans') || s.includes('seramik') || name.includes('fayans')) {
-      return ["Banyo Fayansı", "Mutfak Fayansı", "Balkon / Teras Fayansı", "Zemin Seramik", "Diğer"];
+      return ["Banyo Fayansı", "Mutfak Fayansı", "Balkon / Teras Fayansı", "Zemin Seramik", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('parke') || name.includes('parke')) {
-      return ["Laminat Parke Döşeme", "Lamine Parke", "Süpürgelik Montajı", "Parke Tamiri", "Diğer"];
+      return ["Laminat Parke Döşeme", "Lamine Parke", "Süpürgelik Montajı", "Parke Tamiri", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('ilaclama') || s.includes('hasere') || s.includes('bocek') || name.includes('ilaçlama')) {
-      return ["Böcek / Hamamböceği", "Tahtakurusu", "Pire / Kene", "Fare / Kemirgen", "Diğer"];
+      return ["Böcek / Hamamböceği", "Tahtakurusu", "Pire / Kene", "Fare / Kemirgen", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('marangoz') || s.includes('mobilya') || name.includes('mobilya')) {
-      return ["Mobilya Montajı", "Dolap Tamiri / Kapak", "Özel Ölçü Mobilya", "Kapı Tamiri", "Diğer"];
+      return ["Mobilya Montajı", "Dolap Tamiri / Kapak", "Özel Ölçü Mobilya", "Kapı Tamiri", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('ozel-ders') || name.includes('ders')) {
-      return ["Matematik / Fen", "İngilizce / Yabancı Dil", "İlkokul / Ortaokul Takviye", "LGS / YKS Hazırlık", "Diğer"];
+      return ["Matematik / Fen", "İngilizce / Yabancı Dil", "İlkokul / Ortaokul Takviye", "LGS / YKS Hazırlık", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('cam-balkon') || s.includes('pvc') || name.includes('cam balkon')) {
-      return ["Katlanır Cam Balkon", "Sürme Cam Balkon", "Isıcamlı Cam Balkon", "PVC Pencere / Kapı", "Diğer"];
+      return ["Katlanır Cam Balkon", "Sürme Cam Balkon", "Isıcamlı Cam Balkon", "PVC Pencere / Kapı", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('fotograf') || name.includes('fotoğraf')) {
-      return ["Düğün / Nişan / Dış Çekim", "Ürün / Katalog Çekimi", "Doğum / Bebek / Aile", "Etkinlik / Organizasyon Çekimi", "Diğer"];
+      return ["Düğün / Nişan / Dış Çekim", "Ürün / Katalog Çekimi", "Doğum / Bebek / Aile", "Etkinlik / Organizasyon Çekimi", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('etkinlik') || s.includes('organizasyon') || name.includes('etkinlik') || name.includes('organizasyon')) {
-      return ["Düğün / Nişan / Kına Organizasyonu", "Doğum Günü / Parti", "Kurumsal Etkinlik / Lansman", "Süsleme & Ses/Işık Sistemi", "Diğer"];
+      return ["Düğün / Nişan / Kına Organizasyonu", "Doğum Günü / Parti", "Kurumsal Etkinlik / Lansman", "Süsleme & Ses/Işık Sistemi", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('mimar') || s.includes('dekorasyon') || name.includes('dekorasyon') || name.includes('mimar')) {
-      return ["Komple Ev / Ofis Dekorasyonu", "3D Tasarım & Proje Danışmanlığı", "Mutfak / Banyo Yenileme Tasarımı", "Mobilya & Stil Danışmanlığı", "Diğer"];
+      return ["Komple Ev / Ofis Dekorasyonu", "3D Tasarım & Proje Danışmanlığı", "Mutfak / Banyo Yenileme Tasarımı", "Mobilya & Stil Danışmanlığı", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('dogalgaz') || name.includes('doğalgaz')) {
-      return ["Doğalgaz Projesi & Gaz Açma", "Sıfırdan Tesisat Çekimi", "Kombi & Radyatör Tesisatı", "Kaçak & Arıza Tespiti", "Diğer"];
+      return ["Doğalgaz Projesi & Gaz Açma", "Sıfırdan Tesisat Çekimi", "Kombi & Radyatör Tesisatı", "Kaçak & Arıza Tespiti", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('mantolama') || s.includes('discephe') || name.includes('mantolama')) {
-      return ["Dış Cephe Isı Yalıtımı (Mantolama)", "Dış Cephe Boyama", "Çatı İzolasyonu & Su Yalıtımı", "Sıva & Çatlak Tamiratı", "Diğer"];
+      return ["Dış Cephe Isı Yalıtımı (Mantolama)", "Dış Cephe Boyama", "Çatı İzolasyonu & Su Yalıtımı", "Sıva & Çatlak Tamiratı", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('ofis') || name.includes('ofis')) {
-      return ["Periyodik Ofis Temizliği", "İnşaat / Taşınma Sonrası Temizlik", "Cam & Dış Cephe Temizliği", "Diğer"];
+      return ["Periyodik Ofis Temizliği", "İnşaat / Taşınma Sonrası Temizlik", "Cam & Dış Cephe Temizliği", "Tüm Hizmetleri Gör"];
     }
     if (s.includes('temizlik') || name.includes('temizlik')) {
-      return ["1+1 Daire Temizliği", "2+1 Daire Temizliği", "3+1 Daire Temizliği", "Detaylı / Derin Temizlik", "Diğer"];
+      return ["1+1 Daire Temizliği", "2+1 Daire Temizliği", "3+1 Daire Temizliği", "Detaylı / Derin Temizlik", "Tüm Hizmetleri Gör"];
     }
-    return ["Komple Hizmet / Danışmanlık", "Kısmi Hizmet / Parça İş", "Keşif / Bilgi & Fiyat Alma", "Diğer"];
+    return ["Komple Hizmet / Danışmanlık", "Kısmi Hizmet / Parça İş", "Keşif / Bilgi & Fiyat Alma", "Tüm Hizmetleri Gör"];
   }
 
   private getChecklistForCategory(slug: string | null): string[] {
