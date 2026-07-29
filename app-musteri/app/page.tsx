@@ -1334,23 +1334,6 @@ export default function Home() {
                   </button>
                 )}
               </div>
-
-              {/* 🔥 Quick Popular Chips when search is empty */}
-              {!modalSearchQuery && (
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold text-slate-500">
-                  <span className="shrink-0 text-slate-400 font-bold">Popüler:</span>
-                  {["Ev Temizliği", "Boya Badana", "Nakliyat", "Su Tesisatı", "Klima Servisi"].map((pop, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setModalSearchQuery(pop)}
-                      className="shrink-0 bg-slate-100 hover:bg-[#c8f252]/20 hover:text-slate-900 hover:border-[#c8f252] border border-slate-200 px-3 py-1 rounded-full text-slate-700 transition-all cursor-pointer"
-                    >
-                      {pop}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Filtered Autocomplete Result List */}
