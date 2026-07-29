@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import GlobalAlert from "../components/GlobalAlert";
+import CookieConsent from "../components/CookieConsent";
 import FetchInterceptor from "./FetchInterceptor";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <FetchInterceptor />
         {children}
         <GlobalAlert />
+        <CookieConsent />
       </body>
     </html>
   );
