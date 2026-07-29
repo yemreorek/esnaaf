@@ -820,7 +820,7 @@ export default function Home() {
             { name: "Ev Temizliği", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=600&auto=format&fit=crop", rating: "4.8", count: "9.861", commentCount: "8.875" },
             { name: "Boya Badana", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=600&auto=format&fit=crop", rating: "4.9", count: "5.546", commentCount: "4.920" },
             { name: "Nakliyat", image: "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?q=80&w=600&auto=format&fit=crop", rating: "4.7", count: "2.976", commentCount: "2.540" },
-            { name: "Su Tesisatı", image: "/su_tesisati.jpg", rating: "4.8", count: "4.120", commentCount: "3.680" },
+            { name: "Su Tesisatı", image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?q=80&w=600&auto=format&fit=crop", rating: "4.8", count: "4.120", commentCount: "3.680" },
             { name: "Elektrik Tesisatı", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop", rating: "4.9", count: "3.245", commentCount: "2.890" },
             { name: "Ev Tadilat", image: "https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=600&auto=format&fit=crop", rating: "4.8", count: "1.890", commentCount: "1.520" },
             { name: "Kombi Servisi", image: "/kombi_servisi.jpg", rating: "4.7", count: "2.100", commentCount: "1.840" },
