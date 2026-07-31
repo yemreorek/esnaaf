@@ -557,14 +557,14 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🧭 Header (TopNavBar - Dark Frosted Glassmorphism) */}
-      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-2xl bg-slate-950/65 border-b border-white/10 h-16 md:h-20 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300">
-        <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
-          <div className="flex items-center gap-10 md:gap-12">
+      {/* 🧭 Header (Floating Dark Glassmorphic Pill Header) */}
+      <header className="fixed top-3 md:top-5 inset-x-0 mx-auto max-w-7xl px-3 md:px-6 z-50 transition-all duration-300">
+        <div className="w-full backdrop-blur-2xl bg-slate-950/45 border border-white/15 rounded-2xl md:rounded-3xl h-14 md:h-18 px-4 md:px-8 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center gap-8 md:gap-12">
             <a href="/" className="flex items-center group">
               <img
                 alt="Esnaaf Logo"
-                className="h-10 md:h-12 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.3)]"
+                className="h-9 md:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.35)]"
                 src="/logo_v2.png?v=20260731"
               />
             </a>
