@@ -557,24 +557,22 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🧭 Header (TopNavBar) */}
-      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-xl bg-white/92 border-b border-white/40 h-14 md:h-20 shadow-[0_4px_25px_rgba(0,0,0,0.04)] transition-all">
+      {/* 🧭 Header (TopNavBar - Dark Frosted Glassmorphism) */}
+      <header className="absolute md:fixed top-0 w-full z-50 backdrop-blur-2xl bg-slate-950/65 border-b border-white/10 h-16 md:h-20 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
-          <div className="flex items-center gap-12">
-            <a href="/" className="flex items-center">
-              <div className="h-11 w-[120px] md:h-16 md:w-[180px] overflow-hidden flex items-center justify-center relative cursor-pointer">
-                <img
-                  alt="Esnaaf Logo"
-                  className="absolute h-[120px] md:h-[180px] w-auto max-w-none object-contain"
-                  src="/logo.png"
-                />
-              </div>
+          <div className="flex items-center gap-10 md:gap-12">
+            <a href="/" className="flex items-center group">
+              <img
+                alt="Esnaaf Logo"
+                className="h-10 md:h-12 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.3)]"
+                src="/logo_v2.png?v=20260731"
+              />
             </a>
             <nav className="hidden md:flex gap-8">
-              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
-              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#trend-services">Hizmetler</a>
-              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
-              <a className="text-slate-650 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-wider" href="#app-download">Uygulamamız</a>
+              <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
+              <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#trend-services">Hizmetler</a>
+              <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
+              <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#app-download">Uygulamamız</a>
             </nav>
           </div>
           
@@ -583,7 +581,7 @@ export default function Home() {
               <div className="flex items-center gap-2 md:gap-3">
                 <button
                   onClick={() => setActiveView("dashboard")}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
+                  className="bg-[#c8f252] hover:bg-[#b8e242] text-slate-950 px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/20 hover:scale-105"
                 >
                   Panelim
                 </button>
@@ -595,7 +593,7 @@ export default function Home() {
                     setActiveView("home");
                     triggerNotification("Çıkış yapıldı.");
                   }}
-                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
+                  className="text-white hover:text-white border border-white/20 hover:border-white/40 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer shadow-sm"
                 >
                   Çıkış
                 </button>
@@ -604,13 +602,13 @@ export default function Home() {
               <div className="flex items-center gap-2 md:gap-3">
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="text-slate-700 hover:text-slate-900 border border-slate-200 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer bg-slate-50"
+                  className="text-white hover:text-white border border-white/20 hover:border-white/40 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all cursor-pointer shadow-sm"
                 >
                   Giriş Yap
                 </button>
                 <button
                   onClick={handleHizmetVerRedirect}
-                  className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 px-3.5 py-1.5 md:px-6 md:py-3 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md shadow-[#c8f252]/10"
+                  className="bg-[#c8f252] hover:bg-[#b8e242] text-slate-950 px-3.5 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/20 hover:scale-105"
                 >
                   Hizmet Ver
                 </button>
