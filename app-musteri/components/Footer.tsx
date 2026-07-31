@@ -27,8 +27,8 @@ export default function Footer() {
               {/* Logo */}
               <a href="/" className="inline-block hover:scale-105 transition-transform">
                 <img
-                  src="/logo_v3.png?v=20260801"
-                  alt="Esnaaf Logo"
+                  src="/esnaaf-logo.png?v=20260801"
+                  alt="Esnaaf Logo - 30 Dakikada Mahallendeki En İyi Hizmet Verenden Teklif Al"
                   className="h-16 w-auto md:h-20 lg:h-24 object-contain drop-shadow-[0_4px_25px_rgba(200,242,82,0.35)] shrink-0"
                 />
               </a>
@@ -293,8 +293,8 @@ export default function Footer() {
             {/* Left: Esnaaf Brand Emblem */}
             <div className="flex items-center gap-3 text-xs font-bold text-slate-200">
               <img
-                src="/logo_v3.png?v=20260801"
-                alt="Esnaaf Logo"
+                src="/esnaaf-logo.png?v=20260801"
+                alt="Esnaaf Logo - Türkiye'nin %100 Güvenli Hizmet Ağı"
                 className="h-10 w-auto md:h-12 lg:h-14 object-contain shrink-0 drop-shadow-[0_4px_16px_rgba(200,242,82,0.35)] hover:scale-105 transition-all duration-300 cursor-pointer"
               />
               <span className="text-sm md:text-base font-extrabold text-white tracking-tight">Esnaaf 100% Güvenli Hizmet Ağı</span>

@@ -563,9 +563,9 @@ export default function Home() {
           <div className="flex items-center gap-8 md:gap-12">
             <a href="/" className="flex items-center group">
               <img
-                alt="Esnaaf Logo"
+                alt="Esnaaf Logo - Türkiye'nin En İyi Hizmet Veren Ağı"
                 className="h-9 md:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.35)]"
-                src="/logo_v3.png?v=20260801"
+                src="/esnaaf-logo.png?v=20260801"
               />
             </a>
             <nav className="hidden md:flex gap-8">
@@ -1421,7 +1421,7 @@ export default function Home() {
                     <img 
                       alt="Esnaaf Logo" 
                       className="h-14 w-auto object-contain select-none mb-3" 
-                      src="/logo.png" 
+                      src="/esnaaf-logo.png?v=20260801" 
                     />
                   </a>
                   <h3 className="font-bold text-lg md:text-xl text-slate-900 tracking-tight">

@@ -5,8 +5,14 @@ import CookieConsent from "../components/CookieConsent";
 import FetchInterceptor from "./FetchInterceptor";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://esnaaf.com'),
   title: "Esnaaf — Güvenilir Hizmet Verenler",
   description: "Aradığınız güvenilir hizmet verenleri yapay zeka destekli sohbetle kolayca bulun.",
+  openGraph: {
+    title: "Esnaaf — 30 Dakikada Mahallendeki En İyi Hizmet Verenden Teklif Al",
+    description: "Aradığınız güvenilir hizmet verenleri yapay zeka destekli sohbetle kolayca bulun.",
+    images: [{ url: "/esnaaf-logo.png", width: 464, height: 189, alt: "Esnaaf Logo - Türkiye'nin En İyi Hizmet Veren Ağı" }],
+  },
 };
 
 export const viewport: Viewport = {
