@@ -642,8 +642,8 @@ export default function Home() {
 
           <div className="space-y-4">
             <h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl leading-[1.08] text-white tracking-tighter max-w-4xl mx-auto drop-shadow-lg">
-              Mahallendeki <br />
-              En İyi <span className="bg-gradient-to-r from-[#c8f252] via-[#d4f54e] to-[#a3d924] bg-clip-text text-transparent">5 Hizmet Verenden</span> Teklif Al
+              30 Dakikada Mahallendeki <br />
+              <span className="bg-gradient-to-r from-[#c8f252] via-[#d4f54e] to-[#a3d924] bg-clip-text text-transparent">En İyi Hizmet Verenden</span> Teklif Al
             </h1>
             <p className="font-body text-base md:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-sm">
               İhtiyacınızı AI asistanımıza anlatın, mahallenizdeki en iyi hizmet verenleri saniyeler içinde tespit edip en uygun teklifleri kapınıza getirelim.
