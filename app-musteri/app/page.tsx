@@ -565,7 +565,7 @@ export default function Home() {
               <img
                 alt="Esnaaf Logo"
                 className="h-9 md:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.35)]"
-                src="/logo_v2.png?v=20260731"
+                src="/logo_v3.png?v=20260801"
               />
             </a>
             <nav className="hidden md:flex gap-8">
