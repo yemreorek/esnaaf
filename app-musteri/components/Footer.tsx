@@ -27,7 +27,7 @@ export default function Footer() {
               {/* Logo */}
               <a href="/" className="inline-block hover:scale-105 transition-transform">
                 <img
-                  src="/logo_white.png"
+                  src="/logo_v2.png?v=20260731"
                   alt="Esnaaf Logo"
                   className="h-16 w-auto md:h-20 lg:h-24 object-contain drop-shadow-[0_4px_25px_rgba(200,242,82,0.35)] shrink-0"
                 />
@@ -283,7 +283,7 @@ export default function Footer() {
             {/* Left: Esnaaf Brand Emblem */}
             <div className="flex items-center gap-3 text-xs font-bold text-slate-200">
               <img
-                src="/esnaaf_pin.png"
+                src="/logo_v2.png?v=20260731"
                 alt="Esnaaf Logo"
                 className="h-10 w-auto md:h-12 lg:h-14 object-contain shrink-0 drop-shadow-[0_4px_16px_rgba(200,242,82,0.35)] hover:scale-105 transition-all duration-300 cursor-pointer"
               />
