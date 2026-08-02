@@ -217,13 +217,13 @@ export default async function HizmetSeoPage({ params }: PageProps) {
             <div className="space-y-8">
               <div className="space-y-4">
                 <span className="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full text-sm font-semibold inline-block border border-primary/20">
-                  ⚡ 30 Dakikada En İyi 5 Ustandan Teklif Al
+                  ⚡ 30 Dakikada 5 Ustandan Teklif Al
                 </span>
                 <h1 className="font-bold text-4xl md:text-5xl leading-tight text-on-surface tracking-tight">
-                  En İyi 5 {locationHeader} {activeTitle} Ustasından Teklif Al
+                  {locationHeader} En İyi {providerCount} {activeTitle} Ustasından Teklif Al
                 </h1>
                 <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
-                  {locationHeader} genelinde <strong>en iyi 5 onaylı {activeTitle.toLowerCase()} uzmanından 30 dakika içinde</strong> ücretsiz teklif al, karşılaştır ve en uygununu seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
+                  {locationHeader} genelinde <strong>{providerCount} onaylı {activeTitle.toLowerCase()} uzmanı</strong> arasından en iyi 5 teklifi 30 dakika içinde ücretsiz al, karşılaştır ve en uygununu seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
                 </p>
               </div>
               
