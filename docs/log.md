@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-02 feat | 4 Altın SEO & Dönüşüm Stratejisi Entegrasyonu (İç Bağlantı Ağı & 2026 Fiyat Tablosu)
+
+- **Stratejik İhtiyaç:** Google "Yer Siteleri" dizin kartında 1. sırada yer almak, Google bot tarama hızını (PageRank Juice) artırmak ve fiyat aramalarında Öne Çıkan Fiyat Kutucuğu (Featured Snippet) indeksini kazanmak.
+- **Yapılan Uygulama:**
+  - **Altın Oran SEO Başlığı:** `En İyi {providerCount} {Konum} {Hizmet} - 30 Dk'da Teklif Al | Esnaaf` deseni tüm pSEO motoruna uygulandı.
+  - **İç Bağlantı Ağı (`Internal Linking Grid`):** Dinamik sayfaların en altına tıklanabilir çevre ilçeler (`relatedDistricts`) ve ilgili alt hizmetler (`relatedServices`) etiket ağı yerleştirildi.
+  - **2026 Fiyat Rehberi Tablosu (`#prices`):** Şeffaf 3 paket kırılımlı (Standart, Detaylı, Acil) 2026 piyasa fiyat rehberi bileşeni kodlandı.
+  - Yapılan değişiklikler derlendi, `b161067` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-08-02 feat | Programmatik SEO (pSEO) Dinamik İl, İlçe, Kategori ve Alt Hizmet Sayfaları (Düz URL & Çift JSON-LD)
 
 - **Stratejik SEO İhtiyacı:** Google ve yapay zeka arama motorlarında `"adana klima servisi"`, `"çukurova klima servisi"`, `"mersin klima bakımı"`, `"mezitli klima temizliği"`, `"mardin klima taşıma"` gibi uzun kuyruklu (long-tail) aramalarda üst sıralara çıkmak.
