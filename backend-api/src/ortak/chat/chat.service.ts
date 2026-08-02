@@ -2208,6 +2208,9 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     // DYNAMIC MATCHING MOVED TO THE END
 
     // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES
+    if (text.includes('buharlı') || text.includes('buharli') || text.includes('buhar')) {
+      return { detected: true, categorySlug: 'ev-temizligi', categoryName: 'Buharlı Temizlik Hizmeti', confidence: 0.95 };
+    }
     if (text.includes('petek temizliği') || text.includes('petek temizleme') || text.includes('kombi petek') || text.includes('petek')) {
       return { detected: true, categorySlug: 'petek-temizligi', categoryName: 'Petek Temizliği', confidence: 0.95 };
     }
@@ -2885,6 +2888,10 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     if (raw.includes('marangoz') || raw.includes('mobilya')) return QUESTION_FLOWS['mobilya-montaji'];
     if (raw.includes('ders')) return QUESTION_FLOWS['ozel-ders'];
     if (raw.includes('cam-balkon') || raw.includes('cam_balkon') || raw.includes('pvc')) return QUESTION_FLOWS['cam-balkon'];
+
+    if (raw.includes('temizlik') || raw.includes('temizleyici') || raw.includes('kiralama') || raw.includes('buharli') || raw.includes('buharlı') || raw.includes('silme') || raw.includes('yikama')) {
+      return QUESTION_FLOWS['ev-temizligi'];
+    }
 
     return null;
   }

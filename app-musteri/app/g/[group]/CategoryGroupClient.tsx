@@ -23,7 +23,7 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
     return (
       <div className="fixed inset-0 z-[999] bg-white">
         <ChatScreen
-          initialMessage={`Merhaba, ${selectedService} hizmeti için teklif almak istiyorum.`}
+          initialMessage={selectedService}
           onClose={() => setIsChatOpen(false)}
         />
       </div>
