@@ -240,10 +240,10 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                   categoryName={categoryName}
                   city={city}
                   district={district}
-                  className="bg-primary text-on-primary px-10 py-4 rounded-lg text-lg hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 group font-bold cursor-pointer"
+                  className="bg-[#c8f252] hover:bg-[#b8e242] text-slate-950 px-8 py-4 rounded-2xl text-base md:text-lg hover:shadow-[0_10px_35px_rgba(200,242,82,0.45)] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 group font-black uppercase tracking-wider cursor-pointer shadow-lg hover:scale-[1.03] border border-[#b8e242]"
                 >
                   <span>30 Dk'da Teklif Al</span>
-                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform font-black">arrow_forward</span>
                 </SeoPageClient>
                 <SeoPageClient
                   categorySlug={categorySlug}
@@ -576,9 +576,9 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                 categoryName={categoryName}
                 city={city}
                 district={district}
-                className="bg-primary text-on-primary px-12 py-5 rounded-full text-xl hover:shadow-xl transition-all active:scale-95 shadow-lg font-bold cursor-pointer"
+                className="bg-[#c8f252] hover:bg-[#b8e242] text-slate-950 px-12 py-5 rounded-2xl text-lg md:text-xl hover:shadow-[0_12px_40px_rgba(200,242,82,0.45)] transition-all duration-300 active:scale-95 shadow-xl font-black uppercase tracking-wider cursor-pointer hover:scale-[1.04] border border-[#b8e242]"
               >
-                Fiyat Hesapla
+                30 Dk'da Teklif Al
               </SeoPageClient>
             </div>
           </div>
