@@ -324,12 +324,24 @@ export class SeoService {
       where: whereClause
     });
 
-    const providerCount = dbProviderCount > 0 ? dbProviderCount : Math.floor(Math.random() * 14) + 9;
+    // Deterministic Hash Function for 100% stable numbers based on slug (Fixed for Google SEO & User Trust)
+    const hashSlug = (str: string) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    };
+
+    const slugHash = hashSlug(slug);
+
+    const providerCount = dbProviderCount > 0 ? dbProviderCount : 12 + (slugHash % 14);
 
     // 2. Değerlendirme puanı & Yüksek Güvenli Yorum Sayısı (Armut stili Google Yıldız İndeksi)
     let avgRating = 4.8;
     // Yüksek otorite yorum sayısı (örn. 1.450 - 2.100 arası Armut seviyesi otorite)
-    let ratingCount = 1450 + Math.floor(Math.random() * 650);
+    let ratingCount = 1450 + (slugHash % 650);
 
     // 3. Fiyat aralığı
     const defaultPrices = this.CATEGORY_PRICES[categorySlug] || { min: 450, max: 2500, unit: 'hizmet' };
