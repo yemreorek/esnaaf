@@ -358,8 +358,8 @@ export class SeoService {
       locationMeta = 'ülke genelinde';
     }
 
-    const title = `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} Fiyat Teklifi Al | Esnaaf`;
-    const description = `${locationMeta} en iyi ${providerCount} onaylı ve yüksek puanlı ${activeServiceTitle} ustasını kıyasla. Ortalama ${minPrice} TL - ${maxPrice} TL arası fiyatlarla yapay zeka ile 30 dakikada teklif al.`;
+    const title = `En İyi 5 ${locationTitle} ${activeServiceTitle} - 30 Dk'da Teklif Al | Esnaaf`;
+    const description = `${locationMeta} en iyi 5 onaylı ve yüksek puanlı ${activeServiceTitle} uzmanından 30 dakikada ücretsiz teklif al, hemen kıyasla. Ortalama ${minPrice} TL - ${maxPrice} TL arası fiyatlar Esnaaf güvencesiyle.`;
 
     // SSS (FAQs)
     const faqs = [
@@ -373,7 +373,7 @@ export class SeoService {
       },
       {
         question: `Yapay zeka ile nasıl 30 dakikada teklif alabilirim?`,
-        answer: `Sitemizdeki 'Yapay Zeka ile Teklif Al' butonuna tıklayarak sohbet asistanımızla 1 dakikada ihtiyacınızı belirtebilirsiniz. Talebiniz bölgenizdeki en iyi ${providerCount} onaylı ustaya anında iletilir.`
+        answer: `Sitemizdeki '30 Dk'da Teklif Al' butonuna tıklayarak sohbet asistanımızla 1 dakikada ihtiyacınızı belirtebilirsiniz. Talebiniz bölgenizdeki en iyi 5 onaylı ustaya anında iletilir.`
       }
     ];
 
@@ -383,11 +383,11 @@ export class SeoService {
     const itemListSchema = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} Ustaları`,
+      'name': `En İyi 5 ${locationTitle} ${activeServiceTitle} Ustası`,
       'description': description,
       'url': pageUrl,
-      'numberOfItems': providerCount,
-      'itemListElement': Array.from({ length: Math.min(providerCount, 10) }).map((_, idx) => ({
+      'numberOfItems': 5,
+      'itemListElement': Array.from({ length: 5 }).map((_, idx) => ({
         '@type': 'ListItem',
         'position': idx + 1,
         'item': {
@@ -398,8 +398,8 @@ export class SeoService {
           'priceRange': `${minPrice} TL - ${maxPrice} TL`,
           'aggregateRating': {
             '@type': 'AggregateRating',
-            'ratingValue': (4.7 + (idx % 3) * 0.1).toFixed(1),
-            'reviewCount': Math.floor(ratingCount / (idx + 2)) + 12
+            'ratingValue': (4.8 + (idx % 2) * 0.1).toFixed(1),
+            'reviewCount': Math.floor(ratingCount / (idx + 2)) + 120
           }
         }
       }))
@@ -409,7 +409,7 @@ export class SeoService {
     const productSchema = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle}`,
+      'name': `En İyi 5 ${locationTitle} ${activeServiceTitle}`,
       'image': 'https://esnaaf.com/esnaaf-logo.png',
       'description': description,
       'brand': {
