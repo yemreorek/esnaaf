@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://esnaaf-backend-339090537138.europe-west3.run.app';
 
 export async function GET() {
   try {

@@ -11,7 +11,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://esnaaf-backend-339090537138.europe-west3.run.app';
 
 // Category-specific high-quality background images matching the category theme
 const CATEGORY_HERO_IMAGES: Record<string, string> = {
