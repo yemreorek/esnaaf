@@ -86,6 +86,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
     maxPrice,
     unit,
     faqs,
+    productSchema,
     localBusinessSchema,
     faqPageSchema,
     schema,
@@ -107,11 +108,19 @@ export default async function HizmetSeoPage({ params }: PageProps) {
 
   return (
     <>
-      {/* Google-Loved Dual Schema.org JSON-LD Injection (LocalBusiness & FAQPage) */}
+      {/* Google Rich Snippet (Sarı Yıldızlar & Yorum Sayısı) Product/Service JSON-LD Schema */}
+      {productSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
+      {/* Google LocalBusiness JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema || schema) }}
       />
+      {/* Google FAQPage JSON-LD Schema */}
       {faqPageSchema && (
         <script
           type="application/ld+json"
@@ -272,7 +281,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
             </div>
             <div className="flex flex-col items-center text-center space-y-1">
               <span className="material-symbols-outlined text-primary text-4xl mb-2" style={{ fontVariationSettings: '"FILL" 1' }}>reviews</span>
-              <span className="font-bold text-3xl text-on-surface">{ratingCount}+</span>
+              <span className="font-bold text-3xl text-on-surface">{typeof ratingCount === 'number' ? ratingCount.toLocaleString('tr-TR') : ratingCount}+</span>
               <span className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">onaylı yorum</span>
             </div>
           </div>

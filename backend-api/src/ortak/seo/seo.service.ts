@@ -326,9 +326,10 @@ export class SeoService {
 
     const providerCount = dbProviderCount > 0 ? dbProviderCount : Math.floor(Math.random() * 14) + 9;
 
-    // 2. Değerlendirme puanı
-    let avgRating = 4.9;
-    let ratingCount = Math.floor(Math.random() * 50) + 25;
+    // 2. Değerlendirme puanı & Yüksek Güvenli Yorum Sayısı (Armut stili Google Yıldız İndeksi)
+    let avgRating = 4.8;
+    // Yüksek otorite yorum sayısı (örn. 1.450 - 2.100 arası Armut seviyesi otorite)
+    let ratingCount = 1450 + Math.floor(Math.random() * 650);
 
     // 3. Fiyat aralığı
     const defaultPrices = this.CATEGORY_PRICES[categorySlug] || { min: 450, max: 2500, unit: 'hizmet' };
@@ -378,7 +379,34 @@ export class SeoService {
 
     const pageUrl = `https://esnaaf.com/${slug}`;
 
-    // Google-Loved LocalBusiness JSON-LD Schema
+    // Google Arama Sonuçlarında Sarı Yıldız & Yorum Sayısı İndeksleme Şeması (Armut Stili Product/Service Rich Snippet)
+    const productSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      'name': `${locationTitle} ${activeServiceTitle}`,
+      'image': 'https://esnaaf.com/esnaaf-logo.png',
+      'description': description,
+      'brand': {
+        '@type': 'Brand',
+        'name': 'Esnaaf'
+      },
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': avgRating,
+        'reviewCount': ratingCount,
+        'bestRating': '5',
+        'worstRating': '1'
+      },
+      'offers': {
+        '@type': 'AggregateOffer',
+        'priceCurrency': 'TRY',
+        'lowPrice': minPrice,
+        'highPrice': maxPrice,
+        'offerCount': providerCount
+      }
+    };
+
+    // Google LocalBusiness JSON-LD Schema
     const localBusinessSchema = {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
@@ -448,6 +476,7 @@ export class SeoService {
       maxPrice,
       unit: defaultPrices.unit,
       faqs,
+      productSchema,
       localBusinessSchema,
       faqPageSchema,
       pageUrl
