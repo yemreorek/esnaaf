@@ -305,7 +305,7 @@ export class SeoService {
     // Gösterilecek ana başlık ismi (örn. "Klima Bakımı" veya "Klima Servisi")
     const activeServiceTitle = subServiceName || categoryName;
 
-    // 1. Dinamik usta sayısı
+    // 1. Dinamik Hizmet Veren Sayısı (İl genelindeki tüm onaylı hizmet verenler o ilin tüm ilçelerine hizmet verir)
     const whereClause: any = {
       is_approved: true
     };
@@ -313,10 +313,7 @@ export class SeoService {
       whereClause.category_ids = { has: categoryId };
     }
 
-    if (district) {
-      whereClause.city = city;
-      whereClause.service_districts = { has: district };
-    } else if (city) {
+    if (city) {
       whereClause.city = city;
     }
 
