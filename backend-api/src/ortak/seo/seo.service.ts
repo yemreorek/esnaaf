@@ -486,6 +486,49 @@ export class SeoService {
       }))
     };
 
+    // 4. Çevre İlçeler ve İlgili Hizmetler (Internal Linking İç Bağlantı Ağı)
+    const activeCityName = city || 'İstanbul';
+    const cityDistrictsList = this.CITY_DISTRICTS[activeCityName] || this.CITY_DISTRICTS['İstanbul'];
+    
+    const targetServiceSlug = subServiceSlug || categorySlug;
+    const relatedDistricts = cityDistrictsList
+      .filter(d => (this.DISTRICT_CAPITALIZATION[d] || d) !== district)
+      .slice(0, 10)
+      .map(d => {
+        const dCap = this.DISTRICT_CAPITALIZATION[d] || d;
+        const dSlug = this.slugify(d);
+        const cSlug = this.slugify(activeCityName);
+        return {
+          name: `${dCap} ${activeServiceTitle}`,
+          slug: `${cSlug}-${dSlug}-${targetServiceSlug}`
+        };
+      });
+
+    const relatedServices: Array<{ name: string; slug: string }> = [];
+    const activeLocationPrefix = district ? `${this.slugify(activeCityName)}-${this.slugify(district)}` : city ? this.slugify(activeCityName) : '';
+
+    for (const [sSlug, sInfo] of Object.entries(this.SUB_SERVICES)) {
+      if (sInfo.parentSlug === categorySlug && sSlug !== subServiceSlug) {
+        const fullSlug = activeLocationPrefix ? `${activeLocationPrefix}-${sSlug}` : sSlug;
+        relatedServices.push({
+          name: `${locationTitle !== 'Türkiye' ? locationTitle + ' ' : ''}${sInfo.name}`,
+          slug: fullSlug
+        });
+      }
+    }
+
+    if (relatedServices.length < 6) {
+      for (const cat of this.CATEGORIES) {
+        if (cat.slug !== categorySlug && relatedServices.length < 8) {
+          const fullSlug = activeLocationPrefix ? `${activeLocationPrefix}-${cat.slug}` : cat.slug;
+          relatedServices.push({
+            name: `${locationTitle !== 'Türkiye' ? locationTitle + ' ' : ''}${cat.name}`,
+            slug: fullSlug
+          });
+        }
+      }
+    }
+
     return {
       title,
       description,
@@ -502,6 +545,8 @@ export class SeoService {
       maxPrice,
       unit: defaultPrices.unit,
       faqs,
+      relatedDistricts,
+      relatedServices,
       itemListSchema,
       productSchema,
       localBusinessSchema,

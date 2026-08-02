@@ -86,6 +86,8 @@ export default async function HizmetSeoPage({ params }: PageProps) {
     maxPrice,
     unit,
     faqs,
+    relatedDistricts,
+    relatedServices,
     itemListSchema,
     productSchema,
     localBusinessSchema,
@@ -440,6 +442,78 @@ export default async function HizmetSeoPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* 2026 Price Guide Section (Featured Snippets & Price Search Intent) */}
+        <section id="prices" className="py-20 bg-slate-900 text-white">
+          <div className="max-w-5xl mx-auto px-4 md:px-6">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-lime-400 font-bold text-xs uppercase tracking-widest bg-lime-400/10 px-3 py-1 rounded-full border border-lime-400/20 inline-block mb-3">
+                ŞEFFAF FİYATLANDIRMA
+              </span>
+              <h2 className="font-bold text-3xl md:text-4xl mb-3">
+                2026 {locationHeader} {activeTitle} Fiyat Rehberi
+              </h2>
+              <p className="text-slate-400 text-sm md:text-base">
+                {locationHeader} bölgesindeki ortalama piyasa fiyatları ve paket kırılımları
+              </p>
+            </div>
+
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-700/80">
+                {/* Package 1 */}
+                <div className="p-6 md:p-8 flex flex-col justify-between space-y-6">
+                  <div>
+                    <h3 className="font-bold text-lg text-white mb-1">Standart {activeTitle}</h3>
+                    <p className="text-xs text-slate-400 mb-4">Temel bakım, kontrol ve küçük tamiratlar</p>
+                    <div className="text-3xl font-black text-lime-400 mb-1">
+                      {minPrice} TL <span className="text-xs text-slate-400 font-normal">/ {unit}</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-slate-300 space-y-2 border-t border-slate-700/60 pt-4">
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Onaylı Usta Hizmeti</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> 30 Dk'da 5 Teklif</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Standart Garantili İşçilik</li>
+                  </ul>
+                </div>
+
+                {/* Package 2 (Highlighted) */}
+                <div className="p-6 md:p-8 flex flex-col justify-between space-y-6 bg-slate-700/40 relative">
+                  <div className="absolute top-3 right-3 bg-lime-400 text-slate-950 font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full">
+                    EN ÇOK TERCİH EDİLEN
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-white mb-1">Detaylı {activeTitle}</h3>
+                    <p className="text-xs text-slate-400 mb-4">Komple yenileme, geniş kapsamlı hizmet</p>
+                    <div className="text-3xl font-black text-lime-400 mb-1">
+                      {Math.round((minPrice + maxPrice) / 2)} TL <span className="text-xs text-slate-400 font-normal">/ {unit}</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-slate-300 space-y-2 border-t border-slate-700/60 pt-4">
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Öncelikli Hizmet Verenler</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Ücretsiz Keşif & Danışmanlık</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Esnaaf Müşteri Garantisi</li>
+                  </ul>
+                </div>
+
+                {/* Package 3 */}
+                <div className="p-6 md:p-8 flex flex-col justify-between space-y-6">
+                  <div>
+                    <h3 className="font-bold text-lg text-white mb-1">Acil & Lüks {activeTitle}</h3>
+                    <p className="text-xs text-slate-400 mb-4">Aynı gün acil servis & üst segment malzeme</p>
+                    <div className="text-3xl font-black text-lime-400 mb-1">
+                      {maxPrice} TL <span className="text-xs text-slate-400 font-normal">/ {unit}</span>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-slate-300 space-y-2 border-t border-slate-700/60 pt-4">
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> 7/24 Acil Müdahale</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> En Yüksek Puanlı Master Usta</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> VIP Destek Hattı</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Testimonials Section with Slider */}
         <section id="testimonials" className="py-24 bg-background overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 md:px-6">
@@ -501,6 +575,69 @@ export default async function HizmetSeoPage({ params }: PageProps) {
               >
                 Fiyat Hesapla
               </SeoPageClient>
+            </div>
+          </div>
+        </section>
+
+        {/* Internal Linking Network Grid Section (PageRank Juice & Google Bot Crawl Turbo) */}
+        <section id="related-links" className="py-16 bg-slate-900 border-t border-slate-800 text-white">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="mb-10 text-center md:text-left">
+              <span className="text-lime-400 font-bold text-xs uppercase tracking-widest bg-lime-400/10 px-3 py-1 rounded-full border border-lime-400/20 inline-block mb-2">
+                HİZMET AĞI & BÖLGELER
+              </span>
+              <h3 className="text-2xl font-bold text-white">
+                {locationHeader} Yakın Bölgeler ve İlgili Hizmetler
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Diğer ilçe ve kategorilerdeki onaylı uzman ağımıza göz atın
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Related Districts */}
+              {relatedDistricts && relatedDistricts.length > 0 && (
+                <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/60">
+                  <h4 className="font-bold text-sm text-lime-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">location_on</span>
+                    Çevre İlçelerde {activeTitle}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {relatedDistricts.map((item: any, idx: number) => (
+                      <Link
+                        key={idx}
+                        href={`/${item.slug}`}
+                        className="bg-slate-700/60 hover:bg-lime-400 hover:text-slate-950 text-slate-300 text-xs font-semibold px-3 py-2 rounded-xl transition-all duration-200 border border-slate-600/50 flex items-center gap-1.5"
+                      >
+                        <span>{item.name}</span>
+                        <span className="text-[10px] opacity-60">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Related Services */}
+              {relatedServices && relatedServices.length > 0 && (
+                <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/60">
+                  <h4 className="font-bold text-sm text-lime-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">construction</span>
+                    İlgili Hizmet ve Kategoriler
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {relatedServices.map((item: any, idx: number) => (
+                      <Link
+                        key={idx}
+                        href={`/${item.slug}`}
+                        className="bg-slate-700/60 hover:bg-lime-400 hover:text-slate-950 text-slate-300 text-xs font-semibold px-3 py-2 rounded-xl transition-all duration-200 border border-slate-600/50 flex items-center gap-1.5"
+                      >
+                        <span>{item.name}</span>
+                        <span className="text-[10px] opacity-60">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
