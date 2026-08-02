@@ -611,14 +611,19 @@ export class ChatService implements OnModuleInit {
     }
 
     // --- 2. FAST PATH FOR DETERMINISTIC CATEGORY QUESTION FLOW ---
-    let slug = state.collected_data.categorySlug;
-    if (!slug && (state.step === 'greeting' || state.step === 'category_detection')) {
-      const detection = await this.detectCategory(filteredMessage);
-      if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
-        slug = detection.categorySlug;
-        state.collected_data.categorySlug = slug;
-        state.collected_data.categoryName = detection.categoryName || undefined;
+    const detection = await this.detectCategory(filteredMessage);
+    if (detection.detected && detection.confidence >= 0.7 && detection.categorySlug) {
+      if (detection.categorySlug !== state.collected_data.categorySlug) {
+        state.collected_data = {
+          categorySlug: detection.categorySlug,
+          categoryName: detection.categoryName || undefined
+        };
+      } else {
+        state.collected_data.categorySlug = detection.categorySlug;
+        state.collected_data.categoryName = detection.categoryName || state.collected_data.categoryName;
       }
+      // When a user selects or sends a category title, start at Step 1 of that category flow
+      state.collected_data.current_step_id = undefined;
     }
 
     const flowResult = await this.flowEngineService.executeFlowStep(state, filteredMessage);

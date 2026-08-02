@@ -24,8 +24,16 @@ export class FlowEngineService {
     if (QUESTION_FLOWS[hyphenated]) return QUESTION_FLOWS[hyphenated];
     if (QUESTION_FLOWS[underscored]) return QUESTION_FLOWS[underscored];
 
+    if (raw.includes('petek')) return QUESTION_FLOWS['petek-temizligi'] || QUESTION_FLOWS['petek_temizligi'];
+    if (raw.includes('cam')) return QUESTION_FLOWS['cam-temizligi'] || QUESTION_FLOWS['cam_temizligi'];
+    if (raw.includes('hali') || raw.includes('halı')) return QUESTION_FLOWS['hali-yikama'] || QUESTION_FLOWS['hali_yikama'];
+    if (raw.includes('koltuk') || raw.includes('yatak')) return QUESTION_FLOWS['koltuk-yikama'] || QUESTION_FLOWS['evde-koltuk-yikama'] || QUESTION_FLOWS['koltuk_yikama'];
+    if (raw.includes('bos-ev') || raw.includes('boş ev') || raw.includes('tasinma')) return QUESTION_FLOWS['bos-ev-temizligi'] || QUESTION_FLOWS['bos_ev_temizligi'];
+    if (raw.includes('apartman') || raw.includes('merdiven')) return QUESTION_FLOWS['apartman-temizligi'] || QUESTION_FLOWS['apartman_temizligi'];
+    if (raw.includes('utu') || raw.includes('ütü')) return QUESTION_FLOWS['evde-utu-hizmeti'] || QUESTION_FLOWS['utu-hizmeti'];
+
     if (raw.includes('elektrik')) return QUESTION_FLOWS['elektrik-tesisati'] || QUESTION_FLOWS['elektrik_tesisati'];
-    if (raw.includes('su-tesisat') || (raw.includes('tesisat') && !raw.includes('elektrik') && !raw.includes('dogalgaz'))) {
+    if (raw.includes('su-tesisat') || (raw.includes('tesisat') && !raw.includes('elektrik') && !raw.includes('dogalgaz') && !raw.includes('petek') && !raw.includes('kombi'))) {
       return QUESTION_FLOWS['su-tesisati'] || QUESTION_FLOWS['su_tesisati'];
     }
     if (raw.includes('tadilat')) return QUESTION_FLOWS['ev-tadilat'] || QUESTION_FLOWS['ev_tadilat'];
@@ -43,6 +51,10 @@ export class FlowEngineService {
     if (raw.includes('dogalgaz')) return QUESTION_FLOWS['dogalgaz-tesisati'];
     if (raw.includes('mantolama') || raw.includes('discephe') || raw.includes('dis-cephe')) return QUESTION_FLOWS['mantolama-discephe'];
     if (raw.includes('ofis')) return QUESTION_FLOWS['ofis-temizligi'];
+
+    if (raw.includes('temizlik') || raw.includes('temizleyici') || raw.includes('kiralama') || raw.includes('buharli') || raw.includes('buharlı') || raw.includes('silme') || raw.includes('yikama')) {
+      return QUESTION_FLOWS['ev-temizligi'];
+    }
 
     return null;
   }
@@ -222,7 +234,7 @@ export class FlowEngineService {
     if (!isInitialCategoryMsg && !processed) {
       nextQ = this.getNextQuestionFromFlow(state);
       if (nextQ) {
-        responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
+        responseMessage = nextQ.question;
       }
     } else {
       nextQ = this.getNextQuestionFromFlow(state);
