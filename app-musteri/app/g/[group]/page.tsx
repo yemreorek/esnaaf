@@ -72,7 +72,7 @@ export const GROUP_DATABASE: Record<string, GroupData> = {
         reviews: "40.415 onaylı yorum"
       },
       {
-        title: "Apartman & Merdiven Temizliği",
+        title: "Apartman Temizliği",
         slug: "apartman-temizligi",
         image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop",
         providers: "3.898 Hizmet Veren",
@@ -96,12 +96,76 @@ export const GROUP_DATABASE: Record<string, GroupData> = {
         reviews: "59.993 onaylı yorum"
       },
       {
-        title: "Böcek & Haşere İlaçlama",
+        title: "Böcek İlaçlama",
         slug: "bocek-ilaclama",
         image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
         providers: "4.463 Hizmet Veren",
         rating: "4.9",
         reviews: "26.596 onaylı yorum"
+      },
+      {
+        title: "Petek Temizliği",
+        slug: "petek-temizligi",
+        image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=600&auto=format&fit=crop",
+        providers: "4.178 Hizmet Veren",
+        rating: "4.8",
+        reviews: "47.509 onaylı yorum"
+      },
+      {
+        title: "Evde Koltuk Yıkama",
+        slug: "koltuk-yikama",
+        image: "https://images.unsplash.com/photo-1558882224-dda166733046?q=80&w=600&auto=format&fit=crop",
+        providers: "2.615 Hizmet Veren",
+        rating: "5.0",
+        reviews: "73.248 onaylı yorum"
+      },
+      {
+        title: "Ev İlaçlama",
+        slug: "ev-ilaclama",
+        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
+        providers: "4.255 Hizmet Veren",
+        rating: "4.9",
+        reviews: "26.932 onaylı yorum"
+      },
+      {
+        title: "Ofis Temizliği",
+        slug: "ofis-temizligi",
+        image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600&auto=format&fit=crop",
+        providers: "4.090 Hizmet Veren",
+        rating: "4.7",
+        reviews: "6.237 onaylı yorum"
+      },
+      {
+        title: "Cam Silme",
+        slug: "cam-silme",
+        image: "https://images.unsplash.com/photo-1527515545081-5db817172677?q=80&w=600&auto=format&fit=crop",
+        providers: "4.832 Hizmet Veren",
+        rating: "4.8",
+        reviews: "11.222 onaylı yorum"
+      },
+      {
+        title: "Evde Ütü Hizmeti",
+        slug: "evde-utu-hizmeti",
+        image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?q=80&w=600&auto=format&fit=crop",
+        providers: "3.234 Hizmet Veren",
+        rating: "4.8",
+        reviews: "5.564 onaylı yorum"
+      },
+      {
+        title: "Kombi Petek Temizleme",
+        slug: "petek-temizligi",
+        image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=600&auto=format&fit=crop",
+        providers: "2.191 Hizmet Veren",
+        rating: "4.8",
+        reviews: "41.094 onaylı yorum"
+      },
+      {
+        title: "Merdiven Temizliği",
+        slug: "merdiven-temizligi",
+        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop",
+        providers: "2.519 Hizmet Veren",
+        rating: "4.6",
+        reviews: "11.348 onaylı yorum"
       }
     ],
     allServices: [
@@ -110,29 +174,42 @@ export const GROUP_DATABASE: Record<string, GroupData> = {
       { name: "Böcek İlaçlama", slug: "bocek-ilaclama" },
       { name: "Boş Ev Temizliği", slug: "bos-ev-temizligi" },
       { name: "Buharlı Ev Temizliği", slug: "buharli-ev-temizligi" },
-      { name: "Cam Silme & Temizliği", slug: "cam-silme" },
+      { name: "Buharlı Temizleyici Kiralama", slug: "buharli-temizleyici-kiralama" },
+      { name: "Cam Silme", slug: "cam-silme" },
+      { name: "Cam Temizliği", slug: "cam-temizligi" },
       { name: "Dış Cephe Cam Silme", slug: "dis-cephe-cam-silme" },
-      { name: "Dükkan & İş Yeri Temizliği", slug: "ofis-temizligi" },
+      { name: "Dükkan Temizliği", slug: "dukkan-temizligi" },
+      { name: "Ev Cam Silme", slug: "ev-cam-silme" },
+      { name: "Ev Cam Temizliği", slug: "ev-cam-temizligi" },
       { name: "Evde Koltuk Yıkama", slug: "koltuk-yikama" },
       { name: "Evde Ütü Hizmeti", slug: "evde-utu-hizmeti" },
+      { name: "Evde Yemek Pişirme", slug: "evde-yemek-pisirme" },
+      { name: "Ev İlaçlama", slug: "ev-ilaclama" },
       { name: "Ev Temizliği", slug: "ev-temizligi" },
       { name: "Fare İlaçlama", slug: "fare-ilaclama" },
       { name: "Halı Yıkama", slug: "hali-yikama" },
+      { name: "Hamam Böceği İlaçlama", slug: "hamam-bocegi-ilaclama" },
       { name: "Haşere İlaçlama", slug: "hasere-ilaclama" },
+      { name: "İlaçlama", slug: "ilaclama" },
       { name: "İnşaat Sonrası Temizlik", slug: "insaat-tadilat-sonrasi-temizlik" },
       { name: "Kalorifer Böceği İlaçlama", slug: "kalorifer-bocegi-ilaclama" },
-      { name: "Kombili Petek Temizleme", slug: "petek-temizligi" },
+      { name: "Koltuk Yıkama", slug: "koltuk-yikama" },
+      { name: "Kombi Petek Temizleme", slug: "petek-temizligi" },
       { name: "Kuru Temizleme", slug: "kuru-temizleme" },
+      { name: "Mağaza Cam Temizliği", slug: "magaza-cam-temizligi" },
       { name: "Merdiven Temizliği", slug: "merdiven-temizligi" },
-      { name: "Mermer Cilalama & Silim", slug: "mermer-silim" },
+      { name: "Mermer Cilalama", slug: "mermer-cilalama" },
+      { name: "Mermer Silim", slug: "mermer-silim" },
       { name: "Ofis Halı Yıkama", slug: "ofis-hali-yikama" },
       { name: "Ofis Temizliği", slug: "ofis-temizligi" },
+      { name: "Petek Temizleme", slug: "petek-temizligi" },
       { name: "Petek Temizliği", slug: "petek-temizligi" },
       { name: "Pire İlaçlama", slug: "pire-ilaclama" },
       { name: "Stor Perde Yıkama", slug: "stor-perde-yikama" },
-      { name: "Su Deposu Temizliği", slug: "su-deposu-temizliği" },
+      { name: "Su Deposu Temizliği", slug: "su-deposu-temizligi" },
       { name: "Tahta Kurusu İlaçlama", slug: "tahta-kurusu-ilaclama" },
       { name: "Taşınma Öncesi Temizlik", slug: "tasinma-oncesi-temizlik" },
+      { name: "Yaprak Sarma Yapımı", slug: "yaprak-sarma-yapimi" },
       { name: "Yatak Yıkama", slug: "yatak-yikama" },
       { name: "Yerinde Araç Koltuk Yıkama", slug: "arac-koltuk-yikama" }
     ]
