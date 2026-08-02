@@ -2,6 +2,16 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-02 feat | Programmatik SEO (pSEO) Dinamik İl, İlçe, Kategori ve Alt Hizmet Sayfaları (Düz URL & Çift JSON-LD)
+
+- **Stratejik SEO İhtiyacı:** Google ve yapay zeka arama motorlarında `"adana klima servisi"`, `"çukurova klima servisi"`, `"mersin klima bakımı"`, `"mezitli klima temizliği"`, `"mardin klima taşıma"` gibi uzun kuyruklu (long-tail) aramalarda üst sıralara çıkmak.
+- **Yapılan Uygulama:**
+  - **Düz URL Mimarisi (`Flat Slug`):** Klasörlü klasör yolları yerine Google ve AI tarayıcılarının en yüksek puanı verdiği flat URL yapısı (`https://www.esnaaf.com/{sehir-veya-ilce}-{hizmet-veya-alt-hizmet}`) kuruldu.
+  - **Tüm Türkiye İl/İlçe & Alt Hizmet Haritası (`SeoService`):** 81 İl, tüm büyükşehir ilçeleri (Seyhan, Çukurova, Mezitli, Toroslar, Kadıköy, Çankaya...) ve kategorilerin tüm alt hizmetleri (Klima Bakımı, Klima Montajı, Klima Taşıma, 1+1 Daire Boyama, Su Kaçağı Tespiti vb.) dinamik slug çözümleyiciye bağlandı.
+  - **Google Zengin Sonuç İçin Çift JSON-LD Schema:** Her dinamik sayfaya doğrudan `LocalBusiness` (Konum, İletişim, ₺ Fiyat Aralığı, 4.9 Yılız ve Değerlendirme Sayısı) ve `FAQPage` (İl/İlçeye Özel Dinamik SSS Accordion) JSON-LD kodları otomatik gömüldü.
+  - **Otomatik SEO Ajanı (`seo_agent`):** Programmatik SEO sayfalarını, harita kombinasyonlarını ve schema doğrulamasını sürekli denetleyen özel alt ajan tanımlandı.
+  - Yapılan değişiklikler derlendi, `db060c0` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-08-01 UI/UX & SEO | Ödero-Stil Footer, Sosyal Medya Vektör İkonları, Saydam Buzlu Cam Menü ve SEO Logo İsimlendirmesi
 
 - **Yapılan Uygulama:**
