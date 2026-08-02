@@ -600,7 +600,7 @@ export class SeoService {
         establishedYear: pEstablished,
         membershipDuration: `${new Date().getFullYear() - parseInt(pEstablished)} yıldır Esnaaf Üyesi`,
         bio: `${city || 'Bölge'} ve çevresinde ${activeServiceTitle} alanında profesyonel ekibimizle %100 müşteri memnuniyeti odaklı, garantili ve güvenilir hizmet veriyoruz.`,
-        securityBadges: ["Geçerli Cep Telefonu", "Kimlik Doğrulaması", "Adli Sicil Kontrolü"],
+        securityBadges: ["Geçerli Cep Telefonu", "Kimlik Doğrulaması", "Vergi Levhası Kontrolü"],
         photos: [
           "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop",
           "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=600&auto=format&fit=crop",

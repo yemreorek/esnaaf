@@ -194,20 +194,34 @@ export default function ProviderListSection({
                 </p>
               </div>
 
-              {/* Security Badges */}
+              {/* Security Badges (Admin Canlı Doğrulama Paneli Uyumlu) */}
               <div className="space-y-3">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500">
                   Güvenlik Kontrolleri
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {selectedProvider.securityBadges.map((badge, bIdx) => (
-                    <div key={bIdx} className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                        ✓
-                      </span>
-                      <span className="text-xs font-bold text-emerald-900">{badge}</span>
-                    </div>
-                  ))}
+                  {(selectedProvider.securityBadges || ["Geçerli Cep Telefonu", "Kimlik Doğrulaması", "Vergi Levhası Kontrolü"]).map((badge, bIdx) => {
+                    const isVerified = !badge.toLowerCase().includes("bekliyor") && !badge.toLowerCase().includes("değil") && !badge.toLowerCase().includes("yok");
+                    return (
+                      <div
+                        key={bIdx}
+                        className={`rounded-xl p-3 flex items-center gap-2 border transition-all ${
+                          isVerified
+                            ? "bg-emerald-50 border-emerald-200/80 text-emerald-900"
+                            : "bg-slate-50 border-slate-200 text-slate-500"
+                        }`}
+                      >
+                        <span
+                          className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                            isVerified ? "bg-emerald-500 text-white" : "bg-slate-300 text-slate-600"
+                          }`}
+                        >
+                          {isVerified ? "✓" : "✕"}
+                        </span>
+                        <span className="text-xs font-bold">{badge}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
