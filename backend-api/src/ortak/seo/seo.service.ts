@@ -368,12 +368,12 @@ export class SeoService {
         answer: `${locationTitle} bölgesinde ${activeServiceTitle} hizmeti ortalama ${minPrice} TL ile ${maxPrice} TL arasında değişmektedir. Yapılacak işin detaylarına ve aciliyetine göre fiyatlar değişkenlik gösterebilir.`
       },
       {
-        question: `Esnaaf'ta ${locationTitle} ${activeServiceTitle} ustaları güvenilir mi?`,
-        answer: `Evet, Esnaaf platformundaki tüm ${activeServiceTitle} ustaları kimlik, vergi levhası ve mesleki yeterlilik kontrollerinden geçerek onaylanmış profesyonellerdir. Gerçek müşteri puanlarını şeffafça görebilirsiniz.`
+        question: `Esnaaf'ta ${locationTitle} ${activeServiceTitle} hizmet verenleri güvenilir mi?`,
+        answer: `Evet, Esnaaf platformundaki tüm ${activeServiceTitle} hizmet verenleri kimlik, vergi levhası ve mesleki yeterlilik kontrollerinden geçerek onaylanmış profesyonellerdir. Gerçek müşteri puanlarını şeffafça görebilirsiniz.`
       },
       {
         question: `Yapay zeka ile nasıl 30 dakikada 5 teklif alabilirim?`,
-        answer: `Sitemizdeki '30 Dk'da Teklif Al' butonuna tıklayarak sohbet asistanımızla 1 dakikada ihtiyacınızı belirtebilirsiniz. Talebiniz bölgenizdeki en iyi onaylı ustalara anında iletilir ve en fazla 5 teklif alırsınız.`
+        answer: `Sitemizdeki '30 Dk'da Teklif Al' butonuna tıklayarak sohbet asistanımızla 1 dakikada ihtiyacınızı belirtebilirsiniz. Talebiniz bölgenizdeki en iyi onaylı hizmet verenlere anında iletilir ve en fazla 5 teklif alırsınız.`
       }
     ];
 
@@ -383,7 +383,7 @@ export class SeoService {
     const itemListSchema = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} Ustaları`,
+      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} Hizmet Verenleri`,
       'description': description,
       'url': pageUrl,
       'numberOfItems': providerCount,

@@ -224,10 +224,10 @@ export default async function HizmetSeoPage({ params }: PageProps) {
             <div className="space-y-8">
               <div className="space-y-4">
                 <span className="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full text-sm font-semibold inline-block border border-primary/20">
-                  ⚡ 30 Dakikada 5 Ustandan Teklif Al
+                  ⚡ 30 Dakikada 5 Hizmet Verenden Teklif Al
                 </span>
                 <h1 className="font-bold text-4xl md:text-5xl leading-tight text-on-surface tracking-tight">
-                  {locationHeader} En İyi {providerCount} {activeTitle} Ustasından Teklif Al
+                  {locationHeader} En İyi {providerCount} {activeTitle} Hizmet Vereninden Teklif Al
                 </h1>
                 <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
                   {locationHeader} genelinde <strong>{providerCount} onaylı {activeTitle.toLowerCase()} uzmanı</strong> arasından en iyi 5 teklifi 30 dakika içinde ücretsiz al, karşılaştır ve en uygununu seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
@@ -474,7 +474,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                     </div>
                   </div>
                   <ul className="text-xs text-slate-300 space-y-2 border-t border-slate-700/60 pt-4">
-                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Onaylı Usta Hizmeti</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Onaylı Hizmet Veren Garantisi</li>
                     <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> 30 Dk'da 5 Teklif</li>
                     <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> Standart Garantili İşçilik</li>
                   </ul>
@@ -510,7 +510,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                   </div>
                   <ul className="text-xs text-slate-300 space-y-2 border-t border-slate-700/60 pt-4">
                     <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> 7/24 Acil Müdahale</li>
-                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> En Yüksek Puanlı Master Usta</li>
+                    <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> En Yüksek Puanlı Hizmet Veren</li>
                     <li className="flex items-center gap-2"><span className="text-lime-400 font-bold">✓</span> VIP Destek Hattı</li>
                   </ul>
                 </div>
