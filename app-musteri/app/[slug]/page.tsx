@@ -180,29 +180,33 @@ export default async function HizmetSeoPage({ params }: PageProps) {
 
       <div className="bg-background text-on-background selection:bg-primary/20 font-body min-h-screen flex flex-col pt-20">
         
-        {/* Header (TopNavBar) */}
-        <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 border-b border-outline-variant/50 h-20 shadow-sm">
-          <div className="flex justify-between items-center px-4 md:px-6 max-w-7xl mx-auto h-full w-full">
-            <div className="flex items-center gap-12">
-              <Link href="/">
+        {/* Header (TopNavBar - Floating Dark Glassmorphic Header Matching Homepage) */}
+        <header className="fixed top-3 md:top-5 inset-x-0 mx-auto max-w-7xl px-3 md:px-6 z-50 transition-all duration-300">
+          <div className="w-full backdrop-blur-2xl bg-slate-950/45 border border-white/15 rounded-2xl md:rounded-3xl h-14 md:h-18 px-4 md:px-8 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="flex items-center gap-8 md:gap-12">
+              <Link href="/" className="flex items-center group">
                 <img
-                  alt="Esnaaf Logo"
-                  className="h-14 w-auto cursor-pointer"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
+                  alt="Esnaaf Logo - 30 Dakikada Mahallendeki En İyi Hizmet Verenden Teklif Al"
+                  className="h-9 md:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_20px_rgba(200,242,82,0.35)]"
+                  src="/esnaaf-logo.png?v=20260801"
                 />
               </Link>
               <nav className="hidden md:flex gap-8">
-                <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#how-it-works">Nasıl Çalışır</a>
-                <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#why-us">Neden Esnaaf</a>
-                <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#testimonials">Yorumlar</a>
-                <a className="text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm" href="#faqs">Soru & Cevap</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#prices">Fiyat Rehberi</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#testimonials">Yorumlar</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#faqs">Soru & Cevap</a>
               </nav>
             </div>
-            <Link href="/">
-              <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer">
-                Hizmet Ver
-              </button>
-            </Link>
+            
+            <div className="flex items-center gap-2 md:gap-3">
+              <Link href="/hizmetveren-basvuru">
+                <button className="bg-[#c8f252] hover:bg-[#b8e242] text-slate-950 px-3.5 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#c8f252]/20 hover:scale-105">
+                  Hizmet Ver
+                </button>
+              </Link>
+            </div>
           </div>
         </header>
 
