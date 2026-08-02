@@ -118,14 +118,48 @@ export class TaleplerProcessor {
       this.logger.log(`[Favori Dağıtımı] Seeker ${request.seeker_id} için favori usta sayısı: ${favoriteProviderIds.length}`);
     }
 
-    // 2. Kategoriye kayıtlı onaylanmış ustaları çek
+    // 2. Kategoriye ve bağlı alt hizmetlerine kayıtlı onaylanmış hizmet verenleri çek (Ana Kategori & Alt Hizmet Kalıtımı)
+    const CATEGORY_HIERARCHY_GROUPS: Record<string, string[]> = {
+      'Ev Temizliği': ['Ev Temizliği', 'Boş Ev Temizliği', 'Gündelik Ev Temizliği', '1+1 Ev Temizliği', '2+1 Ev Temizliği', '3+1 Ev Temizliği', 'Halı Yıkama', 'Koltuk Yıkama', 'İnşaat / Tadilat Sonrası Temizlik', 'Ofis Temizliği', 'İş Yeri Temizliği'],
+      'Klima Servisi': ['Klima Servisi', 'Klima Bakımı', 'Klima Montajı', 'Klima Temizliği', 'Klima Taşıma', 'Klima Gaz Dolumu', 'Klima Tamiri'],
+      'Kombi Servisi': ['Kombi Servisi', 'Kombi Bakımı', 'Kombi Tamiri', 'Petek Temizliği'],
+      'Boya Badana': ['Boya Badana', '1+1 Daire Boyama', '2+1 Daire Boyama', '3+1 Daire Boyama', 'Tek Oda Boyama', 'Tavan Boyama'],
+      'Su Tesisatı': ['Su Tesisatı', 'Su Kaçağı Tespiti', 'Tıkanıklık Açma', 'Musluk Tamiri', 'Klozet Tamiri', 'Doğalgaz Tesisatı'],
+      'Nakliyat / Ev Taşıma': ['Nakliyat / Ev Taşıma', 'Evden Eve Nakliyat', 'Parça Eşya Taşıma', 'Şehirler Arası Nakliyat', 'Ofis Taşıma'],
+      'Ev Tadilat': ['Ev Tadilat', 'Mutfak Tadilatı', 'Banyo Tadilatı', 'Komple Ev Tadilatı', 'Fayans Döşeme', 'Parke Döşeme', 'Marangoz', 'Mobilya Montajı']
+    };
+
+    const targetCategory = await this.prisma.category.findUnique({
+      where: { id: request.category_id }
+    });
+
+    let matchingCategoryIds = [request.category_id];
+
+    if (targetCategory) {
+      let groupNames: string[] = [];
+      for (const [parentName, children] of Object.entries(CATEGORY_HIERARCHY_GROUPS)) {
+        if (children.includes(targetCategory.name) || parentName === targetCategory.name) {
+          groupNames = children;
+          break;
+        }
+      }
+
+      if (groupNames.length > 0) {
+        const relatedCategories = await this.prisma.category.findMany({
+          where: { name: { in: groupNames } },
+          select: { id: true }
+        });
+        matchingCategoryIds = relatedCategories.map(c => c.id);
+      }
+    }
+
     const providers = await this.prisma.serviceProvider.findMany({
       where: {
         is_approved: true,
         account_status: 'active',
         is_available: true,
         category_ids: {
-          has: request.category_id,
+          hasSome: matchingCategoryIds,
         },
         ...(sendToFavoritesOnly ? { id: { in: favoriteProviderIds } } : {}),
       },

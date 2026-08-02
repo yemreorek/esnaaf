@@ -305,12 +305,46 @@ export class SeoService {
     // Gösterilecek ana başlık ismi (örn. "Klima Bakımı" veya "Klima Servisi")
     const activeServiceTitle = subServiceName || categoryName;
 
-    // 1. Dinamik Hizmet Veren Sayısı (İl genelindeki tüm onaylı hizmet verenler o ilin tüm ilçelerine hizmet verir)
+    // 1. Dinamik Hizmet Veren Sayısı (Ana Kategori & Alt Hizmet Kalıtımı - İl genelindeki tüm onaylı hizmet verenler alt hizmetlerde de sayılır ve listelenir)
+    const CATEGORY_HIERARCHY_GROUPS: Record<string, string[]> = {
+      'Ev Temizliği': ['Ev Temizliği', 'Boş Ev Temizliği', 'Gündelik Ev Temizliği', '1+1 Ev Temizliği', '2+1 Ev Temizliği', '3+1 Ev Temizliği', 'Halı Yıkama', 'Koltuk Yıkama', 'İnşaat / Tadilat Sonrası Temizlik', 'Ofis Temizliği', 'İş Yeri Temizliği'],
+      'Klima Servisi': ['Klima Servisi', 'Klima Bakımı', 'Klima Montajı', 'Klima Temizliği', 'Klima Taşıma', 'Klima Gaz Dolumu', 'Klima Tamiri'],
+      'Kombi Servisi': ['Kombi Servisi', 'Kombi Bakımı', 'Kombi Tamiri', 'Petek Temizliği'],
+      'Boya Badana': ['Boya Badana', '1+1 Daire Boyama', '2+1 Daire Boyama', '3+1 Daire Boyama', 'Tek Oda Boyama', 'Tavan Boyama'],
+      'Su Tesisatı': ['Su Tesisatı', 'Su Kaçağı Tespiti', 'Tıkanıklık Açma', 'Musluk Tamiri', 'Klozet Tamiri', 'Doğalgaz Tesisatı'],
+      'Nakliyat / Ev Taşıma': ['Nakliyat / Ev Taşıma', 'Evden Eve Nakliyat', 'Parça Eşya Taşıma', 'Şehirler Arası Nakliyat', 'Ofis Taşıma'],
+      'Ev Tadilat': ['Ev Tadilat', 'Mutfak Tadilatı', 'Banyo Tadilatı', 'Komple Ev Tadilatı', 'Fayans Döşeme', 'Parke Döşeme', 'Marangoz', 'Mobilya Montajı']
+    };
+
+    let matchingCategoryIds: string[] = [];
+    if (categoryId && categoryId !== 'default_cat_id') {
+      matchingCategoryIds = [categoryId];
+      
+      const dbCat = await this.prisma.category.findUnique({ where: { id: categoryId } });
+      if (dbCat) {
+        let groupNames: string[] = [];
+        for (const [parentName, children] of Object.entries(CATEGORY_HIERARCHY_GROUPS)) {
+          if (children.includes(dbCat.name) || parentName === dbCat.name) {
+            groupNames = children;
+            break;
+          }
+        }
+
+        if (groupNames.length > 0) {
+          const relatedCats = await this.prisma.category.findMany({
+            where: { name: { in: groupNames } },
+            select: { id: true }
+          });
+          matchingCategoryIds = relatedCats.map(c => c.id);
+        }
+      }
+    }
+
     const whereClause: any = {
       is_approved: true
     };
-    if (categoryId && categoryId !== 'default_cat_id') {
-      whereClause.category_ids = { has: categoryId };
+    if (matchingCategoryIds.length > 0) {
+      whereClause.category_ids = { hasSome: matchingCategoryIds };
     }
 
     if (city) {
