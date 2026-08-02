@@ -304,6 +304,16 @@ export default async function HizmetSeoPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Testimonials Section with Slider */}
+        <section id="testimonials" className="pt-20 pb-8 bg-background overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <ReviewsSlider
+              categorySlug={categorySlug}
+              categoryName={categoryName}
+            />
+          </div>
+        </section>
+
         {/* Armut Stili En İyi Hizmet Verenler Listesi & Profil Vitrini */}
         <ProviderListSection
           providers={topProviders || []}
@@ -530,16 +540,6 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section with Slider */}
-        <section id="testimonials" className="py-24 bg-background overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <ReviewsSlider
-              categorySlug={categorySlug}
-              categoryName={categoryName}
-            />
           </div>
         </section>
 
