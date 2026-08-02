@@ -193,12 +193,20 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                   src="/esnaaf-logo.png?v=20260801"
                 />
               </Link>
-              <nav className="hidden md:flex gap-8">
-                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#how-it-works">Nasıl Çalışır</a>
-                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#why-us">Neden Esnaaf</a>
-                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#prices">Fiyat Rehberi</a>
-                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#testimonials">Yorumlar</a>
-                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="#faqs">Soru & Cevap</a>
+              <nav className="hidden lg:flex items-center gap-6">
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/temizlik">Temizlik</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/tadilat">Tadilat</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/nakliyat">Nakliyat</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/tamir">Tamir</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/ozel-ders">Özel Ders</a>
+                <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/organizasyon">Organizasyon</a>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-category-modal"))}
+                  className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider bg-transparent border-none p-0 cursor-pointer"
+                >
+                  Diğer
+                </button>
               </nav>
             </div>
             
