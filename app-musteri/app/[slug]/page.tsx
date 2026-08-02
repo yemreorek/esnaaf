@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import SeoPageClient from "../../components/SeoPageClient";
 import ReviewsSlider from "../../components/ReviewsSlider";
+import Footer from "../../components/Footer";
 
 export const dynamic = 'force-dynamic';
 
@@ -676,65 +677,8 @@ export default async function HizmetSeoPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-surface-container-lowest border-t border-outline-variant/30 py-24 mt-auto">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 w-full">
-            <div className="space-y-6">
-              <img
-                alt="Esnaaf Logo"
-                className="h-14 w-auto"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgSjXJkj42ZNDCWFwJr55cLuIlwdz5IufC5zO6KFcIv_KAcAiNOdn4MkBwCcJ04shOHM9ZbvileJokrkYQsp0_Xuwm48sH8wfZVrsyIz38-XrLTbRsf16zQj8V2MGKXVRujJYXH183SmaXUD0qOc1cS-v9GXriQn34MIyIztPEgZZptZcQbdVjnhdorc0CBfcWcv7UG5hDf-1iX6EpLTEnwj4D47ie015-v-_b9PHA93SkyaQEVhvWsMHIhFT9B57MgMbPWJ8SAEg"
-              />
-              <p className="text-sm font-body text-on-surface-variant leading-relaxed">
-                Türkiye'nin lider hizmet platformu. Boyadan nakliyeye, her şey için en güvenilir uzmanlar burada.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">HİZMETLER</h4>
-              <ul className="space-y-2">
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Ev Boyama</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Temizlik</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Nakliye</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Tadilat</Link></li>
-              </ul>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">KURUMSAL</h4>
-              <ul className="space-y-2">
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Hakkımızda</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kariyer</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Basın</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">İletişim</Link></li>
-              </ul>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-bold text-xs text-on-surface uppercase tracking-widest">YARDIM</h4>
-              <ul className="space-y-2">
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Gizlilik Politikası</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Kullanıcı Sözleşmesi</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Güvenlik</Link></li>
-                <li><Link href="/" className="text-on-surface-variant hover:text-primary transition-colors text-xs font-medium">Destek Merkezi</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="max-w-7xl mx-auto px-4 md:px-6 mt-16 pt-8 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-            <p className="text-xs font-body text-on-surface-variant opacity-80">
-              © {new Date().getFullYear()} Esnaaf Home Services. Tüm hakları saklıdır.
-            </p>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-sm">public</span>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-sm">mail</span>
-              </div>
-            </div>
-          </div>
-        </footer>
+        {/* Premium Shared Footer Component */}
+        <Footer />
 
       </div>
     </>
