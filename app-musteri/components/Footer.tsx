@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import AllCategoriesModal from "./AllCategoriesModal";
 
 export default function Footer() {
   const openCookiePreferences = () => {
@@ -197,9 +198,13 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#categories-section" className="text-[#c8f252] font-semibold hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-category-modal"))}
+                    className="text-[#c8f252] font-semibold hover:underline cursor-pointer bg-transparent border-none p-0 flex items-center gap-1"
+                  >
                     Tüm Kategoriler →
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -360,6 +365,8 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* Global Hangi Hizmete İhtiyacınız Var Pop-up Modal */}
+      <AllCategoriesModal />
     </footer>
   );
 }
