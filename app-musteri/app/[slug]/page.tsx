@@ -76,6 +76,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
   const {
     categorySlug,
     categoryName,
+    subServiceName,
     city,
     district,
     providerCount,
@@ -85,8 +86,12 @@ export default async function HizmetSeoPage({ params }: PageProps) {
     maxPrice,
     unit,
     faqs,
+    localBusinessSchema,
+    faqPageSchema,
     schema,
   } = data;
+
+  const activeTitle = subServiceName || categoryName;
 
   let locationHeader = '';
   if (district) {
@@ -102,11 +107,17 @@ export default async function HizmetSeoPage({ params }: PageProps) {
 
   return (
     <>
-      {/* Schema.org JSON-LD Injection */}
+      {/* Google-Loved Dual Schema.org JSON-LD Injection (LocalBusiness & FAQPage) */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema || schema) }}
       />
+      {faqPageSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
+        />
+      )}
 
       {/* Embedded CSS classes matching the mockup */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -189,13 +200,13 @@ export default async function HizmetSeoPage({ params }: PageProps) {
             <div className="space-y-8">
               <div className="space-y-4">
                 <span className="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full text-sm font-semibold inline-block border border-primary/20">
-                  Profesyonel {categoryName}
+                  Profesyonel {activeTitle}
                 </span>
                 <h1 className="font-bold text-4xl md:text-5xl leading-tight text-on-surface tracking-tight">
-                  {locationHeader} {categoryName} Hizmet Verenleri
+                  {locationHeader} {activeTitle} Hizmet Verenleri
                 </h1>
                 <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
-                  {locationHeader} genelinde <strong>{providerCount} onaylı {categoryName.toLowerCase()} uzmanı</strong> arasından teklif al, karşılaştır ve seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
+                  {locationHeader} genelinde <strong>{providerCount} onaylı {activeTitle.toLowerCase()} uzmanı</strong> arasından teklif al, karşılaştır ve seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
                 </p>
               </div>
               
