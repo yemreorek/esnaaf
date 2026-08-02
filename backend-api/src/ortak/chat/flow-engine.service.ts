@@ -24,10 +24,20 @@ export class FlowEngineService {
     if (QUESTION_FLOWS[hyphenated]) return QUESTION_FLOWS[hyphenated];
     if (QUESTION_FLOWS[underscored]) return QUESTION_FLOWS[underscored];
 
+    if (raw.includes('bilgisayar') || raw.includes('kasa') || raw.includes('laptop')) return QUESTION_FLOWS['bilgisayar-temizligi'];
+    if (raw.includes('dukkan') || raw.includes('dükkan') || raw.includes('is-yeri') || raw.includes('iş-yeri') || raw.includes('magaza') || raw.includes('mağaza')) return QUESTION_FLOWS['dukkan-temizligi'] || QUESTION_FLOWS['ofis-temizligi'];
+    if (raw.includes('sarma') || raw.includes('manti') || raw.includes('mantı')) return QUESTION_FLOWS['yaprak-sarma-yapimi'];
+    if (raw.includes('yemek')) return QUESTION_FLOWS['evde-yemek-pisirme'];
+    if (raw.includes('kuru-temizleme') || raw.includes('kuru temizleme')) return QUESTION_FLOWS['kuru-temizleme'];
+    if (raw.includes('yatak')) return QUESTION_FLOWS['yatak-yikama'];
+    if (raw.includes('arac') || raw.includes('araç') || raw.includes('araba')) return QUESTION_FLOWS['arac-koltuk-yikama'];
+    if (raw.includes('su-deposu') || raw.includes('depo')) return QUESTION_FLOWS['su-deposu-temizligi'];
+    if (raw.includes('ofis-hali') || raw.includes('haliflex') || raw.includes('halıflex')) return QUESTION_FLOWS['ofis-hali-yikama'];
+
     if (raw.includes('petek')) return QUESTION_FLOWS['petek-temizligi'] || QUESTION_FLOWS['petek_temizligi'];
     if (raw.includes('cam')) return QUESTION_FLOWS['cam-temizligi'] || QUESTION_FLOWS['cam_temizligi'];
     if (raw.includes('hali') || raw.includes('halı')) return QUESTION_FLOWS['hali-yikama'] || QUESTION_FLOWS['hali_yikama'];
-    if (raw.includes('koltuk') || raw.includes('yatak')) return QUESTION_FLOWS['koltuk-yikama'] || QUESTION_FLOWS['evde-koltuk-yikama'] || QUESTION_FLOWS['koltuk_yikama'];
+    if (raw.includes('koltuk')) return QUESTION_FLOWS['koltuk-yikama'] || QUESTION_FLOWS['evde-koltuk-yikama'] || QUESTION_FLOWS['koltuk_yikama'];
     if (raw.includes('bos-ev') || raw.includes('boş ev') || raw.includes('tasinma')) return QUESTION_FLOWS['bos-ev-temizligi'] || QUESTION_FLOWS['bos_ev_temizligi'];
     if (raw.includes('apartman') || raw.includes('merdiven')) return QUESTION_FLOWS['apartman-temizligi'] || QUESTION_FLOWS['apartman_temizligi'];
     if (raw.includes('utu') || raw.includes('ütü')) return QUESTION_FLOWS['evde-utu-hizmeti'] || QUESTION_FLOWS['utu-hizmeti'];
@@ -42,7 +52,7 @@ export class FlowEngineService {
     if (raw.includes('insaat-sonrasi') || raw.includes('insaat_sonrasi')) return QUESTION_FLOWS['insaat-sonrasi-temizlik'];
     if (raw.includes('fayans') || raw.includes('seramik')) return QUESTION_FLOWS['fayans-doseme'];
     if (raw.includes('parke')) return QUESTION_FLOWS['parke-doseme'];
-    if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('hasere')) return QUESTION_FLOWS['hasere-ilaclama'];
+    if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('fare') || raw.includes('pire') || raw.includes('hasere')) return QUESTION_FLOWS['bocek-ilaclama'] || QUESTION_FLOWS['hasere-ilaclama'];
     if (raw.includes('kombi')) return QUESTION_FLOWS['kombi-servisi'];
     if (raw.includes('klima')) return QUESTION_FLOWS['klima-servisi'];
     if (raw.includes('fotograf')) return QUESTION_FLOWS['fotografci'];

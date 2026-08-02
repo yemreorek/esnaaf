@@ -2213,6 +2213,24 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     // DYNAMIC MATCHING MOVED TO THE END
 
     // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES (PRIORITY ORDERED)
+    if (text.includes('bilgisayar') || text.includes('kasa') || text.includes('laptop')) {
+      return { detected: true, categorySlug: 'bilgisayar-temizligi', categoryName: 'Bilgisayar Temizliği', confidence: 0.98 };
+    }
+    if (text.includes('dükkan') || text.includes('dukkan') || text.includes('iş yeri') || text.includes('is yeri') || text.includes('mağaza') || text.includes('magaza')) {
+      return { detected: true, categorySlug: 'dukkan-temizligi', categoryName: 'Dükkan Temizliği', confidence: 0.98 };
+    }
+    if (text.includes('yaprak') || text.includes('sarma') || text.includes('mantı') || text.includes('manti')) {
+      return { detected: true, categorySlug: 'yaprak-sarma-yapimi', categoryName: 'Yaprak Sarma & Mantı Yapımı', confidence: 0.98 };
+    }
+    if (text.includes('yemek')) {
+      return { detected: true, categorySlug: 'evde-yemek-pisirme', categoryName: 'Evde Yemek Pişirme', confidence: 0.98 };
+    }
+    if (text.includes('kuru temizleme') || text.includes('kuru-temizleme')) {
+      return { detected: true, categorySlug: 'kuru-temizleme', categoryName: 'Kuru Temizleme', confidence: 0.98 };
+    }
+    if (text.includes('yatak yıkama') || text.includes('yatak yikama') || (text.includes('yatak') && !text.includes('koltuk'))) {
+      return { detected: true, categorySlug: 'yatak-yikama', categoryName: 'Yatak Yıkama', confidence: 0.98 };
+    }
     if (text.includes('araç') || text.includes('arac') || text.includes('araba') || text.includes('oto koltuk')) {
       return { detected: true, categorySlug: 'arac-koltuk-yikama', categoryName: 'Yerinde Araç Koltuk Yıkama', confidence: 0.98 };
     }

@@ -2520,5 +2520,222 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
         "next_step": "END"
       }
     ]
+  },
+  'bilgisayar-temizligi': {
+    "category_id": "bilgisayar_temizligi",
+    "category_name": "Bilgisayar Temizliği & Fan Bakımı",
+    "steps": [
+      {
+        "step_id": "step_cihaz_turu",
+        "step_title": "Temizlenecek cihaz türü nedir?",
+        "description": "Cihazın donanım yapısına uygun özel antistatik temizlik yapılır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Masaüstü Bilgisayar (Desktop Kasa)", "value": "desktop", "next_step": "step_bakim_islem" },
+          { "label": "Dizüstü Laptop / Notebook", "value": "laptop", "next_step": "step_bakim_islem" },
+          { "label": "Oyuncu Bilgisayarı (Gaming PC)", "value": "gaming", "next_step": "step_bakim_islem" },
+          { "label": "Sunucu / Server Kabini", "value": "server", "next_step": "step_bakim_islem" }
+        ]
+      },
+      {
+        "step_id": "step_bakim_islem",
+        "step_title": "Hangi bakım ve temizlik işlemleri yapılsın?",
+        "description": "Termal performans ve uzun ömürlü kullanım için işlemler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kasa İçi Toz Temizliği & Fan Bakımı", "value": "toz_fan", "next_step": "step_detay_var_mi" },
+          { "label": "Termal Macun Yenileme (İşlemci & Ekran Kartı)", "value": "termal_macun", "next_step": "step_detay_var_mi" },
+          { "label": "Komple Detaylı İç & Dış Temizlik + Termal Macun", "value": "komple_bakim", "next_step": "step_detay_var_mi" },
+          { "label": "Sıvı Teması Temizliği / Oksit Temizleme", "value": "sivi_temasi", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'dukkan-temizligi': {
+    "category_id": "dukkan_temizligi",
+    "category_name": "Dükkan & Mağaza Temizliği",
+    "steps": [
+      {
+        "step_id": "step_dukkan_m2",
+        "step_title": "Dükkan / İş yeri alanı yaklaşık kaç m²'dir?",
+        "description": "Mekan büyüklüğüne göre personel ve ekipman planlanır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_dukkan_kapsam" },
+          { "label": "50 - 150 m²", "value": "150_m2", "next_step": "step_dukkan_kapsam" },
+          { "label": "150 - 300 m²", "value": "300_m2", "next_step": "step_dukkan_kapsam" },
+          { "label": "300 m² ve üzeri", "value": "300_plus_m2", "next_step": "step_dukkan_kapsam" }
+        ]
+      },
+      {
+        "step_id": "step_dukkan_kapsam",
+        "step_title": "Temizlik neleri kapsasın?",
+        "description": "Öncelikli alanları seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Standart Dükkan & Zemin Temizliği", "value": "standart", "next_step": "step_detay_var_mi" },
+          { "label": "Vitrin & Dış Cam Temizliği Dahil", "value": "vitrin", "next_step": "step_detay_var_mi" },
+          { "label": "Açılış / İnşaat Sonrası Derin Dükkan Temizliği", "value": "insaat", "next_step": "step_detay_var_mi" },
+          { "label": "Periyodik Düzenli Dükkan Temizliği", "value": "periyodik", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'evde-yemek-pisirme': {
+    "category_id": "evde_yemek_pisirme",
+    "category_name": "Evde Yemek Pişirme Hizmeti",
+    "steps": [
+      {
+        "step_id": "step_yemek_kapsam",
+        "step_title": "Yemek pişirme hizmeti kapsamı nedir?",
+        "description": "Aşçı / ev hizmetlisi ihtiyacınızı seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Günlük Ev Yemeği (3-4 Çeşit)", "value": "gunluk", "next_step": "step_kisi_sayisi" },
+          { "label": "Haftalık Toplu Yemek Hazırlığı", "value": "haftalik", "next_step": "step_kisi_sayisi" },
+          { "label": "Özel Davet / Misafir / Etkinlik Menüsü", "value": "davet", "next_step": "step_kisi_sayisi" },
+          { "label": "Diyet / Özel Beslenme Menüsü", "value": "diyet", "next_step": "step_kisi_sayisi" }
+        ]
+      },
+      {
+        "step_id": "step_kisi_sayisi",
+        "step_title": "Kaç kişilik yemek hazırlanacak?",
+        "description": "Porsiyon büyüklüğünü belirlemek için seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 4 Kişilik", "value": "1_4", "next_step": "step_malzeme_durumu" },
+          { "label": "5 - 8 Kişilik", "value": "5_8", "next_step": "step_malzeme_durumu" },
+          { "label": "9 - 15 Kişilik", "value": "9_15", "next_step": "step_malzeme_durumu" },
+          { "label": "15 Kişi ve Üzeri", "value": "15_plus", "next_step": "step_malzeme_durumu" }
+        ]
+      },
+      {
+        "step_id": "step_malzeme_durumu",
+        "step_title": "Yemek malzemeleri kim tarafından temin edilecek?",
+        "description": "Alışveriş tercihinizi seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Malzemeleri Ben Temin Edeceğim", "value": "ev_sahibi", "next_step": "step_detay_var_mi" },
+          { "label": "Malzemeleri Aşçı / Hizmet Veren Alsın", "value": "hizmet_veren", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'yaprak-sarma-yapimi': {
+    "category_id": "yaprak_sarma_yapimi",
+    "category_name": "Yaprak Sarma & Ev Yapımı Mantı / Gıda",
+    "steps": [
+      {
+        "step_id": "step_gida_turu",
+        "step_title": "Ne tür ev yapımı gıda / yemek istersiniz?",
+        "description": "El emeği yöresel lezzetler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Zeytinyağlı Yaprak Sarma", "value": "zeytinyagli_sarma", "next_step": "step_kilo_miktari" },
+          { "label": "Etli Yaprak Sarma", "value": "etli_sarma", "next_step": "step_kilo_miktari" },
+          { "label": "Ev Yapımı Kayseri Mantısı", "value": "manti", "next_step": "step_kilo_miktari" },
+          { "label": "Ev Böreği / Baklava / Çörek", "value": "borek_baklava", "next_step": "step_kilo_miktari" }
+        ]
+      },
+      {
+        "step_id": "step_kilo_miktari",
+        "step_title": "Yaklaşık sipariş miktarı ne kadardır?",
+        "description": "Hazırlanacak kilo miktarını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 3 Kilo", "value": "1_3_kg", "next_step": "step_detay_var_mi" },
+          { "label": "4 - 7 Kilo", "value": "4_7_kg", "next_step": "step_detay_var_mi" },
+          { "label": "8 - 12 Kilo", "value": "8_12_kg", "next_step": "step_detay_var_mi" },
+          { "label": "12 Kilo ve Üzeri / Toplu Sipariş", "value": "12_plus_kg", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'yatak-yikama': {
+    "category_id": "yatak_yikama",
+    "category_name": "Yerinde Yatak Yıkama & Dezenfeksiyon",
+    "steps": [
+      {
+        "step_id": "step_yatak_adedi",
+        "step_title": "Yıkanacak yatak türü ve adedi nedir?",
+        "description": "Vakumlu yüksek hijyenik yıkama yapılır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 Adet Çift Kişilik Yatak", "value": "1_cift", "next_step": "step_yatak_leke" },
+          { "label": "2 Adet Çift Kişilik Yatak", "value": "2_cift", "next_step": "step_yatak_leke" },
+          { "label": "1 Adet Tek Kişilik Yatak", "value": "1_tek", "next_step": "step_yatak_leke" },
+          { "label": "2 Adet Tek Kişilik Yatak", "value": "2_tek", "next_step": "step_yatak_leke" },
+          { "label": "Yatak + Baza / Kumaş Başlık Yıkama", "value": "baza_baslik", "next_step": "step_yatak_leke" }
+        ]
+      },
+      {
+        "step_id": "step_yatak_leke",
+        "step_title": "Yatakta özel leke veya koku problemi var mı?",
+        "description": "Özel leke sökücü ve dezenfektan kullanımı içindir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Standart Hijyen & Anti-Akar / Mayt Temizliği", "value": "standart", "next_step": "step_detay_var_mi" },
+          { "label": "Çay / Kahve / Yiyecek Lekesi", "value": "leke", "next_step": "step_detay_var_mi" },
+          { "label": "İdrar / Koku Giderme & Derin Dezenfeksiyon", "value": "idrar_koku", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'kuru-temizleme': {
+    "category_id": "kuru_temizleme",
+    "category_name": "Kuru Temizleme Hizmeti",
+    "steps": [
+      {
+        "step_id": "step_kuru_urun",
+        "step_title": "Kuru temizleme yapılacak ürün türü nedir?",
+        "description": "Hassas kumaş bakımı yapılır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Takım Elbise / Ceket / Pantolon", "value": "takim", "next_step": "step_teslimat_turu" },
+          { "label": "Kaban / Palto / Mont / Kuş Tüyü", "value": "mont", "next_step": "step_teslimat_turu" },
+          { "label": "Gelinlik / Abiye / Özel Tasarım Elbise", "value": "gelinlik", "next_step": "step_teslimat_turu" },
+          { "label": "Perde / Halı / Ev Tekstili", "value": "ev_tekstil", "next_step": "step_teslimat_turu" }
+        ]
+      },
+      {
+        "step_id": "step_teslimat_turu",
+        "step_title": "Adrese gelip alma ve teslim etme hizmeti istiyor musunuz?",
+        "description": "Servis imkanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Adresten Alınsın ve Adrese Teslim Edilsin", "value": "evet_adresten", "next_step": "step_detay_var_mi" },
+          { "label": "Hayır, Ürünleri Kendim Dükkana Teslim Edeceğim", "value": "hayir_kendim", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'ofis-hali-yikama': {
+    "category_id": "ofis_hali_yikama",
+    "category_name": "Ofis Halı & Halıflex Yıkama",
+    "steps": [
+      {
+        "step_id": "step_haliflex_m2",
+        "step_title": "Yıkanacak halıflex / ofis halısı alanı yaklaşık kaç m²'dir?",
+        "description": "Yerinde vakumlu yıkama makineleri ile temizlenir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_yikama_zamani" },
+          { "label": "50 - 150 m² Arası", "value": "150_m2", "next_step": "step_yikama_zamani" },
+          { "label": "150 - 300 m² Arası", "value": "300_m2", "next_step": "step_yikama_zamani" },
+          { "label": "300 m² ve Üzeri", "value": "300_plus_m2", "next_step": "step_yikama_zamani" }
+        ]
+      },
+      {
+        "step_id": "step_yikama_zamani",
+        "step_title": "Yıkama işlemi ne zaman yapılsın?",
+        "description": "Ofis çalışma saatlerine göre zamanlama seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mesai Saatleri İçinde", "value": "mesai_ici", "next_step": "step_detay_var_mi" },
+          { "label": "Mesai Saatleri Dışında / Akşam", "value": "aksam", "next_step": "step_detay_var_mi" },
+          { "label": "Hafta Sonu (Cumartesi / Pazar)", "value": "hafta_sonu", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
   }
 };
