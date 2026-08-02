@@ -285,7 +285,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
         <div className="max-w-7xl mx-auto px-4 md:px-6 w-full -mt-12 relative z-20">
           <div className="bg-white border border-outline-variant/50 rounded-2xl shadow-xl p-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div className="flex flex-col items-center text-center space-y-1 group">
-              <span className="material-symbols-outlined text-primary text-4xl mb-2" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+              <span className="material-symbols-outlined text-amber-400 text-4xl mb-2" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
               <span className="font-bold text-3xl text-on-surface">{avgRating} / 5.0</span>
               <span className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">puan ortalaması</span>
             </div>

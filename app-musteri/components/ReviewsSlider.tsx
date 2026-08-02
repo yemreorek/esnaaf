@@ -176,15 +176,16 @@ export default function ReviewsSlider({ categorySlug, categoryName }: ReviewsSli
                 <span className="step-number text-primary">{rev.rating.toFixed(1)}</span>
                 
                 <div>
-                  <div className="flex text-primary mb-4">
+                  <div className="flex items-center gap-1 text-amber-400 mb-4">
                     {Array.from({ length: 5 }).map((_, starIdx) => {
-                      const isHalf = rev.rating - starIdx === 0.8;
-                      const isFull = rev.rating - starIdx >= 1;
+                      const diff = rev.rating - starIdx;
+                      const isFull = diff >= 1;
+                      const isHalf = diff >= 0.4 && diff < 1;
                       return (
                         <span
                           key={starIdx}
-                          className="material-symbols-outlined"
-                          style={{ fontVariationSettings: isFull || isHalf ? '"FILL" 1' : undefined }}
+                          className="material-symbols-outlined text-amber-400 text-2xl"
+                          style={{ fontVariationSettings: isFull || isHalf ? '"FILL" 1' : '"FILL" 0' }}
                         >
                           {isFull ? "star" : isHalf ? "star_half" : "star"}
                         </span>
