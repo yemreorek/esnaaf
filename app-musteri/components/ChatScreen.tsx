@@ -86,6 +86,7 @@ interface Message {
   };
   options?: string[];
   inputType?: string;
+  estimatedPriceRange?: { minPrice: number; maxPrice: number; formattedRange: string } | null;
 }
 
 interface ChatScreenProps {
@@ -1048,6 +1049,7 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
           collected_data: data.collected_data,
           options: data.options,
           inputType: data.inputType,
+          estimatedPriceRange: data.estimatedPriceRange,
           isStreaming: true,
         },
       ]);
@@ -1493,6 +1495,25 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   </p>
                 )}
 
+                {msg.estimatedPriceRange && !msg.isStreaming && (
+                  <div className="my-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-50/50 border border-emerald-200/80 shadow-2xs text-left animate-fade-in">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-800 tracking-wide uppercase">
+                        <span>💡</span> Tahmini Piyasa Teklif Aralığı
+                      </span>
+                      <span className="text-[10px] font-bold bg-emerald-200/60 text-emerald-900 px-2 py-0.5 rounded-full">
+                        Canlı Teklif Tahmini
+                      </span>
+                    </div>
+                    <div className="text-xl md:text-2xl font-black text-emerald-950 tracking-tight my-0.5">
+                      {msg.estimatedPriceRange.formattedRange}
+                    </div>
+                    <p className="text-[11px] text-emerald-700/90 font-medium leading-tight">
+                      Bölgenizdeki onaylı hizmet verenlerin size özel canlı tekliflerini toplamak için devam edin.
+                    </p>
+                  </div>
+                )}
+
                 {msg.options && msg.options.length > 0 && !msg.isStreaming && msg.id === [...messages].reverse().find(m => m.role === "assistant")?.id && currentStep !== "completed" && currentStep !== "confirm_form" && (
                   <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-slate-100/50">
                     <div className="flex flex-col gap-2.5 w-full">
@@ -1634,14 +1655,24 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                     )}
                     
                     {currentStep !== "greeting" && (
-                      <button
-                        disabled={isLoading}
-                        onClick={() => sendMessage("Geri Dön")}
-                        className="mt-2 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors text-left flex items-center gap-1.5 w-fit disabled:opacity-50"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        Yanlış mı seçtiniz? Geri Dön
-                      </button>
+                      <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                        <button
+                          disabled={isLoading}
+                          onClick={() => sendMessage("Geri Dön")}
+                          className="text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors text-left flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                          Yanlış mı seçtiniz? Geri Dön
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsCategoryModalOpen(true)}
+                          className="text-[12px] font-extrabold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-xl px-3 py-1.5 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                        >
+                          <span>⚡</span>
+                          <span>Farklı Hizmet Seç</span>
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

@@ -632,12 +632,14 @@ export class ChatService implements OnModuleInit {
       await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
       await this.trackTokens(sessionKey, tokensUsed);
 
+      const estimatedPriceRange = this.calculateEstimatedPriceRange(state.collected_data.categorySlug, state.collected_data);
       return {
         step: flowResult.step,
         responseMessage: flowResult.responseMessage,
         collected_data: state.collected_data,
         options: flowResult.options,
         inputType: flowResult.inputType,
+        estimatedPriceRange,
       };
     }
     // --- END FAST PATH ---
@@ -1627,12 +1629,14 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         await this.redis.set(sessionKey, JSON.stringify(state), 'EX', 86400);
         await this.trackTokens(sessionKey, tokensUsed);
 
+        const estimatedPriceRange = this.calculateEstimatedPriceRange(state.collected_data.categorySlug, state.collected_data);
         return {
           step: state.step,
           responseMessage,
           collected_data: state.collected_data,
           options,
           inputType,
+          estimatedPriceRange,
         };
       }
 
@@ -2184,12 +2188,14 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
           fallbackInputType = 'multi_choice';
         }
 
+        const estimatedPriceRange = this.calculateEstimatedPriceRange(state.collected_data.categorySlug, state.collected_data);
         return {
           step: state.step,
           responseMessage: fallbackResponse,
           collected_data: state.collected_data,
           options: fallbackOptions,
-          inputType: fallbackInputType
+          inputType: fallbackInputType,
+          estimatedPriceRange,
         };
 
       } catch (fallbackError) {
@@ -2203,6 +2209,53 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         };
       }
     }
+  }
+
+  /**
+   * Calculates realistic estimated market price range for categories
+   */
+  public calculateEstimatedPriceRange(slug?: string | null, data: Record<string, any> = {}): { minPrice: number; maxPrice: number; formattedRange: string } | null {
+    if (!slug) return null;
+    const raw = slug.toLowerCase();
+    
+    let basePrice = 1500;
+    if (raw.includes('bos-ev') || raw.includes('insaat')) basePrice = 2200;
+    else if (raw.includes('ofis') || raw.includes('dukkan')) basePrice = 1800;
+    else if (raw.includes('koltuk') && !raw.includes('arac')) basePrice = 1200;
+    else if (raw.includes('arac')) basePrice = 1400;
+    else if (raw.includes('su-deposu')) basePrice = 2500;
+    else if (raw.includes('hali')) basePrice = 800;
+    else if (raw.includes('petek')) basePrice = 1000;
+    else if (raw.includes('cam')) basePrice = 1100;
+    else if (raw.includes('apartman') || raw.includes('merdiven')) basePrice = 1300;
+    else if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('hasere')) basePrice = 950;
+    else if (raw.includes('bilgisayar')) basePrice = 650;
+    else if (raw.includes('mermer')) basePrice = 3000;
+    else if (raw.includes('kuru-temizleme')) basePrice = 750;
+    else if (raw.includes('utu')) basePrice = 600;
+    else if (raw.includes('sarma') || raw.includes('manti')) basePrice = 500;
+    else if (raw.includes('yemek')) basePrice = 900;
+
+    let multiplier = 1.0;
+    const dataStr = JSON.stringify(data).toLowerCase();
+    if (dataStr.includes('2+1') || dataStr.includes('2_1') || dataStr.includes('50 - 150') || dataStr.includes('5-8') || dataStr.includes('4-7')) multiplier = 1.25;
+    else if (dataStr.includes('3+1') || dataStr.includes('3_1') || dataStr.includes('150 - 300') || dataStr.includes('9-15') || dataStr.includes('8-12')) multiplier = 1.5;
+    else if (dataStr.includes('4+1') || dataStr.includes('4_1')) multiplier = 1.8;
+    else if (dataStr.includes('5+1') || dataStr.includes('6+1') || dataStr.includes('villa') || dataStr.includes('300 m²') || dataStr.includes('15_plus') || dataStr.includes('12_plus')) multiplier = 2.4;
+
+    const estimatedCenter = Math.round((basePrice * multiplier) / 50) * 50;
+
+    // Per user instructions: Range should be wide enough so incoming provider quotes fall comfortably within it
+    // Example: If market center is 1.500 TL -> Min: 1.000 TL (0.67x), Max: 2.500 TL (1.67x)
+    const minPrice = Math.round((estimatedCenter * 0.67) / 50) * 50;
+    const maxPrice = Math.round((estimatedCenter * 1.67) / 50) * 50;
+
+    const formatCurrency = (val: number) => `₺${val.toLocaleString('tr-TR')}`;
+    return {
+      minPrice,
+      maxPrice,
+      formattedRange: `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`
+    };
   }
 
   /**
