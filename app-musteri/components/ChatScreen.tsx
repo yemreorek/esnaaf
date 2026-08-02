@@ -1497,23 +1497,32 @@ export default function ChatScreen({ initialMessage, onClose, onJobCompleted }: 
                   <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-slate-100/50">
                     <div className="flex flex-col gap-2.5 w-full">
                       {(() => {
-                        const hasCategory = messages.some(m => m.collected_data?.categorySlug);
-                        let displayOptions = (msg.options || []).map(o => (o === "Diğer" || o.toLowerCase().includes("diğer")) ? "📋 Tüm Hizmetleri Gör (Arama Yap)" : o);
-                        
-                        // Find if all services option exists
-                        const allSvcIdx = displayOptions.findIndex(o => o.includes("Tüm Hizmet") || o.toLowerCase().includes("hizmetleri gör"));
-                        if (allSvcIdx !== -1) {
-                          const [allSvc] = displayOptions.splice(allSvcIdx, 1);
-                          displayOptions.unshift(allSvc);
-                        } else if (!hasCategory) {
-                          if (displayOptions.length >= 5) displayOptions.pop();
-                          displayOptions.unshift("📋 Tüm Hizmetleri Gör (Arama Yap)");
+                        const hasCategory = messages.some(m => m.collected_data?.categorySlug) || currentStep === 'collecting_details' || currentStep === 'flow';
+                        let rawOptions = msg.options || [];
+                        let displayOptions: string[] = [];
+
+                        if (hasCategory) {
+                          // When user has selected a category: remove 'Tüm Hizmetleri Gör' and keep step choices domain-specific!
+                          displayOptions = rawOptions
+                            .filter(o => !o.includes("Tüm Hizmet") && !o.toLowerCase().includes("hizmetleri gör"))
+                            .map(o => o === "Diğer" ? "Diğer / Farklı Belirtmek İstiyorum" : o);
+                        } else {
+                          // Before a category is picked: offer 'Tüm Hizmetleri Gör' to open category modal
+                          displayOptions = rawOptions.map(o => (o === "Diğer" || o.toLowerCase().includes("diğer")) ? "📋 Tüm Hizmetleri Gör (Arama Yap)" : o);
+                          const allSvcIdx = displayOptions.findIndex(o => o.includes("Tüm Hizmet") || o.toLowerCase().includes("hizmetleri gör"));
+                          if (allSvcIdx !== -1) {
+                            const [allSvc] = displayOptions.splice(allSvcIdx, 1);
+                            displayOptions.unshift(allSvc);
+                          } else {
+                            if (displayOptions.length >= 5) displayOptions.pop();
+                            displayOptions.unshift("📋 Tüm Hizmetleri Gör (Arama Yap)");
+                          }
                         }
 
                         return displayOptions.map((opt, idx) => {
                           const isSelected = selectedMultiOptions.includes(opt);
                           const isTimeCustom = opt.startsWith("Belirli Bir Zamanda");
-                          const isAllServices = opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör") || opt === "Diğer" || opt.toLowerCase().includes("diğer");
+                          const isAllServices = (opt.includes("Tüm Hizmet") || opt.toLowerCase().includes("hizmetleri gör")) && !hasCategory;
                           const displayLabel = opt.replace(/^(📋|🔍|\s)+/, '');
 
                         return (
