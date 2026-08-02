@@ -255,6 +255,97 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
       }
     ]
   },
+  'arac-koltuk-yikama': {
+    "category_id": "arac_koltuk_yikama",
+    "category_name": "Yerinde Araç Koltuk Yıkama",
+    "steps": [
+      {
+        "step_id": "step_arac_turu",
+        "step_title": "Yıkanacak araç türü nedir?",
+        "description": "Araç büyüklüğüne göre ekipman ve vakum makinesi hazırlanır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Binek Araç (Sedan / Hatchback)", "value": "binek", "next_step": "step_koltuk_kapsami" },
+          { "label": "SUV / Crossover / Station", "value": "suv", "next_step": "step_koltuk_kapsami" },
+          { "label": "Ticari Araç / Van / Minibüs", "value": "ticari", "next_step": "step_koltuk_kapsami" },
+          { "label": "Otobüs / Midibüs (Filo)", "value": "otobus", "next_step": "step_koltuk_kapsami" }
+        ]
+      },
+      {
+        "step_id": "step_koltuk_kapsami",
+        "step_title": "Hangi alanların yıkanmasını istersiniz?",
+        "description": "Detaylı vakumlu yıkama kapsamını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tüm Koltuklar (Ön + Arka)", "value": "tum_koltuklar", "next_step": "step_arac_kumas_turu" },
+          { "label": "Tüm Koltuklar + Taban & Tavan Temizliği", "value": "detayli_ic", "next_step": "step_arac_kumas_turu" },
+          { "label": "Sadece Ön Koltuklar", "value": "on_koltuklar", "next_step": "step_arac_kumas_turu" },
+          { "label": "Sadece Arka Koltuklar", "value": "arka_koltuklar", "next_step": "step_arac_kumas_turu" }
+        ]
+      },
+      {
+        "step_id": "step_arac_kumas_turu",
+        "step_title": "Koltuk döşeme türü nedir?",
+        "description": "Döşemeye uygun özel şampuan uygulanır.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kumaş / Tay Tüyü", "value": "kumas", "next_step": "step_konum_elektrik" },
+          { "label": "Deri / Suni Deri", "value": "deri", "next_step": "step_konum_elektrik" },
+          { "label": "Alkantara / Süet", "value": "alkantara", "next_step": "step_konum_elektrik" }
+        ]
+      },
+      {
+        "step_id": "step_konum_elektrik",
+        "step_title": "Aracın bulunduğu yerde elektrik ve su var mı?",
+        "description": "Vakum makinelerinin çalışabilmesi için gereklidir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Elektrik & Su Mevcut", "value": "evet", "next_step": "step_detay_var_mi" },
+          { "label": "Hayır (Uzantı kablo / Jeneratör gerekli)", "value": "hayir", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
+  'su-deposu-temizligi': {
+    "category_id": "su_deposu_temizligi",
+    "category_name": "Su Deposu Temizliği",
+    "steps": [
+      {
+        "step_id": "step_depo_turu",
+        "step_title": "Temizlenecek su deposu nerededir ve türü nedir?",
+        "description": "Depo cinsine uygun temizlik yöntemi belirlenir.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Apartman / Bina Su Deposu", "value": "apartman", "next_step": "step_depo_tonaji" },
+          { "label": "Site / Ticari Kompleks Deposu", "value": "site", "next_step": "step_depo_tonaji" },
+          { "label": "Müstakil Ev / Villa Deposu", "value": "ev", "next_step": "step_depo_tonaji" },
+          { "label": "Fabrika / İş Yeri / Yangın Deposu", "value": "fabrika", "next_step": "step_depo_tonaji" }
+        ]
+      },
+      {
+        "step_id": "step_depo_tonaji",
+        "step_title": "Depo kapasitesi yaklaşık ne kadardır?",
+        "description": "Tonaj bilgisi dezenfektan miktarını belirler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 5 Ton Arası", "value": "1_5_ton", "next_step": "step_klorlama" },
+          { "label": "5 - 20 Ton Arası", "value": "5_20_ton", "next_step": "step_klorlama" },
+          { "label": "20 - 50 Ton Arası", "value": "20_50_ton", "next_step": "step_klorlama" },
+          { "label": "50 Ton ve Üzeri", "value": "50_plus_ton", "next_step": "step_klorlama" }
+        ]
+      },
+      {
+        "step_id": "step_klorlama",
+        "step_title": "Klorlama ve biyolojik dezenfeksiyon yapılsın mı?",
+        "description": "Sağlık Bakanlığı onaylı hijyen uygulaması.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Dezenfeksiyon & Klorlama Dahil Olsun", "value": "evet", "next_step": "step_detay_var_mi" },
+          { "label": "Sadece Yıkama ve Çamur Boşaltma", "value": "sadece_yikama", "next_step": "step_detay_var_mi" }
+        ]
+      }
+    ]
+  },
   'koltuk-yikama': {
     "category_id": "evde_koltuk_yikama",
     "category_name": "Evde Koltuk Yıkama",

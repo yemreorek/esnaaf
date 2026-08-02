@@ -2212,9 +2212,24 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     const text = message.toLowerCase();
     // DYNAMIC MATCHING MOVED TO THE END
 
-    // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES
+    // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES (PRIORITY ORDERED)
+    if (text.includes('araç') || text.includes('arac') || text.includes('araba') || text.includes('oto koltuk')) {
+      return { detected: true, categorySlug: 'arac-koltuk-yikama', categoryName: 'Yerinde Araç Koltuk Yıkama', confidence: 0.98 };
+    }
+    if (text.includes('su deposu') || text.includes('depo temizli') || text.includes('su-deposu')) {
+      return { detected: true, categorySlug: 'su-deposu-temizligi', categoryName: 'Su Deposu Temizliği', confidence: 0.98 };
+    }
     if (text.includes('buharlı') || text.includes('buharli') || text.includes('buhar')) {
-      return { detected: true, categorySlug: 'ev-temizligi', categoryName: 'Buharlı Temizlik Hizmeti', confidence: 0.95 };
+      return { detected: true, categorySlug: 'buharli-ev-temizligi', categoryName: 'Buharlı Temizlik Hizmeti', confidence: 0.95 };
+    }
+    if (text.includes('mermer') || text.includes('cila')) {
+      return { detected: true, categorySlug: 'mermer-cilalama', categoryName: 'Mermer Silim ve Cilalama', confidence: 0.95 };
+    }
+    if (text.includes('stor') || text.includes('zebra') || text.includes('perde')) {
+      return { detected: true, categorySlug: 'stor-perde-yikama', categoryName: 'Stor & Zebra Perde Yıkama', confidence: 0.95 };
+    }
+    if (text.includes('dış cephe') || text.includes('dis cephe')) {
+      return { detected: true, categorySlug: 'dis-cephe-cam-silme', categoryName: 'Dış Cephe Cam Silme', confidence: 0.95 };
     }
     if (text.includes('petek temizliği') || text.includes('petek temizleme') || text.includes('kombi petek') || text.includes('petek')) {
       return { detected: true, categorySlug: 'petek-temizligi', categoryName: 'Petek Temizliği', confidence: 0.95 };
