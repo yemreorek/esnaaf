@@ -176,20 +176,34 @@ export default function ReviewsSlider({ categorySlug, categoryName }: ReviewsSli
                 <span className="step-number text-primary">{rev.rating.toFixed(1)}</span>
                 
                 <div>
-                  <div className="flex items-center gap-1 text-amber-400 mb-4">
+                  <div className="flex items-center gap-1 mb-4">
                     {Array.from({ length: 5 }).map((_, starIdx) => {
                       const diff = rev.rating - starIdx;
-                      const isFull = diff >= 1;
-                      const isHalf = diff >= 0.4 && diff < 1;
-                      return (
-                        <span
-                          key={starIdx}
-                          className="material-symbols-outlined text-amber-400 text-2xl"
-                          style={{ fontVariationSettings: isFull || isHalf ? '"FILL" 1' : '"FILL" 0' }}
-                        >
-                          {isFull ? "star" : isHalf ? "star_half" : "star"}
-                        </span>
-                      );
+                      if (diff >= 0.8) {
+                        return (
+                          <svg key={starIdx} className="w-6 h-6 fill-amber-400 text-amber-400 shrink-0 drop-shadow-sm" viewBox="0 0 24 24">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                          </svg>
+                        );
+                      } else if (diff >= 0.3) {
+                        return (
+                          <svg key={starIdx} className="w-6 h-6 shrink-0 drop-shadow-sm" viewBox="0 0 24 24">
+                            <defs>
+                              <linearGradient id={`review-half-star-${idx}-${starIdx}`}>
+                                <stop offset="50%" stopColor="#f59e0b" />
+                                <stop offset="50%" stopColor="#e2e8f0" />
+                              </linearGradient>
+                            </defs>
+                            <path fill={`url(#review-half-star-${idx}-${starIdx})`} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                          </svg>
+                        );
+                      } else {
+                        return (
+                          <svg key={starIdx} className="w-6 h-6 fill-slate-200 text-slate-200 shrink-0" viewBox="0 0 24 24">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                          </svg>
+                        );
+                      }
                     })}
                   </div>
                   
