@@ -2,6 +2,17 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-01 UI/UX & SEO | Ödero-Stil Footer, Sosyal Medya Vektör İkonları, Saydam Buzlu Cam Menü ve SEO Logo İsimlendirmesi
+
+- **Yapılan Uygulama:**
+  - **Ödero-Stili 2 Katmanlı Footer Entegrasyonu:** Üst bölüm antrasit gri (`#21242b`) 4 sütunlu (Hakkımızda, Hizmetlerimiz, Destek & AI, Marka & İletişim), alt bölüm siyah (`#0b0c0f`) yasal & güvenlik rozetli yeni footer bileşeni (`Footer.tsx`) kodlandı ve ana sayfaya bağlandı.
+  - **Mobil Footer Sıralaması:** Mobil ekranlarda Marka bloğu (Logo, Sosyal İkonlar, 0850 Çözüm Merkezi, E-posta) en üste alınarak responsive uyumluluk sağlandı.
+  - **Vektör SVG Sosyal İkonlar:** Düz emoji ikonlar yerine Instagram, Facebook, YouTube, LinkedIn ve X için yüksek çözünürlüklü vektörel SVG ikonlar ve hover animasyonları uygulandı.
+  - **Saydam Yüzen Buzlu Cam Menü Barı (`TopNavBar`):** Üst menü barı, saydam kavisli yüzen koyu buzlu cam kapsül (`backdrop-blur-2xl bg-slate-950/45 border border-white/15 rounded-2xl md:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]`) olarak yenilendi.
+  - **Hero Başlık Güncellemesi:** Ana sayfa Hero H1 başlığı `"30 Dakikada Mahallendeki En İyi Hizmet Verenden Teklif Al"` olarak güncellendi.
+  - **SEO Logo İsimlendirmesi & Meta Etiketleri:** Sitedeki tüm logo görselleri `esnaaf-logo.png` olarak yeniden adlandırıldı, `alt` etiketleri zenginleştirildi ve OpenGraph `og:image` / `metadataBase` etiketleri entegre edildi.
+  - Yapılan değişiklikler derlendi, `2976fbc` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-07-28 feat | Tüm 20 Hizmet Kategorisine Özel Soru Ağacı Entegrasyonu ve Genel Fallback Temizliği (Adım 57)
 
 - **UX İhtiyacı:** Fotoğrafçı, Organizasyon & Etkinlik, İç Mimar & Dekorasyon, Doğalgaz Tesisatı, Mantolama, Ofis Temizliği gibi hizmetlerde müşteriye sektörle ilgisi olmayan genel `"Kısmi / Tamirat İşleri"` yedek şıklarının ekrana gelmesi sorununun kökten çözülmesi.
