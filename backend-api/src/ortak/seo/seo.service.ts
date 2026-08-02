@@ -218,6 +218,21 @@ export class SeoService {
       }
     }
 
+    // 1b. Şehir bulunduysa kalan slug ilçe ile başlıyor mu kontrol et
+    if (detectedCity) {
+      for (const districts of Object.values(this.CITY_DISTRICTS)) {
+        for (const d of districts) {
+          const dSlug = this.slugify(d);
+          if (remainingSlug.startsWith(`${dSlug}-`)) {
+            detectedDistrict = this.DISTRICT_CAPITALIZATION[d] || d;
+            remainingSlug = remainingSlug.substring(dSlug.length + 1);
+            break;
+          }
+        }
+        if (detectedDistrict) break;
+      }
+    }
+
     // 2. Eğer şehir bulunamadıysa ilçeleri dene
     if (!detectedCity) {
       for (const [city, districts] of Object.entries(this.CITY_DISTRICTS)) {
@@ -333,7 +348,7 @@ export class SeoService {
     let locationMeta = '';
     if (district) {
       locationTitle = `${city} ${district}`;
-      locationMeta = `${city}'nın ${district} ilçesinde`;
+      locationMeta = `${city} ${district} bölgesinde`;
     } else if (city) {
       locationTitle = `${city}`;
       locationMeta = `${city} genelinde`;
@@ -452,8 +467,8 @@ export class SeoService {
       links.push(subSlug);
     }
 
-    // 3. Şehir + Kategori & Şehir + Alt Hizmet kombinasyonları (adana-klima-servisi, mersin-klima-bakimi)
-    const cities = ['adana', 'mersin', 'istanbul', 'ankara', 'izmir', 'antalya', 'bursa', 'kocaeli', 'mardin', 'gaziantep'];
+    // 3. Şehir + Kategori & Şehir + Alt Hizmet kombinasyonları (adana-klima-servisi, mersin-klima-bakimi, mardin-klima-tasima vb.)
+    const cities = ['istanbul', 'ankara', 'izmir', 'adana', 'mersin', 'antalya', 'bursa', 'kocaeli', 'gaziantep', 'konya', 'kayseri', 'eskisehir', 'mardin', 'samsun', 'trabzon', 'diyarbakir', 'mugla'];
     for (const c of cities) {
       for (const cat of this.CATEGORIES) {
         links.push(`${c}-${cat.slug}`);
@@ -463,7 +478,7 @@ export class SeoService {
       }
     }
 
-    // 4. İlçe + Kategori & İlçe + Alt Hizmet kombinasyonları (cukurova-klima-servisi, mezitli-klima-bakimi)
+    // 4. İlçe + Kategori & İlçe + Alt Hizmet kombinasyonları (cukurova-klima-servisi, mezitli-klima-bakimi vb.)
     for (const districts of Object.values(this.CITY_DISTRICTS)) {
       for (const d of districts) {
         const dSlug = this.slugify(d);
