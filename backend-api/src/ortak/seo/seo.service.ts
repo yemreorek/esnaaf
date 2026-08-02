@@ -356,28 +356,32 @@ export class SeoService {
     // Başlık ve SEO Açıklamaları
     let locationTitle = '';
     let locationMeta = '';
+    let locPrefix = '';
     if (district) {
       locationTitle = `${city} ${district}`;
       locationMeta = `${city} ${district} bölgesinde`;
+      locPrefix = `${locationTitle} `;
     } else if (city) {
       locationTitle = `${city}`;
       locationMeta = `${city} genelinde`;
+      locPrefix = `${locationTitle} `;
     } else {
-      locationTitle = 'Türkiye';
-      locationMeta = 'ülke genelinde';
+      locationTitle = '';
+      locationMeta = '';
+      locPrefix = '';
     }
 
-    const title = `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} - 30 Dk'da Teklif Al | Esnaaf`;
-    const description = `${locationMeta} en iyi ${providerCount} onaylı ve yüksek puanlı ${activeServiceTitle} uzmanından 30 dakikada 5 teklif al, hemen kıyasla. Ortalama ${minPrice} TL - ${maxPrice} TL arası fiyatlar Esnaaf güvencesiyle.`;
+    const title = `En İyi ${providerCount} ${locPrefix}${activeServiceTitle} - 30 Dk'da Teklif Al | Esnaaf`;
+    const description = `${locationMeta ? locationMeta + ' ' : ''}en iyi ${providerCount} onaylı ve yüksek puanlı ${activeServiceTitle} uzmanından 30 dakikada 5 teklif al, hemen kıyasla. Ortalama ${minPrice} TL - ${maxPrice} TL arası fiyatlar Esnaaf güvencesiyle.`;
 
     // SSS (FAQs)
     const faqs = [
       {
-        question: `${locationTitle} bölgesinde ${activeServiceTitle} fiyatları ne kadar?`,
-        answer: `${locationTitle} bölgesinde ${activeServiceTitle} hizmeti ortalama ${minPrice} TL ile ${maxPrice} TL arasında değişmektedir. Yapılacak işin detaylarına ve aciliyetine göre fiyatlar değişkenlik gösterebilir.`
+        question: `${locPrefix ? locPrefix + 'bölgesinde ' : ''}${activeServiceTitle} fiyatları ne kadar?`,
+        answer: `${locPrefix ? locPrefix + 'bölgesinde ' : ''}${activeServiceTitle} hizmeti ortalama ${minPrice} TL ile ${maxPrice} TL arasında değişmektedir. Yapılacak işin detaylarına ve aciliyetine göre fiyatlar değişkenlik gösterebilir.`
       },
       {
-        question: `Esnaaf'ta ${locationTitle} ${activeServiceTitle} hizmet verenleri güvenilir mi?`,
+        question: `Esnaaf'ta ${locPrefix ? locPrefix : ''}${activeServiceTitle} hizmet verenleri güvenilir mi?`,
         answer: `Evet, Esnaaf platformundaki tüm ${activeServiceTitle} hizmet verenleri kimlik, vergi levhası ve mesleki yeterlilik kontrollerinden geçerek onaylanmış profesyonellerdir. Gerçek müşteri puanlarını şeffafça görebilirsiniz.`
       },
       {
@@ -392,7 +396,7 @@ export class SeoService {
     const itemListSchema = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle} Hizmet Verenleri`,
+      'name': `En İyi ${providerCount} ${locPrefix}${activeServiceTitle} Hizmet Verenleri`,
       'description': description,
       'url': pageUrl,
       'numberOfItems': providerCount,
@@ -401,7 +405,7 @@ export class SeoService {
         'position': idx + 1,
         'item': {
           '@type': 'LocalBusiness',
-          'name': `${locationTitle} ${activeServiceTitle} Onaylı Uzman #${idx + 1}`,
+          'name': `${locPrefix}${activeServiceTitle} Onaylı Uzman #${idx + 1}`,
           'image': 'https://esnaaf.com/esnaaf-logo.png',
           'telephone': '+908503094578',
           'priceRange': `${minPrice} TL - ${maxPrice} TL`,
@@ -418,7 +422,7 @@ export class SeoService {
     const productSchema = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      'name': `En İyi ${providerCount} ${locationTitle} ${activeServiceTitle}`,
+      'name': `En İyi ${providerCount} ${locPrefix}${activeServiceTitle}`,
       'image': 'https://esnaaf.com/esnaaf-logo.png',
       'description': description,
       'brand': {
@@ -445,7 +449,7 @@ export class SeoService {
     const localBusinessSchema = {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
-      'name': `Esnaaf - ${locationTitle} ${activeServiceTitle} Hizmet Ağı`,
+      'name': `Esnaaf - ${locPrefix}${activeServiceTitle} Hizmet Ağı`,
       'image': 'https://esnaaf.com/esnaaf-logo.png',
       'url': pageUrl,
       'telephone': '+908503094578',

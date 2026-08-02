@@ -106,7 +106,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
   } else if (city) {
     locationHeader = `${city}`;
   } else {
-    locationHeader = 'Türkiye Geneli';
+    locationHeader = '';
   }
 
   const heroImage = CATEGORY_HERO_IMAGES[categorySlug] || CATEGORY_HERO_IMAGES['default'];
@@ -229,10 +229,10 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                   ⚡ 30 Dakikada 5 Hizmet Verenden Teklif Al
                 </span>
                 <h1 className="font-bold text-4xl md:text-5xl leading-tight text-on-surface tracking-tight">
-                  {locationHeader} En İyi {providerCount} {activeTitle} Teklif Al
+                  {locationHeader ? `${locationHeader} ` : ''}En İyi {providerCount} {activeTitle} Teklif Al
                 </h1>
                 <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
-                  {locationHeader} genelinde <strong>{providerCount} onaylı {activeTitle.toLowerCase()} uzmanı</strong> arasından en iyi 5 teklifi 30 dakika içinde ücretsiz al, karşılaştır ve en uygununu seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
+                  {locationHeader ? `${locationHeader} genelinde ` : ''}<strong>{providerCount} onaylı {activeTitle.toLowerCase()} uzmanı</strong> arasından en iyi 5 teklifi 30 dakika içinde ücretsiz al, karşılaştır ve en uygununu seç. Esnaaf güvencesiyle en iyi hizmete kolayca ulaşın.
                 </p>
               </div>
               
@@ -275,7 +275,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                     <div className="h-full bg-primary w-4/5 rounded-full"></div>
                   </div>
                   <p className="text-xs font-semibold text-on-surface-variant">
-                    Bugün {locationHeader} genelinde 150+ yeni teklif verildi
+                    Bugün {locationHeader ? `${locationHeader} genelinde ` : ''}150+ yeni {activeTitle.toLowerCase()} teklifi verildi
                   </p>
                 </div>
               </div>
