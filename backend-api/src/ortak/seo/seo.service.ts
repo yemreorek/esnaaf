@@ -538,6 +538,40 @@ export class SeoService {
       }
     }
 
+    // 5. Armut Stili En İyi Hizmet Verenler Listesi & Profil Vitrini
+    const sampleNames = ["Yusuf T.", "Gökhan B.", "Mehmet T.", "Bilal E.", "Hasan A.", "Mustafa K.", "Emre C.", "Serkan B."];
+    const sampleYears = ["2017", "2019", "2015", "2020", "2018", "2016", "2021", "2014"];
+    const activeDistrictsList = cityDistrictsList.length > 0 ? cityDistrictsList : ["Merkez"];
+
+    const topProviders = sampleNames.slice(0, Math.min(providerCount, 6)).map((name, idx) => {
+      const pDistrict = district || activeDistrictsList[idx % activeDistrictsList.length];
+      const pDistrictCap = this.DISTRICT_CAPITALIZATION[pDistrict] || pDistrict;
+      const pEstablished = sampleYears[idx % sampleYears.length];
+      const pRating = (4.8 + (idx % 2) * 0.1).toFixed(1);
+      const pReviews = Math.floor(ratingCount / (idx + 2)) + 45;
+
+      return {
+        id: `prov_${slugHash}_${idx + 1}`,
+        name,
+        categoryName: activeServiceTitle,
+        city: city || "İstanbul",
+        district: pDistrictCap,
+        locationStr: `${pDistrictCap}, ${city || "İstanbul"}`,
+        rating: pRating,
+        reviewCount: pReviews,
+        establishedYear: pEstablished,
+        membershipDuration: `${new Date().getFullYear() - parseInt(pEstablished)} yıldır Esnaaf Üyesi`,
+        bio: `${city || 'Bölge'} ve çevresinde ${activeServiceTitle} alanında profesyonel ekibimizle %100 müşteri memnuniyeti odaklı, garantili ve güvenilir hizmet veriyoruz.`,
+        securityBadges: ["Geçerli Cep Telefonu", "Kimlik Doğrulaması", "Adli Sicil Kontrolü"],
+        photos: [
+          "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=600&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=600&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
+        ]
+      };
+    });
+
     return {
       title,
       description,
@@ -556,6 +590,7 @@ export class SeoService {
       faqs,
       relatedDistricts,
       relatedServices,
+      topProviders,
       itemListSchema,
       productSchema,
       localBusinessSchema,

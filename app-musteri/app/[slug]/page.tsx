@@ -3,6 +3,7 @@ import Link from "next/link";
 import SeoPageClient from "../../components/SeoPageClient";
 import ReviewsSlider from "../../components/ReviewsSlider";
 import Footer from "../../components/Footer";
+import ProviderListSection from "../../components/ProviderListSection";
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
     faqs,
     relatedDistricts,
     relatedServices,
+    topProviders,
     itemListSchema,
     productSchema,
     localBusinessSchema,
@@ -301,6 +303,18 @@ export default async function HizmetSeoPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Armut Stili En İyi Hizmet Verenler Listesi & Profil Vitrini */}
+        <ProviderListSection
+          providers={topProviders || []}
+          providerCount={providerCount}
+          locationHeader={locationHeader}
+          activeTitle={activeTitle}
+          categorySlug={categorySlug}
+          categoryName={categoryName}
+          city={city}
+          district={district}
+        />
 
         {/* Why Us Section */}
         <section id="why-us" className="py-24 bg-background">
