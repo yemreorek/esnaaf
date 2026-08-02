@@ -86,6 +86,7 @@ export default async function HizmetSeoPage({ params }: PageProps) {
     maxPrice,
     unit,
     faqs,
+    itemListSchema,
     productSchema,
     localBusinessSchema,
     faqPageSchema,
@@ -108,6 +109,13 @@ export default async function HizmetSeoPage({ params }: PageProps) {
 
   return (
     <>
+      {/* Google Yer Siteleri Carousel ItemList JSON-LD Schema */}
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
       {/* Google Rich Snippet (Sarı Yıldızlar & Yorum Sayısı) Product/Service JSON-LD Schema */}
       {productSchema && (
         <script
