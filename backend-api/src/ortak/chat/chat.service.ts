@@ -2180,6 +2180,29 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     const text = message.toLowerCase();
     // DYNAMIC MATCHING MOVED TO THE END
 
+    // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES
+    if (text.includes('petek temizliği') || text.includes('petek temizleme') || text.includes('kombi petek') || text.includes('petek')) {
+      return { detected: true, categorySlug: 'petek-temizligi', categoryName: 'Petek Temizliği', confidence: 0.95 };
+    }
+    if (text.includes('cam silme') || text.includes('cam temizliği') || text.includes('cam temizligi') || text.includes('ev cam')) {
+      return { detected: true, categorySlug: 'cam-temizligi', categoryName: 'Cam Silme & Temizliği', confidence: 0.95 };
+    }
+    if (text.includes('halı') || text.includes('hali')) {
+      return { detected: true, categorySlug: 'hali-yikama', categoryName: 'Halı Yıkama', confidence: 0.95 };
+    }
+    if (text.includes('koltuk') || text.includes('berjer') || text.includes('çekyat') || text.includes('kanepe') || text.includes('yatak yıkama')) {
+      return { detected: true, categorySlug: 'koltuk-yikama', categoryName: 'Koltuk Yıkama', confidence: 0.95 };
+    }
+    if (text.includes('boş ev') || text.includes('bos ev') || text.includes('taşınma öncesi')) {
+      return { detected: true, categorySlug: 'bos-ev-temizligi', categoryName: 'Boş Ev Temizliği', confidence: 0.95 };
+    }
+    if (text.includes('apartman') || text.includes('merdiven') || text.includes('bina temizliği')) {
+      return { detected: true, categorySlug: 'apartman-temizligi', categoryName: 'Apartman & Merdiven Temizliği', confidence: 0.95 };
+    }
+    if (text.includes('ütü') || text.includes('utu')) {
+      return { detected: true, categorySlug: 'evde-utu-hizmeti', categoryName: 'Evde Ütü Hizmeti', confidence: 0.95 };
+    }
+
     if (text.includes('cam balkon') || text.includes('cam-balkon')) {
       return { detected: true, categorySlug: 'cam-balkon', categoryName: 'Cam Balkon', confidence: 0.95 };
     }
@@ -2210,12 +2233,6 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     if (text.includes('etkinlik') || text.includes('nişan') || text.includes('kına') || text.includes('doğum günü')) {
       return { detected: true, categorySlug: 'etkinlik', categoryName: 'Etkinlik', confidence: 0.95 };
     }
-    if (text.includes('halı')) {
-      return { detected: true, categorySlug: 'hali-yikama', categoryName: 'Halı Yıkama', confidence: 0.95 };
-    }
-    if (text.includes('koltuk') || text.includes('berjer') || text.includes('çekyat') || text.includes('kanepe')) {
-      return { detected: true, categorySlug: 'evde-koltuk-yikama', categoryName: 'Evde Koltuk Yıkama', confidence: 0.95 };
-    }
     if (text.includes('inşaat sonrası') || text.includes('tadilat sonrası temizlik') || text.includes('insaat-sonrasi')) {
       return { detected: true, categorySlug: 'insaat-sonrasi-temizlik', categoryName: 'İnşaat / Tadilat Sonrası Temizlik', confidence: 0.95 };
     }
@@ -2231,7 +2248,7 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     if (text.includes('böcek') || text.includes('pire') || text.includes('fare')) {
       return { detected: true, categorySlug: 'bocek-ilaclama', categoryName: 'Böcek İlaçlama', confidence: 0.95 };
     }
-    if (text.includes('kombi') || text.includes('petek')) {
+    if (text.includes('kombi')) {
       return { detected: true, categorySlug: 'kombi-servisi', categoryName: 'Kombi Servisi', confidence: 0.95 };
     }
     if (text.includes('klima')) {
@@ -2817,8 +2834,16 @@ Beklenen JSON Formatı (Yalnızca geçerli JSON kullanın, açıklama eklemeyin)
     if (QUESTION_FLOWS[hyphenated]) return QUESTION_FLOWS[hyphenated];
     if (QUESTION_FLOWS[underscored]) return QUESTION_FLOWS[underscored];
 
+    if (raw.includes('petek')) return QUESTION_FLOWS['petek-temizligi'] || QUESTION_FLOWS['petek_temizligi'];
+    if (raw.includes('cam')) return QUESTION_FLOWS['cam-temizligi'] || QUESTION_FLOWS['cam_temizligi'];
+    if (raw.includes('hali') || raw.includes('halı')) return QUESTION_FLOWS['hali-yikama'] || QUESTION_FLOWS['hali_yikama'];
+    if (raw.includes('koltuk') || raw.includes('yatak')) return QUESTION_FLOWS['koltuk-yikama'] || QUESTION_FLOWS['evde-koltuk-yikama'] || QUESTION_FLOWS['koltuk_yikama'];
+    if (raw.includes('bos-ev') || raw.includes('boş ev') || raw.includes('tasinma')) return QUESTION_FLOWS['bos-ev-temizligi'] || QUESTION_FLOWS['bos_ev_temizligi'];
+    if (raw.includes('apartman') || raw.includes('merdiven')) return QUESTION_FLOWS['apartman-temizligi'] || QUESTION_FLOWS['apartman_temizligi'];
+    if (raw.includes('utu') || raw.includes('ütü')) return QUESTION_FLOWS['evde-utu-hizmeti'] || QUESTION_FLOWS['utu-hizmeti'];
+
     if (raw.includes('elektrik')) return QUESTION_FLOWS['elektrik-tesisati'] || QUESTION_FLOWS['elektrik_tesisati'];
-    if (raw.includes('su-tesisat') || (raw.includes('tesisat') && !raw.includes('elektrik') && !raw.includes('dogalgaz'))) {
+    if (raw.includes('su-tesisat') || (raw.includes('tesisat') && !raw.includes('elektrik') && !raw.includes('dogalgaz') && !raw.includes('petek') && !raw.includes('kombi'))) {
       return QUESTION_FLOWS['su-tesisati'] || QUESTION_FLOWS['su_tesisati'];
     }
     if (raw.includes('tadilat')) return QUESTION_FLOWS['ev-tadilat'] || QUESTION_FLOWS['ev_tadilat'];

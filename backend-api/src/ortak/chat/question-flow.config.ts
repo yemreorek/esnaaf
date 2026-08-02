@@ -349,6 +349,78 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
       }
     ]
   },
+  'petek-temizligi': {
+    "category_id": "petek_temizligi",
+    "category_name": "Petek Temizliği",
+    "steps": [
+      {
+        "step_id": "step_petek_sayisi",
+        "step_title": "Temizlenecek petek sayısı yaklaşık kaçtır?",
+        "description": "Dairenizde veya iş yerinizde temizlenecek petek sayısını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 5 Adet Petek", "value": "1_5", "next_step": "step_isitma_sorunu" },
+          { "label": "6 - 8 Adet Petek", "value": "6_8", "next_step": "step_isitma_sorunu" },
+          { "label": "9 - 12 Adet Petek", "value": "9_12", "next_step": "step_isitma_sorunu" },
+          { "label": "12 Adet ve Üzeri / Villa", "value": "12_plus", "next_step": "step_isitma_sorunu" }
+        ]
+      },
+      {
+        "step_id": "step_isitma_sorunu",
+        "step_title": "Peteklerinizde yaşanan sorun veya hizmet türü nedir?",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Peteklerin Alt Kısmı Soğuk / Isınmıyor", "value": "alt_soguk", "next_step": "step_detaylar" },
+          { "label": "Çamurlu / Siyah Su Var (Periyodik Bakım)", "value": "periyodik", "next_step": "step_detaylar" },
+          { "label": "Petek Ses Yapıyor / Hava Var", "value": "ses_hava", "next_step": "step_detaylar" },
+          { "label": "Yerden Isıtma Tesisatı Temizliği", "value": "yerden_isitma", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "Eklemek istediğiniz detaylar var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Kombi yeni bakımdan geçti, sadece petekler yıkanacak.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'cam-temizligi': {
+    "category_id": "cam_temizligi",
+    "category_name": "Cam Silme & Temizliği",
+    "steps": [
+      {
+        "step_id": "step_cam_kapsam",
+        "step_title": "Silinecek cam ve alan kapsamı nedir?",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Ev Pencereleri & Cam Balkon", "value": "ev_cam", "next_step": "step_kat_bilgisi" },
+          { "label": "Sadece Cam Balkon", "value": "cam_balkon", "next_step": "step_kat_bilgisi" },
+          { "label": "Ofis / Dükkan Vitrin Camları", "value": "ofis_vitrin", "next_step": "step_kat_bilgisi" },
+          { "label": "Dış Cephe / Yüksek Bina Camları", "value": "dis_cephe", "next_step": "step_kat_bilgisi" }
+        ]
+      },
+      {
+        "step_id": "step_kat_bilgisi",
+        "step_title": "Mekan kaçıncı katta yer alıyor?",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Zemin / 1 - 3. Kat", "value": "dusuk_kat", "next_step": "step_detaylar" },
+          { "label": "4 - 8. Kat", "value": "orta_kat", "next_step": "step_detaylar" },
+          { "label": "9. Kat ve Üzeri / Yüksek Bina", "value": "yuksek_kat", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "Eklemek istediğiniz detaylar var mı?",
+        "input_type": "textarea",
+        "placeholder": "Örn: Çift açılır pimapen camlar ve katlanabilir cam balkon dahil.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
   'evde_koltuk_yikama': {
     "category_id": "evde_koltuk_yikama",
     "category_name": "Evde Koltuk Yıkama",
