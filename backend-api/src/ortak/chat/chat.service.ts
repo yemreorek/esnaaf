@@ -1705,25 +1705,52 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
         let nextQ: any = null;
         const slug = state.collected_data.categorySlug;
 
-        // Try deterministic flow first
-        if (slug && QUESTION_FLOWS[slug]) {
-          const processed = await this.processAnswerFromFlow(state, message);
-          if (!processed) {
-            // Unrecognized answer, get the same question again
-            nextQ = this.getNextQuestionFromFlow(state);
-            if (nextQ) responseMessage = `Anlayamadım. Lütfen seçeneklerden birini belirtin:\n\n${nextQ.question}`;
-          } else {
-            nextQ = this.getNextQuestionFromFlow(state);
+        // Check if message is a greeting/category request (e.g. "Merhaba, Böcek İlaçlama...") or a new category switch
+        const isGreetingTrigger = message.startsWith('Merhaba') || message.includes('hizmeti için teklif') || message.includes('teklif almak istiyorum');
+        const detection = await this.detectCategory(filteredMessage);
+
+        if (isGreetingTrigger || (detection.detected && detection.confidence >= 0.7 && detection.categorySlug && detection.categorySlug !== slug)) {
+          if (detection.detected && detection.categorySlug) {
+            state.collected_data = {
+              categorySlug: detection.categorySlug,
+              categoryName: detection.categoryName || undefined
+            };
+            const flow = this.getFlowForCategory(detection.categorySlug);
+            if (flow) {
+              state.collected_data.current_step_id = flow.steps[0].step_id;
+              nextQ = this.getNextQuestionFromFlow(state);
+              if (nextQ) {
+                responseMessage = `${detection.categoryName || this.getCategoryName(detection.categorySlug)} hizmeti için detayları alalım.\n\n${nextQ.question}`;
+                options = nextQ.options || [];
+                inputType = nextQ.inputType || 'single_choice';
+              }
+            }
           }
-          if (!nextQ) nextQ = { isComplete: true };
-        } else {
-          // Fallback to AI flow
-          nextQ = await this.getAiNextQuestion(state);
-          // Merge AI extracted facts into collected_data for the summary
-          if (nextQ.collected_facts) {
-             for (const [k, v] of Object.entries(nextQ.collected_facts)) {
-               state.collected_data[k] = v;
-             }
+        }
+
+        if (!nextQ) {
+          // Try deterministic flow first
+          const currentSlug = state.collected_data.categorySlug;
+          const currentFlow = this.getFlowForCategory(currentSlug);
+          if (currentSlug && currentFlow) {
+            const processed = await this.processAnswerFromFlow(state, message);
+            if (!processed) {
+              // Unrecognized answer, repeat the same question cleanly without error prefix
+              nextQ = this.getNextQuestionFromFlow(state);
+              if (nextQ) responseMessage = nextQ.question;
+            } else {
+              nextQ = this.getNextQuestionFromFlow(state);
+            }
+            if (!nextQ) nextQ = { isComplete: true };
+          } else {
+            // Fallback to AI flow
+            nextQ = await this.getAiNextQuestion(state);
+            // Merge AI extracted facts into collected_data for the summary
+            if (nextQ.collected_facts) {
+               for (const [k, v] of Object.entries(nextQ.collected_facts)) {
+                 state.collected_data[k] = v;
+               }
+            }
           }
         }
 
