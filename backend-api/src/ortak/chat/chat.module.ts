@@ -5,6 +5,7 @@ import { ChatService } from './chat.service';
 import { FlowEngineService } from './flow-engine.service';
 import { LeadFormService } from './lead-form.service';
 import { AiConsultantService } from './ai-consultant.service';
+import { MarketPriceAggregatorService } from './market-price-aggregator.service';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatRetryProcessor } from './chat-retry.processor';
@@ -27,11 +28,12 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
     FlowEngineService,
     LeadFormService,
     AiConsultantService,
+    MarketPriceAggregatorService,
     ChatGateway,
     ChatRetryProcessor,
     GeminiService,
     IndustryExpertAgent,
   ],
-  exports: [ChatService, FlowEngineService, LeadFormService, AiConsultantService, ChatGateway, IndustryExpertAgent],
+  exports: [ChatService, FlowEngineService, LeadFormService, AiConsultantService, MarketPriceAggregatorService, ChatGateway, IndustryExpertAgent],
 })
 export class ChatModule {}
