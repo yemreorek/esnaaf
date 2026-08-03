@@ -2208,60 +2208,88 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   /**
-   * Calculates realistic, service-specific estimated market price range
+   * Calculates realistic, service-specific estimated market price range based on live 2026 market data (Armut & Google AI)
    */
   public calculateEstimatedPriceRange(slug?: string | null, data: Record<string, any> = {}): { minPrice: number; maxPrice: number; formattedRange: string } | null {
     const categoryName = (data.categoryName || '').toLowerCase();
     const rawSlug = (slug || '').toLowerCase();
     const combined = `${rawSlug} ${categoryName} ${JSON.stringify(data).toLowerCase()}`;
 
-    // Domain specific base market prices based on 2026 Turkish market research
-    let basePrice = 1500;
+    let minPrice = 1000;
+    let maxPrice = 2500;
 
-    if (combined.includes('bilgisayar') || combined.includes('kasa') || combined.includes('laptop')) basePrice = 450;
-    else if (combined.includes('utu') || combined.includes('ütü')) basePrice = 400;
-    else if (combined.includes('kuru temizleme') || combined.includes('kuru-temizleme')) basePrice = 350;
-    else if (combined.includes('sarma') || combined.includes('manti') || combined.includes('mantı')) basePrice = 450;
-    else if (combined.includes('hali') || combined.includes('halı')) basePrice = 500;
-    else if (combined.includes('yatak')) basePrice = 750;
-    else if (combined.includes('cam silme') || combined.includes('cam temizliği') || combined.includes('cam temizligi')) basePrice = 800;
-    else if (combined.includes('bocek') || combined.includes('böcek') || combined.includes('ilaclama') || combined.includes('ilaçlama')) basePrice = 850;
-    else if (combined.includes('koltuk') && !combined.includes('arac') && !combined.includes('araç')) basePrice = 900;
-    else if (combined.includes('yemek')) basePrice = 900;
-    else if (combined.includes('petek')) basePrice = 950;
-    else if (combined.includes('buharli') || combined.includes('buharlı')) basePrice = 1100;
-    else if (combined.includes('arac') || combined.includes('araç') || combined.includes('araba')) basePrice = 1200;
-    else if (combined.includes('apartman') || combined.includes('merdiven')) basePrice = 1200;
-    else if (combined.includes('ev-temizligi') || combined.includes('ev temizliği')) basePrice = 1500;
-    else if (combined.includes('ofis') || combined.includes('dukkan') || combined.includes('dükkan')) basePrice = 1800;
-    else if (combined.includes('bos-ev') || combined.includes('boş ev')) basePrice = 2400;
-    else if (combined.includes('su-deposu') || combined.includes('su deposu')) basePrice = 2600;
-    else if (combined.includes('insaat') || combined.includes('inşaat') || combined.includes('tadilat-sonrasi')) basePrice = 2800;
-    else if (combined.includes('mermer') || combined.includes('cila')) basePrice = 3200;
-    else if (combined.includes('dis-cephe') || combined.includes('dış cephe')) basePrice = 3500;
-    // Tadilat & Tesisat & Nakliyat
-    else if (combined.includes('boya') || combined.includes('badana')) basePrice = 4500;
-    else if (combined.includes('parke')) basePrice = 5000;
-    else if (combined.includes('fayans') || combined.includes('seramik')) basePrice = 6000;
-    else if (combined.includes('nakliyat') || combined.includes('nakliye')) basePrice = 6500;
-    else if (combined.includes('tadilat')) basePrice = 25000;
-    else if (combined.includes('su-tesisat') || combined.includes('tesisat')) basePrice = 850;
-    else if (combined.includes('kombi')) basePrice = 750;
-    else if (combined.includes('klima')) basePrice = 1100;
-
-    let multiplier = 1.0;
-    const dataStr = JSON.stringify(data).toLowerCase();
-    if (dataStr.includes('2+1') || dataStr.includes('2_1') || dataStr.includes('50 - 150') || dataStr.includes('5-8') || dataStr.includes('4-7') || dataStr.includes('laptop')) multiplier = 1.2;
-    else if (dataStr.includes('3+1') || dataStr.includes('3_1') || dataStr.includes('150 - 300') || dataStr.includes('9-15') || dataStr.includes('8-12') || dataStr.includes('gaming')) multiplier = 1.45;
-    else if (dataStr.includes('4+1') || dataStr.includes('4_1')) multiplier = 1.75;
-    else if (dataStr.includes('5+1') || dataStr.includes('6+1') || dataStr.includes('villa') || dataStr.includes('300 m²') || dataStr.includes('15_plus') || dataStr.includes('12_plus') || dataStr.includes('server')) multiplier = 2.3;
-
-    const estimatedCenter = Math.round((basePrice * multiplier) / 50) * 50;
-
-    // Per user instructions: Range should be wide enough so incoming provider quotes fall comfortably within it
-    // Min ~ 0.67x center, Max ~ 1.67x center
-    const minPrice = Math.round((estimatedCenter * 0.67) / 50) * 50;
-    const maxPrice = Math.round((estimatedCenter * 1.67) / 50) * 50;
+    if (combined.includes('bilgisayar') || combined.includes('kasa') || combined.includes('laptop')) {
+      if (combined.includes('gaming') || combined.includes('server') || combined.includes('sivi_temasi') || combined.includes('komple')) {
+        minPrice = 1550;
+        maxPrice = 3750;
+      } else if (combined.includes('desktop') || combined.includes('toz_fan')) {
+        minPrice = 750;
+        maxPrice = 2250;
+      } else {
+        minPrice = 750;
+        maxPrice = 3750;
+      }
+    } else if (combined.includes('utu') || combined.includes('ütü')) {
+      minPrice = 500; maxPrice = 1400;
+    } else if (combined.includes('kuru temizleme') || combined.includes('kuru-temizleme')) {
+      minPrice = 400; maxPrice = 1200;
+    } else if (combined.includes('sarma') || combined.includes('manti') || combined.includes('mantı')) {
+      minPrice = 500; maxPrice = 1400;
+    } else if (combined.includes('hali') || combined.includes('halı')) {
+      minPrice = 500; maxPrice = 1600;
+    } else if (combined.includes('yatak')) {
+      minPrice = 750; maxPrice = 2200;
+    } else if (combined.includes('cam silme') || combined.includes('cam temizliği') || combined.includes('cam temizligi')) {
+      minPrice = 800; maxPrice = 2200;
+    } else if (combined.includes('bocek') || combined.includes('böcek') || combined.includes('ilaclama') || combined.includes('ilaçlama')) {
+      minPrice = 900; maxPrice = 2500;
+    } else if (combined.includes('koltuk') && !combined.includes('arac') && !combined.includes('araç')) {
+      minPrice = 950; maxPrice = 2800;
+    } else if (combined.includes('yemek')) {
+      minPrice = 1000; maxPrice = 2800;
+    } else if (combined.includes('petek')) {
+      minPrice = 950; maxPrice = 2600;
+    } else if (combined.includes('buharli') || combined.includes('buharlı')) {
+      minPrice = 1200; maxPrice = 3000;
+    } else if (combined.includes('arac') || combined.includes('araç') || combined.includes('araba')) {
+      minPrice = 1200; maxPrice = 3200;
+    } else if (combined.includes('apartman') || combined.includes('merdiven')) {
+      minPrice = 1200; maxPrice = 3200;
+    } else if (combined.includes('ev-temizligi') || combined.includes('ev temizliği')) {
+      if (combined.includes('3+1') || combined.includes('3_1') || combined.includes('4+1')) {
+        minPrice = 2200; maxPrice = 3800;
+      } else {
+        minPrice = 1500; maxPrice = 2800;
+      }
+    } else if (combined.includes('ofis') || combined.includes('dukkan') || combined.includes('dükkan')) {
+      minPrice = 1600; maxPrice = 4500;
+    } else if (combined.includes('bos-ev') || combined.includes('boş ev')) {
+      minPrice = 2200; maxPrice = 5500;
+    } else if (combined.includes('su-deposu') || combined.includes('su deposu')) {
+      minPrice = 2500; maxPrice = 6500;
+    } else if (combined.includes('insaat') || combined.includes('inşaat') || combined.includes('tadilat-sonrasi')) {
+      minPrice = 2800; maxPrice = 6800;
+    } else if (combined.includes('mermer') || combined.includes('cila')) {
+      minPrice = 3000; maxPrice = 8500;
+    } else if (combined.includes('dis-cephe') || combined.includes('dış cephe')) {
+      minPrice = 3500; maxPrice = 9500;
+    } else if (combined.includes('boya') || combined.includes('badana')) {
+      minPrice = 4500; maxPrice = 12500;
+    } else if (combined.includes('parke')) {
+      minPrice = 3500; maxPrice = 8500;
+    } else if (combined.includes('fayans') || combined.includes('seramik')) {
+      minPrice = 4500; maxPrice = 11500;
+    } else if (combined.includes('nakliyat') || combined.includes('nakliye')) {
+      minPrice = 6000; maxPrice = 16500;
+    } else if (combined.includes('tadilat')) {
+      minPrice = 15000; maxPrice = 45000;
+    } else if (combined.includes('su-tesisat') || combined.includes('tesisat')) {
+      minPrice = 750; maxPrice = 2200;
+    } else if (combined.includes('kombi')) {
+      minPrice = 750; maxPrice = 2000;
+    } else if (combined.includes('klima')) {
+      minPrice = 950; maxPrice = 2800;
+    }
 
     const formatCurrency = (val: number) => `₺${val.toLocaleString('tr-TR')}`;
     return {
