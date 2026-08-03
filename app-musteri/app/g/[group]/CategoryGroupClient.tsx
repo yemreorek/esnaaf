@@ -37,6 +37,9 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
           key={`${selectedService}-${Date.now()}`}
           initialMessage={selectedService}
           onClose={handleCloseChat}
+          onJobCompleted={(jobId) => {
+            window.location.href = `/tekliflerim?jobId=${jobId}`;
+          }}
         />
       </div>
     );

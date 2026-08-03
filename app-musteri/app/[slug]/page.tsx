@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import SeoPageClient from "../../components/SeoPageClient";
 import ReviewsSlider from "../../components/ReviewsSlider";
@@ -62,6 +62,9 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function HizmetSeoPage({ params }: PageProps) {
   const { slug } = await params;
+  if (slug === 'tekliflerim' || slug === 'talep' || slug === 'musteri' || slug === 'dashboard') {
+    redirect('/tekliflerim');
+  }
   let data;
   try {
     const res = await fetch(`${apiUrl}/api/ortak/seo/page-metadata?slug=${slug}`, {
