@@ -2227,6 +2227,9 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
     // DYNAMIC MATCHING MOVED TO THE END
 
     // SPECIFIC TEMİZLİK & SUBSERVICE OVERRIDES (PRIORITY ORDERED)
+    if (text.includes('inşaat') || text.includes('insaat') || text.includes('tadilat sonrası') || text.includes('tadilat sonrasi')) {
+      return { detected: true, categorySlug: 'insaat-sonrasi-temizlik', categoryName: 'İnşaat Sonrası Temizlik', confidence: 0.99 };
+    }
     if (text.includes('bilgisayar') || text.includes('kasa') || text.includes('laptop')) {
       return { detected: true, categorySlug: 'bilgisayar-temizligi', categoryName: 'Bilgisayar Temizliği', confidence: 0.98 };
     }

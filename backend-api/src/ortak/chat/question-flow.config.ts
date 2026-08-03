@@ -1183,44 +1183,79 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
     "steps": [
       {
         "step_id": "step_insaat_mekan",
-        "step_title": "Temizlik yapılacak mekan tipi nedir?",
+        "step_title": "Temizlik yapılacak mekanın türü nedir?",
         "description": "Temizlenecek alanı seçiniz.",
         "input_type": "single_select",
         "options": [
           { "label": "Daire / Ev", "value": "daire", "next_step": "step_insaat_m2" },
           { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_insaat_m2" },
           { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_insaat_m2" },
-          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" }
+          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" },
+          { "label": "Bina / Proje Teslimi", "value": "bina_proje", "next_step": "step_insaat_m2" }
         ]
       },
       {
         "step_id": "step_insaat_m2",
-        "step_title": "Temizlenecek alanın büyüklüğü nedir?",
-        "description": "Tahmini alan büyüklüğü.",
+        "step_title": "Mekanın yaklaşık büyüklüğü nedir?",
+        "description": "Ekip ve malzeme planlaması için alan büyüklüğünü seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_insaat_durum" },
-          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_insaat_durum" },
-          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_insaat_durum" },
-          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_insaat_durum" },
-          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_insaat_durum" }
+          { "label": "100 m²'den Küçük (1+1 / 2+1 Daire)", "value": "100_m2_alt", "next_step": "step_insaat_durum" },
+          { "label": "100 - 180 m² (3+1 Daire / Standart Ofis)", "value": "100_180_m2", "next_step": "step_insaat_durum" },
+          { "label": "180 - 250 m² (4+1 Daire / Geniş İş Yeri)", "value": "180_250_m2", "next_step": "step_insaat_durum" },
+          { "label": "250 - 400 m² (Villa / Dubleks / Mağaza)", "value": "250_400_m2", "next_step": "step_insaat_durum" },
+          { "label": "400 m² ve Üzeri (Bina / Proje Teslimi)", "value": "400_plus_m2", "next_step": "step_insaat_durum" }
         ]
       },
       {
         "step_id": "step_insaat_durum",
-        "step_title": "İnşaat / tadilat kalıntısı durumu nedir?",
-        "description": "Kirlilik yoğunluğunu seçiniz.",
+        "step_title": "İnşaat / harç / kalıntı durumu nedir?",
+        "description": "Kirlilik yoğunluğu ve gerekli malzeme tespiti.",
         "input_type": "single_select",
         "options": [
-          { "label": "Sıfır Bina (İlk Temizlik)", "value": "sifir_bina", "next_step": "step_detaylar" },
-          { "label": "Tadilat Sonrası (Boya/Harç Lekeleri)", "value": "tadilat_sonrasi", "next_step": "step_detaylar" },
-          { "label": "Kaba İnşaat Tozu Var", "value": "kaba_toz", "next_step": "step_detaylar" }
+          { "label": "Hafif (Boya Badana Sonrası / İnce Toz & Cam Bantları)", "value": "hafif", "next_step": "step_insaat_esya" },
+          { "label": "Orta (Harç Lekeleri, Derz/Seramik İzi, Pencere Jelatinleri)", "value": "orta", "next_step": "step_insaat_esya" },
+          { "label": "Ağır (Yoğun Moloz Tozu, Kurumuş Harç & Kaba Kalıntılar)", "value": "agir", "next_step": "step_insaat_esya" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_esya",
+        "step_title": "Mekanda eşya durumu ve asansör var mı?",
+        "description": "Ekipman taşıma ve koruma ambalajı tespiti.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boş Mekan (Henüz Eşya Taşınmadı - Asansör Var)", "value": "bos_asansorlu", "next_step": "step_insaat_malzeme" },
+          { "label": "Boş Mekan (Henüz Eşya Taşınmadı - Asansör Yok)", "value": "bos_asansorsuz", "next_step": "step_insaat_malzeme" },
+          { "label": "Kısmen Eşyalı (Ambalajlı / Yeni Eşyalar Var)", "value": "esyali", "next_step": "step_insaat_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_malzeme",
+        "step_title": "Temizlik malzemeleri ve ekipman kim tarafından sağlanacak?",
+        "description": "Sanayi tipi süpürge, kazıyıcı ve özel kimyasallar dahil.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hizmet Veren Getirsin (Tüm Ekipman & Kimyasallar Dahil)", "value": "hizmetveren_getirsin", "next_step": "step_insaat_ekstra" },
+          { "label": "Malzemeler Bende Var / Ben Sağlayacağım", "value": "musteri_saglasin", "next_step": "step_insaat_ekstra" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_ekstra",
+        "step_title": "Ekstra dahil edilecek hizmet var mı?",
+        "description": "Özel temizlik taleplerinizi seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Dış Cephe / Yüksek Cam Silimi", "value": "dis_cephe_cam", "next_step": "step_detaylar" },
+          { "label": "Zemin Mermer & Taş Cilalama / Silim", "value": "mermer_cila", "next_step": "step_detaylar" },
+          { "label": "Balkon / Teras Yıkama", "value": "balkon_yikama", "next_step": "step_detaylar" },
+          { "label": "Bina Ortak Alan & Merdiven Temizliği", "value": "bina_ortak_alan", "next_step": "step_detaylar" },
+          { "label": "Ekstra Hizmet İstemiyorum (Standart Temizlik)", "value": "ekstra_yok", "next_step": "step_detaylar" }
         ]
       },
       {
         "step_id": "step_detaylar",
-        "step_title": "İhtiyacın detayları neler?",
-        "description": "Temizlik malzemesi ve ekipman taleplerinizi giriniz.",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Çizilmeye hassas zemin, vakum makinesi gerekecek vb.",
         "input_type": "textarea",
         "placeholder": "Örn: Camlarda etiket ve boya lekeleri var, vakum makinesi gerekecek.",
         "is_optional": true,
@@ -1234,44 +1269,79 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
     "steps": [
       {
         "step_id": "step_insaat_mekan",
-        "step_title": "Temizlik yapılacak mekan tipi nedir?",
+        "step_title": "Temizlik yapılacak mekanın türü nedir?",
         "description": "Temizlenecek alanı seçiniz.",
         "input_type": "single_select",
         "options": [
           { "label": "Daire / Ev", "value": "daire", "next_step": "step_insaat_m2" },
           { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_insaat_m2" },
           { "label": "Ofis / İş Yeri", "value": "ofis", "next_step": "step_insaat_m2" },
-          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" }
+          { "label": "Mağaza / Dükkan", "value": "dukkan", "next_step": "step_insaat_m2" },
+          { "label": "Bina / Proje Teslimi", "value": "bina_proje", "next_step": "step_insaat_m2" }
         ]
       },
       {
         "step_id": "step_insaat_m2",
-        "step_title": "Temizlenecek alanın büyüklüğü nedir?",
-        "description": "Tahmini alan büyüklüğü.",
+        "step_title": "Mekanın yaklaşık büyüklüğü nedir?",
+        "description": "Ekip ve malzeme planlaması için alan büyüklüğünü seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "50 m²'ye kadar", "value": "50_m2", "next_step": "step_insaat_durum" },
-          { "label": "50 - 100 m²", "value": "100_m2", "next_step": "step_insaat_durum" },
-          { "label": "100 - 150 m²", "value": "150_m2", "next_step": "step_insaat_durum" },
-          { "label": "150 - 200 m²", "value": "200_m2", "next_step": "step_insaat_durum" },
-          { "label": "200 m² ve üzeri", "value": "200_plus_m2", "next_step": "step_insaat_durum" }
+          { "label": "100 m²'den Küçük (1+1 / 2+1 Daire)", "value": "100_m2_alt", "next_step": "step_insaat_durum" },
+          { "label": "100 - 180 m² (3+1 Daire / Standart Ofis)", "value": "100_180_m2", "next_step": "step_insaat_durum" },
+          { "label": "180 - 250 m² (4+1 Daire / Geniş İş Yeri)", "value": "180_250_m2", "next_step": "step_insaat_durum" },
+          { "label": "250 - 400 m² (Villa / Dubleks / Mağaza)", "value": "250_400_m2", "next_step": "step_insaat_durum" },
+          { "label": "400 m² ve Üzeri (Bina / Proje Teslimi)", "value": "400_plus_m2", "next_step": "step_insaat_durum" }
         ]
       },
       {
         "step_id": "step_insaat_durum",
-        "step_title": "İnşaat / tadilat kalıntısı durumu nedir?",
-        "description": "Kirlilik yoğunluğunu seçiniz.",
+        "step_title": "İnşaat / harç / kalıntı durumu nedir?",
+        "description": "Kirlilik yoğunluğu ve gerekli malzeme tespiti.",
         "input_type": "single_select",
         "options": [
-          { "label": "Sıfır Bina (İlk Temizlik)", "value": "sifir_bina", "next_step": "step_detaylar" },
-          { "label": "Tadilat Sonrası (Boya/Harç Lekeleri)", "value": "tadilat_sonrasi", "next_step": "step_detaylar" },
-          { "label": "Kaba İnşaat Tozu Var", "value": "kaba_toz", "next_step": "step_detaylar" }
+          { "label": "Hafif (Boya Badana Sonrası / İnce Toz & Cam Bantları)", "value": "hafif", "next_step": "step_insaat_esya" },
+          { "label": "Orta (Harç Lekeleri, Derz/Seramik İzi, Pencere Jelatinleri)", "value": "orta", "next_step": "step_insaat_esya" },
+          { "label": "Ağır (Yoğun Moloz Tozu, Kurumuş Harç & Kaba Kalıntılar)", "value": "agir", "next_step": "step_insaat_esya" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_esya",
+        "step_title": "Mekanda eşya durumu ve asansör var mı?",
+        "description": "Ekipman taşıma ve koruma ambalajı tespiti.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Boş Mekan (Henüz Eşya Taşınmadı - Asansör Var)", "value": "bos_asansorlu", "next_step": "step_insaat_malzeme" },
+          { "label": "Boş Mekan (Henüz Eşya Taşınmadı - Asansör Yok)", "value": "bos_asansorsuz", "next_step": "step_insaat_malzeme" },
+          { "label": "Kısmen Eşyalı (Ambalajlı / Yeni Eşyalar Var)", "value": "esyali", "next_step": "step_insaat_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_malzeme",
+        "step_title": "Temizlik malzemeleri ve ekipman kim tarafından sağlanacak?",
+        "description": "Sanayi tipi süpürge, kazıyıcı ve özel kimyasallar dahil.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hizmet Veren Getirsin (Tüm Ekipman & Kimyasallar Dahil)", "value": "hizmetveren_getirsin", "next_step": "step_insaat_ekstra" },
+          { "label": "Malzemeler Bende Var / Ben Sağlayacağım", "value": "musteri_saglasin", "next_step": "step_insaat_ekstra" }
+        ]
+      },
+      {
+        "step_id": "step_insaat_ekstra",
+        "step_title": "Ekstra dahil edilecek hizmet var mı?",
+        "description": "Özel temizlik taleplerinizi seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Dış Cephe / Yüksek Cam Silimi", "value": "dis_cephe_cam", "next_step": "step_detaylar" },
+          { "label": "Zemin Mermer & Taş Cilalama / Silim", "value": "mermer_cila", "next_step": "step_detaylar" },
+          { "label": "Balkon / Teras Yıkama", "value": "balkon_yikama", "next_step": "step_detaylar" },
+          { "label": "Bina Ortak Alan & Merdiven Temizliği", "value": "bina_ortak_alan", "next_step": "step_detaylar" },
+          { "label": "Ekstra Hizmet İstemiyorum (Standart Temizlik)", "value": "ekstra_yok", "next_step": "step_detaylar" }
         ]
       },
       {
         "step_id": "step_detaylar",
-        "step_title": "İhtiyacın detayları neler?",
-        "description": "Temizlik malzemesi ve ekipman taleplerinizi giriniz.",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Çizilmeye hassas zemin, vakum makinesi gerekecek vb.",
         "input_type": "textarea",
         "placeholder": "Örn: Camlarda etiket ve boya lekeleri var, vakum makinesi gerekecek.",
         "is_optional": true,

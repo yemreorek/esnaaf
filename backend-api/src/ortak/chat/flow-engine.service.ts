@@ -49,7 +49,7 @@ export class FlowEngineService {
     if (raw.includes('tadilat')) return QUESTION_FLOWS['ev-tadilat'] || QUESTION_FLOWS['ev_tadilat'];
     if (raw.includes('boya') || raw.includes('badana')) return QUESTION_FLOWS['boya-badana'] || QUESTION_FLOWS['boya_badana'];
     if (raw.includes('nakliyat') || raw.includes('tasima') || raw.includes('nakliye')) return QUESTION_FLOWS['nakliyat'];
-    if (raw.includes('insaat-sonrasi') || raw.includes('insaat_sonrasi')) return QUESTION_FLOWS['insaat-sonrasi-temizlik'];
+    if (raw.includes('insaat') || raw.includes('inşaat')) return QUESTION_FLOWS['insaat-sonrasi-temizlik'] || QUESTION_FLOWS['insaat_sonrasi_temizlik'];
     if (raw.includes('fayans') || raw.includes('seramik')) return QUESTION_FLOWS['fayans-doseme'];
     if (raw.includes('parke')) return QUESTION_FLOWS['parke-doseme'];
     if (raw.includes('ilaclama') || raw.includes('bocek') || raw.includes('fare') || raw.includes('pire') || raw.includes('hasere')) return QUESTION_FLOWS['bocek-ilaclama'] || QUESTION_FLOWS['hasere-ilaclama'];
