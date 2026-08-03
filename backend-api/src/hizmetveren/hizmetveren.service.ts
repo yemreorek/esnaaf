@@ -150,7 +150,7 @@ export class HizmetverenService {
 
       gelenIsler.push({
         id: job.id,
-        categoryName: job.category.name,
+        categoryName: this.getSpecificCategoryName(job),
         district: formatFullLocation(formData),
         details: cleanDetails,
         name: formData.name || 'Müşteri',
@@ -951,7 +951,7 @@ export class HizmetverenService {
         hasMessages: o.messages.length > 0,
         job: {
           id: o.job.id,
-          categoryName: o.job.category.name,
+          categoryName: this.getSpecificCategoryName(o.job),
           district: formatFullLocation(formData),
           details: cleanDetails,
           name: formData.name || 'Müşteri',
@@ -995,7 +995,7 @@ export class HizmetverenService {
         createdAt: m.created_at,
         jobId: m.job_id,
         offerId: m.offer_id,
-        categoryName: m.job.category.name,
+        categoryName: this.getSpecificCategoryName(m.job),
         customerName: formData.name || 'Müşteri',
       };
     });
@@ -1069,7 +1069,7 @@ export class HizmetverenService {
         started_at: ao.offer.started_at,
         job: {
           id: ao.job.id,
-          categoryName: ao.job.category.name,
+          categoryName: this.getSpecificCategoryName(ao.job),
           district: formatFullLocation(formData),
           details: formData.details || '',
           name: ao.seeker.name || 'Müşteri',
@@ -1252,7 +1252,7 @@ export class HizmetverenService {
         is_direct: c.job.is_direct,
         job: {
           id: c.job.id,
-          categoryName: c.job.category.name,
+          categoryName: this.getSpecificCategoryName(c.job),
           district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
@@ -1291,7 +1291,7 @@ export class HizmetverenService {
       comment: r.comment,
       created_at: r.created_at,
       reviewerName: r.reviewer.name || 'Hizmet Alan',
-      categoryName: r.job.category.name,
+      categoryName: this.getSpecificCategoryName(r.job),
     }));
   }
 
@@ -1337,7 +1337,7 @@ export class HizmetverenService {
         updated_at: d.updated_at,
         job: {
           id: d.job.id,
-          categoryName: d.job.category.name,
+          categoryName: this.getSpecificCategoryName(d.job),
           district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
@@ -1502,7 +1502,7 @@ export class HizmetverenService {
         cancel_reason_text: o.cancel_reason_text,
         job: {
           id: o.job.id,
-          categoryName: o.job.category.name,
+          categoryName: this.getSpecificCategoryName(o.job),
           district: formatFullLocation(formData),
           details: formData.details || '',
           name: formData.name || 'Müşteri',
@@ -1589,7 +1589,7 @@ export class HizmetverenService {
         // 1. WebSocket ile ustaya yeni iş fırsatını anlık bildir
         this.chatGateway.emitNewJobToProvider(rt.provider_id, {
           id: rt.job_id,
-          categoryName: job.category.name,
+          categoryName: this.getSpecificCategoryName(job),
           district: requestDistrict,
           details: formData.details || '',
           viewerCount: 5,
@@ -1971,42 +1971,96 @@ export class HizmetverenService {
     };
   }
 
+  private getSpecificCategoryName(job: any): string {
+    if (!job) return 'Genel Hizmet';
+    const formData = (job.form_data || {}) as any;
+    if (formData.categoryName && typeof formData.categoryName === 'string' && formData.categoryName.trim()) {
+      return formData.categoryName;
+    }
+    if (formData.categorySlug) {
+      const resolved = this.getCategoryName(formData.categorySlug);
+      if (resolved && resolved !== 'Genel Hizmet') {
+        return resolved;
+      }
+    }
+    return job?.category?.name || 'Genel Hizmet';
+  }
+
   private getCategoryName(slug: string): string {
+    if (!slug) return 'Genel Hizmet';
     switch (slug) {
+      // Temizlik Hizmetleri
       case 'ev-temizligi': return 'Ev Temizliği';
       case 'bos-ev-temizligi': return 'Boş Ev Temizliği';
-      case 'boya-badana': return 'Boya Badana';
-      case 'su-tesisati': return 'Su Tesisatı';
-      case 'elektrik-tesisati': return 'Elektrik Tesisatı';
-      case 'ev-tadilat': return 'Ev Tadilat';
-      case 'nakliyat': return 'Nakliyat / Ev Taşıma';
+      case 'insaat-sonrasi-temizlik': return 'İnşaat Sonrası Temizlik';
+      case 'merdiven-temizligi': return 'Merdiven Temizliği';
+      case 'apartman-temizligi': return 'Apartman Temizliği';
+      case 'bilgisayar-temizligi': return 'Bilgisayar Temizliği';
+      case 'dukkan-temizligi': return 'Dükkan Temizliği';
+      case 'ofis-temizligi': return 'Ofis Temizliği';
+      case 'is-yeri-temizligi': return 'İş Yeri Temizliği';
+      case 'buharli-ev-temizligi': return 'Buharlı Temizlik Hizmeti';
+      case 'mermer-cilalama': return 'Mermer Silim ve Cilalama';
+      case 'dis-cephe-cam-silme': return 'Dış Cephe Cam Silme';
+      case 'cam-temizligi': return 'Cam Silme & Temizliği';
+      case 'petek-temizligi': return 'Petek Temizliği';
+      case 'su-deposu-temizligi': return 'Su Deposu Temizliği';
+      case 'evde-utu-hizmeti': return 'Evde Ütü Hizmeti';
+
+      // Yıkama & Hijyen
       case 'hali-yikama': return 'Halı Yıkama';
       case 'koltuk-yikama':
       case 'evde-koltuk-yikama':
       case 'evde_koltuk_yikama': return 'Koltuk Yıkama';
-      case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
-      case 'fayans-doseme':
-      case 'parke-doseme': return 'Fayans & Parke Döşeme';
-      case 'hasere-ilaclama':
-      case 'bocek-ilaclama': return 'Haşere & Böcek İlaçlama';
-      case 'kombi-servisi':
-      case 'klima-servisi': return 'Kombi & Klima Bakımı';
-      case 'mantolama':
-      case 'dis-cephe': return 'Mantolama & Dış Cephe';
-      case 'marangoz':
-      case 'mobilya-montaji': return 'Marangoz & Mobilya Montajı';
-      case 'ozel-ders': return 'Özel Ders';
-      case 'cam-balkon':
-      case 'pvc-pencere': return 'Cam Balkon & PVC Pencere';
-      case 'ofis-temizligi':
-      case 'is-yeri-temizligi': return 'Ofis & İş Yeri Temizliği';
+      case 'yatak-yikama': return 'Yatak Yıkama';
+      case 'arac-koltuk-yikama': return 'Yerinde Araç Koltuk Yıkama';
+      case 'stor-perde-yikama': return 'Stor & Zebra Perde Yıkama';
+      case 'kuru-temizleme': return 'Kuru Temizleme';
+
+      // İlaçlama
+      case 'hasere-ilaclama': return 'Haşere İlaçlama';
+      case 'bocek-ilaclama': return 'Böcek & Haşere İlaçlama';
+      case 'ev-ilaclama': return 'Ev İlaçlama';
+
+      // Yemek & Ev İşleri
+      case 'evde-yemek-pisirme': return 'Evde Yemek Pişirme';
+      case 'yaprak-sarma-yapimi': return 'Yaprak Sarma & Mantı Yapımı';
+
+      // Boya, Tadilat & İnşaat
+      case 'boya-badana': return 'Boya Badana';
+      case 'su-tesisati': return 'Su Tesisatı';
+      case 'elektrik-tesisati': return 'Elektrik Tesisatı';
+      case 'ev-tadilat': return 'Ev Tadilat';
+      case 'fayans-doseme': return 'Fayans Döşeme';
+      case 'parke-doseme': return 'Parke Döşeme';
+      case 'mantolama': return 'Mantolama';
+      case 'dis-cephe': return 'Dış Cephe';
+
+      // Nakliyat
+      case 'nakliyat': return 'Nakliyat / Ev Taşıma';
+
+      // İklimlendirme & Tesisat
+      case 'kombi-servisi': return 'Kombi Servisi';
+      case 'klima-servisi': return 'Klima Servisi';
       case 'dogalgaz-tesisati': return 'Doğalgaz Tesisatı';
-      case 'ic-mimar':
-      case 'dekorasyon': return 'İç Mimar & Dekorasyon';
+
+      // Marangoz & Montaj
+      case 'marangoz': return 'Marangoz';
+      case 'mobilya-montaji': return 'Mobilya Montajı';
+
+      // Cam, PVC & Yapı
+      case 'cam-balkon': return 'Cam Balkon';
+      case 'pvc-pencere': return 'PVC Pencere';
+
+      // Tasarım, Eğitim & Etkinlik
+      case 'ic-mimar': return 'İç Mimar';
+      case 'dekorasyon': return 'Dekorasyon';
       case 'fotografci': return 'Fotoğrafçı';
-      case 'organizasyon':
-      case 'etkinlik': return 'Organizasyon & Etkinlik';
-      default: return 'Genel Hizmet';
+      case 'organizasyon': return 'Organizasyon';
+      case 'etkinlik': return 'Etkinlik';
+      case 'ozel-ders': return 'Özel Ders';
+
+      default: return slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) : 'Genel Hizmet';
     }
   }
 

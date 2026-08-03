@@ -2436,20 +2436,25 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   private async findCategoryByNameOrSlug(categoryName: string, categorySlug?: string) {
-    let category = await this.prisma.category.findUnique({
-      where: { name: categoryName },
+    if (!categoryName && categorySlug) {
+      categoryName = this.getCategoryName(categorySlug);
+    }
+    let category = await this.prisma.category.findFirst({
+      where: { name: { equals: categoryName, mode: 'insensitive' } },
     });
     if (!category && categoryName) {
-      const keyword = categoryName.split(' ')[0];
-      category = await this.prisma.category.findFirst({
-        where: { name: { contains: keyword, mode: 'insensitive' } },
-      });
-    }
-    if (!category && categorySlug) {
-      const slugKey = categorySlug.split('-')[0];
-      category = await this.prisma.category.findFirst({
-        where: { name: { contains: slugKey, mode: 'insensitive' } },
-      });
+      try {
+        category = await this.prisma.category.create({
+          data: {
+            name: categoryName,
+            isActive: true,
+          },
+        });
+      } catch (err) {
+        category = await this.prisma.category.findFirst({
+          where: { name: { contains: categoryName.split(' ')[0], mode: 'insensitive' } },
+        });
+      }
     }
     if (!category) {
       category = await this.prisma.category.findFirst();
@@ -2458,39 +2463,78 @@ Bütün yanıtlarını **MUTLAKA** aşağıdaki JSON formatında oluşturmalıs�
   }
 
   private getCategoryName(slug: string | null): string {
+    if (!slug) return 'Ev Temizliği';
     switch (slug) {
-      case 'ev-temizligi':
-      case 'bos-ev-temizligi': return 'Ev Temizliği';
+      // Temizlik Hizmetleri
+      case 'ev-temizligi': return 'Ev Temizliği';
+      case 'bos-ev-temizligi': return 'Boş Ev Temizliği';
+      case 'insaat-sonrasi-temizlik': return 'İnşaat Sonrası Temizlik';
+      case 'merdiven-temizligi': return 'Merdiven Temizliği';
+      case 'apartman-temizligi': return 'Apartman Temizliği';
+      case 'bilgisayar-temizligi': return 'Bilgisayar Temizliği';
+      case 'dukkan-temizligi': return 'Dükkan Temizliği';
+      case 'ofis-temizligi': return 'Ofis Temizliği';
+      case 'is-yeri-temizligi': return 'İş Yeri Temizliği';
+      case 'buharli-ev-temizligi': return 'Buharlı Temizlik Hizmeti';
+      case 'mermer-cilalama': return 'Mermer Silim ve Cilalama';
+      case 'dis-cephe-cam-silme': return 'Dış Cephe Cam Silme';
+      case 'cam-temizligi': return 'Cam Silme & Temizliği';
+      case 'petek-temizligi': return 'Petek Temizliği';
+      case 'su-deposu-temizligi': return 'Su Deposu Temizliği';
+      case 'evde-utu-hizmeti': return 'Evde Ütü Hizmeti';
+
+      // Yıkama & Hijyen
+      case 'hali-yikama': return 'Halı Yıkama';
+      case 'koltuk-yikama': return 'Koltuk Yıkama';
+      case 'yatak-yikama': return 'Yatak Yıkama';
+      case 'arac-koltuk-yikama': return 'Yerinde Araç Koltuk Yıkama';
+      case 'stor-perde-yikama': return 'Stor & Zebra Perde Yıkama';
+      case 'kuru-temizleme': return 'Kuru Temizleme';
+
+      // İlaçlama
+      case 'hasere-ilaclama': return 'Haşere İlaçlama';
+      case 'bocek-ilaclama': return 'Böcek & Haşere İlaçlama';
+      case 'ev-ilaclama': return 'Ev İlaçlama';
+
+      // Yemek & Ev İşleri
+      case 'evde-yemek-pisirme': return 'Evde Yemek Pişirme';
+      case 'yaprak-sarma-yapimi': return 'Yaprak Sarma & Mantı Yapımı';
+
+      // Boya, Tadilat & İnşaat
       case 'boya-badana': return 'Boya Badana';
       case 'su-tesisati': return 'Su Tesisatı';
       case 'elektrik-tesisati': return 'Elektrik Tesisatı';
       case 'ev-tadilat': return 'Ev Tadilat';
+      case 'fayans-doseme': return 'Fayans Döşeme';
+      case 'parke-doseme': return 'Parke Döşeme';
+      case 'mantolama': return 'Mantolama';
+      case 'dis-cephe': return 'Dış Cephe';
+
+      // Nakliyat
       case 'nakliyat': return 'Nakliyat / Ev Taşıma';
-      case 'hali-yikama': return 'Halı Yıkama';
-      case 'koltuk-yikama': return 'Koltuk Yıkama';
-      case 'insaat-sonrasi-temizlik': return 'İnşaat / Tadilat Sonrası Temizlik';
-      case 'fayans-doseme':
-      case 'parke-doseme': return 'Fayans & Parke Döşeme';
-      case 'hasere-ilaclama':
-      case 'bocek-ilaclama': return 'Haşere & Böcek İlaçlama';
-      case 'kombi-servisi':
-      case 'klima-servisi': return 'Kombi & Klima Bakımı';
-      case 'mantolama':
-      case 'dis-cephe': return 'Mantolama & Dış Cephe';
-      case 'marangoz':
-      case 'mobilya-montaji': return 'Marangoz & Mobilya Montajı';
-      case 'ozel-ders': return 'Özel Ders';
-      case 'cam-balkon':
-      case 'pvc-pencere': return 'Cam Balkon & PVC Pencere';
-      case 'ofis-temizligi':
-      case 'is-yeri-temizligi': return 'Ofis & İş Yeri Temizliği';
+
+      // İklimlendirme & Tesisat
+      case 'kombi-servisi': return 'Kombi Servisi';
+      case 'klima-servisi': return 'Klima Servisi';
       case 'dogalgaz-tesisati': return 'Doğalgaz Tesisatı';
-      case 'ic-mimar':
-      case 'dekorasyon': return 'İç Mimar & Dekorasyon';
+
+      // Marangoz & Montaj
+      case 'marangoz': return 'Marangoz';
+      case 'mobilya-montaji': return 'Mobilya Montajı';
+
+      // Cam, PVC & Yapı
+      case 'cam-balkon': return 'Cam Balkon';
+      case 'pvc-pencere': return 'PVC Pencere';
+
+      // Tasarım, Eğitim & Etkinlik
+      case 'ic-mimar': return 'İç Mimar';
+      case 'dekorasyon': return 'Dekorasyon';
       case 'fotografci': return 'Fotoğrafçı';
-      case 'organizasyon':
-      case 'etkinlik': return 'Organizasyon & Etkinlik';
-      default: return 'Ev Temizliği';
+      case 'organizasyon': return 'Organizasyon';
+      case 'etkinlik': return 'Etkinlik';
+      case 'ozel-ders': return 'Özel Ders';
+
+      default: return slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     }
   }
 
