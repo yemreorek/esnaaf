@@ -616,11 +616,14 @@ export class ChatService implements OnModuleInit {
     const categoryCheck = await this.detectCategory(filteredMessage);
     if (categoryCheck.detected && categoryCheck.confidence >= 0.7 && categoryCheck.categorySlug) {
       if (categoryCheck.categorySlug !== state.collected_data.categorySlug) {
+        state.step = 'collecting_details';
         state.collected_data = {
           categorySlug: categoryCheck.categorySlug,
           categoryName: categoryCheck.categoryName || undefined
         };
         state.collected_data.current_step_id = undefined;
+        state.collected_data.step_history = [];
+        state.collected_data.graph_labels = {};
       }
     }
 

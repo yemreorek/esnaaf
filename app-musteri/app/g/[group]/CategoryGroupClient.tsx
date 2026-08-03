@@ -15,16 +15,28 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleStartQuote = (serviceName: string) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("esnaaf_chat_session_id");
+    }
     setSelectedService(serviceName);
     setIsChatOpen(true);
+  };
+
+  const handleCloseChat = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("esnaaf_chat_session_id");
+    }
+    setIsChatOpen(false);
+    setSelectedService(null);
   };
 
   if (isChatOpen && selectedService) {
     return (
       <div className="fixed inset-0 z-[999] bg-white">
         <ChatScreen
+          key={`${selectedService}-${Date.now()}`}
           initialMessage={selectedService}
-          onClose={() => setIsChatOpen(false)}
+          onClose={handleCloseChat}
         />
       </div>
     );
