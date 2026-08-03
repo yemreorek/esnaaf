@@ -1351,6 +1351,179 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
   },
 
   // ----------------------------------------------------
+  // MERDİVEN TEMİZLİĞİ
+  // ----------------------------------------------------
+  'merdiven-temizligi': {
+    "category_id": "merdiven_temizligi",
+    "category_name": "Merdiven Temizliği",
+    "steps": [
+      {
+        "step_id": "step_merdiven_bina",
+        "step_title": "Temizlik yapılacak bina / yapı türü nedir?",
+        "description": "Yapı türünü seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Apartman (Standart Konut Binası)", "value": "apartman", "next_step": "step_merdiven_kat" },
+          { "label": "Müstakil Bina / İş Hanı / Plaza", "value": "is_hani", "next_step": "step_merdiven_kat" },
+          { "label": "Okul / Hastane / Kamusal Bina", "value": "kamusal", "next_step": "step_merdiven_kat" }
+        ]
+      },
+      {
+        "step_id": "step_merdiven_kat",
+        "step_title": "Kaç katlı bina / merdiven alanı temizlenecek?",
+        "description": "Temizlenecek kat sayısını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 3 Katlı", "value": "1_3_kat", "next_step": "step_merdiven_zemin" },
+          { "label": "4 - 6 Katlı (Standart Apartman)", "value": "4_6_kat", "next_step": "step_merdiven_zemin" },
+          { "label": "7 - 10 Katlı", "value": "7_10_kat", "next_step": "step_merdiven_zemin" },
+          { "label": "10 Kat ve Üzeri (Yüksek Katlı Bina)", "value": "10_plus_kat", "next_step": "step_merdiven_zemin" }
+        ]
+      },
+      {
+        "step_id": "step_merdiven_zemin",
+        "step_title": "Merdiven basamak & zemin malzemesi nedir?",
+        "description": "Doğru temizlik ürünü ve paspas seçimi için.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Mermer / Granit", "value": "mermer", "next_step": "step_merdiven_siklik" },
+          { "label": "Mozaik / Beton", "value": "mozaik", "next_step": "step_merdiven_siklik" },
+          { "label": "Fayans / Seramik", "value": "fayans", "next_step": "step_merdiven_siklik" },
+          { "label": "Ahşap / Özel Kaplama", "value": "ahsap", "next_step": "step_merdiven_siklik" }
+        ]
+      },
+      {
+        "step_id": "step_merdiven_siklik",
+        "step_title": "Hizmet sıklığı ve periyot tercihiniz nedir?",
+        "description": "Dönemsel veya rutin temizlik planı.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Haftada 1 Kez (Rutin Temizlik)", "value": "haftada_1", "next_step": "step_merdiven_kapsam" },
+          { "label": "Haftada 2 Kez (Yoğun Temizlik)", "value": "haftada_2", "next_step": "step_merdiven_kapsam" },
+          { "label": "Ayda 2 Kez (15 Günde Bir)", "value": "ayda_2", "next_step": "step_merdiven_kapsam" },
+          { "label": "Tek Seferlik Detaylı Merdiven Yıkama", "value": "tek_seferlik", "next_step": "step_merdiven_kapsam" }
+        ]
+      },
+      {
+        "step_id": "step_merdiven_kapsam",
+        "step_title": "Merdiven korkulukları, camlar ve paspaslar dahil mi?",
+        "description": "Temizlik kapsamını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet Dahil (Korkuluk Silimi, Merdiven Camları & Paspas Yıkama)", "value": "tam_kapsam", "next_step": "step_merdiven_malzeme" },
+          { "label": "Sadece Merdiven Basamaklarının Yıkanması / Paspaslanması", "value": "sadece_basamak", "next_step": "step_merdiven_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_merdiven_malzeme",
+        "step_title": "Temizlik malzemeleri kim tarafından sağlanacak?",
+        "description": "Deterjan, kova ve paspas takımları.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hizmet Veren Getirsin (Deterjan, Paspas & Ekipman Dahil)", "value": "hizmetveren_getirsin", "next_step": "step_detaylar" },
+          { "label": "Binada Malzeme Var / Biz Sağlayacağız", "value": "bina_saglasin", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Mermer cilası yapılsın, haftalık Cuma günleri tercih edilir.",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mermer cilası yapılsın, haftalık Cuma günleri tercih edilir.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
+  // APARTMAN TEMİZLİĞİ
+  // ----------------------------------------------------
+  'apartman-temizligi': {
+    "category_id": "apartman_temizligi",
+    "category_name": "Apartman Temizliği",
+    "steps": [
+      {
+        "step_id": "step_apartman_daire",
+        "step_title": "Apartmandaki toplam daire sayısı kaçtır?",
+        "description": "Daire ve bağımsız bölüm sayısını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 6 Daire", "value": "1_6_daire", "next_step": "step_apartman_kat" },
+          { "label": "7 - 12 Daire (Standart Apartman)", "value": "7_12_daire", "next_step": "step_apartman_kat" },
+          { "label": "13 - 24 Daire", "value": "13_24_daire", "next_step": "step_apartman_kat" },
+          { "label": "25 Daire ve Üzeri (Site / Çoklu Blok)", "value": "25_plus_daire", "next_step": "step_apartman_kat" }
+        ]
+      },
+      {
+        "step_id": "step_apartman_kat",
+        "step_title": "Binanın kat sayısı kaçtır?",
+        "description": "Binanın yüksekliğini seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "1 - 4 Kat", "value": "1_4_kat", "next_step": "step_apartman_kapsam" },
+          { "label": "5 - 8 Kat", "value": "5_8_kat", "next_step": "step_apartman_kapsam" },
+          { "label": "9 - 14 Kat", "value": "9_14_kat", "next_step": "step_apartman_kapsam" },
+          { "label": "15 Kat ve Üzeri (Asansörlü Blok)", "value": "15_plus_kat", "next_step": "step_apartman_kapsam" }
+        ]
+      },
+      {
+        "step_id": "step_apartman_kapsam",
+        "step_title": "Hizmet kapsamına neler dahil olsun?",
+        "description": "Yapılacak işlerin detayını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Komple Temizlik (Merdivenler, Asansör, Giriş, Camlar & Çöp Toplama)", "value": "komple_apartman", "next_step": "step_apartman_siklik" },
+          { "label": "Standart Ortak Alan (Merdivenler, Giriş ve Asansör İçi)", "value": "standart_ortak", "next_step": "step_apartman_siklik" },
+          { "label": "Sadece Çöp Toplama ve Merdiven Paspaslama", "value": "cop_paspas", "next_step": "step_apartman_siklik" }
+        ]
+      },
+      {
+        "step_id": "step_apartman_siklik",
+        "step_title": "Hizmet sıklığı ve çöp toplama düzeni nedir?",
+        "description": "Uygulama periyodunu seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Haftada 1 Gün Temizlik + Her Gün Çöp Toplama", "value": "haftada1_herguncop", "next_step": "step_apartman_otopark" },
+          { "label": "Haftada 1 Gün Genel Temizlik (Çöp Toplama Yok)", "value": "haftada1_sadece_temizlik", "next_step": "step_apartman_otopark" },
+          { "label": "Haftada 2 Gün Genel Temizlik", "value": "haftada2_temizlik", "next_step": "step_apartman_otopark" },
+          { "label": "Tek Seferlik Detaylı Apartman Temizliği", "value": "tek_seferlik", "next_step": "step_apartman_otopark" }
+        ]
+      },
+      {
+        "step_id": "step_apartman_otopark",
+        "step_title": "Otopark, sığınak veya bahçe / dış çevre temizliği dahil mi?",
+        "description": "Ek bina alanları.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Bina İçi + Otopark ve Sığınak Dahil", "value": "otopark_siginak", "next_step": "step_apartman_malzeme" },
+          { "label": "Bina İçi + Bahçe ve Dış Çevre Dahil", "value": "bahce_cevre", "next_step": "step_apartman_malzeme" },
+          { "label": "Sadece Bina İçi Ortak Alanlar", "value": "sadece_bina_ici", "next_step": "step_apartman_malzeme" }
+        ]
+      },
+      {
+        "step_id": "step_apartman_malzeme",
+        "step_title": "Temizlik malzemeleri ve ekipman kim tarafından sağlanacak?",
+        "description": "Yıkama otomatı, kova ve deterjan grubu.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hizmet Veren Getirsin (Tüm Deterjan & Ekipmanlar Dahil)", "value": "hizmetveren_getirsin", "next_step": "step_detaylar" },
+          { "label": "Apartman Yönetimi Sağlayacak", "value": "yonetim_saglasin", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Aidat makbuzu istenmektedir, giriş kapısı otomatik camdır vb.",
+        "input_type": "textarea",
+        "placeholder": "Örn: Çöp alma saatleri 19:00, 10 daireli bina, asansör aynaları silinecek.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+
+  // ----------------------------------------------------
   // FAYANS DÖŞEME
   // ----------------------------------------------------
   'fayans-doseme': {

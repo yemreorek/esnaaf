@@ -38,8 +38,8 @@ export class FlowEngineService {
     if (raw.includes('cam')) return QUESTION_FLOWS['cam-temizligi'] || QUESTION_FLOWS['cam_temizligi'];
     if (raw.includes('hali') || raw.includes('halı')) return QUESTION_FLOWS['hali-yikama'] || QUESTION_FLOWS['hali_yikama'];
     if (raw.includes('koltuk')) return QUESTION_FLOWS['koltuk-yikama'] || QUESTION_FLOWS['evde-koltuk-yikama'] || QUESTION_FLOWS['koltuk_yikama'];
-    if (raw.includes('bos-ev') || raw.includes('boş ev') || raw.includes('tasinma')) return QUESTION_FLOWS['bos-ev-temizligi'] || QUESTION_FLOWS['bos_ev_temizligi'];
-    if (raw.includes('apartman') || raw.includes('merdiven')) return QUESTION_FLOWS['apartman-temizligi'] || QUESTION_FLOWS['apartman_temizligi'];
+    if (raw.includes('merdiven')) return QUESTION_FLOWS['merdiven-temizligi'];
+    if (raw.includes('apartman')) return QUESTION_FLOWS['apartman-temizligi'];
     if (raw.includes('utu') || raw.includes('ütü')) return QUESTION_FLOWS['evde-utu-hizmeti'] || QUESTION_FLOWS['utu-hizmeti'];
 
     if (raw.includes('elektrik')) return QUESTION_FLOWS['elektrik-tesisati'] || QUESTION_FLOWS['elektrik_tesisati'];
