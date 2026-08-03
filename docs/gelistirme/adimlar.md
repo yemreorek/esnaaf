@@ -1042,3 +1042,22 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   * `backend-api`: `HizmetverenService` içerisindeki gelen kutusu filtreleri, teklif oluşturma guard'ları (`BadRequestException`), bildirim gönderim şartları ve teklif kapandı (`isClosed`) kontrolleri `>= 5` teklif sınırına güncellendi.
   * `app-hizmetveren`: Fırsat kartlarında `renderOfferDots` gösterimindeki 5. özel slot sınırlaması kaldırılarak 5 temiz standart teklif noktası (`0/5`, `1/5`, ... `5/5`) render edilecek şekilde güncellendi.
   * `app-musteri`: `SeekerDashboard` bileşenindeki teklife kapatıldı etiketi `5 Teklif Sınırı` olarak güncellendi. Kategori lansman sayfalarındaki ortalama teklif metinleri `Ortalama 5 farklı teklif` olarak revize edildi.
+
+## 🛠️ Adım 55 Geliştirme Detayları (Temizlik Sayfası Hizmet Audit ve JSON Akış Güncellemeleri)
+
+- **Soru Akış Yapılanması & Kategori Doğrulama:**
+  * Temizlik grubunda yer alan 59 alt hizmet için özel JSON soru akışları ve keyword tanımları `question-flow.config.ts` dosyasına eklendi.
+  * `detectCategory` fonksiyonunda seçenek etiketlerinden kaynaklanan sonsuz adım döngüsü hatası giderildi.
+  * `CategoryGroupClient.tsx` içerisindeki `initialMessage` karşılama mesajı selamlamasız doğrudan seçilen servis başlığı olarak sadeleştirildi.
+
+## 🛠️ Adım 56 Geliştirme Detayları (Market Price Auto-Aggregator & 2026 Piyasa Fiyatlandırma Altyapısı)
+
+- **Güncel Piyasa Verisi & Otomatik Takip Motoru:**
+  * Google AI Bakışı ve Armut 2026 piyasa araştırması verileriyle tüm hizmet kategorileri için şeffaf fiyat aralıkları (ör. Bilgisayar Temizliği ₺750 - ₺3.750) entegre edildi.
+  * NestJS arka planında çalışan `MarketPriceAggregatorService` modülü kuruldu. `@Cron('0 3 * * 0')` cron fonksiyonu her Pazar saat 03:00'te kabul edilen teklif tutarlarını (`Offer.status = accepted`) analiz ederek fiyat tahmin kartlarını Redis önbelleğinde dinamik günceller hale getirildi.
+
+## 🛠️ Adım 57 Geliştirme Detayları (Sohbet Oturumu Tam Temizlik & Adım Sıfırlama İyileştirmesi)
+
+- **Oturum Temizleme & Adım Geçmişi Sıfırlama:**
+  * Farklı bir hizmet seçildiğinde veya sohbet penceresi kapatıldığında `sessionStorage` üzerindeki chat oturum kimliği tamamen silindi.
+  * Backend tarafında `categoryCheck.categorySlug !== state.collected_data.categorySlug` durumu algılandığında `state.step = 'collecting_details'`, `step_history = []` ve grafik verileri sıfırlanarak soruların atlanması %100 engellendi.

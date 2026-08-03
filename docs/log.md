@@ -2,6 +2,16 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-03 feat | Otomatik Piyasa Fiyat Takip Motoru (MarketPriceAggregatorService) & Oturum Sıfırlama İyileştirmesi
+
+- **Google AI & Armut 2026 Piyasa Fiyatlandırması:**
+  - Bilgisayar Temizliği ve diğer 59 hizmet için Google AI Bakışı ve Armut 2026 verileriyle eşleşen şeffaf piyasa fiyat aralıkları (ör. Bilgisayar Temizliği ₺750 - ₺3.750) güncellendi.
+- **Haftalık Otomatik Fiyat Takip Motoru (`MarketPriceAggregatorService`):**
+  - Her Pazar 03:00'te çalışan `@Cron('0 3 * * 0')` servisi ile platformda kabul edilen gerçek usta tekliflerini (`Offer.status = accepted`) analiz edip Redis önbelleğine yansıtan haftalık fiyat takip motoru yazıldı.
+- **Sohbet Oturumu Tam Sıfırlama & Adım İlerleme Düzeltmesi:**
+  - Farklı hizmet seçildiğinde veya sohbet modalı kapatıldığında eski oturum ve adım geçmişinin temizlenmesi sağlandı. Soruların atlanması engellendi.
+  - Değişiklikler derlendi, `0dacc88` commit'i ile GitHub'a push edildi ve Cloud Run ortamına deploy edildi.
+
 ## 2026-08-02 feat | 4 Altın SEO & Dönüşüm Stratejisi Entegrasyonu (İç Bağlantı Ağı & 2026 Fiyat Tablosu)
 
 - **Stratejik İhtiyaç:** Google "Yer Siteleri" dizin kartında 1. sırada yer almak, Google bot tarama hızını (PageRank Juice) artırmak ve fiyat aramalarında Öne Çıkan Fiyat Kutucuğu (Featured Snippet) indeksini kazanmak.
