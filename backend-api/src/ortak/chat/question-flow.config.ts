@@ -1568,53 +1568,85 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
   // HAŞERE / BÖCEK İLAÇLAMA
   // ----------------------------------------------------
   'hasere-ilaclama': {
-    "category_id": "hasere_ilaclama",
-    "category_name": "Haşere İlaçlama",
+    "category_id": "bocek_ilaclama",
+    "category_name": "Ev & Haşere İlaçlama",
     "steps": [
       {
-        "step_id": "step_hasere_turu",
-        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
-        "description": "Haşere türünü seçiniz.",
-        "input_type": "single_select",
-        "options": [
-          { "label": "Hamam Böceği / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_alani" },
-          { "label": "Tahta Kurusu", "value": "tahta_kurusu", "next_step": "step_ilaclama_alani" },
-          { "label": "Pire / Kene", "value": "pire", "next_step": "step_ilaclama_alani" },
-          { "label": "Fare / Kemirgen", "value": "fare", "next_step": "step_ilaclama_alani" },
-          { "label": "Akrep / Gümüş Böceği / Karınca", "value": "karinca_diger", "next_step": "step_ilaclama_alani" },
-          { "label": "Bilmiyorum / Genel İlaçlama", "value": "genel", "next_step": "step_ilaclama_alani" }
-        ]
-      },
-      {
-        "step_id": "step_ilaclama_alani",
-        "step_title": "İlaçlama yapılacak mekan neresidir?",
+        "step_id": "step_ilaclama_mekan",
+        "step_title": "İlaçlama yapılacak mekanın türü nedir?",
         "description": "Uygulama alanını seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "Ev / Daire", "value": "daire", "next_step": "step_ilaclama_m2" },
-          { "label": "Müstakil Ev / Bahçe", "value": "villa_bahce", "next_step": "step_ilaclama_m2" },
-          { "label": "Restaurant / Kafe / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
-          { "label": "Depo / Bodrum", "value": "depo", "next_step": "step_ilaclama_m2" }
+          { "label": "Daire / Ev", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_ilaclama_m2" },
+          { "label": "Apartman Ortak Alanı / Bodrum / Sığınak", "value": "apartman_ortak", "next_step": "step_ilaclama_m2" },
+          { "label": "Ofis / Dükkan / Restoran / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Bahçe / Açık Alan / Depo", "value": "bahce_depo", "next_step": "step_ilaclama_m2" }
         ]
       },
       {
         "step_id": "step_ilaclama_m2",
-        "step_title": "Alanın büyüklüğü nedir?",
-        "description": "Tahmini metrekare.",
+        "step_title": "İlaçlanacak alanın büyüklüğü nedir?",
+        "description": "Malzeme dozajı ve ekipman için metrekare seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "100 m²'ye kadar", "value": "100_m2", "next_step": "step_detaylar" },
-          { "label": "100 - 200 m²", "value": "200_m2", "next_step": "step_detaylar" },
-          { "label": "200 - 500 m²", "value": "500_m2", "next_step": "step_detaylar" },
-          { "label": "500 m² ve üzeri", "value": "500_plus_m2", "next_step": "step_detaylar" }
+          { "label": "100 m²'den Küçük (1+1 / 2+1 Daire)", "value": "100_m2_alt", "next_step": "step_ilaclama_tur" },
+          { "label": "100 - 180 m² (3+1 / 4+1 Daire veya Ofis)", "value": "100_180_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "180 - 300 m² (Villa / Restoran / İş Yeri)", "value": "180_300_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "300 m² ve Üzeri (Bina / Depo / Bahçe)", "value": "300_plus_m2", "next_step": "step_ilaclama_tur" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_tur",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Doğru ilaç ve uygulama yöntemi tespiti için seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Karafatma / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Pire / Tahtakurusu", "value": "pire_tahtakurusu", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Kemirgen (Fare / Sıçan)", "value": "fare", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Gümüş Böceği / Örümcek / Akrep / Karınca", "value": "gumus_karinca", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Genel Koruyucu İlaçlama (Önlem Amaçlı)", "value": "genel_onlem", "next_step": "step_ilaclama_guvenlik" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_guvenlik",
+        "step_title": "Mekanda çocuk, evcil hayvan veya hamile var mı?",
+        "description": "İlaç tipi (kokusuz/zararsız jel) ve güvenlik önlemleri için.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Evcil Hayvan Var (Kokusuz & Zararsız İlaç)", "value": "evcil_hayvan", "next_step": "step_ilaclama_yontem" },
+          { "label": "Evet, Bebek / Çocuk / Hamile Var", "value": "bebek_cocuk", "next_step": "step_ilaclama_yontem" },
+          { "label": "Hayır Yok (Mekan Boşaltılabilir)", "value": "guvenlik_yok", "next_step": "step_ilaclama_yontem" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_yontem",
+        "step_title": "Tercih ettiğiniz ilaçlama yöntemi nedir?",
+        "description": "Mekanda kalınabilir veya evcil hayvan dostu yöntemler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kokusuz Sıvı & Jel İlaçlama (Evden Çıkmaya Gerek Yok)", "value": "kokusuz_jel", "next_step": "step_ilaclama_garanti" },
+          { "label": "Kokulu / Dumanlı ULV Sisleme (Ev 2-4 Saat Havalandırılır)", "value": "ulv_sisleme", "next_step": "step_ilaclama_garanti" },
+          { "label": "Uzman Hizmet Veren Yerinde İnceleyip Karar Versin", "value": "uzman_karar", "next_step": "step_ilaclama_garanti" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_garanti",
+        "step_title": "Garanti veya periyodik uygulama tercihinizi seçin:",
+        "description": "Tekrarlayan böcek durumlarında koruma seçeneği.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tek Seferlik İlaçlama", "value": "tek_seferlik", "next_step": "step_detaylar" },
+          { "label": "6 Ay Garantili / Tekrarlamalı Koruma Paketi", "value": "6_ay_garantili", "next_step": "step_detaylar" }
         ]
       },
       {
         "step_id": "step_detaylar",
-        "step_title": "İhtiyacın detayları neler?",
-        "description": "Evcil hayvan var mı veya ilaçlama sıklığı ilgili detaylar:",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Mutfak dolaplarında yoğun görülüyor, kokusuz ilaç olsun.",
         "input_type": "textarea",
-        "placeholder": "Örn: Mutfakta hamam böceği görüldü, kedi besliyoruz kokusuz ilaç olsun.",
+        "placeholder": "Örn: Mutfak dolaplarında hamam böceği görüldü, kedi besliyoruz.",
         "is_optional": true,
         "next_step": "END"
       }
@@ -1674,53 +1706,170 @@ export const QUESTION_FLOWS: Record<string, CategoryFlow> = {
     ]
   },
   'bocek-ilaclama': {
-    "category_id": "hasere_ilaclama",
-    "category_name": "Haşere İlaçlama",
+    "category_id": "bocek_ilaclama",
+    "category_name": "Ev & Haşere İlaçlama",
     "steps": [
       {
-        "step_id": "step_hasere_turu",
-        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
-        "description": "Haşere türünü seçiniz.",
-        "input_type": "single_select",
-        "options": [
-          { "label": "Hamam Böceği / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_alani" },
-          { "label": "Tahta Kurusu", "value": "tahta_kurusu", "next_step": "step_ilaclama_alani" },
-          { "label": "Pire / Kene", "value": "pire", "next_step": "step_ilaclama_alani" },
-          { "label": "Fare / Kemirgen", "value": "fare", "next_step": "step_ilaclama_alani" },
-          { "label": "Akrep / Gümüş Böceği / Karınca", "value": "karinca_diger", "next_step": "step_ilaclama_alani" },
-          { "label": "Bilmiyorum / Genel İlaçlama", "value": "genel", "next_step": "step_ilaclama_alani" }
-        ]
-      },
-      {
-        "step_id": "step_ilaclama_alani",
-        "step_title": "İlaçlama yapılacak mekan neresidir?",
+        "step_id": "step_ilaclama_mekan",
+        "step_title": "İlaçlama yapılacak mekanın türü nedir?",
         "description": "Uygulama alanını seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "Ev / Daire", "value": "daire", "next_step": "step_ilaclama_m2" },
-          { "label": "Müstakil Ev / Bahçe", "value": "villa_bahce", "next_step": "step_ilaclama_m2" },
-          { "label": "Restaurant / Kafe / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
-          { "label": "Depo / Bodrum", "value": "depo", "next_step": "step_ilaclama_m2" }
+          { "label": "Daire / Ev", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_ilaclama_m2" },
+          { "label": "Apartman Ortak Alanı / Bodrum / Sığınak", "value": "apartman_ortak", "next_step": "step_ilaclama_m2" },
+          { "label": "Ofis / Dükkan / Restoran / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Bahçe / Açık Alan / Depo", "value": "bahce_depo", "next_step": "step_ilaclama_m2" }
         ]
       },
       {
         "step_id": "step_ilaclama_m2",
-        "step_title": "Alanın büyüklüğü nedir?",
-        "description": "Tahmini metrekare.",
+        "step_title": "İlaçlanacak alanın büyüklüğü nedir?",
+        "description": "Malzeme dozajı ve ekipman için metrekare seçiniz.",
         "input_type": "single_select",
         "options": [
-          { "label": "100 m²'ye kadar", "value": "100_m2", "next_step": "step_detaylar" },
-          { "label": "100 - 200 m²", "value": "200_m2", "next_step": "step_detaylar" },
-          { "label": "200 - 500 m²", "value": "500_m2", "next_step": "step_detaylar" },
-          { "label": "500 m² ve üzeri", "value": "500_plus_m2", "next_step": "step_detaylar" }
+          { "label": "100 m²'den Küçük (1+1 / 2+1 Daire)", "value": "100_m2_alt", "next_step": "step_ilaclama_tur" },
+          { "label": "100 - 180 m² (3+1 / 4+1 Daire veya Ofis)", "value": "100_180_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "180 - 300 m² (Villa / Restoran / İş Yeri)", "value": "180_300_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "300 m² ve Üzeri (Bina / Depo / Bahçe)", "value": "300_plus_m2", "next_step": "step_ilaclama_tur" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_tur",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Doğru ilaç ve uygulama yöntemi tespiti için seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Karafatma / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Pire / Tahtakurusu", "value": "pire_tahtakurusu", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Kemirgen (Fare / Sıçan)", "value": "fare", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Gümüş Böceği / Örümcek / Akrep / Karınca", "value": "gumus_karinca", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Genel Koruyucu İlaçlama (Önlem Amaçlı)", "value": "genel_onlem", "next_step": "step_ilaclama_guvenlik" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_guvenlik",
+        "step_title": "Mekanda çocuk, evcil hayvan veya hamile var mı?",
+        "description": "İlaç tipi (kokusuz/zararsız jel) ve güvenlik önlemleri için.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Evcil Hayvan Var (Kokusuz & Zararsız İlaç)", "value": "evcil_hayvan", "next_step": "step_ilaclama_yontem" },
+          { "label": "Evet, Bebek / Çocuk / Hamile Var", "value": "bebek_cocuk", "next_step": "step_ilaclama_yontem" },
+          { "label": "Hayır Yok (Mekan Boşaltılabilir)", "value": "guvenlik_yok", "next_step": "step_ilaclama_yontem" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_yontem",
+        "step_title": "Tercih ettiğiniz ilaçlama yöntemi nedir?",
+        "description": "Mekanda kalınabilir veya evcil hayvan dostu yöntemler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kokusuz Sıvı & Jel İlaçlama (Evden Çıkmaya Gerek Yok)", "value": "kokusuz_jel", "next_step": "step_ilaclama_garanti" },
+          { "label": "Kokulu / Dumanlı ULV Sisleme (Ev 2-4 Saat Havalandırılır)", "value": "ulv_sisleme", "next_step": "step_ilaclama_garanti" },
+          { "label": "Uzman Hizmet Veren Yerinde İnceleyip Karar Versin", "value": "uzman_karar", "next_step": "step_ilaclama_garanti" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_garanti",
+        "step_title": "Garanti veya periyodik uygulama tercihinizi seçin:",
+        "description": "Tekrarlayan böcek durumlarında koruma seçeneği.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tek Seferlik İlaçlama", "value": "tek_seferlik", "next_step": "step_detaylar" },
+          { "label": "6 Ay Garantili / Tekrarlamalı Koruma Paketi", "value": "6_ay_garantili", "next_step": "step_detaylar" }
         ]
       },
       {
         "step_id": "step_detaylar",
-        "step_title": "İhtiyacın detayları neler?",
-        "description": "Evcil hayvan var mı veya ilaçlama sıklığı ilgili detaylar:",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Mutfak dolaplarında yoğun görülüyor, kokusuz ilaç olsun.",
         "input_type": "textarea",
-        "placeholder": "Örn: Mutfakta hamam böceği görüldü, kedi besliyoruz kokusuz ilaç olsun.",
+        "placeholder": "Örn: Mutfak dolaplarında hamam böceği görüldü, kedi besliyoruz.",
+        "is_optional": true,
+        "next_step": "END"
+      }
+    ]
+  },
+  'ev-ilaclama': {
+    "category_id": "bocek_ilaclama",
+    "category_name": "Ev & Haşere İlaçlama",
+    "steps": [
+      {
+        "step_id": "step_ilaclama_mekan",
+        "step_title": "İlaçlama yapılacak mekanın türü nedir?",
+        "description": "Uygulama alanını seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Daire / Ev", "value": "daire", "next_step": "step_ilaclama_m2" },
+          { "label": "Müstakil Ev / Villa", "value": "villa", "next_step": "step_ilaclama_m2" },
+          { "label": "Apartman Ortak Alanı / Bodrum / Sığınak", "value": "apartman_ortak", "next_step": "step_ilaclama_m2" },
+          { "label": "Ofis / Dükkan / Restoran / İş Yeri", "value": "isyeri", "next_step": "step_ilaclama_m2" },
+          { "label": "Bahçe / Açık Alan / Depo", "value": "bahce_depo", "next_step": "step_ilaclama_m2" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_m2",
+        "step_title": "İlaçlanacak alanın büyüklüğü nedir?",
+        "description": "Malzeme dozajı ve ekipman için metrekare seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "100 m²'den Küçük (1+1 / 2+1 Daire)", "value": "100_m2_alt", "next_step": "step_ilaclama_tur" },
+          { "label": "100 - 180 m² (3+1 / 4+1 Daire veya Ofis)", "value": "100_180_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "180 - 300 m² (Villa / Restoran / İş Yeri)", "value": "180_300_m2", "next_step": "step_ilaclama_tur" },
+          { "label": "300 m² ve Üzeri (Bina / Depo / Bahçe)", "value": "300_plus_m2", "next_step": "step_ilaclama_tur" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_tur",
+        "step_title": "Şikayetçi olduğunuz haşere / böcek türü nedir?",
+        "description": "Doğru ilaç ve uygulama yöntemi tespiti için seçiniz.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Hamam Böceği / Karafatma / Kalorifer Böceği", "value": "hamam_bocegi", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Pire / Tahtakurusu", "value": "pire_tahtakurusu", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Kemirgen (Fare / Sıçan)", "value": "fare", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Gümüş Böceği / Örümcek / Akrep / Karınca", "value": "gumus_karinca", "next_step": "step_ilaclama_guvenlik" },
+          { "label": "Genel Koruyucu İlaçlama (Önlem Amaçlı)", "value": "genel_onlem", "next_step": "step_ilaclama_guvenlik" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_guvenlik",
+        "step_title": "Mekanda çocuk, evcil hayvan veya hamile var mı?",
+        "description": "İlaç tipi (kokusuz/zararsız jel) ve güvenlik önlemleri için.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Evet, Evcil Hayvan Var (Kokusuz & Zararsız İlaç)", "value": "evcil_hayvan", "next_step": "step_ilaclama_yontem" },
+          { "label": "Evet, Bebek / Çocuk / Hamile Var", "value": "bebek_cocuk", "next_step": "step_ilaclama_yontem" },
+          { "label": "Hayır Yok (Mekan Boşaltılabilir)", "value": "guvenlik_yok", "next_step": "step_ilaclama_yontem" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_yontem",
+        "step_title": "Tercih ettiğiniz ilaçlama yöntemi nedir?",
+        "description": "Mekanda kalınabilir veya evcil hayvan dostu yöntemler.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Kokusuz Sıvı & Jel İlaçlama (Evden Çıkmaya Gerek Yok)", "value": "kokusuz_jel", "next_step": "step_ilaclama_garanti" },
+          { "label": "Kokulu / Dumanlı ULV Sisleme (Ev 2-4 Saat Havalandırılır)", "value": "ulv_sisleme", "next_step": "step_ilaclama_garanti" },
+          { "label": "Uzman Hizmet Veren Yerinde İnceleyip Karar Versin", "value": "uzman_karar", "next_step": "step_ilaclama_garanti" }
+        ]
+      },
+      {
+        "step_id": "step_ilaclama_garanti",
+        "step_title": "Garanti veya periyodik uygulama tercihinizi seçin:",
+        "description": "Tekrarlayan böcek durumlarında koruma seçeneği.",
+        "input_type": "single_select",
+        "options": [
+          { "label": "Tek Seferlik İlaçlama", "value": "tek_seferlik", "next_step": "step_detaylar" },
+          { "label": "6 Ay Garantili / Tekrarlamalı Koruma Paketi", "value": "6_ay_garantili", "next_step": "step_detaylar" }
+        ]
+      },
+      {
+        "step_id": "step_detaylar",
+        "step_title": "Hizmet verene iletmek istediğiniz özel bir not var mı?",
+        "description": "Örn: Mutfak dolaplarında yoğun görülüyor, kokusuz ilaç olsun.",
+        "input_type": "textarea",
+        "placeholder": "Örn: Mutfak dolaplarında hamam böceği görüldü, kedi besliyoruz.",
         "is_optional": true,
         "next_step": "END"
       }
