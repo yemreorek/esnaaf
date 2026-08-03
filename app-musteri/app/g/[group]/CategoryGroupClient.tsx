@@ -142,47 +142,47 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
             </span>
           </div>
 
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Cards Grid: 2 columns on mobile, 4 on desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {filteredPopular.map((service, idx) => (
               <div
                 key={idx}
                 onClick={() => handleStartQuote(service.title)}
-                className="group bg-white rounded-3xl border border-slate-200/80 hover:border-[#c8f252] shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between"
+                className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 hover:border-[#c8f252] shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between"
               >
                 {/* Photo Header */}
-                <div className="relative h-44 overflow-hidden bg-slate-100">
+                <div className="relative h-28 sm:h-44 overflow-hidden bg-slate-100">
                   <img
                     src={service.image}
                     alt={service.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-slate-950/80 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-white/20">
                     ⚡ 30 Dk Teklif
                   </div>
                 </div>
 
                 {/* Body Content */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between space-y-2 sm:space-y-4">
                   <div>
-                    <h3 className="font-extrabold text-base text-slate-900 group-hover:text-slate-950 group-hover:underline transition-colors">
+                    <h3 className="font-extrabold text-xs sm:text-base text-slate-900 group-hover:text-slate-950 group-hover:underline transition-colors line-clamp-1">
                       {service.title}
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-sm text-emerald-600">group</span>
-                      {service.providers}
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs sm:text-sm text-emerald-600">group</span>
+                      <span className="truncate">{service.providers}</span>
                     </p>
                   </div>
 
                   {/* Rating & Reviews */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1 text-amber-500 font-bold">
-                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: '"FILL" 1' }}>
+                  <div className="pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-xs">
+                    <div className="flex items-center gap-0.5 sm:gap-1 text-amber-500 font-bold">
+                      <span className="material-symbols-outlined text-xs sm:text-sm" style={{ fontVariationSettings: '"FILL" 1' }}>
                         star
                       </span>
                       <span className="text-slate-900 font-extrabold">{service.rating}</span>
                     </div>
-                    <span className="text-slate-400 text-[11px] font-medium">{service.reviews}</span>
+                    <span className="text-slate-400 text-[9px] sm:text-[11px] font-medium truncate">{service.reviews}</span>
                   </div>
                 </div>
               </div>
