@@ -171,6 +171,44 @@ export class MarketPriceAggregatorService implements OnModuleInit {
       minPrice = 500; maxPrice = 1800;
     } else if (combined.includes('oto-cam') || combined.includes('cam-filmi')) {
       minPrice = 1200; maxPrice = 4200;
+    } else if (combined.includes('psikolog') || combined.includes('terapi') || combined.includes('danismani') || combined.includes('danışmanı')) {
+      minPrice = 1200; maxPrice = 3500;
+    } else if (combined.includes('diyetisyen')) {
+      minPrice = 800; maxPrice = 2500;
+    } else if (combined.includes('fizik-tedavi') || combined.includes('fizyoterapist')) {
+      minPrice = 1500; maxPrice = 4500;
+    } else if (combined.includes('hemsire') || combined.includes('hemşire') || combined.includes('serum')) {
+      minPrice = 800; maxPrice = 2200;
+    } else if (combined.includes('pilates')) {
+      minPrice = 900; maxPrice = 2800;
+    } else if (combined.includes('kedi-trasi') || combined.includes('kopek-trasi') || combined.includes('pet-kuafor') || combined.includes('pet kuaför')) {
+      minPrice = 600; maxPrice = 1800;
+    } else if (combined.includes('kopek-oteli') || combined.includes('kedi-oteli') || combined.includes('pansiyon')) {
+      minPrice = 500; maxPrice = 1500;
+    } else if (combined.includes('kopek-egitimi') || combined.includes('köpek eğitimi')) {
+      minPrice = 3500; maxPrice = 15000;
+    } else if (combined.includes('gezdirme') || combined.includes('kedi-bakimi') || combined.includes('kopek-bakimi')) {
+      minPrice = 300; maxPrice = 900;
+    } else if (combined.includes('mobil-uygulama') || combined.includes('app')) {
+      minPrice = 15000; maxPrice = 65000;
+    } else if (combined.includes('internet-sitesi') || combined.includes('web-sitedi') || combined.includes('web tasarim')) {
+      minPrice = 5000; maxPrice = 25000;
+    } else if (combined.includes('seo')) {
+      minPrice = 4000; maxPrice = 18000;
+    } else if (combined.includes('logo') || combined.includes('grafik')) {
+      minPrice = 1500; maxPrice = 6500;
+    } else if (combined.includes('sosyal-medya') || combined.includes('google-ads') || combined.includes('reklam-yonetimi')) {
+      minPrice = 4500; maxPrice = 16000;
+    } else if (combined.includes('vize')) {
+      minPrice = 2500; maxPrice = 8500;
+    } else if (combined.includes('tercume') || combined.includes('tercüme') || combined.includes('ceviri')) {
+      minPrice = 400; maxPrice = 1500;
+    } else if (combined.includes('dedektif')) {
+      minPrice = 10000; maxPrice = 45000;
+    } else if (combined.includes('karavan')) {
+      minPrice = 2500; maxPrice = 7500;
+    } else if (combined.includes('terzi')) {
+      minPrice = 350; maxPrice = 1200;
     } else if (combined.includes('dugun-fotografcisi') || combined.includes('düğün fotoğrafçısı')) {
       minPrice = 6500; maxPrice = 18500;
     } else if (combined.includes('dis-cekim') || combined.includes('dış çekim')) {
