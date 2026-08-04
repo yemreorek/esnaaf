@@ -2,6 +2,19 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-04 feat | 16 İlişkili Hizmet Kümesi, Tek Ekran Akıllı Çip Akışı (Single-Page Smart Tag Flow) & Admin Alt Hizmet Yönetimi
+
+- **16 İlişkili Hizmet Kümesi Haritası (`service-relations.config.ts`):**
+  - İlaçlama, Ev Temizliği, Bina/Dış Cephe, Koltuk Yıkama, İklimlendirme, Su Tesisatı, Elektrik, Boya, Zemin, Tadilat, Nakliyat, Marangoz, Cam/PVC, Yemek, Özel Ders ve Organizasyon olmak üzere 16 küme altında tüm 60+ alt hizmet ilişkisel haritaya bağlandı.
+- **Veritabanı Sütun Genişlemesi (`schema.prisma`):**
+  - `ServiceProvider` modeline `subservice_slugs String[] @default([])` sütunu eklendi ve Prisma Client güncellendi.
+- **Hizmet Veren Paneli Tek Ekran Akıllı Çip Akışı (`partner.esnaaf.com`):**
+  - Usta profil ayarlarına **Single-Page Smart Tag Flow** arayüzü kuruldu: Canlı arama barı + anında açılan bağlantılı öneri çipleri (`💡 "Böcek İlaçlama" seçtiniz. Şunları da eklemek ister misiniz? [+] Ev İlaçlama [+] Dezenfeksiyon`) + Aktif Seçili Hizmetlerim Çip Bulutu (`[X] Hizmet Çıkar`).
+  - Usta için `GET /api/hizmetveren/service-clusters`, `GET /api/hizmetveren/my-services` ve `PATCH /api/hizmetveren/my-services` endpoint'leri yazıldı.
+- **Admin Paneli Alt Hizmet Yönetim Endpoint'leri (`admin.esnaaf.com`):**
+  - Adminlerin usta adına hizmet ekleyip çıkarabilmesi için `GET /api/admin/providers/:id/categories` ve `PATCH /api/admin/providers/:id/categories` NestJS endpoint'leri geliştirildi ve Audit Log sistemine bağlandı.
+  - Değişiklikler derlendi, `6646a18` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-08-04 feat | Özel 404 Sayfası, Mobil 2'li Grid, Hizmet Başlıkları, İnşaat/İlaşlama/Merdiven/Apartman JSON Akışları & /tekliflerim Rota Düzeltmesi
 
 - **İnşaat Sonrası Temizlik 6 Adımlı Soru Akışı & Eşleştirme Düzeltmesi:**
