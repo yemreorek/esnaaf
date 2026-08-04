@@ -153,8 +153,38 @@ export class MarketPriceAggregatorService implements OnModuleInit {
       minPrice = 950; maxPrice = 2600;
     } else if (combined.includes('buharli') || combined.includes('buharlı')) {
       minPrice = 1200; maxPrice = 3000;
-    } else if (combined.includes('arac') || combined.includes('araç') || combined.includes('araba')) {
-      minPrice = 1200; maxPrice = 3200;
+    } else if (combined.includes('pasta-cila') || combined.includes('pasta cila')) {
+      minPrice = 1500; maxPrice = 4500;
+    } else if (combined.includes('seramik-kaplama') || combined.includes('seramik kaplama')) {
+      minPrice = 4000; maxPrice = 12500;
+    } else if (combined.includes('ppf') || combined.includes('kaplama')) {
+      minPrice = 3500; maxPrice = 14500;
+    } else if (combined.includes('oto-kuafor') || combined.includes('oto kuaför') || combined.includes('detayli-arac')) {
+      minPrice = 1200; maxPrice = 3500;
+    } else if (combined.includes('oto-ekspertiz') || combined.includes('ekspertiz')) {
+      minPrice = 1500; maxPrice = 3500;
+    } else if (combined.includes('motor-tamir') || combined.includes('motor-rektifiye')) {
+      minPrice = 3500; maxPrice = 18500;
+    } else if (combined.includes('balata') || combined.includes('fren') || combined.includes('yag-degisimi')) {
+      minPrice = 750; maxPrice = 2500;
+    } else if (combined.includes('oto-lastik') || combined.includes('lastikci')) {
+      minPrice = 500; maxPrice = 1800;
+    } else if (combined.includes('oto-cam') || combined.includes('cam-filmi')) {
+      minPrice = 1200; maxPrice = 4200;
+    } else if (combined.includes('dugun-fotografcisi') || combined.includes('düğün fotoğrafçısı')) {
+      minPrice = 6500; maxPrice = 18500;
+    } else if (combined.includes('dis-cekim') || combined.includes('dış çekim')) {
+      minPrice = 3500; maxPrice = 9500;
+    } else if (combined.includes('drone')) {
+      minPrice = 2500; maxPrice = 7500;
+    } else if (combined.includes('dogum-gunu') || combined.includes('sunnet') || combined.includes('nisan')) {
+      minPrice = 2000; maxPrice = 5500;
+    } else if (combined.includes('urun-fotograf') || combined.includes('katalog')) {
+      minPrice = 3000; maxPrice = 10000;
+    } else if (combined.includes('fotograf') || combined.includes('video') || combined.includes('klip')) {
+      minPrice = 2500; maxPrice = 8500;
+    } else if (combined.includes('arac') || combined.includes('araç') || combined.includes('araba') || combined.includes('oto')) {
+      minPrice = 1200; maxPrice = 4500;
     } else if (combined.includes('apartman') || combined.includes('merdiven')) {
       minPrice = 1200; maxPrice = 3200;
     } else if (combined.includes('ev-temizligi') || combined.includes('ev temizliği')) {

@@ -679,6 +679,128 @@ export const GROUP_DATABASE: Record<string, GroupData> = {
       { name: "Ürün Fotoğrafçılığı", slug: "dugun-fotografcisi" },
       { name: "Video Çekimi & Kurgu", slug: "video-cekimi" }
     ]
+  },
+  diger: {
+    slug: "diger",
+    name: "Diğer Kategoriler & Hizmet Rehberi",
+    heroTitle: "Tüm Diğer Hizmetler & Kategori Dizin",
+    heroSubtitle: "Oto ve Araç Bakımından Fotoğrafçılığa, Özel Derslerden Ev Hizmetlerine aradığınız her şeye 30 dakikada ulaşın.",
+    heroImage: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1600&auto=format&fit=crop",
+    popularServices: [
+      {
+        title: "Oto Kuaför & Detaylı Temizlik",
+        slug: "oto-kuafor",
+        image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=600&auto=format&fit=crop",
+        providers: "4.820 Hizmet Veren",
+        rating: "4.9",
+        reviews: "82.400 onaylı yorum"
+      },
+      {
+        title: "Pasta Cila & Seramik Kaplama",
+        slug: "pasta-cila",
+        image: "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?q=80&w=600&auto=format&fit=crop",
+        providers: "3.910 Hizmet Veren",
+        rating: "4.8",
+        reviews: "48.200 onaylı yorum"
+      },
+      {
+        title: "Araç Kaplama & PPF",
+        slug: "arac-kaplama",
+        image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=600&auto=format&fit=crop",
+        providers: "2.840 Hizmet Veren",
+        rating: "4.9",
+        reviews: "31.900 onaylı yorum"
+      },
+      {
+        title: "Dış Çekim & Düğün Fotoğrafçısı",
+        slug: "dugun-fotografcisi",
+        image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=600&auto=format&fit=crop",
+        providers: "5.120 Hizmet Veren",
+        rating: "4.9",
+        reviews: "74.800 onaylı yorum"
+      },
+      {
+        title: "Drone Video Çekimi",
+        slug: "drone-cekimi",
+        image: "https://images.unsplash.com/photo-1508615039623-a25605d2b022?q=80&w=600&auto=format&fit=crop",
+        providers: "2.140 Hizmet Veren",
+        rating: "4.8",
+        reviews: "26.400 onaylı yorum"
+      },
+      {
+        title: "Motor Tamiri & Yağ Değişimi",
+        slug: "motor-tamiri",
+        image: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=600&auto=format&fit=crop",
+        providers: "4.560 Hizmet Veren",
+        rating: "4.8",
+        reviews: "59.100 onaylı yorum"
+      },
+      {
+        title: "Oto Ekspertiz Hizmeti",
+        slug: "oto-ekspertiz",
+        image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=600&auto=format&fit=crop",
+        providers: "3.280 Hizmet Veren",
+        rating: "4.9",
+        reviews: "41.300 onaylı yorum"
+      },
+      {
+        title: "Oto Lastik & Fren Değişimi",
+        slug: "oto-lastik",
+        image: "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?q=80&w=600&auto=format&fit=crop",
+        providers: "4.110 Hizmet Veren",
+        rating: "4.8",
+        reviews: "52.800 onaylı yorum"
+      }
+    ],
+    allServices: [
+      { name: "Araç Bakım", slug: "arac-bakim" },
+      { name: "Araç Kaplama", slug: "arac-kaplama" },
+      { name: "Araç Koltuk Temizleme", slug: "arac-koltuk-temizleme" },
+      { name: "Araç Koltuk Yıkama", slug: "arac-koltuk-yikama" },
+      { name: "Araç PPF Kaplama", slug: "arac-ppf-kaplama" },
+      { name: "Balata Değişimi", slug: "balata-degisimi" },
+      { name: "Baskı Balata Değişimi", slug: "baski-balata-degisimi" },
+      { name: "Boyasız Göçük Düzeltme", slug: "boyasiz-gocuk-duzeltme" },
+      { name: "Cam Filmi", slug: "cam-filmi" },
+      { name: "Detaylı Araç Temizliği", slug: "detayli-arac-temizligi" },
+      { name: "Dış Çekim Fotoğraf", slug: "dis-cekim-fotograf" },
+      { name: "Doğum Günü Fotoğrafçısı", slug: "dogum-gunu-fotografcisi" },
+      { name: "Drone Çekimi", slug: "drone-cekimi" },
+      { name: "Düğün Fotoğrafçısı", slug: "dugun-fotografcisi" },
+      { name: "Düğün Video Çekimi", slug: "dugun-video-cekimi" },
+      { name: "Evde Yemek Pişirme", slug: "evde-yemek-pisirme" },
+      { name: "Evde Ütü Hizmeti", slug: "evde-utu-hizmeti" },
+      { name: "Frenci", slug: "frenci" },
+      { name: "Katalog Çekimi", slug: "katalog-cekimi" },
+      { name: "Lastikçi", slug: "lastikci" },
+      { name: "Motor Contası Değişimi", slug: "motor-contasi-degisimi" },
+      { name: "Motor Rektifiye", slug: "motor-rektifiye" },
+      { name: "Motor Tamiri", slug: "motor-tamiri" },
+      { name: "Motor Yağ Değişimi", slug: "motor-yag-degisimi" },
+      { name: "Nişan Fotoğrafçısı", slug: "nisan-fotografcisi" },
+      { name: "Oto Boya", slug: "oto-boya" },
+      { name: "Oto Cam Filmi", slug: "oto-cam-filmi" },
+      { name: "Oto Cam Tamiri", slug: "oto-cam-tamiri" },
+      { name: "Oto Ekspertiz", slug: "oto-ekspertiz" },
+      { name: "Oto Elektrik", slug: "oto-elektrik" },
+      { name: "Oto Kaporta Boya", slug: "oto-kaporta-boya" },
+      { name: "Oto Klima", slug: "oto-klima" },
+      { name: "Oto Klima Gazı Dolumu", slug: "oto-klima-gazi-dolumu" },
+      { name: "Oto Kuaför", slug: "oto-kuafor" },
+      { name: "Oto Lastik", slug: "oto-lastik" },
+      { name: "Oto Tamir", slug: "oto-tamir" },
+      { name: "Pasta Cila", slug: "pasta-cila" },
+      { name: "PPF Kaplama", slug: "ppf-kaplama" },
+      { name: "Reklam Filmi Çekimi", slug: "reklam-filmi-cekimi" },
+      { name: "Seramik Kaplama", slug: "seramik-kaplama" },
+      { name: "Sünnet Fotoğrafçısı", slug: "sunnet-fotografcisi" },
+      { name: "Tampon Boyama", slug: "tampon-boyama" },
+      { name: "Tampon Tamiri", slug: "tampon-tamiri" },
+      { name: "Triger Seti Değişimi", slug: "triger-seti-degisimi" },
+      { name: "Ürün Fotoğrafçılığı", slug: "urun-fotografciligi" },
+      { name: "Yağ Değişimi", slug: "yag-degisimi" },
+      { name: "Yaprak Sarma Yapımı", slug: "yaprak-sarma-yapimi" }
+    ]
   }
 };
 

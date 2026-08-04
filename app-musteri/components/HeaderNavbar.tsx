@@ -17,7 +17,7 @@ export const NAV_ITEMS = [
   { name: "Tamir", href: "/g/tamir" },
   { name: "Özel Ders", href: "/g/ozel-ders" },
   { name: "Organizasyon", href: "/g/organizasyon" },
-  { name: "Diğer", isModal: true }
+  { name: "Diğer", href: "/g/diger" }
 ];
 
 export default function HeaderNavbar({ isLoggedIn = false, onOpenDashboard, onLogout }: HeaderNavbarProps) {
@@ -45,24 +45,11 @@ export default function HeaderNavbar({ isLoggedIn = false, onOpenDashboard, onLo
           {/* 7 Category Tabs (Armut Style Header Tabs) */}
           <nav className="hidden lg:flex items-center gap-6">
             {NAV_ITEMS.map((item, idx) => {
-              if (item.isModal) {
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={handleModalClick}
-                    className="text-slate-300 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider cursor-pointer bg-transparent border-none p-0"
-                  >
-                    {item.name}
-                  </button>
-                );
-              }
-
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={idx}
-                  href={item.href!}
+                  href={item.href}
                   className={`transition-all font-bold text-xs uppercase tracking-wider relative py-1 ${
                     isActive
                       ? "text-[#c8f252] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#c8f252] after:rounded-full"

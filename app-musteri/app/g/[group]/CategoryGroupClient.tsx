@@ -224,8 +224,122 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
             </div>
           </div>
 
-          {/* 2-Column Mobile & 4-Column Desktop Grid */}
-          {filteredAll.length > 0 ? (
+          {/* 🔴 DIGER CATEGORIES (Armut Style Multi-Column Section Grouping) vs REGULAR GRID */}
+          {groupData.slug === 'diger' ? (
+            <div className="space-y-12 pt-4">
+              {[
+                {
+                  title: "Oto ve Araç",
+                  icon: "directions_car",
+                  items: [
+                    { name: "Araç Bakım", slug: "arac-bakim" },
+                    { name: "Araç Kaplama", slug: "arac-kaplama" },
+                    { name: "Araç Koltuk Temizleme", slug: "arac-koltuk-temizleme" },
+                    { name: "Araç Koltuk Yıkama", slug: "arac-koltuk-yikama" },
+                    { name: "Araç PPF Kaplama", slug: "arac-ppf-kaplama" },
+                    { name: "Balata Değişimi", slug: "balata-degisimi" },
+                    { name: "Baskı Balata Değişimi", slug: "baski-balata-degisimi" },
+                    { name: "Boyasız Göçük Düzeltme", slug: "boyasiz-gocuk-duzeltme" },
+                    { name: "Cam Filmi", slug: "cam-filmi" },
+                    { name: "Detaylı Araç Temizliği", slug: "detayli-arac-temizligi" },
+                    { name: "Frenci", slug: "frenci" },
+                    { name: "Lastikçi", slug: "lastikci" },
+                    { name: "Motor Contası Değişimi", slug: "motor-contasi-degisimi" },
+                    { name: "Motor Rektifiye", slug: "motor-rektifiye" },
+                    { name: "Motor Tamiri", slug: "motor-tamiri" },
+                    { name: "Motor Yağ Değişimi", slug: "motor-yag-degisimi" },
+                    { name: "Oto Boya", slug: "oto-boya" },
+                    { name: "Oto Cam Filmi", slug: "oto-cam-filmi" },
+                    { name: "Oto Cam Tamiri", slug: "oto-cam-tamiri" },
+                    { name: "Oto Ekspertiz", slug: "oto-ekspertiz" },
+                    { name: "Oto Elektrik", slug: "oto-elektrik" },
+                    { name: "Oto Kaporta Boya", slug: "oto-kaporta-boya" },
+                    { name: "Oto Klima", slug: "oto-klima" },
+                    { name: "Oto Klima Gazı Dolumu", slug: "oto-klima-gazi-dolumu" },
+                    { name: "Oto Kuaför", slug: "oto-kuafor" },
+                    { name: "Oto Lastik", slug: "oto-lastik" },
+                    { name: "Oto Tamir", slug: "oto-tamir" },
+                    { name: "Pasta Cila", slug: "pasta-cila" },
+                    { name: "PPF Kaplama", slug: "ppf-kaplama" },
+                    { name: "Seramik Kaplama", slug: "seramik-kaplama" },
+                    { name: "Tampon Boyama", slug: "tampon-boyama" },
+                    { name: "Tampon Tamiri", slug: "tampon-tamiri" },
+                    { name: "Triger Seti Değişimi", slug: "triger-seti-degisimi" },
+                    { name: "Yağ Değişimi", slug: "yag-degisimi" }
+                  ]
+                },
+                {
+                  title: "Fotoğraf ve Video",
+                  icon: "photo_camera",
+                  items: [
+                    { name: "Dış Çekim Fotoğraf", slug: "dis-cekim-fotograf" },
+                    { name: "Doğum Günü Fotoğrafçısı", slug: "dogum-gunu-fotografcisi" },
+                    { name: "Drone Çekimi", slug: "drone-cekimi" },
+                    { name: "Düğün Fotoğrafçısı", slug: "dugun-fotografcisi" },
+                    { name: "Düğün Video Çekimi", slug: "dugun-video-cekimi" },
+                    { name: "Katalog Çekimi", slug: "katalog-cekimi" },
+                    { name: "Klip Çekimi", slug: "klip-cekimi" },
+                    { name: "Nişan Fotoğrafçısı", slug: "nisan-fotografcisi" },
+                    { name: "Reklam Filmi Çekimi", slug: "reklam-filmi-cekimi" },
+                    { name: "Sünnet Fotoğrafçısı", slug: "sunnet-fotografcisi" },
+                    { name: "Ürün Fotoğrafçılığı", slug: "urun-fotografciligi" },
+                    { name: "Video Çekimi & Kurgu", slug: "video-cekimi" }
+                  ]
+                },
+                {
+                  title: "Ev İşleri & Diğer Hizmetler",
+                  icon: "grid_view",
+                  items: [
+                    { name: "Direksiyon Dersi", slug: "direksiyon-dersi" },
+                    { name: "Evde Ütü Hizmeti", slug: "evde-utu-hizmeti" },
+                    { name: "Evde Yemek Pişirme", slug: "evde-yemek-pisirme" },
+                    { name: "Yaprak Sarma Yapımı", slug: "yaprak-sarma-yapimi" }
+                  ]
+                }
+              ].map((section, sIdx) => {
+                const sectionFilteredItems = section.items.filter((item) => {
+                  if (!normQuery) return true;
+                  const itemNorm = item.name.toLocaleLowerCase("tr-TR")
+                    .replace(/i/g, "i").replace(/ı/g, "i").replace(/ç/g, "c")
+                    .replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u");
+                  return itemNorm.includes(normQuery);
+                });
+
+                if (sectionFilteredItems.length === 0) return null;
+
+                return (
+                  <div key={sIdx} className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                      <div className="w-10 h-10 rounded-2xl bg-[#c8f252]/20 border border-[#c8f252]/40 text-slate-900 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-xl">{section.icon}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{section.title}</h3>
+                        <p className="text-xs text-slate-400 font-semibold">{sectionFilteredItems.length} Hizmet Sıralanıyor</p>
+                      </div>
+                    </div>
+
+                    {/* Armut Style 3-Column List with Underline Hover */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3.5 gap-x-8">
+                      {sectionFilteredItems.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleStartQuote(item.name)}
+                          className="text-left text-xs sm:text-sm font-bold text-slate-850 hover:text-[#4c630a] underline underline-offset-4 decoration-slate-300 hover:decoration-[#c8f252] transition-all cursor-pointer py-1 flex items-center justify-between group"
+                        >
+                          <span className="truncate pr-2">{item.name}</span>
+                          <span className="material-symbols-outlined text-slate-300 group-hover:text-[#4c630a] text-xs opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                            arrow_forward
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : filteredAll.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
               {filteredAll.map((item, idx) => (
                 <button
