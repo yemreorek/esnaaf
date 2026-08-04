@@ -21,19 +21,11 @@ export default function NotFound() {
       {/* Header Bar */}
       <header className="relative z-10 max-w-7xl w-full mx-auto px-6 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#c8f252] to-emerald-400 p-0.5 shadow-lg shadow-[#c8f252]/20 group-hover:scale-105 transition-transform duration-300">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-              <span className="text-[#c8f252] font-black text-xl tracking-tighter">e</span>
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-white group-hover:text-[#c8f252] transition-colors">
-              esnaaf
-            </span>
-            <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">
-              Güvenilir Hizmet Verenler
-            </span>
-          </div>
+          <img
+            src="/esnaaf-logo.png?v=20260801"
+            alt="Esnaaf Logo"
+            className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+          />
         </Link>
 
         <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-800 text-xs font-semibold text-slate-300">
