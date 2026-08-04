@@ -2,6 +2,24 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-04 feat | Özel 404 Sayfası, Mobil 2'li Grid, Hizmet Başlıkları, İnşaat/İlaşlama/Merdiven/Apartman JSON Akışları & /tekliflerim Rota Düzeltmesi
+
+- **İnşaat Sonrası Temizlik 6 Adımlı Soru Akışı & Eşleştirme Düzeltmesi:**
+  - `detectCategory` fonksiyonunda `inşaat`/`insaat` kelimeleri için yüksek öncelikli eşleştirme eklendi. Ev Temizliği'ne düşmesi engellendi. Kullanıcı ve hizmet veren odaklı 6 adımlı özel soru akışı entegre edildi.
+- **Ev İlaçlama 6 Adımlı Sağlık Odaklı İlaçlama Akışı:**
+  - `ilaçlama`, `ilaclama`, `ev ilaçlama`, `böcek`, `haşere` kelimeleri için yüksek öncelikli tespit yazıldı. Koltuk Yıkama'ya düşmesi engellendi. Evcil hayvan/çocuk güvenliği ve kokusuz/ULV sisleme seçenekli 6 adımlı akış eklendi.
+- **Merdiven Temizliği ve Apartman Temizliği Hizmetlerinin Tamamen Ayrılması:**
+  - `merdiven-temizligi` ve `apartman-temizligi` iki ayrı bağımsız kategoriye ayrıldı. Birleşik "Apartman & Merdiven" başlığı kaldırıldı. İki hizmet için de 7 adımlı özel detaylı JSON soru akışları entegre edildi.
+- **Müşteri Teklif Kontrol Paneli Rotası (`/tekliflerim` ve `/talep/[id]`):**
+  - Müşteri sohbeti bittiğinde yönlendirilen adresteki Server 500 hatası (*"This page couldn't load"*) düzeltildi. `app-musteri/app/tekliflerim/page.tsx` ve `app-musteri/app/talep/[id]/page.tsx` rotaları oluşturuldu.
+- **Ustalara Düşen Fırsat Kartlarında Güncel Alt Hizmet Başlıkları:**
+  - `getCategoryName` ve `getSpecificCategoryName` servis haritaları güncellendi. Usta panelinde (*partner.esnaaf.com*) jenerik üst kategori isimleri yerine müşterinin tıkladığı tam ve net hizmet başlığı (ör. *Dış Cephe Cam Silme*, *İnşaat Sonrası Temizlik*) görüntülenecek şekilde dinamikleştirildi.
+- **Grup Sayfaları Mobil 2'li Grid Düzeni (`/g/[group]`):**
+  - Kategori grup sayfalarındaki Popüler Hizmetler alanı mobil cihazlarda ana sayfadaki "Haftanın Trend Hizmetleri" ile birebir uyumlu 2'li yan yana dikey kayan grid (`grid-cols-2`) haline getirildi.
+- **Özel Premium 404 Not Found Sayfa Tasarımı (`app-musteri/app/not-found.tsx`):**
+  - Esnaaf marka kimliğine uygun, karanlık cam efektli (glassmorphic), `#c8f252` lime ışıltılı, Esnaaf logolu ve "Ana Sayfaya Dön" butonlu lüks 404 ekranı kodlandı.
+  - Değişiklikler derlendi, `81fbd32` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-08-03 feat | Otomatik Piyasa Fiyat Takip Motoru (MarketPriceAggregatorService) & Oturum Sıfırlama İyileştirmesi
 
 - **Google AI & Armut 2026 Piyasa Fiyatlandırması:**
