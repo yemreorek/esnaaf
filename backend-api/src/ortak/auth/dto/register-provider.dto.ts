@@ -19,6 +19,11 @@ export class RegisterProviderDto {
   @IsString({ each: true, message: 'Her hizmet alanı UUID metni olmalıdır.' })
   categoryIds: string[];
 
+  @IsOptional()
+  @IsArray({ message: 'Alt hizmetler dizi (array) formatında olmalıdır.' })
+  @IsString({ each: true, message: 'Her alt hizmet geçerli bir slug olmalıdır.' })
+  subserviceSlugs?: string[];
+
   @IsNotEmpty({ message: 'Şehir boş bırakılamaz.' })
   @IsString({ message: 'Şehir geçerli bir metin olmalıdır.' })
   city: string;

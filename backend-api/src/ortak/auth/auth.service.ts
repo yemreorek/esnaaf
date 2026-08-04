@@ -331,6 +331,7 @@ export class AuthService {
             description: descriptionJson,
             city: dto.city,
             service_districts: dto.districts,
+            subservice_slugs: dto.subserviceSlugs || [],
             is_approved: false,
           },
         },
@@ -433,9 +434,19 @@ export class AuthService {
           .trim();
       };
 
-      const dbSlugs = new Set(dbCategories.map((c) => slugify(c.name)));
+      const dbCategoriesWithMeta = dbCategories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: slugify(c.name),
+        isActive: c.isActive,
+        isSubservice: false,
+        questions_flow: c.questions_flow,
+        created_at: c.created_at,
+      }));
+
+      const dbSlugs = new Set(dbCategoriesWithMeta.map((c) => c.slug));
       const allSub = getAllSubservices();
-      const combined = [...dbCategories];
+      const combined = [...dbCategoriesWithMeta] as any[];
 
       for (const sub of allSub) {
         if (!dbSlugs.has(sub.slug.toLowerCase())) {
@@ -444,12 +455,14 @@ export class AuthService {
             id: sub.slug,
             name: sub.title,
             slug: sub.slug,
+            parentSlug: sub.categorySlug,
+            isSubservice: true,
             icon: 'grid_view',
             description: null,
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
-          } as any);
+          });
         }
       }
 

@@ -84,7 +84,7 @@ const uploadToGCS = async (file: File | Blob, originalName: string): Promise<str
 };
 
 export default function HizmetVerenBasvuru() {
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string; parentSlug?: string; isSubservice?: boolean }[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadingProfile, setUploadingProfile] = useState(false);
@@ -95,6 +95,7 @@ export default function HizmetVerenBasvuru() {
 
   const [formData, setFormData] = useState({
     primaryCategory: "", // Category ID
+    subserviceSlugs: [] as string[], // Selected subservice slugs
     companyType: "Şahıs", // 'Şahıs' | 'Şirket'
     companyName: "",
     name: "",
@@ -131,7 +132,7 @@ export default function HizmetVerenBasvuru() {
   const handleNext = () => {
     setErrorMessage("");
     if (validateStep()) {
-      setCurrentStep((prev) => Math.min(prev + 1, 12));
+      setCurrentStep((prev) => Math.min(prev + 1, 13));
     }
   };
 
@@ -149,60 +150,63 @@ export default function HizmetVerenBasvuru() {
         }
         return true;
       case 2:
+        // Optional subservice selection
         return true;
       case 3:
+        return true;
+      case 4:
         if (formData.companyType === "Şirket" && !formData.companyName.trim()) {
           setErrorMessage("Lütfen firma adınızı girin.");
           return false;
         }
         return true;
-      case 4:
+      case 5:
         if (!formData.name.trim() || !formData.surname.trim()) {
           setErrorMessage("Lütfen adınızı ve soyadınızı girin.");
           return false;
         }
         return true;
-      case 5:
+      case 6:
         if (formData.districts.length === 0) {
           setErrorMessage("Lütfen hizmet verdiğiniz en az bir ilçe seçin.");
           return false;
         }
         return true;
-      case 6:
+      case 7:
         const cleanPhone = formData.phone.replace(/\D/g, "");
         if (cleanPhone.length < 10) {
           setErrorMessage("Lütfen geçerli bir cep telefonu numarası girin.");
           return false;
         }
         return true;
-      case 7:
+      case 8:
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
           setErrorMessage("Lütfen geçerli bir e-posta adresi girin.");
           return false;
         }
         return true;
-      case 8:
+      case 9:
         if (!formData.profilePhoto) {
           setErrorMessage("Lütfen profil fotoğrafınızı yükleyin.");
           return false;
         }
         return true;
-      case 9:
+      case 10:
         if (formData.description.trim().length < 20) {
           setErrorMessage("Tanıtım yazınız en az 20 karakter uzunluğunda olmalıdır.");
           return false;
         }
         return true;
-      case 10:
-        return true;
       case 11:
+        return true;
+      case 12:
         if (!formData.termsAccepted) {
           setErrorMessage("Kayıt olmak için kullanım koşullarını ve KVKK metnini onaylamanız gerekmektedir.");
           return false;
         }
         return true;
-      case 12:
+      case 13:
         if (!formData.password) {
           setErrorMessage("Şifre boş bırakılamaz.");
           return false;
@@ -297,6 +301,7 @@ export default function HizmetVerenBasvuru() {
           name: `${formData.name} ${formData.surname}`,
           email: formData.email,
           categoryIds,
+          subserviceSlugs: formData.subserviceSlugs,
           city: formData.city,
           districts: formData.districts,
           companyType: formData.companyType,
@@ -334,7 +339,7 @@ export default function HizmetVerenBasvuru() {
 
   // Filter categories for Step 1
   const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    !cat.isSubservice && cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -366,7 +371,7 @@ export default function HizmetVerenBasvuru() {
           {/* Step Progress Bar */}
           <div className="w-full mb-8">
             <div className="flex justify-between items-center gap-1.5">
-              {[...Array(12)].map((_, i) => (
+              {[...Array(13)].map((_, i) => (
                 <div key={i} className="flex-1 relative">
                   <div 
                     className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -386,7 +391,7 @@ export default function HizmetVerenBasvuru() {
               ))}
             </div>
             <div className="text-right text-[10px] text-slate-400 font-bold mt-2.5">
-              Profil Detayları | Adım {currentStep}/12
+              Profil Detayları | Adım {currentStep}/13
             </div>
           </div>
 
@@ -422,7 +427,7 @@ export default function HizmetVerenBasvuru() {
                     filteredCategories.map((cat) => (
                       <button
                         key={cat.id}
-                        onClick={() => setFormData({ ...formData, primaryCategory: cat.id })}
+                        onClick={() => setFormData({ ...formData, primaryCategory: cat.id, subserviceSlugs: [] })}
                         className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex justify-between items-center cursor-pointer ${
                           formData.primaryCategory === cat.id
                             ? "bg-slate-900 text-white"
@@ -444,8 +449,73 @@ export default function HizmetVerenBasvuru() {
               </div>
             )}
 
-            {/* STEP 2: ŞİRKET BİLGİLERİ */}
-            {currentStep === 2 && (
+            {/* STEP 2: ALT HİZMET/UZMANLIK SEÇİMİ (YENİ) */}
+            {currentStep === 2 && (() => {
+              const selectedCategory = categories.find((c) => c.id === formData.primaryCategory);
+              const subservices = selectedCategory
+                ? categories.filter((c) => c.isSubservice && c.parentSlug === selectedCategory.slug)
+                : [];
+
+              return (
+                <div className="space-y-6 text-center">
+                  <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
+                    <CheckSquare className="w-8 h-8 text-slate-800" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="font-headline-lg text-xl md:text-2xl text-slate-900 leading-tight">Uzmanlık Alanlarınız</h2>
+                    <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                      {selectedCategory?.name || "Hizmet"} altındaki yapmak istediğiniz işleri seçin.
+                    </p>
+                  </div>
+                  {subservices.length > 0 ? (
+                    <div className="max-h-[220px] overflow-y-auto border border-slate-100 rounded-2xl p-2 space-y-1.5 scrollbar-thin text-left">
+                      {subservices.map((sub) => {
+                        const isChecked = formData.subserviceSlugs.includes(sub.slug);
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => {
+                              if (isChecked) {
+                                setFormData({
+                                  ...formData,
+                                  subserviceSlugs: formData.subserviceSlugs.filter((s) => s !== sub.slug),
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  subserviceSlugs: [...formData.subserviceSlugs, sub.slug],
+                                });
+                              }
+                            }}
+                            className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex justify-between items-center cursor-pointer border ${
+                              isChecked
+                                ? "bg-slate-900 border-slate-900 text-white"
+                                : "border-slate-100 hover:bg-slate-50 text-slate-700"
+                            }`}
+                          >
+                            <span>{sub.name}</span>
+                            {isChecked && (
+                              <svg className="w-4.5 h-4.5 text-[#c8f252]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-slate-400 text-xs font-semibold py-8 space-y-2">
+                      <p>Bu hizmet alanı için ek alt uzmanlık seçimi bulunmamaktadır.</p>
+                      <p className="text-[10px] text-slate-350">Doğrudan "Devam Et" butonuna tıklayarak ilerleyebilirsiniz.</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* STEP 3: ŞİRKET BİLGİLERİ */}
+            {currentStep === 3 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Briefcase className="w-8 h-8 text-slate-800" />
@@ -483,7 +553,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 3: FİRMA ADI */}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Contact className="w-8 h-8 text-slate-800" />
@@ -511,7 +581,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 4: AD VE SOYAD */}
-            {currentStep === 4 && (
+            {currentStep === 5 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <User className="w-8 h-8 text-slate-800" />
@@ -548,7 +618,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 5: NEREDE HİZMET VERİYORSUN (İL VE İLÇE) */}
-            {currentStep === 5 && (
+            {currentStep === 6 && (
               <div className="space-y-5 text-center">
                 <div className="mx-auto w-15 h-15 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <MapPin className="w-6 h-6 text-slate-800" />
@@ -621,7 +691,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 6: CEP TELEFONU */}
-            {currentStep === 6 && (
+            {currentStep === 7 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Phone className="w-8 h-8 text-slate-800" />
@@ -653,7 +723,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 7: EMAIL ADRESİ */}
-            {currentStep === 7 && (
+            {currentStep === 8 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Mail className="w-8 h-8 text-slate-800" />
@@ -678,7 +748,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 8: PROFİL FOTOĞRAFI */}
-            {currentStep === 8 && (
+            {currentStep === 9 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Camera className="w-8 h-8 text-slate-800" />
@@ -734,7 +804,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 9: HAKKINDA / TANITIM YAZISI */}
-            {currentStep === 9 && (
+            {currentStep === 10 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <FileText className="w-8 h-8 text-slate-800" />
@@ -762,7 +832,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 10: REFERANS FOTOĞRAFLARI */}
-            {currentStep === 10 && (
+            {currentStep === 11 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Images className="w-8 h-8 text-slate-800" />
@@ -817,7 +887,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 11: SÖZLEŞMELER */}
-            {currentStep === 11 && (
+            {currentStep === 12 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Handshake className="w-8 h-8 text-slate-800" />
@@ -845,7 +915,7 @@ export default function HizmetVerenBasvuru() {
             )}
 
             {/* STEP 12: ŞİFRE BELİRLE */}
-            {currentStep === 12 && (
+            {currentStep === 13 && (
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-[#c8f252]/10 text-slate-800 rounded-full flex items-center justify-center">
                   <Lock className="w-8 h-8 text-slate-800" />
@@ -899,7 +969,7 @@ export default function HizmetVerenBasvuru() {
             </div>
           )}
 
-          {currentStep < 12 ? (
+          {currentStep < 13 ? (
             <button
               onClick={handleNext}
               className="w-full bg-[#88b000] hover:bg-[#7aa000] text-white font-button-text text-sm py-4 rounded-2xl shadow-lg shadow-[#88b000]/10 transition-all cursor-pointer hover:shadow-xl active:scale-98 flex items-center justify-center gap-1.5"
