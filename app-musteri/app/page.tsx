@@ -7,6 +7,7 @@ import ChatScreen from "../components/ChatScreen";
 import SeekerDashboard from "../components/SeekerDashboard";
 import Footer from "../components/Footer";
 import { startNewSession, isLoggedIn, getAuthUser, logout } from "../lib/session";
+import { useRouter } from "next/navigation";
 
 // All 20 categories for the full selection [Explore] modal
 const categories = [
@@ -172,6 +173,7 @@ const renderCategoryIcon = (icon: string) => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalSearchQuery, setModalSearchQuery] = useState("");
