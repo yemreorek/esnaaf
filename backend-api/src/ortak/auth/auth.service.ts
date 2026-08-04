@@ -411,7 +411,7 @@ export class AuthService {
   }
 
   async getCategories() {
-    return this.redis.getOrSet('categories:active_v4', async () => {
+    return this.redis.getOrSet('categories:active_v5', async () => {
       const dbCategories = await this.prisma.category.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
@@ -449,29 +449,9 @@ export class AuthService {
           return 'insaat-tadilat-sonrasi-temizlik';
         }
         const mapping: Record<string, string> = {
-          'klima-servisi': 'kombi-klima-bakimi',
-          'kombi-servisi': 'kombi-klima-bakimi',
           'hasere-ilaclama': 'hasere-bocek-ilaclama',
           'nakliyat': 'nakliyat-ev-tasima',
-          'cam-balkon': 'cam-balkon-pvc-pencere',
-          'pvc-pencere': 'cam-balkon-pvc-pencere',
-          'marangoz': 'marangoz-mobilya-montaji',
-          'mobilya-montaji': 'marangoz-mobilya-montaji',
-          'fayans-doseme': 'fayans-parke-doseme',
-          'parke-doseme': 'fayans-parke-doseme',
-          'ic-mimar': 'ic-mimar-dekorasyon',
-          'dekorasyon': 'ic-mimar-dekorasyon',
           'tadilat': 'ev-tadilat',
-          'mantolama': 'mantolama-dis-cephe',
-          'dis-cephe': 'mantolama-dis-cephe',
-          'organizasyon': 'organizasyon-etkinlik',
-          'etkinlik': 'organizasyon-etkinlik',
-          'seo-hizmeti': 'organizasyon-etkinlik',
-          'grafik-tasarim': 'organizasyon-etkinlik',
-          'internet-sitesi-olusturma': 'organizasyon-etkinlik',
-          'apartman-yonetimi': 'ev-temizligi',
-          'terzi': 'ev-temizligi',
-          'ozel-dedektif': 'organizasyon-etkinlik',
           'karavan-kiralama': 'nakliyat-ev-tasima',
         };
         return mapping[subItem.categorySlug] || subItem.categorySlug;
