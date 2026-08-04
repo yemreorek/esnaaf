@@ -1081,3 +1081,13 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 - **Admin Paneli Alt Hizmet Yönetim Endpoint'leri (`admin.esnaaf.com`):**
   - Adminlerin usta adına hizmet ekleyip çıkarabilmesi için `GET /api/admin/providers/:id/categories` ve `PATCH /api/admin/providers/:id/categories` NestJS endpoint'leri geliştirildi ve Audit Log sistemine bağlandı.
   - Değişiklikler derlendi, `6646a18` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
+## 🛠️ Adım 66 Geliştirme Detayları ("DİĞER" Kategoriler Sayfası, Çoklu Sütun Görüntüleme & Oto/Fotoğraf 2026 Fiyat Desteği)
+
+- **Header Menü Doğrudan Rotalama (`HeaderNavbar.tsx`):**
+  - Ana menüdeki "DİĞER" linki modal tetiği yerine `/g/diger` rotasına bağlandı.
+- **Armut Stili Çoklu Sütunlu Sayfa Tasarımı (`CategoryGroupClient.tsx` & `page.tsx`):**
+  - `/g/diger` rotası için özel **Oto ve Araç**, **Fotoğraf ve Video** ve **Ev İşleri & Diğer Hizmetler** ana grup bölümleri oluşturuldu. Subservice bağlantıları 3'lü sütun altı çizgili hover efektiyle listelendi.
+- **Oto ve Araç & Fotoğraf 2026 Piyasa Fiyat Matrisi (`market-price-aggregator.service.ts`):**
+  - Pasta cila (₺1.500 - ₺4.500), seramik kaplama (₺4.000 - ₺12.500), oto kuaför (₺1.200 - ₺3.500), motor tamiri (₺3.500 - ₺18.500), düğün fotoğrafçısı (₺6.500 - ₺18.500), drone çekimi (₺2.500 - ₺7.500) vb. için 2026 piyasa fiyat tahmin kural seti kuruldu.
+  - Değişiklikler derlendi, `f474596` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına otomatik deploy edildi.

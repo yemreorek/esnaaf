@@ -2,6 +2,17 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-04 feat | "DİĞER" Kategoriler Sayfası (`/g/diger`), Çoklu Sütun Grubu Arayüzü, Oto/Fotoğraf 2026 Fiyat & pSEO Desteği
+
+- **Ana Menü Rota Güncellemesi (`HeaderNavbar.tsx`):**
+  - Üst menüdeki "DİĞER" butonu modal pop-up yerine doğrudan `/g/diger` rotasına yönlendirecek şekilde `NAV_ITEMS` içinden bağımsız sayfa bağlantısına dönüştürüldü.
+- **"DİĞER" Sayfa Dizin Yapısı & Armut Stili Çoklu Sütun Görüntüleme (`app-musteri/app/g/[group]`):**
+  - `GROUP_DATABASE` içerisine `diger` kategorisi entegre edilerek 404 engellendi.
+  - `/g/diger` rotasında üst menüye sığmayan ikincil kategoriler (**Oto ve Araç**, **Fotoğraf ve Video**, **Ev İşleri & Diğer Hizmetler**) özel bölüm başlıkları ve 3'lü sütun alt hizmet listeleriyle görsel olarak gruplandı.
+- **Oto & Fotoğraf Hizmet Grubu Entegrasyonu (Backend & pSEO & 2026 Fiyat Matrisi):**
+  - `service-relations.config.ts` ve `market-price-aggregator.service.ts` dosyalarına 34+ Oto & Araç subservice'i (Pasta Cila, Seramik Kaplama, Araç Kaplama, Oto Kuaför, Balata/Yağ Değişimi, Motor Tamiri vb.) ile 12+ Fotoğraf/Video subservice'i (Dış Çekim, Düğün Fotoğrafçısı, Drone Çekimi vb.) için 2026 piyasa fiyat aralıkları ve pSEO il/ilçe şemaları entegre edildi.
+  - Kodlar derlendi, `f474596` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına otomatik deploy edildi.
+
 ## 2026-08-04 feat | 16 İlişkili Hizmet Kümesi, Tek Ekran Akıllı Çip Akışı (Single-Page Smart Tag Flow) & Admin Alt Hizmet Yönetimi
 
 - **16 İlişkili Hizmet Kümesi Haritası (`service-relations.config.ts`):**
