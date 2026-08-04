@@ -6629,13 +6629,33 @@ export default function ProviderDashboard() {
                   {/* Search Autocomplete Suggestions Dropdown */}
                   {subserviceSearchQuery.trim().length > 0 && (
                     <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-30 max-h-60 overflow-y-auto p-2 space-y-1">
-                      {DEFAULT_SERVICE_CLUSTERS.flatMap((c) => c.subservices)
-                        .filter(
-                          (sub, idx, self) =>
-                            self.findIndex((s) => s.slug === sub.slug) === idx &&
-                            sub.title.toLowerCase().includes(subserviceSearchQuery.toLowerCase())
-                        )
-                        .map((sub) => {
+                      {(() => {
+                        const trNormalize = (text: string) => {
+                          const trMap: Record<string, string> = {
+                            'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+                            'Ç': 'C', 'Ğ': 'G', 'İ': 'I', 'Ö': 'O', 'Ş': 'S', 'Ü': 'U',
+                          };
+                          let normalized = text || "";
+                          for (const key in trMap) {
+                            normalized = normalized.replace(new RegExp(key, 'g'), trMap[key]);
+                          }
+                          return normalized.toLowerCase();
+                        };
+                        const query = trNormalize(subserviceSearchQuery);
+                        const results = DEFAULT_SERVICE_CLUSTERS.flatMap((c) => c.subservices)
+                          .filter(
+                            (sub, idx, self) =>
+                              self.findIndex((s) => s.slug === sub.slug) === idx &&
+                              trNormalize(sub.title).includes(query)
+                          );
+                        if (results.length === 0) {
+                          return (
+                            <div className="px-3.5 py-3 text-xs text-slate-400 font-semibold text-center">
+                              Eşleşen hizmet bulunamadı.
+                            </div>
+                          );
+                        }
+                        return results.map((sub) => {
                           const isSelected = providerSubserviceSlugs.includes(sub.slug);
                           return (
                             <button
@@ -6656,11 +6676,12 @@ export default function ProviderDashboard() {
                             >
                               <span>{sub.title}</span>
                               <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                                {isSelected ? '✓ Seçili' : '+ Ekle'}
+                                 {isSelected ? '✓ Seçili' : '+ Ekle'}
                               </span>
                             </button>
                           );
-                        })}
+                        });
+                      })()}
                     </div>
                   )}
                 </div>

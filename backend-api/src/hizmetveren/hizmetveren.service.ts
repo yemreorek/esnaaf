@@ -2288,10 +2288,57 @@ export class HizmetverenService {
       throw new NotFoundException('Hizmet veren profili bulunamadı.');
     }
 
+    // Find all active categories from DB
+    const dbCategories = await this.prisma.category.findMany({
+      where: { isActive: true },
+    });
+
+    const slugify = (name: string) => {
+      const trMap: Record<string, string> = {
+        'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+        'Ç': 'c', 'Ğ': 'g', 'İ': 'i', 'Ö': 'o', 'Ş': 's', 'Ü': 'u',
+      };
+      let str = name;
+      for (const key in trMap) {
+        str = str.replace(new RegExp(key, 'g'), trMap[key]);
+      }
+      return str
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    };
+
+    const categorySlugToIdMap: Record<string, string> = {};
+    for (const cat of dbCategories) {
+      categorySlugToIdMap[slugify(cat.name)] = cat.id;
+    }
+
+    const newCategoryIdsSet = new Set<string>();
+
+    for (const subSlug of subserviceSlugs) {
+      let subItem: any = null;
+      for (const cluster of SERVICE_CLUSTERS) {
+        const found = cluster.subservices.find(s => s.slug === subSlug);
+        if (found) {
+          subItem = found;
+          break;
+        }
+      }
+      if (subItem && subItem.categorySlug) {
+        const dbCatId = categorySlugToIdMap[subItem.categorySlug];
+        if (dbCatId) {
+          newCategoryIdsSet.add(dbCatId);
+        }
+      }
+    }
+
     const updated = await this.prisma.serviceProvider.update({
       where: { user_id: providerUserId },
       data: {
         subservice_slugs: subserviceSlugs,
+        category_ids: Array.from(newCategoryIdsSet),
       },
       select: {
         id: true,
@@ -2304,6 +2351,7 @@ export class HizmetverenService {
       success: true,
       message: 'Hizmetleriniz ve uzmanlık alanlarınız başarıyla güncellendi.',
       subserviceSlugs: updated.subservice_slugs,
+      categoryIds: updated.category_ids,
     };
   }
 }

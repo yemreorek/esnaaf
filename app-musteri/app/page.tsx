@@ -184,8 +184,62 @@ export default function Home() {
   const baseTextRef = useRef("");
   const isListeningRef = useRef(false);
 
+  // States & Refs for Autocomplete Suggestions
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
   // Scroll targets refs
   const searchInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch categories dynamic endpoint on mount
+  useEffect(() => {
+    fetch("/api/ortak/auth/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAllCategories(data);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch categories:", err));
+  }, []);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const normalizeText = (text: string) => {
+    const trMap: Record<string, string> = {
+      'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+      'Ç': 'C', 'Ğ': 'G', 'İ': 'I', 'Ö': 'O', 'Ş': 'S', 'Ü': 'U',
+    };
+    let normalized = text || "";
+    for (const key in trMap) {
+      normalized = normalized.replace(new RegExp(key, 'g'), trMap[key]);
+    }
+    return normalized.toLowerCase();
+  };
+
+  const getFilteredSuggestions = () => {
+    if (!inputValue.trim()) return [];
+    const query = normalizeText(inputValue);
+    return allCategories.filter((cat) => {
+      return normalizeText(cat.name).includes(query);
+    });
+  };
+
+  const handleSelectSuggestion = (cat: any) => {
+    setInputValue(cat.name);
+    setShowSuggestions(false);
+    handleStartChat(cat.name);
+  };
 
   // Speech Recognition Handler
   const startSpeechRecognition = () => {
@@ -657,105 +711,148 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Premium AI Chat Box */}
-          <div className="w-full max-w-2xl bg-white/95 backdrop-blur-xl border border-white/60 rounded-[28px] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] focus-within:ring-4 focus-within:ring-[#c8f252]/30 focus-within:border-white transition-all duration-300 mb-6 flex flex-col gap-2.5">
-            <textarea
-              ref={searchInputRef}
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                if (isListening && recognitionRef.current) {
-                  isListeningRef.current = false;
-                  recognitionRef.current.stop();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              rows={2}
-              className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-[13px] sm:text-sm placeholder:text-[11px] sm:placeholder:text-[13px] placeholder:font-medium placeholder:text-slate-400/80 focus:ring-0 p-0 resize-none min-h-[60px] scrollbar-none"
-              placeholder="Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Ev Temizliği, Boya Badana...)"
-            />
+          {/* Premium AI Chat Box with Autocomplete Suggestions */}
+          <div ref={searchContainerRef} className="relative w-full max-w-2xl">
+            <div className="w-full bg-white/95 backdrop-blur-xl border border-white/60 rounded-[28px] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] focus-within:ring-4 focus-within:ring-[#c8f252]/30 focus-within:border-white transition-all duration-300 mb-6 flex flex-col gap-2.5">
+              <textarea
+                ref={searchInputRef}
+                value={inputValue}
+                onFocus={() => setShowSuggestions(true)}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  setShowSuggestions(true);
+                  if (isListening && recognitionRef.current) {
+                    isListeningRef.current = false;
+                    recognitionRef.current.stop();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                rows={2}
+                className="bg-transparent border-none outline-none w-full text-slate-800 font-semibold text-[13px] sm:text-sm placeholder:text-[11px] sm:placeholder:text-[13px] placeholder:font-medium placeholder:text-slate-400/80 focus:ring-0 p-0 resize-none min-h-[60px] scrollbar-none"
+                placeholder="Esnaafa sorun. Hangi hizmete ihtiyacınız var ? (Örn: Klima Montajı, Ev Temizliği...)"
+              />
 
-            <div className="flex justify-between items-center w-full pt-2 border-t border-slate-100/80">
-              {/* Left: Category Picker Modal Trigger */}
-              <button
-                onClick={() => setIsModalOpen(true)}
-                title="Tüm Kategorileri Gör"
-                className="w-8 h-8 rounded-full border border-slate-150 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 cursor-pointer transition-all active:scale-95 bg-transparent"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <line x1="12" x2="12" y1="5" y2="19" />
-                  <line x1="5" x2="19" y1="12" y2="12" />
-                </svg>
-              </button>
-
-              {/* Right: AI Version & Actions */}
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                  <svg className="w-3 h-3 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="currentColor" />
-                  </svg>
-                  Esnaaf AI v3.6
-                </span>
-
-                {/* Sound Wave Visualizer when recording */}
-                {isListening && (
-                  <div className="flex items-end gap-[3px] h-4 px-1.5 select-none shrink-0" title="Mikrofonunuz dinleniyor...">
-                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-1 origin-bottom"></span>
-                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-2 origin-bottom"></span>
-                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-3 origin-bottom"></span>
-                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-4 origin-bottom"></span>
-                    <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-5 origin-bottom"></span>
-                  </div>
-                )}
-
-                {/* Microphone Button (Speech to Text) */}
+              <div className="flex justify-between items-center w-full pt-2 border-t border-slate-100/80">
+                {/* Left: Category Picker Modal Trigger */}
                 <button
-                  onClick={startSpeechRecognition}
-                  title={isListening ? "Dinlemeyi Durdur" : "Sesle Anlat"}
-                  className={`w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer transition-all active:scale-95 bg-transparent ${
-                    isListening
-                      ? "border-rose-300 bg-rose-50/50 text-rose-600 animate-pulse"
-                      : "border-slate-150 hover:border-slate-300 hover:bg-slate-50 text-slate-500"
-                  }`}
-                >
-                  {isListening ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <rect x="9" y="3" width="6" height="12" rx="3" />
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="22" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="22" />
-                    </svg>
-                  )}
-                </button>
-
-                {/* Send Button */}
-                <button
-                  onClick={handleSend}
-                  disabled={!inputValue.trim()}
-                  title="Talebi Başlat"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-95 border-none ${
-                    inputValue.trim()
-                      ? "bg-[#c8f252] text-slate-900 shadow-sm"
-                      : "bg-slate-100 text-slate-350 cursor-not-allowed opacity-50"
-                  }`}
+                  onClick={() => setIsModalOpen(true)}
+                  title="Tüm Kategorileri Gör"
+                  className="w-8 h-8 rounded-full border border-slate-150 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-500 cursor-pointer transition-all active:scale-95 bg-transparent"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    <line x1="12" x2="12" y1="5" y2="19" />
+                    <line x1="5" x2="19" y1="12" y2="12" />
                   </svg>
                 </button>
+
+                {/* Right: AI Version & Actions */}
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black text-slate-450 select-none bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                    <svg className="w-3 h-3 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="currentColor" />
+                    </svg>
+                    Esnaaf AI v3.6
+                  </span>
+
+                  {/* Sound Wave Visualizer when recording */}
+                  {isListening && (
+                    <div className="flex items-end gap-[3px] h-4 px-1.5 select-none shrink-0" title="Mikrofonunuz dinleniyor...">
+                      <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-1 origin-bottom"></span>
+                      <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-2 origin-bottom"></span>
+                      <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-3 origin-bottom"></span>
+                      <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-4 origin-bottom"></span>
+                      <span className="w-[2.5px] h-full bg-rose-500 rounded-full animate-sound-wave-5 origin-bottom"></span>
+                    </div>
+                  )}
+
+                  {/* Microphone Button (Speech to Text) */}
+                  <button
+                    onClick={startSpeechRecognition}
+                    title={isListening ? "Dinlemeyi Durdur" : "Sesle Anlat"}
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer transition-all active:scale-95 bg-transparent ${
+                      isListening
+                        ? "border-rose-300 bg-rose-50/50 text-rose-600 animate-pulse"
+                        : "border-slate-150 hover:border-slate-300 hover:bg-slate-50 text-slate-500"
+                    }`}
+                  >
+                    {isListening ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <rect x="9" y="3" width="6" height="12" rx="3" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="22" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="22" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Send Button */}
+                  <button
+                    onClick={handleSend}
+                    disabled={!inputValue.trim()}
+                    title="Talebi Başlat"
+                    className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-95 border-none ${
+                      inputValue.trim()
+                        ? "bg-[#c8f252] text-slate-900 shadow-sm"
+                        : "bg-slate-100 text-slate-350 cursor-not-allowed opacity-50"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Smart Autocomplete Search Dropdown */}
+            {showSuggestions && inputValue.trim().length > 0 && (() => {
+              const suggestions = getFilteredSuggestions();
+              if (suggestions.length === 0) return null;
+              return (
+                <div className="absolute top-[calc(100%-16px)] left-0 w-full bg-white/98 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.15)] z-50 overflow-hidden flex flex-col py-2 max-h-[320px] overflow-y-auto">
+                  {suggestions.slice(0, 10).map((cat, idx) => (
+                    <button
+                      key={cat.id || idx}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(cat)}
+                      className="w-full text-left px-5 py-3 hover:bg-slate-50 transition-all flex items-center justify-between group cursor-pointer border-none bg-transparent"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-450 group-hover:text-[#a3d924] transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" x2="16.65" y1="21" y2="16.65" />
+                          </svg>
+                        </span>
+                        <span className="text-slate-800 font-semibold text-sm group-hover:text-slate-900 transition-colors">
+                          {cat.name}
+                        </span>
+                      </div>
+                      {cat.isSubservice ? (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          Alt Hizmet
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#c8f252]/20 text-slate-800">
+                          Ana Kategori
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Down Arrow Indicator & App Downloads */}
