@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards, HttpStatus, HttpCode, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -157,6 +157,30 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async approveProvider(@Param('id') id: string, @CurrentUser() user: any) {
     return this.adminService.approveProvider(id, user.email);
+  }
+
+  /**
+   * Hizmet verenin kayıtlı kategori ve alt hizmet slug'larını getirme
+   * GET /api/admin/providers/:id/categories
+   */
+  @Get('providers/:id/categories')
+  @HttpCode(HttpStatus.OK)
+  async getProviderCategories(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.adminService.getProviderCategories(id, user.email);
+  }
+
+  /**
+   * Admin yetkisiyle hizmet verenin kategori ve alt hizmet slug'larını güncelleme
+   * PATCH /api/admin/providers/:id/categories
+   */
+  @Patch('providers/:id/categories')
+  @HttpCode(HttpStatus.OK)
+  async updateProviderCategories(
+    @Param('id') id: string,
+    @Body() body: { categoryIds?: string[]; subserviceSlugs?: string[] },
+    @CurrentUser() user: any,
+  ) {
+    return this.adminService.updateProviderCategories(id, body, user.email);
   }
 
   /**

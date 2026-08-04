@@ -130,6 +130,7 @@ model ServiceProvider {
   subscription_id   String?                @db.Uuid
   city              String                 @default("Adana")
   service_districts String[]               @default([])
+  subservice_slugs  String[]               @default([])
   offers            Offer[]
   accepted_offers   AcceptedOffer[]
   job_completions   JobCompletion[]

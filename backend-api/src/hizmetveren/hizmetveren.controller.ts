@@ -1,8 +1,8 @@
-import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Put, Patch, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ActiveAccountGuard } from '../common/guards/active-account.guard';
-import { Roles, CurrentUser } from '../common/decorators';
+import { Roles, CurrentUser, Public } from '../common/decorators';
 import { HizmetverenService } from './hizmetveren.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -259,5 +259,39 @@ export class HizmetverenController {
     @Query('period') period?: string
   ) {
     return this.hizmetverenService.getCompetitorStatsReport(user.id, period);
+  }
+
+  /**
+   * Tüm 16 ilişkili hizmet kümelerini ve alt hizmetleri döndürür
+   * GET /api/hizmetveren/service-clusters
+   */
+  @Get('service-clusters')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async getServiceClusters() {
+    return this.hizmetverenService.getServiceClusters();
+  }
+
+  /**
+   * Hizmet verenin mevcut seçili alt hizmetlerini ve uzmanlık alanlarını getirir
+   * GET /api/hizmetveren/my-services
+   */
+  @Get('my-services')
+  @HttpCode(HttpStatus.OK)
+  async getMyServices(@CurrentUser() user: any) {
+    return this.hizmetverenService.getMyServices(user.id);
+  }
+
+  /**
+   * Hizmet verenin seçtiği alt hizmet slug listesini günceller
+   * PATCH /api/hizmetveren/my-services
+   */
+  @Patch('my-services')
+  @HttpCode(HttpStatus.OK)
+  async updateMyServices(
+    @CurrentUser() user: any,
+    @Body('subserviceSlugs') subserviceSlugs: string[]
+  ) {
+    return this.hizmetverenService.updateMyServices(user.id, subserviceSlugs || []);
   }
 }

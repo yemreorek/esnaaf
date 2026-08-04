@@ -491,6 +491,81 @@ export class AdminService {
   }
 
   /**
+   * Retrieves specific provider's assigned category IDs & subservice slugs
+   */
+  async getProviderCategories(providerId: string, adminEmail?: string) {
+    if (adminEmail) {
+      await this.checkPermission(adminEmail, 'providers', 'read');
+    }
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { id: providerId },
+      include: { user: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren bulunamadı.');
+    }
+    return {
+      success: true,
+      providerId: provider.id,
+      providerName: provider.user.name || 'Hizmet Veren',
+      categoryIds: provider.category_ids,
+      subserviceSlugs: provider.subservice_slugs || [],
+    };
+  }
+
+  /**
+   * Admin modifies a provider's category IDs & subservice slugs
+   */
+  async updateProviderCategories(
+    providerId: string,
+    dto: { categoryIds?: string[]; subserviceSlugs?: string[] },
+    adminEmail?: string,
+  ) {
+    let staffId: string | null = null;
+    if (adminEmail) {
+      const staff = await this.checkPermission(adminEmail, 'providers', 'write');
+      staffId = staff.id;
+    }
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { id: providerId },
+    });
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren bulunamadı.');
+    }
+
+    const dataToUpdate: any = {};
+    if (Array.isArray(dto.categoryIds)) {
+      dataToUpdate.category_ids = dto.categoryIds;
+    }
+    if (Array.isArray(dto.subserviceSlugs)) {
+      dataToUpdate.subservice_slugs = dto.subserviceSlugs;
+    }
+
+    const updated = await this.prisma.serviceProvider.update({
+      where: { id: providerId },
+      data: dataToUpdate,
+    });
+
+    await this.redis.del(`provider:profile:v2:${provider.user_id}`);
+
+    await this.logAudit(
+      staffId || '',
+      'provider.update_categories',
+      'provider',
+      providerId,
+      { category_ids: provider.category_ids, subservice_slugs: provider.subservice_slugs },
+      { category_ids: updated.category_ids, subservice_slugs: updated.subservice_slugs },
+    );
+
+    return {
+      success: true,
+      message: 'Hizmet verenin kategorileri ve alt hizmetleri başarıyla güncellendi.',
+      categoryIds: updated.category_ids,
+      subserviceSlugs: updated.subservice_slugs,
+    };
+  }
+
+  /**
    * Retrieves all disputed job completions (disputes queue)
    */
   async getDisputes(adminEmail: string) {

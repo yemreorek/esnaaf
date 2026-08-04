@@ -39,6 +39,211 @@ import {
   Calendar
 } from 'lucide-react';
 
+const DEFAULT_SERVICE_CLUSTERS = [
+  {
+    clusterId: 'ilaclama-dezenfeksiyon',
+    name: 'İlaçlama & Dezenfeksiyon',
+    primarySlugs: ['bocek-ilaclama', 'ev-ilaclama', 'hasere-ilaclama'],
+    subservices: [
+      { slug: 'bocek-ilaclama', title: 'Böcek & Haşere İlaçlama' },
+      { slug: 'ev-ilaclama', title: 'Ev İlaçlama' },
+      { slug: 'hasere-ilaclama', title: 'Haşere İlaçlama' },
+      { slug: 'tahtakurusu-ilaclama', title: 'Tahtakurusu İlaçlama' },
+      { slug: 'fare-ilaclama', title: 'Fare İlaçlama' },
+      { slug: 'bahce-ilaclama', title: 'Bahçe İlaçlama' },
+      { slug: 'dezenfeksiyon', title: 'Dezenfeksiyon Hizmeti' },
+    ],
+  },
+  {
+    clusterId: 'ev-mekan-temizligi',
+    name: 'Ev & Mekan Temizliği',
+    primarySlugs: ['ev-temizligi', 'bos-ev-temizligi', 'insaat-sonrasi-temizlik'],
+    subservices: [
+      { slug: 'ev-temizligi', title: 'Ev Temizliği' },
+      { slug: 'bos-ev-temizligi', title: 'Boş Ev Temizliği' },
+      { slug: 'insaat-sonrasi-temizlik', title: 'İnşaat Sonrası Temizlik' },
+      { slug: 'tasinma-oncesi-temizlik', title: 'Taşınma Öncesi Temizlik' },
+      { slug: 'buharli-ev-temizligi', title: 'Buharlı Temizlik Hizmeti' },
+      { slug: 'gundelikci-temizlik', title: 'Gündelikçi Temizlik Hizmeti' },
+    ],
+  },
+  {
+    clusterId: 'bina-dis-cephe',
+    name: 'Bina, İş Yeri & Dış Cephe Temizliği',
+    primarySlugs: ['merdiven-temizligi', 'apartman-temizligi', 'dis-cephe-cam-silme', 'ofis-temizligi'],
+    subservices: [
+      { slug: 'merdiven-temizligi', title: 'Merdiven Temizliği' },
+      { slug: 'apartman-temizligi', title: 'Apartman Temizliği' },
+      { slug: 'dis-cephe-cam-silme', title: 'Dış Cephe Cam Silme' },
+      { slug: 'cam-temizligi', title: 'Cam Silme & Temizliği' },
+      { slug: 'dukkan-temizligi', title: 'Dükkan Temizliği' },
+      { slug: 'ofis-temizligi', title: 'Ofis Temizliği' },
+      { slug: 'is-yeri-temizligi', title: 'İş Yeri Temizliği' },
+      { slug: 'mermer-cilalama', title: 'Mermer Silim ve Cilalama' },
+      { slug: 'su-deposu-temizligi', title: 'Su Deposu Temizliği' },
+    ],
+  },
+  {
+    clusterId: 'koltuk-tekstil-yikama',
+    name: 'Koltuk & Tekstil Yıkama',
+    primarySlugs: ['koltuk-yikama', 'hali-yikama', 'yatak-yikama'],
+    subservices: [
+      { slug: 'koltuk-yikama', title: 'Koltuk Yıkama' },
+      { slug: 'yatak-yikama', title: 'Yatak Yıkama' },
+      { slug: 'hali-yikama', title: 'Halı Yıkama' },
+      { slug: 'arac-koltuk-yikama', title: 'Yerinde Araç Koltuk Yıkama' },
+      { slug: 'stor-perde-yikama', title: 'Stor & Zebra Perde Yıkama' },
+      { slug: 'kuru-temizleme', title: 'Kuru Temizleme' },
+      { slug: 'evde-utu-hizmeti', title: 'Evde Ütü Hizmeti' },
+    ],
+  },
+  {
+    clusterId: 'iklimlendirme-isitma',
+    name: 'İklimlendirme & Isıtma',
+    primarySlugs: ['klima-servisi', 'kombi-servisi'],
+    subservices: [
+      { slug: 'klima-servisi', title: 'Klima Servisi' },
+      { slug: 'klima-montaj', title: 'Klima Montajı' },
+      { slug: 'klima-tamir', title: 'Klima Tamiri' },
+      { slug: 'klima-bakim', title: 'Klima Bakımı' },
+      { slug: 'klima-gaz-dolumu', title: 'Klima Gaz Dolumu' },
+      { slug: 'vrf-klima', title: 'VRF Klima Servisi' },
+      { slug: 'kombi-servisi', title: 'Kombi Servisi' },
+      { slug: 'kombi-bakim', title: 'Kombi Bakımı' },
+      { slug: 'petek-temizligi', title: 'Petek Temizliği' },
+    ],
+  },
+  {
+    clusterId: 'su-dogalgaz-tesisati',
+    name: 'Su & Doğalgaz Tesisatı',
+    primarySlugs: ['su-tesisati', 'dogalgaz-tesisati'],
+    subservices: [
+      { slug: 'su-tesisati', title: 'Su Tesisatı' },
+      { slug: 'su-kacagi-tespiti', title: 'Su Kaçağı Tespiti' },
+      { slug: 'tikaniklik-acma', title: 'Tıkanıklık Açma' },
+      { slug: 'musluk-batarya-degisimi', title: 'Musluk / Batarya Değişimi' },
+      { slug: 'dogalgaz-tesisati', title: 'Doğalgaz Tesisatı' },
+      { slug: 'kalorifer-tesisati', title: 'Kalorifer Tesisatı' },
+    ],
+  },
+  {
+    clusterId: 'elektrik-aydinlatma',
+    name: 'Elektrik & Aydınlatma',
+    primarySlugs: ['elektrik-tesisati'],
+    subservices: [
+      { slug: 'elektrik-tesisati', title: 'Elektrik Tesisatı' },
+      { slug: 'avize-montaji', title: 'Avize Montajı' },
+      { slug: 'priz-anahtar-degisimi', title: 'Priz / Anahtar Değişimi' },
+      { slug: 'internet-kablo-cekimi', title: 'İnternet & Kablo Çekimi' },
+      { slug: 'sigorta-ariza-tamiri', title: 'Sigorta Arıza Tamiri' },
+      { slug: 'diafon-montaji', title: 'Görüntülü Diafon Montajı' },
+    ],
+  },
+  {
+    clusterId: 'boya-badana-duvar',
+    name: 'Boya, Badana & Duvar',
+    primarySlugs: ['boya-badana'],
+    subservices: [
+      { slug: 'boya-badana', title: 'Boya Badana' },
+      { slug: 'ic-cephe-boyama', title: 'İç Cephe Boyama' },
+      { slug: 'dis-cephe-boyama', title: 'Dış Cephe Boyama' },
+      { slug: 'duvar-kagidi-doseme', title: 'Duvar Kağıdı Döşeme' },
+      { slug: 'alcipan-kartonpiyer', title: 'Alçıpan & Kartonpiyer' },
+    ],
+  },
+  {
+    clusterId: 'zemin-kaplama',
+    name: 'Zemin & Kaplama',
+    primarySlugs: ['fayans-doseme', 'parke-doseme'],
+    subservices: [
+      { slug: 'fayans-doseme', title: 'Fayans Döşeme' },
+      { slug: 'parke-doseme', title: 'Parke Döşeme' },
+      { slug: 'mermer-doseme', title: 'Mermer Döşeme' },
+      { slug: 'epoksi-kaplama', title: 'Epoksi Zemin Kaplama' },
+      { slug: 'supurgelik-montaji', title: 'Süpürgelik Montajı' },
+    ],
+  },
+  {
+    clusterId: 'ev-tadilat-yapi',
+    name: 'Ev Tadilat & Yapı',
+    primarySlugs: ['ev-tadilat', 'mantolama'],
+    subservices: [
+      { slug: 'ev-tadilat', title: 'Ev Tadilat' },
+      { slug: 'mutfak-tadilati', title: 'Mutfak Tadilatı' },
+      { slug: 'banyo-tadilati', title: 'Banyo Tadilatı' },
+      { slug: 'ic-mimar', title: 'İç Mimar' },
+      { slug: 'dekorasyon', title: 'Dekorasyon' },
+      { slug: 'mantolama', title: 'Mantolama' },
+      { slug: 'dis-cephe', title: 'Dış Cephe' },
+    ],
+  },
+  {
+    clusterId: 'tasima-nakliyat',
+    name: 'Taşıma & Nakliyat',
+    primarySlugs: ['nakliyat'],
+    subservices: [
+      { slug: 'nakliyat', title: 'Nakliyat / Ev Taşıma' },
+      { slug: 'sehirler-arasi-nakliyat', title: 'Şehirler Arası Nakliyat' },
+      { slug: 'parca-esya-tasima', title: 'Parça Eşya Taşıma' },
+      { slug: 'asansorlu-nakliyat', title: 'Asansörlü Nakliyat' },
+      { slug: 'ofis-tasima', title: 'Ofis Taşıma' },
+    ],
+  },
+  {
+    clusterId: 'marangoz-mobilya',
+    name: 'Marangoz & Mobilya',
+    primarySlugs: ['marangoz', 'mobilya-montaji'],
+    subservices: [
+      { slug: 'marangoz', title: 'Marangoz' },
+      { slug: 'mobilya-montaji', title: 'Mobilya Montajı' },
+      { slug: 'mobilya-tamiri', title: 'Mobilya Tamiri' },
+      { slug: 'ozel-imalat-dolap', title: 'Özel İmalat Dolap' },
+    ],
+  },
+  {
+    clusterId: 'cam-pvc-yapi',
+    name: 'Cam, PVC & Yapı',
+    primarySlugs: ['cam-balkon', 'pvc-pencere'],
+    subservices: [
+      { slug: 'cam-balkon', title: 'Cam Balkon' },
+      { slug: 'pvc-pencere', title: 'PVC Pencere' },
+      { slug: 'sineklik-montaji', title: 'Sineklik Montajı' },
+      { slug: 'otomatik-kepenk', title: 'Otomatik Kepenk' },
+    ],
+  },
+  {
+    clusterId: 'yemek-ev-isleri',
+    name: 'Yemek & Ev İşleri',
+    primarySlugs: ['evde-yemek-pisirme', 'yaprak-sarma-yapimi'],
+    subservices: [
+      { slug: 'evde-yemek-pisirme', title: 'Evde Yemek Pişirme' },
+      { slug: 'yaprak-sarma-yapimi', title: 'Yaprak Sarma & Mantı Yapımı' },
+      { slug: 'davet-yemegi', title: 'Davet & Organizasyon Yemeği' },
+    ],
+  },
+  {
+    clusterId: 'egitim-ozel-ders',
+    name: 'Eğitim & Özel Ders',
+    primarySlugs: ['ozel-ders'],
+    subservices: [
+      { slug: 'ozel-ders', title: 'Özel Ders' },
+      { slug: 'matematik-ozel-ders', title: 'Matematik Özel Ders' },
+      { slug: 'ingilizce-ozel-ders', title: 'İngilizce Özel Ders' },
+      { slug: 'direksiyon-dersi', title: 'Direksiyon Dersi' },
+    ],
+  },
+  {
+    clusterId: 'fotograf-organizasyon',
+    name: 'Fotoğraf & Organizasyon',
+    primarySlugs: ['fotografci', 'organizasyon', 'etkinlik'],
+    subservices: [
+      { slug: 'fotografci', title: 'Fotoğrafçı' },
+      { slug: 'organizasyon', title: 'Organizasyon' },
+      { slug: 'etkinlik', title: 'Etkinlik' },
+    ],
+  },
+];
+
 const ConfettiEffect = ({ active }: { active: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -742,6 +947,27 @@ export default function ProviderDashboard() {
   const [showPassiveAlert, setShowPassiveAlert] = useState<boolean>(false);
   const [isFirstPassiveLoginModalOpen, setIsFirstPassiveLoginModalOpen] = useState<boolean>(false);
   const [registeredSuccessAlert, setRegisteredSuccessAlert] = useState<boolean>(false);
+
+  // Subservices Smart Tag Flow states
+  const [providerSubserviceSlugs, setProviderSubserviceSlugs] = useState<string[]>([]);
+  const [subserviceSearchQuery, setSubserviceSearchQuery] = useState<string>('');
+  const [selectedSubserviceForSuggestion, setSelectedSubserviceForSuggestion] = useState<string | null>(null);
+  const [isSavingSubservices, setIsSavingSubservices] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (token) {
+      fetch('/api/hizmetveren/my-services', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.subserviceSlugs)) {
+            setProviderSubserviceSlugs(data.subserviceSlugs);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [token]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -6371,34 +6597,185 @@ export default function ProviderDashboard() {
                 </div>
               </div>
 
-              {/* Hizmet Profilleri Bölümü */}
+              {/* 🌟 Single-Page Smart Tag Flow (Hizmet & Uzmanlık Alanları Yönetimi) */}
               <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
-                <div className="text-left">
-                  <h3 className="font-extrabold text-slate-900 text-sm">Hizmet Profillerim</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Sistemde hizmet verdiğiniz uzmanlık alanları ve kategoriler.</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-sm">Hizmetlerim & Uzmanlık Alanlarım</h3>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                      Verdiğiniz hizmetleri aratarak veya önerilen çiplere tıklayarak ekleyin/çıkarın.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-slate-600 bg-[#c8f252]/20 border border-[#c8f252]/40 px-3 py-1 rounded-full">
+                    {providerSubserviceSlugs.length} Hizmet Seçili
+                  </span>
                 </div>
 
-                {profile?.categories && profile.categories.length > 0 ? (
-                  <div className="flex flex-wrap gap-2.5 pt-1">
-                    {profile.categories.map((cat: any) => (
-                      <span
-                        key={cat.id}
-                        className="bg-slate-100 text-slate-800 border border-slate-200/50 px-4 py-2.5 rounded-2xl text-xs font-black flex items-center gap-1.5"
-                      >
-                        💼 {cat.name}
-                      </span>
-                    ))}
+                {/* 1. Interactive Search Input Bar */}
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3.5 text-slate-400 text-lg">
+                      search
+                    </span>
+                    <input
+                      type="text"
+                      value={subserviceSearchQuery}
+                      onChange={(e) => setSubserviceSearchQuery(e.target.value)}
+                      placeholder="Verdiğiniz hizmetlerde arayın (Örn: Klima, İlaçlama, Böcek, Ev Temizliği, Koltuk...)"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#c8f252] rounded-2xl pl-10 pr-4 py-3 outline-none text-xs font-bold text-slate-900 placeholder:text-slate-400 transition-colors shadow-2xs"
+                    />
                   </div>
-                ) : (
-                  <div className="text-center py-6 text-slate-400 font-semibold text-xs bg-slate-50 rounded-2xl border border-slate-100">
-                    Kayıtlı bir hizmet profiliniz bulunmamaktadır.
-                  </div>
-                )}
 
-                <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
-                  <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
-                    ⚙️ Hizmet alanlarınızı/sektörlerinizi değiştirmek, yeni uzmanlık eklemek veya mevcut olanları çıkartmak için kayıtlı e-posta adresiniz üzerinden <a href="mailto:destek@esnaaf.com" className="text-[#4c630a] font-bold hover:underline">destek@esnaaf.com</a> adresi ile iletişime geçebilirsiniz.
-                  </p>
+                  {/* Search Autocomplete Suggestions Dropdown */}
+                  {subserviceSearchQuery.trim().length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-30 max-h-60 overflow-y-auto p-2 space-y-1">
+                      {DEFAULT_SERVICE_CLUSTERS.flatMap((c) => c.subservices)
+                        .filter(
+                          (sub, idx, self) =>
+                            self.findIndex((s) => s.slug === sub.slug) === idx &&
+                            sub.title.toLowerCase().includes(subserviceSearchQuery.toLowerCase())
+                        )
+                        .map((sub) => {
+                          const isSelected = providerSubserviceSlugs.includes(sub.slug);
+                          return (
+                            <button
+                              key={sub.slug}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setProviderSubserviceSlugs(providerSubserviceSlugs.filter((s) => s !== sub.slug));
+                                } else {
+                                  setProviderSubserviceSlugs([...providerSubserviceSlugs, sub.slug]);
+                                  setSelectedSubserviceForSuggestion(sub.slug);
+                                }
+                                setSubserviceSearchQuery('');
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
+                                isSelected ? 'bg-[#c8f252]/10 text-slate-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                              }`}
+                            >
+                              <span>{sub.title}</span>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                                {isSelected ? '✓ Seçili' : '+ Ekle'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Instant Related Suggestions Box (Tek Ekran Bağlantılı Çipler) */}
+                {selectedSubserviceForSuggestion && (() => {
+                  const targetCluster = DEFAULT_SERVICE_CLUSTERS.find((c) =>
+                    c.subservices.some((s) => s.slug === selectedSubserviceForSuggestion)
+                  );
+                  if (!targetCluster) return null;
+                  const suggestions = targetCluster.subservices.filter(
+                    (s) => !providerSubserviceSlugs.includes(s.slug)
+                  );
+                  if (suggestions.length === 0) return null;
+                  const selectedItemTitle = targetCluster.subservices.find(s => s.slug === selectedSubserviceForSuggestion)?.title;
+
+                  return (
+                    <div className="bg-[#c8f252]/10 border border-[#c8f252]/30 p-4 rounded-2xl space-y-2.5 text-left animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                          💡 <strong>"{selectedItemTitle}"</strong> seçtiniz. Şunları da sunuyor musunuz?
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSubserviceForSuggestion(null)}
+                          className="text-slate-400 hover:text-slate-700 text-xs font-bold"
+                        >
+                          ✕ Kapat
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.map((s) => (
+                          <button
+                            key={s.slug}
+                            type="button"
+                            onClick={() => setProviderSubserviceSlugs([...providerSubserviceSlugs, s.slug])}
+                            className="bg-white hover:bg-[#c8f252] text-slate-800 hover:text-slate-950 border border-[#c8f252]/40 px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                          >
+                            <span>+ {s.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 3. Selected Active Services Cloud (Aktif Hizmetlerim) */}
+                <div className="space-y-2 text-left">
+                  <span className="text-xs font-extrabold text-slate-700 block">
+                    Aktif Seçili Uzmanlık Alanlarınız ({providerSubserviceSlugs.length})
+                  </span>
+                  {providerSubserviceSlugs.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-100 rounded-2xl max-h-56 overflow-y-auto">
+                      {providerSubserviceSlugs.map((slug) => {
+                        const title = DEFAULT_SERVICE_CLUSTERS.flatMap((c) => c.subservices).find((s) => s.slug === slug)?.title || slug;
+                        return (
+                          <span
+                            key={slug}
+                            className="bg-white text-slate-900 border border-slate-200 shadow-2xs px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 group hover:border-red-300 transition-colors"
+                          >
+                            <span>💼 {title}</span>
+                            <button
+                              type="button"
+                              onClick={() => setProviderSubserviceSlugs(providerSubserviceSlugs.filter((s) => s !== slug))}
+                              className="text-slate-400 hover:text-red-600 font-black text-xs cursor-pointer px-1 rounded-md"
+                              title="Hizmeti Çıkar"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-slate-400 font-semibold text-xs bg-slate-50 rounded-2xl border border-slate-100">
+                      Henüz spesifik bir alt hizmet seçmediniz. Yukarıdaki arama kutusundan hizmetlerinizi ekleyebilirsiniz.
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Save Button for Subservices */}
+                <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
+                  <span className="text-[10px] text-slate-400 font-semibold">
+                    Seçtiğiniz hizmetlerin fırsat bildirimleri anında panelinize düşecektir.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsSavingSubservices(true);
+                      try {
+                        const res = await fetch('/api/hizmetveren/my-services', {
+                          method: 'PATCH',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ subserviceSlugs: providerSubserviceSlugs }),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          alert('Hizmetleriniz ve uzmanlık alanlarınız başarıyla güncellendi!');
+                        } else {
+                          alert(data.message || 'Güncellenirken bir hata oluştu.');
+                        }
+                      } catch (err: any) {
+                        alert('Güncelleme hatası: ' + err.message);
+                      } finally {
+                        setIsSavingSubservices(false);
+                      }
+                    }}
+                    disabled={isSavingSubservices}
+                    className="bg-[#c8f252] hover:bg-[#b5e639] text-slate-950 font-black text-xs px-6 py-3 rounded-xl cursor-pointer shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    {isSavingSubservices ? 'Kaydediliyor...' : 'Hizmetlerimi Kaydet'}
+                  </button>
                 </div>
               </div>
 

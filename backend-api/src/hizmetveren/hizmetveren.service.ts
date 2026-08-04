@@ -10,6 +10,7 @@ import { BildirimService } from '../ortak/bildirimler/bildirim.service';
 import { RedisService } from '../common/redis/redis.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AuthService } from '../ortak/auth/auth.service';
+import { SERVICE_CLUSTERS, getAllSubservices } from '../ortak/chat/service-relations.config';
 
 @Injectable()
 export class HizmetverenService {
@@ -2246,6 +2247,64 @@ export class HizmetverenService {
       case 'Etkinlik': return 'etkinlik';
       default: return 'diger';
     }
+  }
+
+  async getServiceClusters() {
+    return {
+      success: true,
+      clusters: SERVICE_CLUSTERS,
+      allSubservices: getAllSubservices(),
+    };
+  }
+
+  async getMyServices(providerUserId: string) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+      select: {
+        id: true,
+        category_ids: true,
+        subservice_slugs: true,
+      },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    return {
+      success: true,
+      providerId: provider.id,
+      categoryIds: provider.category_ids,
+      subserviceSlugs: provider.subservice_slugs || [],
+    };
+  }
+
+  async updateMyServices(providerUserId: string, subserviceSlugs: string[]) {
+    const provider = await this.prisma.serviceProvider.findUnique({
+      where: { user_id: providerUserId },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Hizmet veren profili bulunamadı.');
+    }
+
+    const updated = await this.prisma.serviceProvider.update({
+      where: { user_id: providerUserId },
+      data: {
+        subservice_slugs: subserviceSlugs,
+      },
+      select: {
+        id: true,
+        subservice_slugs: true,
+        category_ids: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Hizmetleriniz ve uzmanlık alanlarınız başarıyla güncellendi.',
+      subserviceSlugs: updated.subservice_slugs,
+    };
   }
 }
 
