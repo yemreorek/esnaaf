@@ -191,34 +191,79 @@ export default function CategoryGroupClient({ groupData }: CategoryGroupClientPr
         </div>
       </section>
 
-      {/* 🔴 SECTION 2: TÜM KATEGORİ HİZMETLERİ (COMPREHENSIVE MULTI-COLUMN LIST) */}
-      <section className="py-16 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-          <div className="border-b border-slate-200/80 pb-4">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-              Tüm {groupData.name} Hizmetleri
-            </h2>
-            <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
-              İstediğin hizmete tıkla, 30 saniyede AI asistanımız ile teklif topla
-            </p>
+      {/* 🔴 SECTION 2: TÜM KATEGORİ HİZMETLERİ (COMPREHENSIVE 2-COLUMN MOBILE GRID) */}
+      <section className="py-12 md:py-16 bg-slate-50 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-6 md:space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight">
+                  Tüm {groupData.name} Hizmetleri
+                </h2>
+                <span className="text-[11px] font-bold text-slate-600 bg-slate-200/80 px-2.5 py-0.5 rounded-full">
+                  {filteredAll.length} Hizmet
+                </span>
+              </div>
+              <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
+                İstediğin hizmete tıkla, 30 saniyede AI asistanımız ile teklif topla
+              </p>
+            </div>
+
+            {/* Quick Live Filter Input */}
+            <div className="relative w-full md:w-72">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+                filter_alt
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Hizmetlerde ara..."
+                className="w-full pl-9 pr-4 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:border-[#c8f252] focus:ring-2 focus:ring-[#c8f252]/20 outline-none transition-all"
+              />
+            </div>
           </div>
 
-          {/* Multi-Column Text Links Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-3 gap-x-6">
-            {filteredAll.map((item, idx) => (
+          {/* 2-Column Mobile & 4-Column Desktop Grid */}
+          {filteredAll.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+              {filteredAll.map((item, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleStartQuote(item.name)}
+                  className="text-left text-xs font-bold bg-white hover:bg-slate-900 border border-slate-200/90 hover:border-[#c8f252] shadow-xs hover:shadow-lg p-3 rounded-2xl transition-all duration-200 flex items-center justify-between group cursor-pointer"
+                >
+                  <span className="truncate pr-1.5 text-slate-800 group-hover:text-white transition-colors">
+                    {item.name}
+                  </span>
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#c8f252] text-sm group-hover:translate-x-0.5 transition-all shrink-0">
+                    arrow_forward
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4 max-w-md mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">search_off</span>
+              </div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-sm">Aranan Hizmet Bulunamadı</h3>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  "{searchQuery}" aramasıyla eşleşen bir hizmet bulunamadı. Dilerseniz özel canlı sohbet başlatabilirsiniz.
+                </p>
+              </div>
               <button
-                key={idx}
                 type="button"
-                onClick={() => handleStartQuote(item.name)}
-                className="text-left text-xs font-bold text-slate-700 hover:text-slate-950 hover:bg-[#c8f252]/20 hover:border-[#c8f252] p-2.5 rounded-xl transition-all border border-transparent flex items-center justify-between group cursor-pointer"
+                onClick={() => handleStartQuote(searchQuery)}
+                className="inline-flex items-center gap-2 bg-[#c8f252] text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl hover:bg-[#b5dc43] transition-colors cursor-pointer"
               >
-                <span className="truncate pr-2">{item.name}</span>
-                <span className="material-symbols-outlined text-slate-400 group-hover:text-slate-900 text-sm group-hover:translate-x-1 transition-transform shrink-0">
-                  arrow_forward
-                </span>
+                <span>Yapay Zeka ile Teklif Al</span>
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </section>
     </div>
