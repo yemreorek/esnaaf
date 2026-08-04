@@ -24,7 +24,38 @@ export const CATEGORIES_LIST = [
   { name: "Özel Ders", icon: "school", slug: "ozel-ders" },
   { name: "Cam Balkon", icon: "window", slug: "cam-balkon" },
   { name: "Doğalgaz Tesisatı", icon: "propane_tank", slug: "dogalgaz-tesisati" },
-  { name: "İç Mimar & Dekorasyon", icon: "architecture", slug: "ic-mimar" }
+  { name: "İç Mimar & Dekorasyon", icon: "architecture", slug: "ic-mimar" },
+  // Oto & Araç
+  { name: "Oto Kuaför & Detaylı Temizlik", icon: "directions_car", slug: "oto-kuafor" },
+  { name: "Pasta Cila & Seramik Kaplama", icon: "directions_car", slug: "pasta-cila" },
+  { name: "Araç Kaplama & PPF", icon: "directions_car", slug: "arac-kaplama" },
+  { name: "Oto Tamir & Motor Bakımı", icon: "build", slug: "oto-tamir" },
+  { name: "Oto Ekspertiz", icon: "verified", slug: "oto-ekspertiz" },
+  { name: "Oto Lastik & Fren Değişimi", icon: "tire_repair", slug: "oto-lastik" },
+  // Fotoğraf & Video
+  { name: "Dış Çekim Fotoğraf", icon: "photo_camera", slug: "dis-cekim-fotograf" },
+  { name: "Düğün Fotoğrafçısı", icon: "photo_camera", slug: "dugun-fotografcisi" },
+  { name: "Drone Çekimi", icon: "videocam", slug: "drone-cekimi" },
+  { name: "Doğum Günü Fotoğrafçısı", icon: "photo_camera", slug: "dogum-gunu-fotografcisi" },
+  { name: "Ürün Fotoğraf Çekimi", icon: "photo_camera", slug: "urun-fotografciligi" },
+  { name: "Video Çekimi & Kurgu", icon: "movie", slug: "video-cekimi" },
+  // Sağlıklı Yaşam
+  { name: "Psikolog & Klinik Psikolog", icon: "health_and_safety", slug: "psikolog" },
+  { name: "Online Terapi & Danışmanlık", icon: "health_and_safety", slug: "online-terapi" },
+  { name: "Diyetisyen & Beslenme Uzmanı", icon: "nutrition", slug: "diyetisyen" },
+  { name: "Fizyoterapist & Evde Fizik Tedavi", icon: "physical_therapy", slug: "fizyoterapist" },
+  { name: "Pilates & Reformer Pilates", icon: "fitness_center", slug: "pilates-dersi" },
+  // Evcil Hayvanlar
+  { name: "Pet Kuaförü & Kedi/Köpek Traşı", icon: "pets", slug: "pet-kuaforu" },
+  { name: "Köpek Oteli & Kedi Oteli", icon: "pets", slug: "kopek-oteli" },
+  { name: "Köpek Eğitimi", icon: "pets", slug: "kopek-egitimi" },
+  // Dijital & Kurumsal
+  { name: "İnternet Sitesi Oluşturma & Web Tasarım", icon: "laptop_mac", slug: "internet-sitesi-olusturma" },
+  { name: "SEO Hizmeti", icon: "search", slug: "seo-hizmeti" },
+  { name: "Logo Tasarımı & Grafik Tasarım", icon: "palette", slug: "logo-tasarimi" },
+  { name: "Vize Danışmanlığı", icon: "flight_takeoff", slug: "vize-danismanlik" },
+  { name: "Yeminli Tercüme & Çeviri", icon: "translate", slug: "yeminli-tercume" },
+  { name: "Özel Dedektif", icon: "search", slug: "ozel-dedektif" }
 ];
 
 export default function AllCategoriesModal() {
@@ -91,6 +122,22 @@ export default function AllCategoriesModal() {
             </button>
           </div>
 
+          {/* Direct Banner Link to /g/diger */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              router.push("/g/diger");
+            }}
+            className="w-full bg-[#c8f252] hover:bg-[#b5dc43] text-slate-950 p-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">grid_view</span>
+              <span>Tüm Hizmet Kategorileri & Dizin Rehberi</span>
+            </div>
+            <span className="material-symbols-outlined text-sm font-bold">arrow_forward</span>
+          </button>
+
           {/* 🔍 Search Input Bar */}
           <div className="relative flex items-center">
             <div className="absolute left-4 text-slate-400 pointer-events-none">
@@ -101,7 +148,7 @@ export default function AllCategoriesModal() {
               autoFocus
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Hizmet arayın... (Örn: Klima, Boya, Nakliyat)"
+              placeholder="Hizmet arayın... (Örn: Klima, Oto Kuaför, Psikolog, Düğün)"
               className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-200 focus:border-[#c8f252] focus:bg-white focus:ring-2 focus:ring-[#c8f252]/20 rounded-2xl text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all"
             />
             {searchQuery && (

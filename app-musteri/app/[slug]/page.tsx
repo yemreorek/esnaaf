@@ -203,13 +203,12 @@ export default async function HizmetSeoPage({ params }: PageProps) {
                 <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/tamir">Tamir</a>
                 <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/ozel-ders">Özel Ders</a>
                 <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/organizasyon">Organizasyon</a>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent("open-category-modal"))}
-                  className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider bg-transparent border-none p-0 cursor-pointer"
+                <Link
+                  href="/g/diger"
+                  className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider"
                 >
                   Diğer
-                </button>
+                </Link>
               </nav>
             </div>
             

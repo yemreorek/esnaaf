@@ -575,13 +575,9 @@ export default function Home() {
               <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/tamir">Tamir</a>
               <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/ozel-ders">Özel Ders</a>
               <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/organizasyon">Organizasyon</a>
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent("open-category-modal"))}
-                className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider bg-transparent border-none p-0 cursor-pointer"
-              >
+              <a className="text-slate-200 hover:text-[#c8f252] transition-colors font-bold text-xs uppercase tracking-wider" href="/g/diger">
                 Diğer
-              </button>
+              </a>
             </nav>
           </div>
           
@@ -799,7 +795,7 @@ export default function Home() {
                 key={idx}
                 onClick={() => {
                   if (item.name === "Diğer" || item.category === "Hizmet") {
-                    setIsModalOpen(true);
+                    router.push("/g/diger");
                   } else {
                     handleSelectCategory(item.category);
                   }

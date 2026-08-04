@@ -10,6 +10,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterProviderDto } from './dto/register-provider.dto';
 import { ProviderLoginDto } from './dto/provider-login.dto';
+import { getAllSubservices } from '../chat/service-relations.config';
 
 @Injectable()
 export class AuthService {
@@ -409,11 +410,32 @@ export class AuthService {
   }
 
   async getCategories() {
-    return this.redis.getOrSet('categories:active', () => {
-      return this.prisma.category.findMany({
+    return this.redis.getOrSet('categories:active_v2', async () => {
+      const dbCategories = await this.prisma.category.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
       });
+      const dbSlugs = new Set(dbCategories.map((c) => c.slug.toLowerCase()));
+      const allSub = getAllSubservices();
+      const combined = [...dbCategories];
+
+      for (const sub of allSub) {
+        if (!dbSlugs.has(sub.slug.toLowerCase())) {
+          dbSlugs.add(sub.slug.toLowerCase());
+          combined.push({
+            id: sub.slug,
+            name: sub.title,
+            slug: sub.slug,
+            icon: 'grid_view',
+            description: null,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as any);
+        }
+      }
+
+      return combined;
     }, 3600); // Cache for 1 hour
   }
 

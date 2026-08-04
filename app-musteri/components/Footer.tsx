@@ -198,13 +198,12 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent("open-category-modal"))}
-                    className="text-[#c8f252] font-semibold hover:underline cursor-pointer bg-transparent border-none p-0 flex items-center gap-1"
+                  <Link
+                    href="/g/diger"
+                    className="text-[#c8f252] font-semibold hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    Tüm Kategoriler →
-                  </button>
+                    Tüm Kategoriler Dizin Rehberi →
+                  </Link>
                 </li>
               </ul>
             </div>
