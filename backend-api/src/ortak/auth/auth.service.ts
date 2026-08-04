@@ -411,7 +411,7 @@ export class AuthService {
   }
 
   async getCategories() {
-    return this.redis.getOrSet('categories:active_v2', async () => {
+    return this.redis.getOrSet('categories:active_v3', async () => {
       const dbCategories = await this.prisma.category.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
