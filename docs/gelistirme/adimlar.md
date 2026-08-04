@@ -1091,3 +1091,12 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
 - **Oto ve Araç & Fotoğraf 2026 Piyasa Fiyat Matrisi (`market-price-aggregator.service.ts`):**
   - Pasta cila (₺1.500 - ₺4.500), seramik kaplama (₺4.000 - ₺12.500), oto kuaför (₺1.200 - ₺3.500), motor tamiri (₺3.500 - ₺18.500), düğün fotoğrafçısı (₺6.500 - ₺18.500), drone çekimi (₺2.500 - ₺7.500) vb. için 2026 piyasa fiyat tahmin kural seti kuruldu.
   - Değişiklikler derlendi, `f474596` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına otomatik deploy edildi.
+
+## 🛠️ Adım 67 Geliştirme Detayları (Sağlıklı Yaşam, Evcil Hayvanlar, Dijital & Kurumsal Kategorileri Entegrasyonu)
+
+- **Arayüz Kategori Genişlemesi (`CategoryGroupClient.tsx`):**
+  - Kullanıcının paylaştığı ekran görüntülerinde yer alan **Fotoğraf ve Video** (22 alt hizmet), **Sağlıklı Yaşam** (43 alt hizmet), **Evcil Hayvanlar** (16 alt hizmet), **Dijital ve Kurumsal** (98 alt hizmet), **Oto ve Araç** (34 alt hizmet) ve **Diğer Çeşitli Hizmetler** (17 alt hizmet) olmak üzere toplam 200+ alt hizmet `/g/diger` sayfasına entegre edildi.
+- **Backend Hizmet Kümeleri & 2026 Piyasa Fiyat Matrisi (`service-relations.config.ts` & `market-price-aggregator.service.ts`):**
+  - `saaglikli-yasam`, `evcil-hayvanlar`, `dijital-kurumsal`, `cesitli-diger` kümeleri eklendi.
+  - Psikolog (₺1.200 - ₺3.500), Diyetisyen (₺800 - ₺2.500), Evde Fizik Tedavi (₺1.500 - ₺4.500), Kedi/Köpek Traşı (₺600 - ₺1.800), Köpek Oteli (₺500 - ₺1.500), İnternet Sitesi (₺5.000 - ₺25.000), SEO Hizmeti (₺4.000 - ₺18.000), Özel Dedektif (₺10.000 - ₺45.000) için 2026 piyasa fiyat aralıkları bağlandı.
+  - Değişiklikler derlendi, `62127fa` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına otomatik deploy edildi.

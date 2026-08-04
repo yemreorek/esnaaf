@@ -2,6 +2,15 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-04 feat | "DİĞER" Sayfasına Sağlıklı Yaşam, Evcil Hayvanlar, Dijital & Kurumsal Kategorileri, 2026 Fiyatları & pSEO Desteği
+
+- **Ekran Görüntülerindeki Tüm Kategori Gruplarının Eklenmesi (`/g/diger`):**
+  - Ekran görüntülerinde kırmızı ile işaretlenen 5 yeni kategori grubu (**Fotoğraf ve Video**, **Sağlıklı Yaşam**, **Evcil Hayvanlar**, **Dijital ve Kurumsal**, **Diğer Çeşitli Hizmetler**) 150+ alt hizmet kalemiyle birlikte `/g/diger` dizin sayfasına entegre edildi.
+  - Tasarım, Armut örneğindeki gibi 3'lü sütun altı çizgili hover bağlantı stili ve canlı arama filtresiyle geliştirildi.
+- **Backend Hizmet Kümeleri & 2026 Piyasa Fiyat Tahminleri Entegrasyonu (`backend-api`):**
+  - `service-relations.config.ts` ve `market-price-aggregator.service.ts` servislerine Psikolog (₺1.200-₺3.500), Diyetisyen (₺800-₺2.500), Fizyoterapist (₺1.500-₺4.500), Kedi/Köpek Traşı (₺600-₺1.800), Köpek Oteli (₺500-₺1.500), İnternet Sitesi (₺5.000-₺25.000), SEO (₺4.000-₺18.000), Özel Dedektif (₺10.000-₺45.000) vb. için 2026 fiyat aralıkları ve pSEO şemaları eklendi.
+  - Kodlar derlendi, `62127fa` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına deploy edildi.
+
 ## 2026-08-04 feat | "DİĞER" Kategoriler Sayfası (`/g/diger`), Çoklu Sütun Grubu Arayüzü, Oto/Fotoğraf 2026 Fiyat & pSEO Desteği
 
 - **Ana Menü Rota Güncellemesi (`HeaderNavbar.tsx`):**
