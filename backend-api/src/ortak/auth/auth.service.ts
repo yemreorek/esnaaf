@@ -411,7 +411,7 @@ export class AuthService {
   }
 
   async getCategories() {
-    return this.redis.getOrSet('categories:active_v3', async () => {
+    return this.redis.getOrSet('categories:active_v4', async () => {
       const dbCategories = await this.prisma.category.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
@@ -444,6 +444,39 @@ export class AuthService {
         created_at: c.created_at,
       }));
 
+      const getParentDbCategorySlug = (subItem: { slug: string; categorySlug: string }) => {
+        if (subItem.slug === 'insaat-sonrasi-temizlik') {
+          return 'insaat-tadilat-sonrasi-temizlik';
+        }
+        const mapping: Record<string, string> = {
+          'klima-servisi': 'kombi-klima-bakimi',
+          'kombi-servisi': 'kombi-klima-bakimi',
+          'hasere-ilaclama': 'hasere-bocek-ilaclama',
+          'nakliyat': 'nakliyat-ev-tasima',
+          'cam-balkon': 'cam-balkon-pvc-pencere',
+          'pvc-pencere': 'cam-balkon-pvc-pencere',
+          'marangoz': 'marangoz-mobilya-montaji',
+          'mobilya-montaji': 'marangoz-mobilya-montaji',
+          'fayans-doseme': 'fayans-parke-doseme',
+          'parke-doseme': 'fayans-parke-doseme',
+          'ic-mimar': 'ic-mimar-dekorasyon',
+          'dekorasyon': 'ic-mimar-dekorasyon',
+          'tadilat': 'ev-tadilat',
+          'mantolama': 'mantolama-dis-cephe',
+          'dis-cephe': 'mantolama-dis-cephe',
+          'organizasyon': 'organizasyon-etkinlik',
+          'etkinlik': 'organizasyon-etkinlik',
+          'seo-hizmeti': 'organizasyon-etkinlik',
+          'grafik-tasarim': 'organizasyon-etkinlik',
+          'internet-sitesi-olusturma': 'organizasyon-etkinlik',
+          'apartman-yonetimi': 'ev-temizligi',
+          'terzi': 'ev-temizligi',
+          'ozel-dedektif': 'organizasyon-etkinlik',
+          'karavan-kiralama': 'nakliyat-ev-tasima',
+        };
+        return mapping[subItem.categorySlug] || subItem.categorySlug;
+      };
+
       const dbSlugs = new Set(dbCategoriesWithMeta.map((c) => c.slug));
       const allSub = getAllSubservices();
       const combined = [...dbCategoriesWithMeta] as any[];
@@ -455,7 +488,7 @@ export class AuthService {
             id: sub.slug,
             name: sub.title,
             slug: sub.slug,
-            parentSlug: sub.categorySlug,
+            parentSlug: getParentDbCategorySlug(sub),
             isSubservice: true,
             icon: 'grid_view',
             description: null,
