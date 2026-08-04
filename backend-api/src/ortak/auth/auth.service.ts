@@ -415,7 +415,25 @@ export class AuthService {
         where: { isActive: true },
         orderBy: { name: 'asc' },
       });
-      const dbSlugs = new Set(dbCategories.map((c) => c.slug.toLowerCase()));
+
+      const slugify = (name: string) => {
+        const trMap: Record<string, string> = {
+          'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+          'Ç': 'c', 'Ğ': 'g', 'İ': 'i', 'Ö': 'o', 'Ş': 's', 'Ü': 'u',
+        };
+        let str = name;
+        for (const key in trMap) {
+          str = str.replace(new RegExp(key, 'g'), trMap[key]);
+        }
+        return str
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+      };
+
+      const dbSlugs = new Set(dbCategories.map((c) => slugify(c.name)));
       const allSub = getAllSubservices();
       const combined = [...dbCategories];
 
