@@ -7,6 +7,7 @@ Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et alty
 - **Müşteri Platformu Ana Sayfa (`app-musteri/app/page.tsx`):**
   - Ana sayfada hero bölümünün hemen altında yer alan 8'li kategori buton grubundaki 8. **"Diğer" (`...`)** butonunun yönlendirmesi revize edildi.
   - Harici `/g/diger` sayfasına yönlendirme davranışı kaldırılarak, buton tıklandığında anında ekran üzerine **"Hangi Hizmete İhtiyacınız Var?"** başlıklı kategori seçim pop-up modalının (`isModalOpen = true`) açılması sağlandı.
+  - Kodlar derlendi, `83840dd` commit'i ile GitHub main branch'ine pushlanarak Google Cloud Run canlı ortamına otomatik deploy edildi.
 
 ## 2026-08-04 feat | Akıllı Autocomplete Öneri Kutusu, Türkçe Karakter Normalizasyonu & Kombine Kategori Ayrıştırması (Adım 68)
 
