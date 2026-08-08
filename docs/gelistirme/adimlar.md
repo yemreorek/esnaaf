@@ -71,6 +71,11 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 62** | **Hizmet Veren Paneli 30+ Spesifik Alt Hizmet Başlığı Güncellemesi** | Usta panelinde (partner.esnaaf.com) gelen fırsat kartlarında jenerik üst kategori yerine müşterinin açtığı tam hizmet adının (ör. Dış Cephe Cam Silme) gösterimi | **✅ Tamamlandı** |
 | **Adım 63** | **Kategori Grup Sayfaları Mobil 2'li Grid Düzeni (`/g/[group]`)** | Grup sayfalarındaki Popüler Hizmetler kartlarının mobil cihazlarda ana sayfa ile birebir uyumlu 2'li yan yana dikey kayan grid (`grid-cols-2`) haline getirilmesi | **✅ Tamamlandı** |
 | **Adım 64** | **Özel Premium 404 Not Found Sayfası Tasarımı (`app-musteri/app/not-found.tsx`)** | Esnaaf marka kimliğine uygun, karanlık cam efektli (glassmorphic), `#c8f252` lime ışıltılı, Esnaaf logolu ve "Ana Sayfaya Dön" butonlu lüks 404 ekranı | **✅ Tamamlandı** |
+| **Adım 65** | **16 İlişkili Hizmet Kümesi, Single-Page Smart Tag Flow & Admin Alt Hizmet Yönetimi** | Hizmet kümeleri haritası, usta panelinde tek ekran akıllı çip akışı ve admin yönetimi | **✅ Tamamlandı** |
+| **Adım 66** | **"DİĞER" Kategoriler Sayfası, Çoklu Sütun Görüntüleme & 2026 Fiyat Desteği** | `/g/diger` rotası ve çoklu sütun grubu arayüzü entegrasyonu | **✅ Tamamlandı** |
+| **Adım 67** | **Sağlıklı Yaşam, Evcil Hayvanlar, Dijital & Kurumsal Kategorileri Entegrasyonu** | 200+ yeni alt hizmetin eklenmesi ve 2026 piyasa fiyatlandırma matrisi | **✅ Tamamlandı** |
+| **Adım 68** | **Akıllı Autocomplete Öneri Kutusu, Türkçe Karakter Normalizasyonu & Kombine Kategori Ayrıştırması** | Anasayfa & usta paneli Türkçe-duyarlı akıllı arama önerisi ve otomatik kategori UUID senkronizasyonu | **✅ Tamamlandı** |
+| **Adım 69** | **Ana Sayfa "Diğer" Butonu Kategori Modalı Pop-up Entegrasyonu** | Ana sayfadaki "Diğer" (`...`) butonuna tıklandığında harici sayfa yerine ekran üzerine "Hangi Hizmete İhtiyacınız Var?" pop-up modalının açılması | **✅ Tamamlandı** |
 
 ---
 
@@ -1100,3 +1105,19 @@ Esnaaf platformunda canlı sohbet robotunun genel platform sorularına (ücretle
   - `saaglikli-yasam`, `evcil-hayvanlar`, `dijital-kurumsal`, `cesitli-diger` kümeleri eklendi.
   - Psikolog (₺1.200 - ₺3.500), Diyetisyen (₺800 - ₺2.500), Evde Fizik Tedavi (₺1.500 - ₺4.500), Kedi/Köpek Traşı (₺600 - ₺1.800), Köpek Oteli (₺500 - ₺1.500), İnternet Sitesi (₺5.000 - ₺25.000), SEO Hizmeti (₺4.000 - ₺18.000), Özel Dedektif (₺10.000 - ₺45.000) için 2026 piyasa fiyat aralıkları bağlandı.
   - Değişiklikler derlendi, `62127fa` commit'i ile GitHub'a push edildi ve Cloud Run canlı ortamına otomatik deploy edildi.
+
+## 🛠️ Adım 68 Geliştirme Detayları (Akıllı Autocomplete Öneri Kutusu, Türkçe Karakter Normalizasyonu & Kombine Kategori Ayrıştırması)
+
+- **Müşteri Arama Autocomplete (`app-musteri/app/page.tsx`):**
+  - Anasayfa açılışında `/api/ortak/auth/categories` endpoint'inden canlı kategoriler ve tüm alt hizmetler çekilir.
+  - Arama kutusuna yazılmaya başlandığı an (örn. `klima`, `insaat`, `boya`) arama çubuğunun altında floating öneri dropdown'ı açılır.
+  - Özel `trNormalize` fonksiyonuyla Türkçe karakter duyarlı eşleşme sağlanmıştır (Türkçe karakter girilmese dahi örn. "insaat" araması "İnşaat Sonrası Temizlik" başlığı ile tam eşleşir).
+  - Tıklanan öneri arama kutusunu doldurur ve sohbet akışını anında başlatır.
+- **Hizmet Veren Paneli Arama Filtresi (`app-hizmetveren/app/page.tsx`):**
+  - Hizmetlerim sekmesindeki uzmanlık arama kutusuna `trNormalize` entegre edilerek Türkçe karakter farkından dolayı bulunamayan tüm hizmetler listelenebilir hale getirildi.
+- **Backend Otomatik Kategori-Alt Hizmet Senkronizasyonu (`backend-api/src/hizmetveren/hizmetveren.service.ts`):**
+  - `updateMyServices` metodu güncellendi: Hizmet veren bir alt hizmet seçtiğinde, bu alt hizmetin bağlı olduğu üst kategori UUID'si veritabanında taranarak hizmet verenin `category_ids` dizisine otomatik kaydedilir.
+- **Kombine Kategori Ayrıştırması:**
+  - Veritabanındaki kombine ana kategoriler ("Kombi & Klima Bakımı", "Fayans & Parke Döşeme" vb.) tekil kategorilere ayrıştırıldı.
+- **Test ve Canlıya Dağıtım:**
+  - Kodlar derlendi, `f12cd7d` commit'i ile GitHub main branch'ine push edildi ve Cloud Run canlı ortamında yayına alındı.

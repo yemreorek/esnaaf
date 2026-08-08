@@ -2,6 +2,27 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-08 fix | Ana Sayfa "Diğer" Butonu Kategori Modalı Pop-up Entegrasyonu (Adım 69)
+
+- **Müşteri Platformu Ana Sayfa (`app-musteri/app/page.tsx`):**
+  - Ana sayfada hero bölümünün hemen altında yer alan 8'li kategori buton grubundaki 8. **"Diğer" (`...`)** butonunun yönlendirmesi revize edildi.
+  - Harici `/g/diger` sayfasına yönlendirme davranışı kaldırılarak, buton tıklandığında anında ekran üzerine **"Hangi Hizmete İhtiyacınız Var?"** başlıklı kategori seçim pop-up modalının (`isModalOpen = true`) açılması sağlandı.
+
+## 2026-08-04 feat | Akıllı Autocomplete Öneri Kutusu, Türkçe Karakter Normalizasyonu & Kombine Kategori Ayrıştırması (Adım 68)
+
+- **Müşteri Arama Autocomplete (`app-musteri`):**
+  - Anasayfa açıldığında `/api/ortak/auth/categories` endpoint'inden güncel kategori ve alt hizmet listesi dinamik çekilerek arama çubuğunun altında floating bir öneri dropdown'ı oluşturuldu.
+  - Özel `trNormalize` Türkçe karakter dönüştürme algoritması sayesinde "insaat", "boya", "klima" gibi yazımlarda ilgili tüm Türkçe başlıklar (İnşaat Sonrası Temizlik, Boya Badana, Klima Montajı vb.) anında eşleşerek önerilmektedir.
+  - Öneriye tıklandığında sohbet otomatik olarak o hizmetle başlatılmaktadır.
+- **Hizmet Veren Paneli Arama Filtresi (`app-hizmetveren`):**
+  - "Hizmetlerim" sekmesindeki uzmanlık alanı arama kutusuna `trNormalize` entegre edilerek Türkçe karakter farkından dolayı listelenmeyen tüm hizmetlerin sorunsuz bulunup seçilmesi sağlandı.
+- **Backend Kategori-Alt Hizmet Otomatik Senkronizasyonu (`backend-api`):**
+  - `updateMyServices` metodu güncellenerek, hizmet veren bir alt hizmet seçtiğinde bu alt hizmetin bağlı olduğu ana kategori UUID'leri otomatik tespit edilip `category_ids` dizisine kaydedilmektedir.
+- **Kombine Kategori Ayrıştırması:**
+  - Veritabanındaki kombine ana kategoriler ("Kombi & Klima Bakımı", "Fayans & Parke Döşeme", "Marangoz & Mobilya Montajı" vb.) tekil ana kategorilere bölündü ve mevcut usta ilişkileri güncellendi.
+- **Canlıya Dağıtım:**
+  - Kodlar derlendi, `f12cd7d` commit'i ile GitHub main branch'ine pushlanarak Cloud Run canlı ortamına dağıtıldı.
+
 ## 2026-08-04 feat | "DİĞER" Sayfasına Sağlıklı Yaşam, Evcil Hayvanlar, Dijital & Kurumsal Kategorileri, 2026 Fiyatları & pSEO Desteği
 
 - **Ekran Görüntülerindeki Tüm Kategori Gruplarının Eklenmesi (`/g/diger`):**

@@ -41,6 +41,7 @@ const categories = [
   { name: "Fotoğrafçı", icon: "📷", phase: "Faz 3" },
   { name: "Organizasyon", icon: "🎉", phase: "Faz 3" },
   { name: "Etkinlik", icon: "🎈", phase: "Faz 3" },
+  { name: "Diğer (Tüm Hizmet Kategorileri & Dizin)", icon: "✨", phase: "Dizin", isDiger: true },
 ];
 
 // Helper function to render a thin, elegant, mono-colored SVG outline icon for categories
@@ -894,7 +895,7 @@ export default function Home() {
                 key={idx}
                 onClick={() => {
                   if (item.name === "Diğer" || item.category === "Hizmet") {
-                    router.push("/g/diger");
+                    setIsModalOpen(true);
                   } else {
                     handleSelectCategory(item.category);
                   }
@@ -1360,6 +1361,23 @@ export default function Home() {
                 </button>
               </div>
 
+              {/* Direct Banner Link to /g/diger */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setModalSearchQuery("");
+                  router.push("/g/diger");
+                }}
+                className="w-full bg-[#c8f252] hover:bg-[#b5dc43] text-slate-950 p-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">grid_view</span>
+                  <span>Tüm Hizmet Kategorileri & Dizin Rehberi</span>
+                </div>
+                <span className="material-symbols-outlined text-sm font-bold">arrow_forward</span>
+              </button>
+
               {/* 🔍 Search Input Bar */}
               <div className="relative flex items-center">
                 <div className="absolute left-4 text-slate-400 pointer-events-none">
@@ -1419,7 +1437,11 @@ export default function Home() {
                     onClick={() => {
                       setIsModalOpen(false);
                       setModalSearchQuery("");
-                      handleSelectCategory(cat.name);
+                      if (cat.isDiger || cat.name.includes("Diğer")) {
+                        router.push("/g/diger");
+                      } else {
+                        handleSelectCategory(cat.name);
+                      }
                     }}
                     className="flex items-center justify-between p-3.5 border border-slate-150 hover:border-[#c8f252] hover:bg-[#c8f252]/10 rounded-2xl text-left cursor-pointer active:scale-98 transition-all w-full bg-white shadow-xs group"
                   >
