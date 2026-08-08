@@ -76,6 +76,7 @@ Bu doküman, Esnaaf platformunun geliştirme sürecindeki tüm adımları ve bun
 | **Adım 67** | **Sağlıklı Yaşam, Evcil Hayvanlar, Dijital & Kurumsal Kategorileri Entegrasyonu** | 200+ yeni alt hizmetin eklenmesi ve 2026 piyasa fiyatlandırma matrisi | **✅ Tamamlandı** |
 | **Adım 68** | **Akıllı Autocomplete Öneri Kutusu, Türkçe Karakter Normalizasyonu & Kombine Kategori Ayrıştırması** | Anasayfa & usta paneli Türkçe-duyarlı akıllı arama önerisi ve otomatik kategori UUID senkronizasyonu | **✅ Tamamlandı** |
 | **Adım 69** | **Ana Sayfa "Diğer" Butonu Kategori Modalı Pop-up Entegrasyonu** | Ana sayfadaki "Diğer" (`...`) butonuna tıklandığında harici sayfa yerine ekran üzerine "Hangi Hizmete İhtiyacınız Var?" pop-up modalının açılması | **✅ Tamamlandı** |
+| **Adım 70** | **Mobil "Neden Esnaaf" Kartları Çift Sıra (2'li Grid) Düzeni** | "Uzağa Arama, Mahallendeki Hizmet Verenlere Hızlıca Ulaş" bölümündeki avantaj kartlarının mobil görünümde 2'li grid (`grid-cols-2`) düzenine dönüştürülmesi | **✅ Tamamlandı** |
 
 ---
 

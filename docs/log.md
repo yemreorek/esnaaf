@@ -2,6 +2,12 @@
  
 Kronolojik sırayla Esnaaf platformu üzerinde yapılan tüm geliştirme et altyapı çalışmalarının kaydı.
 
+## 2026-08-08 ui | Mobil "Neden Esnaaf" Kartları Çift Sıra (2'li Grid) Düzeni (Adım 70)
+
+- **Müşteri Platformu Ana Sayfa (`app-musteri/app/page.tsx`):**
+  - "Uzağa Arama, Mahallendeki Hizmet Verenlere Hızlıca Ulaş" (Neden Esnaaf) bölümündeki 4 avantaj kartının mobil ekranlardaki tek sütunlu (`grid-cols-1`) dikey sıralaması çift sıra (`grid-cols-2`) 2'li yan yana grid düzenine dönüştürüldü.
+  - Kart içi ikon boyutu, padding ve tipografi mobil 2'li grid uyumlu olacak şekilde optimize edildi.
+
 ## 2026-08-08 fix | Ana Sayfa "Diğer" Butonu Kategori Modalı Pop-up Entegrasyonu (Adım 69)
 
 - **Müşteri Platformu Ana Sayfa (`app-musteri/app/page.tsx`):**

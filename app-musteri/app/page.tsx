@@ -1058,37 +1058,37 @@ export default function Home() {
             <p className="font-body text-slate-500 text-sm">Ev işlerini stresli bir yükten, mahalledeki hizmet verenle keyifli bir işbirliğine dönüştürüyoruz.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
-              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
-                <span className="material-symbols-outlined text-2xl font-bold">verified_user</span>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
+              <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 md:mb-6 shadow-xs transition-all duration-300">
+                <span className="material-symbols-outlined text-xl md:text-2xl font-bold">verified_user</span>
               </div>
-              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Güvenli Hizmet</h3>
-              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Gerçek mahalle sakinlerinin yorumlarıyla hizmet kalitesini görün, güvenle seçin.</p>
+              <h3 className="font-black text-slate-900 text-sm md:text-lg mb-1.5 md:mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Güvenli Hizmet</h3>
+              <p className="font-body text-[11px] md:text-xs text-slate-500 leading-normal md:leading-relaxed font-semibold">Gerçek mahalle sakinlerinin yorumlarıyla hizmet kalitesini görün, güvenle seçin.</p>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
-              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
-                <span className="material-symbols-outlined text-2xl font-bold">timer</span>
+            <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
+              <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 md:mb-6 shadow-xs transition-all duration-300">
+                <span className="material-symbols-outlined text-xl md:text-2xl font-bold">timer</span>
               </div>
-              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Zaman Kazan</h3>
-              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Dükkan dükkan gezmeyin. 1 dakikada talebi gönderin, teklifler cebinize gelsin.</p>
+              <h3 className="font-black text-slate-900 text-sm md:text-lg mb-1.5 md:mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Zaman Kazan</h3>
+              <p className="font-body text-[11px] md:text-xs text-slate-500 leading-normal md:leading-relaxed font-semibold">Dükkan dükkan gezmeyin. 1 dakikada talebi gönderin, teklifler cebinize gelsin.</p>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
-              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
-                <span className="material-symbols-outlined text-2xl font-bold">touch_app</span>
+            <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
+              <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 md:mb-6 shadow-xs transition-all duration-300">
+                <span className="material-symbols-outlined text-xl md:text-2xl font-bold">touch_app</span>
               </div>
-              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Kolay Kullanım</h3>
-              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Pratik chat asistanımızla detayları birkaç soruda belirleyin, zamanınız size kalsın.</p>
+              <h3 className="font-black text-slate-900 text-sm md:text-lg mb-1.5 md:mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Kolay Kullanım</h3>
+              <p className="font-body text-[11px] md:text-xs text-slate-500 leading-normal md:leading-relaxed font-semibold">Pratik chat asistanımızla detayları birkaç soruda belirleyin, zamanınız size kalsın.</p>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
-              <div className="w-14 h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-6 shadow-xs transition-all duration-300">
-                <span className="material-symbols-outlined text-2xl font-bold">security</span>
+            <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 hover:border-[#c8f252]/80 hover:bg-gradient-to-b hover:from-white hover:to-[#c8f252]/5 transition-all duration-300 group text-center flex flex-col items-center hover:-translate-y-1.5 shadow-[0_12px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.1)]">
+              <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-slate-950 text-[#c8f252] group-hover:bg-[#c8f252] group-hover:text-slate-950 flex items-center justify-center mb-3 md:mb-6 shadow-xs transition-all duration-300">
+                <span className="material-symbols-outlined text-xl md:text-2xl font-bold">security</span>
               </div>
-              <h3 className="font-black text-slate-900 text-lg mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Garantide Ol</h3>
-              <p className="font-body text-xs text-slate-500 leading-relaxed font-semibold">Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır.</p>
+              <h3 className="font-black text-slate-900 text-sm md:text-lg mb-1.5 md:mb-3 tracking-tight group-hover:text-[#719600] transition-colors">Garantide Ol</h3>
+              <p className="font-body text-[11px] md:text-xs text-slate-500 leading-normal md:leading-relaxed font-semibold">Esnaaf üzerinden aldığınız tüm işler platformumuzun koruması altındadır.</p>
             </div>
           </div>
         </div>
